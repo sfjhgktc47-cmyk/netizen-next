@@ -3,6 +3,7 @@ import {
   AUTH_COOKIE_NAME,
   createAuthSessionToken,
   getAuthCookieOptions,
+  hashPassword,
   normalizeEmail,
   normalizeText,
   verifyPassword,
@@ -11,6 +12,31 @@ import { prisma } from "@/lib/db";
 
 function jsonError(message: string, status = 400) {
   return NextResponse.json({ ok: false, message }, { status });
+}
+
+function getConfiguredAdmin() {
+  return {
+    login: normalizeText(process.env.ADMIN_LOGIN) || "admin",
+    password: normalizeText(process.env.ADMIN_PASSWORD) || "netizen-admin",
+    name: normalizeText(process.env.ADMIN_NAME) || "Администратор",
+  };
+}
+
+function createAdminLoginResponse(admin: { login: string; name: string }) {
+  const token = createAuthSessionToken({
+    role: "admin",
+    login: admin.login,
+    name: admin.name,
+    createdAt: new Date().toISOString(),
+  });
+  const response = NextResponse.json({
+    ok: true,
+    user: { role: "admin" },
+    redirectTo: "/nz-console",
+  });
+
+  response.cookies.set(AUTH_COOKIE_NAME, token, getAuthCookieOptions());
+  return response;
 }
 
 export async function POST(request: Request) {
@@ -24,6 +50,7 @@ export async function POST(request: Request) {
     return jsonError("Укажи логин и пароль.");
   }
 
+  const configuredAdmin = getConfiguredAdmin();
   const admin = await prisma.adminUser.findUnique({
     where: { login },
     select: {
@@ -36,24 +63,53 @@ export async function POST(request: Request) {
   });
 
   if (admin) {
-    if (!admin.isActive || !verifyPassword(password, admin.passwordHash)) {
-      return jsonError("Неверный логин или пароль.", 401);
+    const passwordIsValid = verifyPassword(password, admin.passwordHash);
+    const isConfiguredAdminLogin = login === configuredAdmin.login;
+    const isConfiguredAdminPassword = password === configuredAdmin.password;
+
+    if (admin.isActive && passwordIsValid) {
+      return createAdminLoginResponse(admin);
     }
 
-    const token = createAuthSessionToken({
-      role: "admin",
-      login: admin.login,
-      name: admin.name,
-      createdAt: new Date().toISOString(),
-    });
-    const response = NextResponse.json({
-      ok: true,
-      user: { role: "admin" },
-      redirectTo: "/nz-console",
+    // Если админ уже есть в БД, но пароль из .env поменяли или seed ещё не запускали,
+    // разрешаем войти по текущим ADMIN_LOGIN / ADMIN_PASSWORD и сразу синхронизируем hash в БД.
+    if (isConfiguredAdminLogin && isConfiguredAdminPassword) {
+      const syncedAdmin = await prisma.adminUser.update({
+        where: { id: admin.id },
+        data: {
+          name: configuredAdmin.name,
+          passwordHash: hashPassword(configuredAdmin.password),
+          isActive: true,
+        },
+        select: {
+          login: true,
+          name: true,
+        },
+      });
+
+      return createAdminLoginResponse(syncedAdmin);
+    }
+
+    return jsonError("Неверный логин или пароль.", 401);
+  }
+
+  // Если таблица AdminUser пустая или seed не применился, создаём первого админа
+  // только при точном совпадении с ADMIN_LOGIN / ADMIN_PASSWORD.
+  if (login === configuredAdmin.login && password === configuredAdmin.password) {
+    const createdAdmin = await prisma.adminUser.create({
+      data: {
+        login: configuredAdmin.login,
+        name: configuredAdmin.name,
+        passwordHash: hashPassword(configuredAdmin.password),
+        isActive: true,
+      },
+      select: {
+        login: true,
+        name: true,
+      },
     });
 
-    response.cookies.set(AUTH_COOKIE_NAME, token, getAuthCookieOptions());
-    return response;
+    return createAdminLoginResponse(createdAdmin);
   }
 
   const normalizedEmail = normalizeEmail(login);

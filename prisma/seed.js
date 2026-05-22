@@ -34,25 +34,26 @@ async function main() {
     });
   }
 
-  const adminLogin = process.env.ADMIN_LOGIN || "admin";
-  const adminPassword = process.env.ADMIN_PASSWORD || "netizen-admin";
+  const adminLogin = (process.env.ADMIN_LOGIN || "admin").trim();
+  const adminPassword = (process.env.ADMIN_PASSWORD || "netizen-admin").trim();
+  const adminName = (process.env.ADMIN_NAME || "Администратор").trim();
 
   await prisma.adminUser.upsert({
     where: { login: adminLogin },
     update: {
-      name: process.env.ADMIN_NAME || "Администратор",
+      name: adminName,
       passwordHash: hashPassword(adminPassword),
       isActive: true,
     },
     create: {
       login: adminLogin,
-      name: process.env.ADMIN_NAME || "Администратор",
+      name: adminName,
       passwordHash: hashPassword(adminPassword),
       isActive: true,
     },
   });
 
-  console.log("Seed complete: categories and admin account are ready. Demo products are not created.");
+  console.log(`Seed complete: categories and admin account are ready. Admin login: ${adminLogin}`);
 }
 
 main()
