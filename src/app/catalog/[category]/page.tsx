@@ -1,12 +1,22 @@
 import { notFound } from "next/navigation";
-import { categories } from "@/data/categories";
+
 import { CatalogView } from "@/components/catalog-view";
 import { getPublicCatalogData } from "@/lib/public-catalog-db";
+import {
+  getPublicCategoryBySlug,
+  getPublicCategorySlugs,
+} from "@/lib/public-categories-db";
+
+export const dynamic = "force-dynamic";
 
 export async function generateStaticParams() {
-  return categories.map((category) => ({
-    category: category.id,
-  }));
+  try {
+    const slugs = await getPublicCategorySlugs();
+
+    return slugs.map((category) => ({ category }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({
@@ -15,8 +25,7 @@ export async function generateMetadata({
   params: Promise<{ category: string }>;
 }) {
   const { category } = await params;
-
-  const activeCategory = categories.find((item) => item.id === category);
+  const activeCategory = await getPublicCategoryBySlug(category);
 
   if (!activeCategory) {
     return {
@@ -25,12 +34,10 @@ export async function generateMetadata({
   }
 
   return {
-    title: `${activeCategory.name} — каталог Netizen`,
-    description: activeCategory.description,
+    title: activeCategory.seoTitle || `${activeCategory.name} — каталог Netizen`,
+    description: activeCategory.seoDescription || activeCategory.description,
   };
 }
-
-export const dynamic = "force-dynamic";
 
 export default async function CatalogCategoryPage({
   params,
@@ -39,19 +46,21 @@ export default async function CatalogCategoryPage({
 }) {
   const { category } = await params;
 
-  const activeCategory = categories.find((item) => item.id === category);
+  const [activeCategory, catalog] = await Promise.all([
+    getPublicCategoryBySlug(category),
+    getPublicCatalogData(),
+  ]);
 
   if (!activeCategory) {
     notFound();
   }
-
-  const catalog = await getPublicCatalogData();
 
   return (
     <CatalogView
       categoryId={category}
       productsData={catalog.products}
       positionsData={catalog.positions}
+      categoriesData={catalog.categories}
     />
   );
 }

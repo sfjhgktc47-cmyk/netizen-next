@@ -5,7 +5,6 @@ import { useEffect, useMemo, useState } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { ProductTabs } from "@/components/product-tabs";
 import type { PublicProductModel, PublicProductPosition } from "@/lib/public-catalog-db";
-import { categories } from "@/data/categories";
 import { formatPrice, getPriceNumber } from "@/lib/product-pricing";
 
 type ProductCard = PublicProductModel;
@@ -31,12 +30,6 @@ function uniqueBy<T>(items: T[], getKey: (item: T) => string) {
   return Array.from(map.values());
 }
 
-function getCategoryName(categoryId: string) {
-  return (
-    categories.find((category) => category.id === categoryId)?.name ??
-    categoryId
-  );
-}
 
 function getStatusName(status: string) {
   const statuses: Record<string, string> = {
@@ -86,7 +79,7 @@ export function ProductDetailView({
   const [addedToCart, setAddedToCart] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
 
-  const categoryName = getCategoryName(product.category);
+  const categoryName = product.categoryName || product.category;
 
   const memoryOptions = uniqueBy(positions, (position) => position.memory);
   const colorOptions = uniqueBy(positions, (position) => position.color);

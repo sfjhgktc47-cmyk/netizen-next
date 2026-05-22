@@ -5,15 +5,23 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { products as fallbackProducts, type ProductModel as CatalogProductBase } from "@/data/products";
 import { productPositions as fallbackProductPositions, type ProductPosition as CatalogPositionBase } from "@/data/product-positions";
 import { getModelPriceRange, getPriceNumber } from "@/lib/product-pricing";
-import { categories } from "@/data/categories";
 import { SiteHeader } from "@/components/site-header";
 import { ProductCarousel } from "@/components/product-carousel";
 import { useTheme } from "@/components/theme-provider";
+
+type CategoryItem = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  href: string;
+};
 
 type CatalogViewProps = {
   categoryId?: string;
   productsData?: CatalogProductBase[];
   positionsData?: CatalogPositionBase[];
+  categoriesData?: CategoryItem[];
 };
 
 type ProductModel = CatalogProductBase & {
@@ -371,12 +379,14 @@ export function CatalogView({
   categoryId,
   productsData = [],
   positionsData = [],
+  categoriesData = [],
 }: CatalogViewProps) {
   const { dark } = useTheme();
 
   const catalogProductsData = productsData.length > 0 ? productsData : fallbackProducts;
   const catalogPositionsData =
     positionsData.length > 0 ? positionsData : fallbackProductPositions;
+  const categories = categoriesData;
 
   const activeCategoryIndex = categories.findIndex(
     (category) => category.id === categoryId
@@ -908,7 +918,6 @@ export function CatalogView({
             selectedStatus={selectedStatus}
             priceFrom={priceFrom}
             priceTo={priceTo}
-            hasSpecificationFilters={hasSpecificationFilters}
             showPositionResults={shouldShowPositionResults}
             resultCount={resultCount}
             onReset={handleResetCatalogState}
@@ -1072,7 +1081,6 @@ function ActiveFilterSummary({
   selectedStatus,
   priceFrom,
   priceTo,
-  hasSpecificationFilters,
   showPositionResults,
   resultCount,
   onReset,
@@ -1085,7 +1093,6 @@ function ActiveFilterSummary({
   selectedStatus: string | null;
   priceFrom: string;
   priceTo: string;
-  hasSpecificationFilters: boolean;
   showPositionResults: boolean;
   resultCount: number;
   onReset: () => void;
@@ -1136,97 +1143,6 @@ function ActiveFilterSummary({
         </button>
       </div>
     </section>
-  );
-}
-
-function ProductGrid({
-  products,
-  title,
-  subtitle,
-  dark,
-}: {
-  products: ProductModel[];
-  title: string;
-  subtitle: string;
-  dark: boolean;
-}) {
-  return (
-    <section>
-      <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h2 className="text-3xl font-bold tracking-[-0.04em]">{title}</h2>
-          <p className="mt-2 text-sm text-muted">{subtitle}</p>
-        </div>
-      </div>
-
-      <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
-        {products.map((product) => (
-          <GridProductCard key={product.slug} product={product} dark={dark} />
-        ))}
-      </div>
-    </section>
-  );
-}
-
-function GridProductCard({
-  product,
-  dark,
-}: {
-  product: ProductModel;
-  dark: boolean;
-}) {
-  return (
-    <Link
-      href={`/product/${product.slug}`}
-      className={`group block h-full rounded-3xl border p-4 transition-all duration-500 hover:-translate-y-1 ${
-        dark
-          ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
-          : "border-black/10 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)] hover:border-blue-500/35"
-      }`}
-    >
-      <div
-        className={`flex h-[220px] items-center justify-center overflow-hidden rounded-2xl transition-colors duration-700 ${
-          dark ? "bg-white/[0.045] text-white/25" : "bg-slate-100 text-black/25"
-        }`}
-      >
-        {product.image ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={product.image}
-            alt={product.name}
-            className="h-full w-full object-cover"
-          />
-        ) : (
-          "Фото товара"
-        )}
-      </div>
-
-      <div className="px-1 pb-1 pt-4">
-        <div className="text-xs text-muted">{product.brand}</div>
-
-        <h3 className="mt-1 text-lg font-bold leading-tight">
-          {product.name}
-        </h3>
-
-        <p className="mt-1 text-sm text-muted">{product.price}</p>
-
-        <div className="mt-4 flex gap-2">
-          {product.colors.map((color) => (
-            <span
-              key={color}
-              className={`h-4 w-4 rounded-full border ${
-                dark ? "border-white/15" : "border-black/10"
-              }`}
-              style={{ backgroundColor: color }}
-            />
-          ))}
-        </div>
-
-        <div className="mt-5 w-full rounded-xl bg-blue-600 py-3 text-center text-sm font-medium text-white transition-all duration-300 group-hover:bg-blue-500">
-          Перейти →
-        </div>
-      </div>
-    </Link>
   );
 }
 

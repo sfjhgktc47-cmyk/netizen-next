@@ -12,12 +12,41 @@ import {
 import { AnimatePresence, motion } from "framer-motion";
 import { SiteHeader } from "@/components/site-header";
 import { useTheme } from "@/components/theme-provider";
-import { categories as catalogCategories } from "@/data/categories";
 import { footerData } from "@/data/footer";
 import { products } from "@/data/products";
 
+type HomeCategory = {
+  id: string;
+  slug: string;
+  name: string;
+  description: string;
+  href: string;
+};
+
 export default function Home() {
   const { dark } = useTheme();
+  const [catalogCategories, setCatalogCategories] = useState<HomeCategory[]>([]);
+
+  useEffect(() => {
+    let mounted = true;
+
+    fetch("/api/categories")
+      .then((response) => (response.ok ? response.json() : Promise.reject()))
+      .then((payload) => {
+        if (mounted && Array.isArray(payload?.categories)) {
+          setCatalogCategories(payload.categories);
+        }
+      })
+      .catch(() => {
+        if (mounted) {
+          setCatalogCategories([]);
+        }
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   return (
     <main
@@ -32,7 +61,7 @@ export default function Home() {
 
         <Hero dark={dark} />
         <Benefits dark={dark} />
-        <Categories dark={dark} />
+        <Categories dark={dark} categories={catalogCategories} />
         <PopularProducts dark={dark} />
         <NewArrivals dark={dark} />
         <SupportBlock dark={dark} />
@@ -262,7 +291,7 @@ function Benefits({ dark }: { dark: boolean }) {
   );
 }
 
-function Categories({ dark }: { dark: boolean }) {
+function Categories({ dark, categories }: { dark: boolean; categories: HomeCategory[] }) {
   const categoryVisuals: Record<string, string> = {
     smartphones: "/categories/smartphones.png",
     laptops: "/categories/laptops.png",
@@ -293,7 +322,7 @@ function Categories({ dark }: { dark: boolean }) {
       </div>
 
       <div className="mt-8 grid grid-cols-1 auto-rows-fr gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {catalogCategories.map((category) => {
+        {categories.map((category) => {
           const image = categoryVisuals[category.id];
 
           return (

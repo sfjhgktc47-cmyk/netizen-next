@@ -139,6 +139,7 @@ export function SupportConsole() {
 
   useEffect(() => {
     void loadRequests(false);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -147,6 +148,7 @@ export function SupportConsole() {
     }, 5000);
 
     return () => window.clearInterval(intervalId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedRequestNumber]);
 
   async function updateStatus(status: SupportStatus) {

@@ -10,6 +10,7 @@ export default async function CatalogPage() {
     <CatalogView
       productsData={catalog.products}
       positionsData={catalog.positions}
+      categoriesData={catalog.categories}
     />
   );
 }

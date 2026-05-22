@@ -2,12 +2,14 @@ import "server-only";
 
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/product-pricing";
+import { getPublicCategoriesFromDb, type PublicCategory } from "@/lib/public-categories-db";
 
 export type PublicProductModel = {
   slug: string;
   name: string;
   brand: string;
   category: string;
+  categoryName: string;
   price: string;
   description: string;
   shortDescription: string;
@@ -39,6 +41,7 @@ export type PublicCatalogData = {
   products: PublicProductModel[];
   productCards: PublicProductModel[];
   positions: PublicProductPosition[];
+  categories: PublicCategory[];
 };
 
 type ProductWithVariants = Awaited<ReturnType<typeof getDbProductsForPublicCatalog>>[number];
@@ -93,6 +96,7 @@ function toPublicProduct(product: ProductWithVariants): PublicProductModel {
     name: product.name,
     brand: product.brand,
     category: product.categorySlug,
+    categoryName: product.category?.name ?? product.categorySlug,
     price: getPriceRange(product.variants),
     description: product.description,
     shortDescription: product.shortDescription || product.description,
@@ -134,6 +138,7 @@ async function getDbProductsForPublicCatalog() {
       status: "active",
     },
     include: {
+      category: true,
       variants: {
         where: {
           status: {
@@ -148,7 +153,10 @@ async function getDbProductsForPublicCatalog() {
 }
 
 export async function getPublicCatalogData(): Promise<PublicCatalogData> {
-  const dbProducts = await getDbProductsForPublicCatalog();
+  const [dbProducts, categories] = await Promise.all([
+    getDbProductsForPublicCatalog(),
+    getPublicCategoriesFromDb(),
+  ]);
   const products = dbProducts.map(toPublicProduct);
   const positions = dbProducts.flatMap((product) =>
     product.variants.map((variant) => toPublicPosition(variant, product))
@@ -158,6 +166,7 @@ export async function getPublicCatalogData(): Promise<PublicCatalogData> {
     products,
     productCards: products,
     positions,
+    categories,
   };
 }
 
@@ -165,6 +174,7 @@ export async function getPublicProductBySlug(slug: string) {
   const product = await prisma.product.findUnique({
     where: { slug },
     include: {
+      category: true,
       variants: {
         where: {
           status: {

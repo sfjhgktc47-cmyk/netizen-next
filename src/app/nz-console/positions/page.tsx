@@ -17,21 +17,6 @@ function getStockLabel(stock: number) {
   return stock > 0 ? `${stock} шт.` : "Нет";
 }
 
-function getStatusLabel(status: string) {
-  if (status === "active") {
-    return "В продаже";
-  }
-
-  if (status === "out_of_stock") {
-    return "Нет в наличии";
-  }
-
-  if (status === "draft") {
-    return "Под заказ";
-  }
-
-  return "Скрыта";
-}
 
 export default async function AdminPositionsPage() {
   const variants = await prisma.productVariant.findMany({

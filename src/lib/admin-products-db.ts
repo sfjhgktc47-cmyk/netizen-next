@@ -3,7 +3,6 @@
 import "server-only";
 
 import { prisma } from "@/lib/db";
-import { categories as fileCategories } from "@/data/categories";
 import { productCards } from "@/data/product-cards";
 import { productPositions } from "@/data/product-positions";
 
@@ -97,7 +96,7 @@ function moneyToNumber(value: unknown) {
 }
 
 function getDemoCategoryName(categorySlug: string) {
-  return fileCategories.find((category) => category.id === categorySlug)?.name ?? categorySlug;
+  return categorySlug;
 }
 
 function normalizeProductImages(product: any) {
@@ -211,25 +210,18 @@ function getDemoProductBySlug(slug: string): AdminProductDetail | null {
 }
 
 export async function getAdminCategories(): Promise<AdminCategoryOption[]> {
-  try {
-    const dbCategories = await prisma.category.findMany({
-      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
-    });
+  const dbCategories = await prisma.category.findMany({
+    where: {
+      status: {
+        not: "hidden",
+      },
+    },
+    orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+  });
 
-    if (dbCategories.length > 0) {
-      return dbCategories.map((category) => ({
-        id: category.id,
-        slug: category.slug,
-        name: category.name,
-      }));
-    }
-  } catch (error) {
-    console.error("Failed to load categories from database", error);
-  }
-
-  return fileCategories.map((category) => ({
+  return dbCategories.map((category) => ({
     id: category.id,
-    slug: category.id,
+    slug: category.slug,
     name: category.name,
   }));
 }
