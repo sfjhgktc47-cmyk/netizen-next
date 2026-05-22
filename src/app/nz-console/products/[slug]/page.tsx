@@ -3,7 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 
 import { ProductEditForm } from "@/components/admin/product-edit-form";
-import { ProductVariantEditForm } from "@/components/admin/product-variant-edit-form";
 import {
   getAdminCategories,
   getAdminProductBySlug,
@@ -188,7 +187,11 @@ export default async function AdminProductDetailPage({
                       <span className="font-semibold text-white">{variant.sku}</span>
                     </AdminCell>
 
-                    <AdminCell label="Позиция">{variant.title}</AdminCell>
+                    <AdminCell label="Позиция">
+                      <Link href={`/nz-console/positions/${encodeURIComponent(variant.sku)}`} className="font-semibold text-blue-300 transition-colors hover:text-blue-200">
+                        {variant.title}
+                      </Link>
+                    </AdminCell>
 
                     <AdminCell label="Параметры">
                       {[variant.memory, variant.color, variant.sim].filter(Boolean).join(" · ") || "—"}
@@ -214,26 +217,12 @@ export default async function AdminProductDetailPage({
           </div>
 
           {product.source === "db" ? (
-            <>
-              {product.variants.length > 0 ? (
-                <div className="mt-8 space-y-4">
-                  <SectionTitle
-                    label="Правки"
-                    title="Редактирование позиций"
-                    text="Можно изменить цену, остаток, параметры, статус или удалить ошибочную SKU."
-                  />
-
-                  <div className="space-y-4">
-                    {product.variants.map((variant) => (
-                      <div key={variant.id} id={`edit-variant-${variant.id}`}>
-                        <ProductVariantEditForm productId={product.id} variant={variant} />
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-            </>
+            <div className="mt-8 rounded-[28px] border border-blue-500/20 bg-blue-500/10 p-6 text-sm leading-relaxed text-blue-100/80">
+              Позиции редактируются в отдельном разделе «Позиции / SKU», чтобы карточка товара не смешивалась с конкретными комплектациями.
+              <Link href="/nz-console/positions" className="ml-2 font-semibold text-blue-200 hover:text-white">
+                Открыть позиции →
+              </Link>
+            </div>
           ) : (
             <div className="mt-8 rounded-[28px] border border-orange-500/20 bg-orange-500/10 p-6 text-sm leading-relaxed text-orange-100/80">
               Это демо-карточка из файлов. Позиции можно создавать и редактировать только у товаров из БД.

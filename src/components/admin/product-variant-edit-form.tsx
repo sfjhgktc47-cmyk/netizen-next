@@ -3,9 +3,13 @@
 import type { FormEvent, ReactNode } from "react";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ColorPickerField } from "@/components/admin/color-picker-field";
 
-type VariantForEdit = {
+import { ColorPickerField } from "@/components/admin/color-picker-field";
+import { ImageLibraryField } from "@/components/admin/image-library-field";
+
+type VariantStatus = "active" | "draft" | "hidden" | "out_of_stock";
+
+type Variant = {
   id: string;
   sku: string;
   slug: string;
@@ -14,19 +18,20 @@ type VariantForEdit = {
   color: string;
   colorHex: string;
   sim: string;
+  images?: string[];
   price: number;
   oldPrice: number | null;
   stock: number;
-  status: string;
+  status: VariantStatus | string;
 };
 
 type Props = {
   productId: string;
-  variant: VariantForEdit;
+  variant: Variant;
 };
 
 const inputClass =
-  "h-11 w-full rounded-xl border border-white/10 bg-black/25 px-3 text-sm text-white outline-none transition-colors placeholder:text-white/30 focus:border-blue-500/60";
+  "h-12 w-full rounded-xl border border-white/10 bg-black/25 px-4 text-sm text-white outline-none transition-colors placeholder:text-white/30 focus:border-blue-500/60";
 
 function slugify(value: string) {
   return value
@@ -46,6 +51,10 @@ function makeSku(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+function onlyDigits(value: string) {
+  return value.replace(/[^0-9]/g, "");
+}
+
 export function ProductVariantEditForm({ productId, variant }: Props) {
   const router = useRouter();
 
@@ -56,10 +65,11 @@ export function ProductVariantEditForm({ productId, variant }: Props) {
   const [color, setColor] = useState(variant.color);
   const [colorHex, setColorHex] = useState(variant.colorHex);
   const [sim, setSim] = useState(variant.sim);
+  const [images, setImages] = useState<string[]>(Array.isArray(variant.images) ? variant.images : []);
   const [price, setPrice] = useState(String(variant.price));
   const [oldPrice, setOldPrice] = useState(variant.oldPrice ? String(variant.oldPrice) : "");
   const [stock, setStock] = useState(String(variant.stock));
-  const [status, setStatus] = useState(variant.status);
+  const [status, setStatus] = useState(String(variant.status || "active"));
 
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -74,7 +84,7 @@ export function ProductVariantEditForm({ productId, variant }: Props) {
 
     try {
       if (!sku || !slug || !title || !price) {
-        throw new Error("Укажите SKU, slug, название и цену.");
+        throw new Error("Укажите SKU, slug, название позиции и цену.");
       }
 
       const response = await fetch(`/api/admin/products/${productId}/variants/${variant.id}`, {
@@ -83,16 +93,17 @@ export function ProductVariantEditForm({ productId, variant }: Props) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          sku,
-          slug,
-          title,
-          memory,
-          color,
-          colorHex,
-          sim,
+          sku: makeSku(sku),
+          slug: slugify(slug),
+          title: title.trim(),
+          memory: memory.trim(),
+          color: color.trim(),
+          colorHex: colorHex.trim(),
+          sim: sim.trim(),
+          images,
           price: Number(price),
           oldPrice: oldPrice ? Number(oldPrice) : null,
-          stock: Number(stock),
+          stock: stock ? Number(stock) : 0,
           status,
         }),
       });
@@ -113,7 +124,7 @@ export function ProductVariantEditForm({ productId, variant }: Props) {
   }
 
   async function handleDelete() {
-    const confirmed = window.confirm(`Удалить позицию ${variant.sku}?`);
+    const confirmed = window.confirm("Удалить эту SKU-позицию? Действие нельзя отменить.");
 
     if (!confirmed) {
       return;
@@ -127,13 +138,13 @@ export function ProductVariantEditForm({ productId, variant }: Props) {
       const response = await fetch(`/api/admin/products/${productId}/variants/${variant.id}`, {
         method: "DELETE",
       });
-
       const payload = await response.json();
 
       if (!response.ok) {
         throw new Error(payload?.error ?? "Не удалось удалить позицию.");
       }
 
+      router.push("/nz-console/positions");
       router.refresh();
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : "Неизвестная ошибка.");
@@ -143,15 +154,14 @@ export function ProductVariantEditForm({ productId, variant }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-[24px] border border-white/10 bg-black/20 p-4 sm:p-5">
+    <form onSubmit={handleSubmit} className="rounded-[28px] border border-white/10 bg-white/[0.035] p-5 sm:p-6">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <div className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-400">
-            Редактирование SKU
-          </div>
-          <h4 className="mt-1 text-xl font-bold tracking-[-0.03em] text-white">
-            {variant.sku}
-          </h4>
+          <div className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-400">Редактирование SKU</div>
+          <h3 className="mt-1 text-2xl font-bold tracking-[-0.04em] text-white">{variant.sku}</h3>
+          <p className="mt-2 max-w-[780px] text-sm leading-relaxed text-white/50">
+            Это отдельная продаваемая позиция. После сохранения вы останетесь на странице позиции, а не улетите в материнскую карточку.
+          </p>
         </div>
 
         <div className="flex flex-wrap gap-2">
@@ -174,7 +184,7 @@ export function ProductVariantEditForm({ productId, variant }: Props) {
         </div>
       </div>
 
-      <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+      <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <Field label="SKU">
           <input value={sku} onChange={(event) => setSku(makeSku(event.target.value))} className={inputClass} />
         </Field>
@@ -191,7 +201,7 @@ export function ProductVariantEditForm({ productId, variant }: Props) {
           <input value={memory} onChange={(event) => setMemory(event.target.value)} className={inputClass} />
         </Field>
 
-        <div className="md:col-span-2 xl:col-span-5">
+        <div className="md:col-span-2 xl:col-span-4">
           <ColorPickerField
             color={color}
             colorHex={colorHex}
@@ -206,15 +216,15 @@ export function ProductVariantEditForm({ productId, variant }: Props) {
         </Field>
 
         <Field label="Цена">
-          <input value={price} onChange={(event) => setPrice(event.target.value.replace(/[^0-9]/g, ""))} inputMode="numeric" className={inputClass} />
+          <input value={price} onChange={(event) => setPrice(onlyDigits(event.target.value))} inputMode="numeric" className={inputClass} />
         </Field>
 
         <Field label="Старая цена">
-          <input value={oldPrice} onChange={(event) => setOldPrice(event.target.value.replace(/[^0-9]/g, ""))} inputMode="numeric" className={inputClass} />
+          <input value={oldPrice} onChange={(event) => setOldPrice(onlyDigits(event.target.value))} inputMode="numeric" className={inputClass} />
         </Field>
 
         <Field label="Остаток">
-          <input value={stock} onChange={(event) => setStock(event.target.value.replace(/[^0-9]/g, ""))} inputMode="numeric" className={inputClass} />
+          <input value={stock} onChange={(event) => setStock(onlyDigits(event.target.value))} inputMode="numeric" className={inputClass} />
         </Field>
 
         <Field label="Статус">
@@ -227,17 +237,12 @@ export function ProductVariantEditForm({ productId, variant }: Props) {
         </Field>
       </div>
 
-      {error ? (
-        <div className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
-          {error}
-        </div>
-      ) : null}
+      <div className="mt-8">
+        <ImageLibraryField value={images} onChange={setImages} />
+      </div>
 
-      {success ? (
-        <div className="mt-4 rounded-2xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm text-green-200">
-          {success}
-        </div>
-      ) : null}
+      {error ? <div className="mt-5 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">{error}</div> : null}
+      {success ? <div className="mt-5 rounded-2xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm text-green-200">{success}</div> : null}
     </form>
   );
 }
@@ -245,7 +250,7 @@ export function ProductVariantEditForm({ productId, variant }: Props) {
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="grid gap-2 text-sm font-medium text-white/60">
-      <span>{label}</span>
+      <span className="text-xs font-semibold uppercase tracking-[0.16em] text-white/35">{label}</span>
       {children}
     </label>
   );

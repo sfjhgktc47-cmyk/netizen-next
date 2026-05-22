@@ -28,6 +28,17 @@ function normalizeStatus(value: unknown, stock: number): VariantStatus {
   return stock > 0 ? "active" : "out_of_stock";
 }
 
+function normalizeImages(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((item) => (typeof item === "string" ? item.trim() : ""))
+    .filter(Boolean)
+    .slice(0, 12);
+}
+
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) {
     return error.message;
@@ -94,6 +105,7 @@ export async function POST(
         color: String(body.color ?? ""),
         colorHex: String(body.colorHex ?? ""),
         sim: String(body.sim ?? ""),
+        images: normalizeImages(body.images),
         price,
         oldPrice: toNullableInt(body.oldPrice),
         stock,

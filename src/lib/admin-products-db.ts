@@ -43,6 +43,7 @@ export type AdminVariantItem = {
   color: string;
   colorHex: string;
   sim: string;
+  images: string[];
   price: number;
   oldPrice: number | null;
   stock: number;
@@ -134,6 +135,7 @@ function toAdminVariant(variant: any): AdminVariantItem {
     color: String(variant.color ?? ""),
     colorHex: String(variant.colorHex ?? ""),
     sim: String(variant.sim ?? ""),
+    images: Array.isArray(variant.images) ? variant.images.map(String) : [],
     price: Number(variant.price),
     oldPrice: variant.oldPrice === null || variant.oldPrice === undefined ? null : Number(variant.oldPrice),
     stock: Number(variant.stock ?? 0),
@@ -185,6 +187,7 @@ function getDemoProductBySlug(slug: string): AdminProductDetail | null {
       color: position.color,
       colorHex: position.colorHex,
       sim: position.sim,
+      images: [],
       price: moneyToNumber(position.price),
       oldPrice: position.oldPrice ? moneyToNumber(position.oldPrice) : null,
       stock: position.stock,

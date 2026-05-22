@@ -40,6 +40,7 @@ export default async function AdminPositionsPage() {
         select: {
           slug: true,
           name: true,
+          image: true,
         },
       },
     },
@@ -192,9 +193,20 @@ export default async function AdminPositionsPage() {
                     </Link>
                   </AdminCell>
 
-                  <div>
-                    <div className="font-semibold">{variant.title}</div>
-                    <div className="mt-1 text-sm text-white/35">SKU {variant.sku}</div>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/[0.045] text-[10px] text-white/25">
+                      {variant.images?.[0] || variant.product.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={variant.images?.[0] ?? variant.product.image} alt={variant.title} className="h-full w-full object-cover" />
+                      ) : (
+                        "Фото"
+                      )}
+                    </div>
+                    <div>
+                      <div className="font-semibold">{variant.title}</div>
+                      <div className="mt-1 text-sm text-white/35">SKU {variant.sku}</div>
+                      <div className="mt-1 text-xs text-white/30">Фото: {variant.images?.length ?? 0}</div>
+                    </div>
                   </div>
 
                   <AdminCell label="Цвет">{variant.color || "—"}</AdminCell>
@@ -215,7 +227,7 @@ export default async function AdminPositionsPage() {
 
                   <div className="flex flex-wrap gap-2 xl:justify-end">
                     <Link
-                      href={`/nz-console/products/${variant.product.slug}#edit-variant-${variant.id}`}
+                      href={`/nz-console/positions/${encodeURIComponent(variant.sku)}`}
                       className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-sm transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
                     >
                       Изменить

@@ -3,7 +3,9 @@
 import type { FormEvent, ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+
 import { ColorPickerField } from "@/components/admin/color-picker-field";
+import { ImageLibraryField } from "@/components/admin/image-library-field";
 
 type ProductOption = {
   id: string;
@@ -34,6 +36,10 @@ function normalizeSku(value: string) {
   return value.trim().toUpperCase().replace(/\s+/g, "-");
 }
 
+function onlyDigits(value: string) {
+  return value.replace(/[^0-9]/g, "");
+}
+
 export function PositionCreateForm({ products, initialProductSlug }: Props) {
   const router = useRouter();
   const initialProduct = products.find((product) => product.slug === initialProductSlug) ?? products[0];
@@ -45,6 +51,7 @@ export function PositionCreateForm({ products, initialProductSlug }: Props) {
   const [color, setColor] = useState("");
   const [colorHex, setColorHex] = useState("");
   const [sim, setSim] = useState("");
+  const [images, setImages] = useState<string[]>([]);
   const [price, setPrice] = useState("");
   const [oldPrice, setOldPrice] = useState("");
   const [stock, setStock] = useState("");
@@ -55,9 +62,7 @@ export function PositionCreateForm({ products, initialProductSlug }: Props) {
   const selectedProduct = products.find((product) => product.id === productId);
 
   const suggestedSku = useMemo(() => {
-    const base = [selectedProduct?.slug, memory, color, sim]
-      .filter(Boolean)
-      .join("-");
+    const base = [selectedProduct?.slug, memory, color, sim].filter(Boolean).join("-");
 
     return normalizeSku(base);
   }, [color, memory, selectedProduct?.slug, sim]);
@@ -92,6 +97,7 @@ export function PositionCreateForm({ products, initialProductSlug }: Props) {
           color: color.trim(),
           colorHex: colorHex.trim(),
           sim: sim.trim(),
+          images,
           price: Number(price),
           oldPrice: oldPrice ? Number(oldPrice) : null,
           stock: stock ? Number(stock) : 0,
@@ -105,7 +111,7 @@ export function PositionCreateForm({ products, initialProductSlug }: Props) {
         throw new Error(payload?.error ?? "Не удалось создать позицию.");
       }
 
-      router.push(selectedProduct ? `/nz-console/products/${selectedProduct.slug}` : "/nz-console/positions");
+      router.push(`/nz-console/positions/${encodeURIComponent(finalSku)}`);
       router.refresh();
     } catch (caughtError) {
       setError(caughtError instanceof Error ? caughtError.message : "Неизвестная ошибка.");
@@ -128,7 +134,7 @@ export function PositionCreateForm({ products, initialProductSlug }: Props) {
         <SectionTitle
           label="Новая позиция"
           title="Добавить SKU"
-          text="Позиция — это конкретный товар, который продаётся: память, цвет, SIM, цена, старая цена и остаток. Она обязательно привязывается к материнской карточке."
+          text="Позиция — это конкретный товар, который продаётся: память, цвет, SIM, цена, старая цена, остаток и своя библиотека фото. Она привязывается к материнской карточке."
         />
 
         <div className="mt-8 grid gap-5 md:grid-cols-2">
@@ -191,7 +197,7 @@ export function PositionCreateForm({ products, initialProductSlug }: Props) {
           <Field label="Цена">
             <input
               value={price}
-              onChange={(event) => setPrice(event.target.value)}
+              onChange={(event) => setPrice(onlyDigits(event.target.value))}
               inputMode="numeric"
               placeholder="Например: 109990"
               className={inputClass}
@@ -201,7 +207,7 @@ export function PositionCreateForm({ products, initialProductSlug }: Props) {
           <Field label="Старая цена">
             <input
               value={oldPrice}
-              onChange={(event) => setOldPrice(event.target.value)}
+              onChange={(event) => setOldPrice(onlyDigits(event.target.value))}
               inputMode="numeric"
               placeholder="Например: 119990, если есть скидка"
               className={inputClass}
@@ -211,7 +217,7 @@ export function PositionCreateForm({ products, initialProductSlug }: Props) {
           <Field label="Остаток">
             <input
               value={stock}
-              onChange={(event) => setStock(event.target.value)}
+              onChange={(event) => setStock(onlyDigits(event.target.value))}
               inputMode="numeric"
               placeholder="Например: 3"
               className={inputClass}
@@ -228,8 +234,12 @@ export function PositionCreateForm({ products, initialProductSlug }: Props) {
           </Field>
         </div>
 
+        <div className="mt-8">
+          <ImageLibraryField value={images} onChange={setImages} />
+        </div>
+
         <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-xs leading-relaxed text-white/45">
-          <span className="text-white/65">Подсказка:</span> поля теперь пустые и полностью редактируемые. Если SKU или название оставить пустыми, система соберёт их из карточки, памяти, цвета и SIM.
+          <span className="text-white/65">Подсказка:</span> если SKU или название оставить пустыми, система соберёт их из карточки, памяти, цвета и SIM. Фото хранятся именно у позиции, а не у материнской карточки.
           {finalSku || finalTitle ? (
             <div className="mt-2 text-white/55">
               Будет создано: <span className="font-semibold text-white">{finalSku || "SKU не заполнен"}</span>
@@ -246,14 +256,12 @@ export function PositionCreateForm({ products, initialProductSlug }: Props) {
       </section>
 
       <aside className="h-fit rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8 lg:sticky lg:top-6">
-        <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-400">
-          Сохранение
-        </div>
+        <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-400">Сохранение</div>
 
         <h2 className="mt-3 text-3xl font-bold tracking-[-0.04em]">Создать SKU</h2>
 
         <p className="mt-3 text-sm leading-relaxed text-white/55">
-          После сохранения позиция появится у выбранной карточки и будет использоваться для цены, наличия, корзины и заказов.
+          После сохранения откроется страница самой позиции. Редактирование больше не будет переносить на материнскую карточку.
         </p>
 
         <button
@@ -281,7 +289,7 @@ function SectionTitle({ label, title, text }: { label: string; title: string; te
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="grid gap-2 text-sm font-medium text-white/65">
-      <span>{label}</span>
+      <span className="text-xs font-semibold uppercase tracking-[0.16em] text-white/35">{label}</span>
       {children}
     </label>
   );

@@ -89,6 +89,7 @@ model ProductVariant {
   color          String       @default("")
   colorHex       String       @default("")
   sim            String       @default("")
+  images         String[]     @default([])
   price          Int
   oldPrice       Int?
   stock          Int          @default(0)
