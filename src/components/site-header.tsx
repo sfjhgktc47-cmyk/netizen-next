@@ -97,6 +97,16 @@ export function SiteHeader() {
     { label: "Поддержка", href: "/help" },
   ];
 
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST" }).catch(() => null);
+    setAuthUser(null);
+    window.dispatchEvent(new Event("netizen-auth-updated"));
+
+    if (window.location.pathname.startsWith("/profile") || window.location.pathname.startsWith("/nz-console")) {
+      window.location.href = "/";
+    }
+  }
+
   const accountHref = authUser?.role === "admin" ? "/nz-console" : "/profile";
   const accountLabel = authUser?.role === "admin" ? "Админ-панель" : "Личный кабинет";
 
@@ -188,18 +198,34 @@ export function SiteHeader() {
         </Link>
 
         {authUser ? (
-          <Link
-            href={accountHref}
-            aria-label={accountLabel}
-            title={accountLabel}
-            className={`flex h-11 w-11 items-center justify-center rounded-xl border text-sm font-bold transition-all duration-300 ${
-              dark
-                ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
-                : "border-black/10 bg-white text-[#07111f] hover:border-blue-500/40 hover:bg-blue-50"
-            }`}
-          >
-            {getUserInitial(authUser)}
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href={accountHref}
+              aria-label={accountLabel}
+              title={accountLabel}
+              className={`flex h-11 w-11 items-center justify-center rounded-xl border text-sm font-bold transition-all duration-300 ${
+                dark
+                  ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
+                  : "border-black/10 bg-white text-[#07111f] hover:border-blue-500/40 hover:bg-blue-50"
+              }`}
+            >
+              {getUserInitial(authUser)}
+            </Link>
+
+            <button
+              type="button"
+              onClick={logout}
+              aria-label="Выйти из аккаунта"
+              title="Выйти"
+              className={`hidden h-11 rounded-xl border px-4 text-sm font-medium transition-all duration-300 sm:inline-flex sm:items-center ${
+                dark
+                  ? "border-white/10 bg-white/[0.03] text-white hover:border-red-500/40 hover:bg-red-500/10"
+                  : "border-black/10 bg-white text-[#07111f] hover:border-red-500/40 hover:bg-red-50"
+              }`}
+            >
+              Выйти
+            </button>
+          </div>
         ) : (
           <button
             type="button"

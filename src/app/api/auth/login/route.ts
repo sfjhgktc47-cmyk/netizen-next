@@ -24,13 +24,26 @@ export async function POST(request: Request) {
     return jsonError("Укажи логин и пароль.");
   }
 
-  const adminLogin = process.env.ADMIN_LOGIN || "admin";
-  const adminPassword = process.env.ADMIN_PASSWORD || "netizen-admin";
+  const admin = await prisma.adminUser.findUnique({
+    where: { login },
+    select: {
+      id: true,
+      login: true,
+      name: true,
+      passwordHash: true,
+      isActive: true,
+    },
+  });
 
-  if (login === adminLogin && password === adminPassword) {
+  if (admin) {
+    if (!admin.isActive || !verifyPassword(password, admin.passwordHash)) {
+      return jsonError("Неверный логин или пароль.", 401);
+    }
+
     const token = createAuthSessionToken({
       role: "admin",
-      login: adminLogin,
+      login: admin.login,
+      name: admin.name,
       createdAt: new Date().toISOString(),
     });
     const response = NextResponse.json({
@@ -46,7 +59,7 @@ export async function POST(request: Request) {
   const normalizedEmail = normalizeEmail(login);
   const customer = await prisma.customer.findFirst({
     where: {
-      OR: [{ phone: login }, { email: normalizedEmail }],
+      OR: [{ phone: login }, ...(normalizedEmail ? [{ email: normalizedEmail }] : [])],
     },
     select: {
       id: true,

@@ -1,95 +1,89 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import type { ReactNode } from "react";
+import { useEffect, useState } from "react";
 import { SiteHeader } from "@/components/site-header";
-import { products } from "@/data/products";
-import { formatPrice, getModelPriceRange } from "@/lib/product-pricing";
 
 type CustomerProfile = {
+  id: string;
   name: string;
   lastName: string;
   phone: string;
   email: string;
 };
 
-type OrderItem = {
-  sku: string;
+type ProfileOrderItem = {
+  id: string;
   title: string;
-  productName?: string;
-  price: string;
+  productTitle: string;
+  brand: string;
+  sku: string;
+  memory: string;
+  color: string;
+  sim: string;
+  image: string;
   quantity: number;
-  memory?: string;
-  color?: string;
-  sim?: string;
+  price: number;
 };
 
-type StoredOrder = {
-  number: string;
+type ProfileOrder = {
+  id: string;
+  publicId: string;
   createdAt: string;
-  subtotal: number;
-  totalQuantity: number;
-  delivery?: {
-    title?: string;
-    method?: string;
-    address?: string;
-    savedAddress?: string;
-    city?: string;
+  total: number;
+  status: string;
+  delivery: string;
+  items: ProfileOrderItem[];
+};
+
+type ProfileAddress = {
+  id: string;
+  value: string;
+  type: "courier" | "pickup";
+  isDefault: boolean;
+};
+
+type ProfileSupportRequest = {
+  id: string;
+  publicId: string;
+  topic: string;
+  message: string;
+  status: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type ProfileFavorite = {
+  id: string;
+  product: {
+    slug: string;
+    name: string;
+    brand: string;
+    image: string;
   };
-  payment?: {
-    label?: string;
-  };
-  items: OrderItem[];
+};
+
+type ProfileData = {
+  profile: CustomerProfile;
+  orders: ProfileOrder[];
+  addresses: ProfileAddress[];
+  supportRequests: ProfileSupportRequest[];
+  favorites: ProfileFavorite[];
 };
 
 type ModalType = "profile" | "address" | null;
 
-type AuthUser = {
-  role: "customer" | "admin";
-  profile?: Partial<CustomerProfile>;
-};
-
-type MeResponse = {
-  authenticated?: boolean;
-  user?: AuthUser;
-};
-
-const supportRequests = [
-  {
-    topic: "Подбор техники",
-    text: "Нужен смартфон для фото и видео.",
-    status: "В работе",
-  },
-  {
-    topic: "Доставка",
-    text: "Уточнение по адресу доставки.",
-    status: "Закрыто",
-  },
-];
-
 const emptyProfile: CustomerProfile = {
+  id: "",
   name: "",
   lastName: "",
   phone: "",
   email: "",
 };
 
-function readJson<T>(key: string): T | null {
-  try {
-    const value = localStorage.getItem(key);
-
-    if (!value) {
-      return null;
-    }
-
-    return JSON.parse(value) as T;
-  } catch {
-    return null;
-  }
-}
-
-function writeJson<T>(key: string, value: T) {
-  localStorage.setItem(key, JSON.stringify(value));
+function formatPrice(value: number) {
+  return new Intl.NumberFormat("ru-RU").format(value) + " ₽";
 }
 
 function formatDate(value: string) {
@@ -106,22 +100,6 @@ function formatDate(value: string) {
   });
 }
 
-function getOrderDelivery(order: StoredOrder) {
-  if (!order.delivery) {
-    return "Доставка не указана";
-  }
-
-  if (order.delivery.method === "pickup") {
-    return order.delivery.address || order.delivery.savedAddress || "ПВЗ / самовывоз";
-  }
-
-  if (order.delivery.savedAddress || order.delivery.address) {
-    return order.delivery.savedAddress || order.delivery.address || "Курьерская доставка";
-  }
-
-  return order.delivery.title || "Курьерская доставка";
-}
-
 function getInitialLetter(profile: CustomerProfile) {
   const source = profile.name || profile.lastName || profile.phone || profile.email || "Н";
   return source.trim()[0]?.toUpperCase() ?? "Н";
@@ -131,90 +109,123 @@ function getFullName(profile: CustomerProfile) {
   return [profile.name, profile.lastName].filter(Boolean).join(" ").trim();
 }
 
+function getOrderTitle(order: ProfileOrder) {
+  const firstItem = order.items[0];
+
+  if (!firstItem) {
+    return "Заявка без товаров";
+  }
+
+  return firstItem.productTitle || firstItem.title || `${order.items.length} товар(ов)`;
+}
+
+function getOrderStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    new: "Ожидает подтверждения",
+    confirming: "Подтверждается",
+    in_work: "В работе",
+    ready: "Готов к выдаче",
+    completed: "Завершён",
+    cancelled: "Отменён",
+  };
+
+  return labels[status] ?? status;
+}
+
+function getSupportStatusLabel(status: string) {
+  const labels: Record<string, string> = {
+    new: "Новое",
+    in_work: "В работе",
+    waiting_client: "Ожидает клиента",
+    closed: "Закрыто",
+  };
+
+  return labels[status] ?? status;
+}
+
 export default function ProfilePage() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profile, setProfile] = useState<CustomerProfile>(emptyProfile);
   const [draftProfile, setDraftProfile] = useState<CustomerProfile>(emptyProfile);
-  const [addresses, setAddresses] = useState<string[]>([]);
+  const [orders, setOrders] = useState<ProfileOrder[]>([]);
+  const [addresses, setAddresses] = useState<ProfileAddress[]>([]);
+  const [supportRequests, setSupportRequests] = useState<ProfileSupportRequest[]>([]);
+  const [favorites, setFavorites] = useState<ProfileFavorite[]>([]);
   const [newAddress, setNewAddress] = useState("");
-  const [orders, setOrders] = useState<StoredOrder[]>([]);
-  const [favoriteSlugs, setFavoriteSlugs] = useState<string[]>([]);
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [isProfileSaved, setIsProfileSaved] = useState(false);
+  const [error, setError] = useState("");
+
+  async function loadProfileState() {
+    try {
+      const meResponse = await fetch("/api/auth/me", { cache: "no-store" });
+      const meData = (await meResponse.json().catch(() => ({}))) as {
+        authenticated?: boolean;
+        user?: { role?: "customer" | "admin" };
+      };
+
+      if (meData.authenticated && meData.user?.role === "admin") {
+        window.location.href = "/nz-console";
+        return;
+      }
+
+      if (!meData.authenticated || meData.user?.role !== "customer") {
+        setIsAuthenticated(false);
+        setProfile(emptyProfile);
+        setDraftProfile(emptyProfile);
+        setOrders([]);
+        setAddresses([]);
+        setSupportRequests([]);
+        setFavorites([]);
+        return;
+      }
+
+      const response = await fetch("/api/auth/profile", { cache: "no-store" });
+      const data = (await response.json().catch(() => ({}))) as Partial<ProfileData> & {
+        ok?: boolean;
+        message?: string;
+      };
+
+      if (!response.ok || !data.profile) {
+        setIsAuthenticated(false);
+        setError(data.message || "Не получилось загрузить личный кабинет.");
+        return;
+      }
+
+      setIsAuthenticated(true);
+      setProfile(data.profile);
+      setDraftProfile(data.profile);
+      setOrders(data.orders ?? []);
+      setAddresses(data.addresses ?? []);
+      setSupportRequests(data.supportRequests ?? []);
+      setFavorites(data.favorites ?? []);
+      setError("");
+    } catch {
+      setIsAuthenticated(false);
+      setError("Сервер личного кабинета не ответил.");
+    } finally {
+      setIsLoaded(true);
+    }
+  }
 
   useEffect(() => {
-    const loadProfileState = async () => {
-      const savedAddresses = readJson<string[]>("netizen-delivery-addresses") ?? [];
-      const orderHistory = readJson<StoredOrder[]>("netizen-orders") ?? [];
-      const lastOrder = readJson<StoredOrder>("netizen-last-order");
-      const savedFavoriteSlugs = readJson<string[]>("netizen-favorite-slugs") ?? [];
-
-      setAddresses(savedAddresses);
-      setFavoriteSlugs(savedFavoriteSlugs);
-
-      if (lastOrder && !orderHistory.some((order) => order.number === lastOrder.number)) {
-        setOrders([lastOrder, ...orderHistory]);
-      } else {
-        setOrders(orderHistory);
-      }
-
-      try {
-        const response = await fetch("/api/auth/me", { cache: "no-store" });
-        const data = (await response.json().catch(() => ({}))) as MeResponse;
-
-        if (data.authenticated && data.user?.role === "admin") {
-          window.location.href = "/nz-console";
-          return;
-        }
-
-        if (data.authenticated && data.user?.role === "customer" && data.user.profile) {
-          const normalizedProfile = {
-            name: data.user.profile.name ?? "",
-            lastName: data.user.profile.lastName ?? "",
-            phone: data.user.profile.phone ?? "",
-            email: data.user.profile.email ?? "",
-          };
-
-          setIsAuthenticated(true);
-          setProfile(normalizedProfile);
-          setDraftProfile(normalizedProfile);
-        } else {
-          setIsAuthenticated(false);
-          setProfile(emptyProfile);
-          setDraftProfile(emptyProfile);
-        }
-      } catch {
-        setIsAuthenticated(false);
-      } finally {
-        setIsLoaded(true);
-      }
-    };
+    void loadProfileState();
 
     const handleProfileUpdate = () => {
       void loadProfileState();
     };
 
-    handleProfileUpdate();
     window.addEventListener("netizen-auth-updated", handleProfileUpdate);
-    window.addEventListener("storage", handleProfileUpdate);
 
     return () => {
       window.removeEventListener("netizen-auth-updated", handleProfileUpdate);
-      window.removeEventListener("storage", handleProfileUpdate);
     };
   }, []);
 
   function openAuthModal(mode: "login" | "register" = "login") {
     window.dispatchEvent(new CustomEvent("netizen-open-auth", { detail: mode }));
   }
-
-  const favoriteProducts = useMemo(
-    () => products.filter((product) => favoriteSlugs.includes(product.slug)),
-    [favoriteSlugs]
-  );
-
-  const previewFavorites = favoriteProducts.slice(0, 4);
 
   async function saveProfile() {
     const normalizedProfile = {
@@ -234,40 +245,58 @@ export default function ProfilePage() {
         email: normalizedProfile.email,
       }),
     });
+    const data = (await response.json().catch(() => ({}))) as {
+      message?: string;
+      user?: { profile?: CustomerProfile };
+    };
 
-    if (!response.ok) {
+    if (!response.ok || !data.user?.profile) {
+      setError(data.message || "Не получилось сохранить профиль.");
       return;
     }
 
-    setProfile(normalizedProfile);
-    writeJson("netizen-profile", normalizedProfile);
+    setProfile(data.user.profile);
+    setDraftProfile(data.user.profile);
     window.dispatchEvent(new Event("netizen-auth-updated"));
     setIsProfileSaved(true);
     setActiveModal(null);
+    setError("");
 
     window.setTimeout(() => setIsProfileSaved(false), 1800);
   }
 
-  function addAddress() {
+  async function addAddress() {
     const normalizedAddress = newAddress.trim();
 
     if (!normalizedAddress) {
       return;
     }
 
-    const nextAddresses = Array.from(new Set([...addresses, normalizedAddress]));
+    const response = await fetch("/api/auth/profile", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "add-address", address: normalizedAddress }),
+    });
+    const data = (await response.json().catch(() => ({}))) as {
+      message?: string;
+      addresses?: ProfileAddress[];
+    };
 
-    setAddresses(nextAddresses);
-    writeJson("netizen-delivery-addresses", nextAddresses);
+    if (!response.ok) {
+      setError(data.message || "Не получилось добавить адрес.");
+      return;
+    }
+
+    setAddresses(data.addresses ?? []);
     setNewAddress("");
     setActiveModal(null);
+    setError("");
   }
 
-  function removeFavorite(slug: string) {
-    const nextFavoriteSlugs = favoriteSlugs.filter((item) => item !== slug);
-
-    setFavoriteSlugs(nextFavoriteSlugs);
-    writeJson("netizen-favorite-slugs", nextFavoriteSlugs);
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST" }).catch(() => null);
+    window.dispatchEvent(new Event("netizen-auth-updated"));
+    window.location.href = "/";
   }
 
   if (!isLoaded) {
@@ -296,8 +325,14 @@ export default function ProfilePage() {
 
               <p className="mx-auto mt-4 max-w-[560px] text-sm leading-relaxed text-muted">
                 Профиль, заявки, адреса доставки, избранное и обращения показываются
-                только после входа клиента.
+                только после входа клиента. Данные берутся из базы, а не из браузера.
               </p>
+
+              {error && (
+                <div className="mx-auto mt-5 max-w-[520px] rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-500">
+                  {error}
+                </div>
+              )}
 
               <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
                 <button
@@ -349,9 +384,15 @@ export default function ProfilePage() {
               </h1>
 
               <p className="mt-4 max-w-[620px] text-sm leading-relaxed text-muted">
-                Здесь будет храниться история заявок, адреса доставки,
-                избранные товары и переписка с поддержкой.
+                Здесь показываются только реальные данные клиента из базы: заявки,
+                адреса доставки, избранные товары и обращения.
               </p>
+
+              {error && (
+                <div className="mt-5 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-500">
+                  {error}
+                </div>
+              )}
 
               <div className="mt-6 flex flex-wrap gap-4">
                 <Link
@@ -367,6 +408,14 @@ export default function ProfilePage() {
                 >
                   Написать в поддержку
                 </Link>
+
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="rounded-xl border border-red-500/30 bg-red-500/10 px-6 py-3.5 text-sm font-medium text-red-500 transition-colors hover:bg-red-500/15"
+                >
+                  Выйти
+                </button>
               </div>
             </section>
 
@@ -394,36 +443,32 @@ export default function ProfilePage() {
                 <div className="mt-8 grid gap-4">
                   {orders.map((order) => (
                     <article
-                      key={order.number}
+                      key={order.id}
                       className="rounded-2xl border border-theme bg-blue-soft p-5"
                     >
                       <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                         <div>
-                          <div className="text-sm text-muted">{order.number}</div>
+                          <div className="text-sm text-muted">{order.publicId}</div>
 
                           <h3 className="mt-1 text-xl font-bold">
-                            {order.items[0]?.productName ||
-                              order.items[0]?.title ||
-                              `${order.totalQuantity} товар(ов)`}
+                            {getOrderTitle(order)}
                           </h3>
 
                           <p className="mt-2 text-sm text-muted">
-                            {formatDate(order.createdAt)} · {formatPrice(order.subtotal)}
+                            {formatDate(order.createdAt)} · {formatPrice(order.total)}
                           </p>
 
-                          <p className="mt-1 text-sm text-muted">
-                            {getOrderDelivery(order)}
-                          </p>
+                          <p className="mt-1 text-sm text-muted">{order.delivery}</p>
                         </div>
 
                         <div className="flex flex-col gap-3 md:items-end">
                           <span className="w-fit rounded-full border border-blue-500/35 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-500">
-                            Ожидает подтверждения
+                            {getOrderStatusLabel(order.status)}
                           </span>
 
-                          <button className="text-sm font-medium text-blue-500 transition-colors hover:text-blue-400">
-                            Подробнее →
-                          </button>
+                          <div className="text-sm text-muted">
+                            {order.items.length} позиц.
+                          </div>
                         </div>
                       </div>
                     </article>
@@ -432,7 +477,7 @@ export default function ProfilePage() {
               ) : (
                 <EmptyState
                   title="Заявок пока нет"
-                  text="Когда клиент оформит заказ из корзины, заявка появится здесь."
+                  text="Когда клиент оформит заказ из корзины, заявка появится здесь из таблицы Order. Тестовые заявки больше не показываются."
                   href="/catalog"
                   action="Перейти в каталог →"
                 />
@@ -459,42 +504,40 @@ export default function ProfilePage() {
                 </Link>
               </div>
 
-              {previewFavorites.length > 0 ? (
+              {favorites.length > 0 ? (
                 <div className="mt-8 grid gap-4 md:grid-cols-2">
-                  {previewFavorites.map((product) => (
+                  {favorites.map((favorite) => (
                     <article
-                      key={product.slug}
+                      key={favorite.id}
                       className="rounded-2xl border border-theme bg-transparent p-5 transition-colors hover:border-blue-500/35 hover:bg-blue-soft"
                     >
                       <div className="flex gap-5">
-                        <div className="soft-box flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl text-xs text-muted-soft">
-                          Фото
+                        <div className="soft-box flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white text-xs text-muted-soft">
+                          {favorite.product.image ? (
+                            // eslint-disable-next-line @next/next/no-img-element
+                            <img
+                              src={favorite.product.image}
+                              alt={favorite.product.name}
+                              className="h-full w-full object-contain"
+                            />
+                          ) : (
+                            "Фото"
+                          )}
                         </div>
 
                         <div className="flex min-w-0 flex-1 flex-col">
-                          <h3 className="text-lg font-bold leading-tight">
-                            {product.name}
+                          <div className="text-sm text-muted">{favorite.product.brand}</div>
+                          <h3 className="mt-1 text-lg font-bold leading-tight">
+                            {favorite.product.name}
                           </h3>
 
-                          <p className="mt-2 text-sm text-muted">
-                            {getModelPriceRange(product.slug, product.price)}
-                          </p>
-
-                          <div className="mt-auto flex flex-wrap gap-4 pt-5 text-sm font-medium">
+                          <div className="mt-auto pt-5 text-sm font-medium">
                             <Link
-                              href={`/product/${product.slug}`}
+                              href={`/product/${favorite.product.slug}`}
                               className="text-blue-500 transition-colors hover:text-blue-400"
                             >
                               Перейти →
                             </Link>
-
-                            <button
-                              type="button"
-                              onClick={() => removeFavorite(product.slug)}
-                              className="text-muted transition-colors hover:text-main"
-                            >
-                              Убрать
-                            </button>
                           </div>
                         </div>
                       </div>
@@ -504,7 +547,7 @@ export default function ProfilePage() {
               ) : (
                 <EmptyState
                   title="Избранных товаров пока нет"
-                  text="Избранное скрыто внутри личного кабинета. Клиент сможет добавлять сюда модели из карточки товара."
+                  text="Избранное теперь хранится в базе. Когда добавим кнопку избранного в карточку товара, товары появятся здесь."
                   href="/catalog"
                   action="Перейти в каталог →"
                 />
@@ -520,28 +563,38 @@ export default function ProfilePage() {
                 Обращения
               </h2>
 
-              <div className="mt-8 grid gap-4">
-                {supportRequests.map((request) => (
-                  <article
-                    key={request.topic}
-                    className="rounded-2xl border border-theme bg-transparent p-5"
-                  >
-                    <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                      <div>
-                        <h3 className="text-xl font-bold">{request.topic}</h3>
+              {supportRequests.length > 0 ? (
+                <div className="mt-8 grid gap-4">
+                  {supportRequests.map((request) => (
+                    <article
+                      key={request.id}
+                      className="rounded-2xl border border-theme bg-transparent p-5"
+                    >
+                      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
+                        <div>
+                          <div className="text-sm text-muted">{request.publicId}</div>
+                          <h3 className="mt-1 text-xl font-bold">{request.topic}</h3>
 
-                        <p className="mt-2 text-sm leading-relaxed text-muted">
-                          {request.text}
-                        </p>
+                          <p className="mt-2 text-sm leading-relaxed text-muted">
+                            {request.message}
+                          </p>
+                        </div>
+
+                        <span className="w-fit rounded-full border border-theme px-4 py-2 text-sm text-muted">
+                          {getSupportStatusLabel(request.status)}
+                        </span>
                       </div>
-
-                      <span className="w-fit rounded-full border border-theme px-4 py-2 text-sm text-muted">
-                        {request.status}
-                      </span>
-                    </div>
-                  </article>
-                ))}
-              </div>
+                    </article>
+                  ))}
+                </div>
+              ) : (
+                <EmptyState
+                  title="Обращений пока нет"
+                  text="Когда клиент напишет в поддержку, обращение появится здесь из базы. Тестовые обращения больше не выводятся."
+                  href="/help"
+                  action="Написать в поддержку →"
+                />
+              )}
             </section>
           </div>
 
@@ -578,6 +631,14 @@ export default function ProfilePage() {
                 Редактировать данные
               </button>
 
+              <button
+                type="button"
+                onClick={logout}
+                className="mt-3 w-full rounded-xl border border-red-500/30 bg-red-500/10 px-6 py-4 text-sm font-medium text-red-500 transition-colors hover:bg-red-500/15"
+              >
+                Выйти из аккаунта
+              </button>
+
               {isProfileSaved && (
                 <div className="mt-4 rounded-2xl border border-green-500/30 bg-green-500/10 p-3 text-sm text-green-500">
                   Данные сохранены
@@ -598,10 +659,10 @@ export default function ProfilePage() {
                 <div className="mt-6 grid gap-3">
                   {addresses.slice(0, 3).map((address) => (
                     <div
-                      key={address}
+                      key={address.id}
                       className="rounded-2xl border border-theme bg-blue-soft p-4 text-sm"
                     >
-                      {address}
+                      {address.value}
                     </div>
                   ))}
                 </div>
@@ -798,7 +859,7 @@ function EmptyState({
   return (
     <div className="mt-8 rounded-2xl border border-theme bg-blue-soft p-6">
       <h3 className="text-xl font-bold">{title}</h3>
-      <p className="mt-2 max-w-[520px] text-sm leading-relaxed text-muted">{text}</p>
+      <p className="mt-2 max-w-[560px] text-sm leading-relaxed text-muted">{text}</p>
       <Link
         href={href}
         className="mt-5 inline-flex rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500"
@@ -815,11 +876,11 @@ function Modal({
   onClose,
 }: {
   title: string;
-  children: React.ReactNode;
+  children: ReactNode;
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4 py-8 backdrop-blur-sm">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 px-4 py-8 backdrop-blur-md">
       <div className="w-full max-w-[560px] rounded-[28px] border border-theme bg-page p-6 text-main shadow-2xl">
         <div className="flex items-start justify-between gap-4">
           <div>

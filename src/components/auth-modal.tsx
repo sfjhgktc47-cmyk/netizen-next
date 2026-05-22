@@ -44,21 +44,6 @@ const emptyRegister = {
   password: "",
 };
 
-function saveProfileToBrowser(profile: CustomerProfile) {
-  const fullName = [profile.name, profile.lastName].filter(Boolean).join(" ").trim();
-  const value = {
-    id: profile.id,
-    name: profile.name,
-    lastName: profile.lastName,
-    fullName,
-    phone: profile.phone,
-    email: profile.email,
-  };
-
-  localStorage.setItem("netizen-profile", JSON.stringify(value));
-  localStorage.setItem("netizen-customer", JSON.stringify(value));
-}
-
 export function AuthModal({ initialMode = "login", onClose, onSuccess }: AuthModalProps) {
   const [mode, setMode] = useState<AuthMode>(initialMode);
   const [loginDraft, setLoginDraft] = useState(emptyLogin);
@@ -93,10 +78,6 @@ export function AuthModal({ initialMode = "login", onClose, onSuccess }: AuthMod
       if (!response.ok || !data.user) {
         setError(data.message || "Не получилось войти. Проверь данные и попробуй ещё раз.");
         return;
-      }
-
-      if (data.user.profile) {
-        saveProfileToBrowser(data.user.profile);
       }
 
       window.dispatchEvent(new Event("netizen-auth-updated"));

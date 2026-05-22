@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
+import { getAuthSession } from "@/lib/auth";
 import { getPriceNumber } from "@/lib/product-pricing";
 
 type IncomingOrderItem = {
@@ -56,6 +57,7 @@ async function generateOrderPublicId() {
 
 export async function POST(request: Request) {
   try {
+    const session = await getAuthSession();
     const body = (await request.json()) as IncomingOrderBody;
     const customerName = normalizeText(body.customer?.name);
     const phone = normalizeText(body.customer?.phone);
@@ -145,15 +147,18 @@ export async function POST(request: Request) {
       0
     );
 
-    const customer = phone
-      ? await prisma.customer.findFirst({ where: { phone } })
-      : null;
+    const customer = session?.role === "customer" && session.customerId
+      ? await prisma.customer.findUnique({ where: { id: session.customerId } })
+      : phone
+        ? await prisma.customer.findFirst({ where: { phone } })
+        : null;
 
     const savedCustomer = customer
       ? await prisma.customer.update({
           where: { id: customer.id },
           data: {
             name: customerName,
+            phone,
             email,
             city,
           },
@@ -167,41 +172,26 @@ export async function POST(request: Request) {
           },
         });
 
-    const deliveryValue = deliveryMethod === "courier" ? address : pickupPoint;
-
-    if (deliveryValue) {
-      await prisma.address.updateMany({
-        where: {
-          customerId: savedCustomer.id,
-          NOT: {
-            value: deliveryValue,
-          },
-        },
-        data: {
-          isDefault: false,
-        },
-      });
-
+    if (deliveryMethod === "courier" && address) {
       const existingAddress = await prisma.address.findFirst({
         where: {
           customerId: savedCustomer.id,
-          type: deliveryMethod,
-          value: deliveryValue,
+          value: address,
         },
+        select: { id: true },
       });
 
-      if (existingAddress) {
-        await prisma.address.update({
-          where: { id: existingAddress.id },
-          data: { isDefault: true },
+      if (!existingAddress) {
+        const addressesCount = await prisma.address.count({
+          where: { customerId: savedCustomer.id },
         });
-      } else {
+
         await prisma.address.create({
           data: {
             customerId: savedCustomer.id,
-            type: deliveryMethod,
-            value: deliveryValue,
-            isDefault: true,
+            type: "courier",
+            value: address,
+            isDefault: addressesCount === 0,
           },
         });
       }

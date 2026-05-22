@@ -1,7 +1,14 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
+const crypto = require("crypto");
 const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
+
+function hashPassword(password) {
+  const salt = crypto.randomBytes(16).toString("hex");
+  const hash = crypto.pbkdf2Sync(password, salt, 120000, 64, "sha512").toString("hex");
+
+  return `${salt}:${hash}`;
+}
 
 const categories = [
   { slug: "smartphones", name: "Смартфоны", sortOrder: 10 },
@@ -27,7 +34,25 @@ async function main() {
     });
   }
 
-  console.log("Seed complete: categories are ready. Demo products are not created.");
+  const adminLogin = process.env.ADMIN_LOGIN || "admin";
+  const adminPassword = process.env.ADMIN_PASSWORD || "netizen-admin";
+
+  await prisma.adminUser.upsert({
+    where: { login: adminLogin },
+    update: {
+      name: process.env.ADMIN_NAME || "Администратор",
+      passwordHash: hashPassword(adminPassword),
+      isActive: true,
+    },
+    create: {
+      login: adminLogin,
+      name: process.env.ADMIN_NAME || "Администратор",
+      passwordHash: hashPassword(adminPassword),
+      isActive: true,
+    },
+  });
+
+  console.log("Seed complete: categories and admin account are ready. Demo products are not created.");
 }
 
 main()

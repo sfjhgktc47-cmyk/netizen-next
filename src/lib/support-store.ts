@@ -1,7 +1,5 @@
 import "server-only";
 
-import { promises as fs } from "fs";
-import path from "path";
 import { prisma } from "@/lib/db";
 import { getSupportTopic, supportTopics } from "@/lib/support-topics";
 
@@ -34,16 +32,26 @@ export type SupportRequest = {
   messages: SupportMessage[];
 };
 
-type SupportDb = {
-  lastNumber: number;
-  requests: SupportRequest[];
+const statusToDb: Record<SupportStatus, "new" | "in_work" | "waiting_client" | "closed"> = {
+  NEW: "new",
+  IN_PROGRESS: "in_work",
+  WAITING_CLIENT: "waiting_client",
+  CLOSED: "closed",
 };
 
-const dataDirectory = path.join(process.cwd(), ".data");
-const dataFile = path.join(dataDirectory, "support-requests.json");
+const statusFromDb: Record<string, SupportStatus> = {
+  new: "NEW",
+  in_work: "IN_PROGRESS",
+  waiting_client: "WAITING_CLIENT",
+  closed: "CLOSED",
+};
 
 function nowIso() {
   return new Date().toISOString();
+}
+
+function normalizeText(value: unknown) {
+  return typeof value === "string" ? value.trim() : "";
 }
 
 function normalizeSupportTopicId(topicId: string) {
@@ -51,97 +59,88 @@ function normalizeSupportTopicId(topicId: string) {
     return "other";
   }
 
-  return getSupportTopic(topicId).id;
+  const normalized = normalizeText(topicId);
+  const byId = supportTopics.find((topic) => topic.id === normalized);
+
+  if (byId) {
+    return byId.id;
+  }
+
+  const byTitle = supportTopics.find(
+    (topic) => topic.title === normalized || topic.shortTitle === normalized,
+  );
+
+  return byTitle?.id ?? getSupportTopic(normalized).id;
 }
 
-function normalizeSupportRequest(request: SupportRequest): SupportRequest {
-  const topic = getSupportTopic(normalizeSupportTopicId(request.topicId));
+function getSource(value: string): SupportRequest["source"] {
+  if (value === "Личный кабинет" || value === "Админка" || value === "Telegram") {
+    return value;
+  }
+
+  return "Сайт";
+}
+
+async function generateSupportPublicId() {
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const publicId = `SUP-${Date.now().toString().slice(-6)}${attempt ? attempt : ""}`;
+    const existing = await prisma.supportRequest.findUnique({ where: { publicId } });
+
+    if (!existing) {
+      return publicId;
+    }
+  }
+
+  return `SUP-${Date.now()}`;
+}
+
+type DbSupportRequest = Awaited<ReturnType<typeof prisma.supportRequest.findFirst>> & {
+  messages?: Array<{
+    id: string;
+    role: string;
+    name: string;
+    text: string;
+    createdAt: Date;
+  }>;
+};
+
+function mapSupportRequest(request: NonNullable<DbSupportRequest>): SupportRequest {
+  const topicId = normalizeSupportTopicId(request.topic);
+  const topic = getSupportTopic(topicId);
+  const messages = (request.messages ?? []).map((message) => ({
+    id: message.id,
+    role: message.role === "MANAGER" ? "MANAGER" : "CLIENT",
+    name: message.name,
+    text: message.text,
+    createdAt: message.createdAt.toISOString(),
+  }));
+  const fallbackMessage: SupportMessage = {
+    id: `${request.id}-initial`,
+    role: "CLIENT",
+    name: request.clientName || "Клиент",
+    text: request.message,
+    createdAt: request.createdAt.toISOString(),
+  };
+  const normalizedMessages = messages.length > 0 ? messages : [fallbackMessage];
+  const lastMessage = normalizedMessages[normalizedMessages.length - 1];
 
   return {
-    ...request,
+    id: request.id,
+    number: request.publicId,
     topicId: topic.id,
     topicTitle: topic.title,
+    customerName: request.clientName,
+    phone: request.phone,
+    email: request.email,
+    source: getSource(request.source),
+    status: statusFromDb[request.status] ?? "NEW",
+    assignedTo: request.manager || "Не назначен",
+    lastMessage: lastMessage?.text || request.message,
+    unreadForManager: lastMessage?.role === "CLIENT" && request.status !== "closed" ? 1 : 0,
+    createdAt: request.createdAt.toISOString(),
+    updatedAt: request.updatedAt.toISOString(),
+    messages: normalizedMessages,
   };
-}
-
-function makeId(prefix = "msg") {
-  return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`;
-}
-
-async function syncSupportCustomer(input: {
-  customerName?: string;
-  phone?: string;
-  email?: string;
-}) {
-  const phone = input.phone?.trim() ?? "";
-
-  if (!phone || phone === "Не указан") {
-    return;
-  }
-
-  const name = input.customerName?.trim() || "Клиент";
-  const email = input.email?.trim();
-
-  try {
-    const existing = await prisma.customer.findFirst({ where: { phone } });
-
-    if (existing) {
-      await prisma.customer.update({
-        where: { id: existing.id },
-        data: {
-          name,
-          email: email || existing.email,
-        },
-      });
-      return;
-    }
-
-    await prisma.customer.create({
-      data: {
-        name,
-        phone,
-        email: email || "",
-      },
-    });
-  } catch (error) {
-    console.error("Support customer sync error", error);
-  }
-}
-
-async function ensureStore() {
-  await fs.mkdir(dataDirectory, { recursive: true });
-
-  try {
-    await fs.access(dataFile);
-  } catch {
-    const initialDb: SupportDb = {
-      lastNumber: 200,
-      requests: [],
-    };
-    await fs.writeFile(dataFile, JSON.stringify(initialDb, null, 2), "utf8");
-  }
-}
-
-async function readDb(): Promise<SupportDb> {
-  await ensureStore();
-  const raw = await fs.readFile(dataFile, "utf8");
-
-  try {
-    const parsed = JSON.parse(raw) as SupportDb;
-    return {
-      lastNumber: typeof parsed.lastNumber === "number" ? parsed.lastNumber : 200,
-      requests: Array.isArray(parsed.requests)
-        ? parsed.requests.map((request) => normalizeSupportRequest(request as SupportRequest))
-        : [],
-    };
-  } catch {
-    return { lastNumber: 200, requests: [] };
-  }
-}
-
-async function writeDb(db: SupportDb) {
-  await ensureStore();
-  await fs.writeFile(dataFile, JSON.stringify(db, null, 2), "utf8");
 }
 
 export function formatSupportDate(value: string) {
@@ -165,10 +164,16 @@ export function getSupportStatusLabel(status: SupportStatus) {
 }
 
 export async function listSupportRequests() {
-  const db = await readDb();
-  return [...db.requests].sort(
-    (first, second) => new Date(second.updatedAt).getTime() - new Date(first.updatedAt).getTime(),
-  );
+  const requests = await prisma.supportRequest.findMany({
+    orderBy: { updatedAt: "desc" },
+    include: {
+      messages: {
+        orderBy: { createdAt: "asc" },
+      },
+    },
+  });
+
+  return requests.map(mapSupportRequest);
 }
 
 export async function listSupportTopicsWithCounts() {
@@ -194,8 +199,18 @@ export async function listSupportTopicsWithCounts() {
 }
 
 export async function getSupportRequest(idOrNumber: string) {
-  const requests = await listSupportRequests();
-  return requests.find((request) => request.id === idOrNumber || request.number === idOrNumber) ?? null;
+  const request = await prisma.supportRequest.findFirst({
+    where: {
+      OR: [{ id: idOrNumber }, { publicId: idOrNumber }],
+    },
+    include: {
+      messages: {
+        orderBy: { createdAt: "asc" },
+      },
+    },
+  });
+
+  return request ? mapSupportRequest(request) : null;
 }
 
 export async function createSupportRequest(input: {
@@ -206,45 +221,67 @@ export async function createSupportRequest(input: {
   email?: string;
   source?: SupportRequest["source"];
 }) {
-  const db = await readDb();
   const topic = getSupportTopic(normalizeSupportTopicId(input.topicId));
-  const createdAt = nowIso();
-  const nextNumber = db.lastNumber + 1;
-  const request: SupportRequest = {
-    id: makeId("sup"),
-    number: `SUP-${nextNumber}`,
-    topicId: topic.id,
-    topicTitle: topic.title,
-    customerName: input.customerName?.trim() || "Гость Нетизен",
-    phone: input.phone?.trim() || "Не указан",
-    email: input.email?.trim() || "Не указан",
-    source: input.source ?? "Сайт",
-    status: "NEW",
-    assignedTo: "Не назначен",
-    lastMessage: input.message.trim(),
-    unreadForManager: 1,
-    createdAt,
-    updatedAt: createdAt,
-    messages: [
-      {
-        id: makeId("msg"),
-        role: "CLIENT",
-        name: input.customerName?.trim() || "Клиент",
-        text: input.message.trim(),
-        createdAt,
-      },
-    ],
-  };
+  const message = normalizeText(input.message);
+  const phone = normalizeText(input.phone);
+  const email = normalizeText(input.email);
+  const customerName = normalizeText(input.customerName) || "Гость Нетизен";
 
-  db.lastNumber = nextNumber;
-  db.requests.unshift(request);
-  await writeDb(db);
-  await syncSupportCustomer({
-    customerName: request.customerName,
-    phone: request.phone,
-    email: request.email,
+  let customerId: string | undefined;
+
+  if (phone) {
+    const customer = await prisma.customer.findFirst({ where: { phone } });
+    const savedCustomer = customer
+      ? await prisma.customer.update({
+          where: { id: customer.id },
+          data: {
+            name: customerName,
+            email,
+          },
+        })
+      : await prisma.customer.create({
+          data: {
+            name: customerName,
+            phone,
+            email,
+          },
+        });
+
+    customerId = savedCustomer.id;
+  }
+
+  const createdAt = nowIso();
+  const request = await prisma.supportRequest.create({
+    data: {
+      publicId: await generateSupportPublicId(),
+      customerId,
+      topic: topic.id,
+      clientName: customerName,
+      phone: phone || "Не указан",
+      email,
+      message,
+      status: "new",
+      source: input.source ?? "Сайт",
+      manager: "",
+      createdAt,
+      updatedAt: createdAt,
+      messages: {
+        create: {
+          role: "CLIENT",
+          name: customerName || "Клиент",
+          text: message,
+          createdAt,
+        },
+      },
+    },
+    include: {
+      messages: {
+        orderBy: { createdAt: "asc" },
+      },
+    },
   });
-  return request;
+
+  return mapSupportRequest(request);
 }
 
 export async function addSupportMessage(
@@ -255,70 +292,63 @@ export async function addSupportMessage(
     name?: string;
   },
 ) {
-  const db = await readDb();
-  const index = db.requests.findIndex(
-    (request) => request.id === idOrNumber || request.number === idOrNumber,
-  );
+  const request = await prisma.supportRequest.findFirst({
+    where: {
+      OR: [{ id: idOrNumber }, { publicId: idOrNumber }],
+    },
+  });
 
-  if (index < 0) {
+  if (!request) {
     return null;
   }
 
-  const request = db.requests[index];
-  const createdAt = nowIso();
-  const message: SupportMessage = {
-    id: makeId("msg"),
-    role: input.role,
-    name: input.name?.trim() || (input.role === "MANAGER" ? "Менеджер Нетизен" : "Клиент"),
-    text: input.text.trim(),
-    createdAt,
-  };
+  const role: SupportMessageRole = input.role === "MANAGER" ? "MANAGER" : "CLIENT";
+  const text = normalizeText(input.text);
+  const name = normalizeText(input.name) || (role === "MANAGER" ? "Менеджер Нетизен" : "Клиент");
 
-  const nextRequest: SupportRequest = {
-    ...request,
-    status: input.role === "MANAGER" && request.status === "NEW" ? "IN_PROGRESS" : request.status,
-    assignedTo:
-      input.role === "MANAGER" && request.assignedTo === "Не назначен"
-        ? message.name
-        : request.assignedTo,
-    lastMessage: message.text,
-    unreadForManager:
-      input.role === "CLIENT" ? request.unreadForManager + 1 : 0,
-    updatedAt: createdAt,
-    messages: [...request.messages, message],
-  };
+  await prisma.supportMessage.create({
+    data: {
+      requestId: request.id,
+      role,
+      name,
+      text,
+    },
+  });
 
-  db.requests[index] = nextRequest;
-  await writeDb(db);
-  return nextRequest;
+  await prisma.supportRequest.update({
+    where: { id: request.id },
+    data: {
+      message: text,
+      status: role === "MANAGER" && request.status === "new" ? "in_work" : request.status,
+      manager: role === "MANAGER" ? name : request.manager,
+    },
+  });
+
+  return getSupportRequest(request.id);
 }
 
 export async function updateSupportRequest(
   idOrNumber: string,
   input: Partial<Pick<SupportRequest, "status" | "assignedTo" | "topicId">>,
 ) {
-  const db = await readDb();
-  const index = db.requests.findIndex(
-    (request) => request.id === idOrNumber || request.number === idOrNumber,
-  );
+  const request = await prisma.supportRequest.findFirst({
+    where: {
+      OR: [{ id: idOrNumber }, { publicId: idOrNumber }],
+    },
+  });
 
-  if (index < 0) {
+  if (!request) {
     return null;
   }
 
-  const current = db.requests[index];
-  const topic = input.topicId ? getSupportTopic(normalizeSupportTopicId(input.topicId)) : null;
-  const nextRequest: SupportRequest = {
-    ...current,
-    status: input.status ?? current.status,
-    assignedTo: input.assignedTo?.trim() || current.assignedTo,
-    topicId: topic?.id ?? current.topicId,
-    topicTitle: topic?.title ?? current.topicTitle,
-    unreadForManager: input.status ? 0 : current.unreadForManager,
-    updatedAt: nowIso(),
-  };
+  await prisma.supportRequest.update({
+    where: { id: request.id },
+    data: {
+      ...(input.status ? { status: statusToDb[input.status] } : {}),
+      ...(input.assignedTo ? { manager: input.assignedTo.trim() } : {}),
+      ...(input.topicId ? { topic: normalizeSupportTopicId(input.topicId) } : {}),
+    },
+  });
 
-  db.requests[index] = nextRequest;
-  await writeDb(db);
-  return nextRequest;
+  return getSupportRequest(request.id);
 }

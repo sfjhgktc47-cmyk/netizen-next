@@ -74,6 +74,7 @@ model Product {
   category         Category?        @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   variants         ProductVariant[]
   orderItems       OrderItem[]
+  favorites        CustomerFavorite[]
 
   @@index([brand])
   @@index([categorySlug])
@@ -123,9 +124,35 @@ model Customer {
   orders      Order[]
   addresses   Address[]
   tickets     SupportRequest[]
+  favorites   CustomerFavorite[]
 
   @@index([phone])
   @@index([email])
+}
+
+model AdminUser {
+  id           String   @id @default(cuid())
+  login        String   @unique
+  name         String   @default("Администратор")
+  passwordHash String
+  isActive     Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([isActive])
+}
+
+model CustomerFavorite {
+  id         String   @id @default(cuid())
+  customerId String
+  productId  String
+  createdAt  DateTime @default(now())
+
+  customer   Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  product    Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([customerId, productId])
+  @@index([customerId, createdAt])
 }
 
 model Address {
@@ -195,9 +222,23 @@ model SupportRequest {
   status      SupportStatus @default(new)
   source      String        @default("site")
   manager     String        @default("")
+  messages    SupportMessage[]
   createdAt   DateTime      @default(now())
   updatedAt   DateTime      @updatedAt
 
   customer    Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
   @@index([status, createdAt])
+}
+
+model SupportMessage {
+  id        String         @id @default(cuid())
+  requestId String
+  role      String
+  name      String
+  text      String
+  createdAt DateTime       @default(now())
+
+  request   SupportRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
+
+  @@index([requestId, createdAt])
 }
