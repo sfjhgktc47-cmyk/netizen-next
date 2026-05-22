@@ -107,7 +107,7 @@ type DbSupportRequest = Awaited<ReturnType<typeof prisma.supportRequest.findFirs
 function mapSupportRequest(request: NonNullable<DbSupportRequest>): SupportRequest {
   const topicId = normalizeSupportTopicId(request.topic);
   const topic = getSupportTopic(topicId);
-  const messages = (request.messages ?? []).map((message) => ({
+  const messages: SupportMessage[] = (request.messages ?? []).map((message) => ({
     id: message.id,
     role: message.role === "MANAGER" ? "MANAGER" : "CLIENT",
     name: message.name,
