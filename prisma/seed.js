@@ -3,6 +3,16 @@ const { PrismaClient } = require("@prisma/client");
 
 const prisma = new PrismaClient();
 
+function cleanEnvValue(value, fallback) {
+  const normalized = typeof value === "string" ? value.trim() : "";
+
+  if (!normalized) {
+    return fallback;
+  }
+
+  return normalized.replace(/^["\'`]+|["\'`]+$/g, "").trim() || fallback;
+}
+
 function hashPassword(password) {
   const salt = crypto.randomBytes(16).toString("hex");
   const hash = crypto.pbkdf2Sync(password, salt, 120000, 64, "sha512").toString("hex");
@@ -34,9 +44,9 @@ async function main() {
     });
   }
 
-  const adminLogin = (process.env.ADMIN_LOGIN || "admin").trim();
-  const adminPassword = (process.env.ADMIN_PASSWORD || "netizen-admin").trim();
-  const adminName = (process.env.ADMIN_NAME || "Администратор").trim();
+  const adminLogin = cleanEnvValue(process.env.ADMIN_LOGIN, "admin");
+  const adminPassword = cleanEnvValue(process.env.ADMIN_PASSWORD, "netizen-admin");
+  const adminName = cleanEnvValue(process.env.ADMIN_NAME, "Администратор");
 
   await prisma.adminUser.upsert({
     where: { login: adminLogin },
