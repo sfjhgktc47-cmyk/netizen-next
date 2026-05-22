@@ -208,6 +208,8 @@ export default function CartPage() {
   const [comment, setComment] = useState("");
   const [isOrderSent, setIsOrderSent] = useState(false);
   const [orderNumber, setOrderNumber] = useState("");
+  const [isOrderSubmitting, setIsOrderSubmitting] = useState(false);
+  const [orderError, setOrderError] = useState("");
   const [recentlyAddedSku, setRecentlyAddedSku] = useState("");
 
   useEffect(() => {
@@ -406,38 +408,74 @@ export default function CartPage() {
     selectSavedAddress(normalizedAddress);
   }
 
-  function placeOrder() {
-    if (!canPlaceOrder) {
+  async function placeOrder() {
+    if (!canPlaceOrder || isOrderSubmitting) {
       return;
     }
 
-    const nextOrderNumber = `NZ-${Date.now().toString().slice(-6)}`;
-    const order = {
-      number: nextOrderNumber,
-      createdAt: new Date().toISOString(),
-      customer: isRegistered
-        ? { ...customer, source: "profile" }
-        : { ...customer, source: "guest" },
-      delivery: {
-        ...delivery,
-        title: delivery.method === "pickup" ? "ПВЗ / самовывоз" : "Курьерская доставка",
-      },
-      payment: {
-        type: "cash",
-        label: "Наличными при получении",
-      },
-      comment,
-      items,
-      totalQuantity,
-      subtotal,
-    };
+    setIsOrderSubmitting(true);
+    setOrderError("");
 
-    localStorage.setItem("netizen-last-order", JSON.stringify(order));
-    localStorage.removeItem("netizen-checkout-delivery");
-    localStorage.removeItem("netizen-checkout-comment");
-    clearCart();
-    setOrderNumber(nextOrderNumber);
-    setIsOrderSent(true);
+    try {
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          customer: isRegistered
+            ? { ...customer, source: "profile" }
+            : { ...customer, source: "guest" },
+          delivery: {
+            ...delivery,
+            title: delivery.method === "pickup" ? "ПВЗ / самовывоз" : "Курьерская доставка",
+          },
+          comment,
+          items,
+        }),
+      });
+
+      const result = (await response.json()) as {
+        ok?: boolean;
+        error?: string;
+        order?: { publicId?: string };
+      };
+
+      if (!response.ok || !result.ok || !result.order?.publicId) {
+        throw new Error(result.error || "Не удалось создать заявку.");
+      }
+
+      const order = {
+        number: result.order.publicId,
+        createdAt: new Date().toISOString(),
+        customer: isRegistered
+          ? { ...customer, source: "profile" }
+          : { ...customer, source: "guest" },
+        delivery: {
+          ...delivery,
+          title: delivery.method === "pickup" ? "ПВЗ / самовывоз" : "Курьерская доставка",
+        },
+        payment: {
+          type: "cash",
+          label: "Наличными при получении",
+        },
+        comment,
+        items,
+        totalQuantity,
+        subtotal,
+      };
+
+      localStorage.setItem("netizen-last-order", JSON.stringify(order));
+      localStorage.removeItem("netizen-checkout-delivery");
+      localStorage.removeItem("netizen-checkout-comment");
+      clearCart();
+      setOrderNumber(result.order.publicId);
+      setIsOrderSent(true);
+    } catch (error) {
+      setOrderError(error instanceof Error ? error.message : "Не удалось создать заявку.");
+    } finally {
+      setIsOrderSubmitting(false);
+    }
   }
 
   if (!isCartLoaded) {
@@ -752,13 +790,19 @@ export default function CartPage() {
               </div>
             )}
 
+            {orderError && (
+              <div className="mt-5 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-500">
+                {orderError}
+              </div>
+            )}
+
             <button
               type="button"
-              disabled={!canPlaceOrder}
+              disabled={!canPlaceOrder || isOrderSubmitting}
               onClick={placeOrder}
               className="mt-6 flex w-full justify-center rounded-xl bg-blue-600 px-7 py-4 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-600/40 disabled:text-white/60"
             >
-              Оформить заказ →
+              {isOrderSubmitting ? "Отправляем заявку..." : "Оформить заказ →"}
             </button>
 
             <p className="mt-4 text-xs leading-relaxed text-muted-soft">
