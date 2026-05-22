@@ -4,16 +4,16 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { ProductTabs } from "@/components/product-tabs";
-import { productCards } from "@/data/product-cards";
-import { productPositions } from "@/data/product-positions";
+import type { PublicProductModel, PublicProductPosition } from "@/lib/public-catalog-db";
 import { categories } from "@/data/categories";
 import { formatPrice, getPriceNumber } from "@/lib/product-pricing";
 
-type ProductCard = (typeof productCards)[number];
-type ProductPosition = (typeof productPositions)[number];
+type ProductCard = PublicProductModel;
+type ProductPosition = PublicProductPosition;
 
 type ProductDetailViewProps = {
   product: ProductCard;
+  positions: ProductPosition[];
   selectedPosition?: ProductPosition;
 };
 
@@ -74,12 +74,9 @@ function saveFavoriteSlugs(slugs: string[]) {
 
 export function ProductDetailView({
   product,
+  positions,
   selectedPosition,
 }: ProductDetailViewProps) {
-  const positions = useMemo(
-    () => productPositions.filter((position) => position.modelSlug === product.slug),
-    [product.slug]
-  );
 
   const initialPosition = selectedPosition ?? positions[0];
 
@@ -121,6 +118,12 @@ export function ProductDetailView({
 
   const hasInvalidCompleteConfiguration = isConfigurationComplete && !activePosition;
   const previewPosition = activePosition ?? initialPosition;
+  const mediaImages =
+    previewPosition?.images && previewPosition.images.length > 0
+      ? previewPosition.images
+      : product.image
+        ? [product.image]
+        : [];
 
   const priceRange = useMemo(() => {
     const prices = positions
@@ -285,19 +288,39 @@ export function ProductDetailView({
 
         <section className="mt-8 grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
           <div className="card rounded-[36px] p-6">
-            <div className="soft-box flex min-h-[560px] items-center justify-center rounded-[30px] text-muted-soft">
-              Фото товара
+            <div className="soft-box flex min-h-[560px] items-center justify-center overflow-hidden rounded-[30px] text-muted-soft">
+              {mediaImages[0] ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={mediaImages[0]}
+                  alt={previewPosition?.title ?? product.name}
+                  className="h-full max-h-[560px] w-full object-contain"
+                />
+              ) : (
+                "Фото товара"
+              )}
             </div>
 
             <div className="mt-6 grid gap-4 md:grid-cols-4">
-              {Array.from({ length: 4 }).map((_, index) => (
-                <div
-                  key={index}
-                  className="soft-box flex h-28 items-center justify-center rounded-2xl text-xs text-muted-soft"
-                >
-                  Фото
-                </div>
-              ))}
+              {(mediaImages.length > 0 ? mediaImages.slice(0, 4) : Array.from({ length: 4 })).map(
+                (image, index) => (
+                  <div
+                    key={typeof image === "string" ? `${image}-${index}` : index}
+                    className="soft-box flex h-28 items-center justify-center overflow-hidden rounded-2xl text-xs text-muted-soft"
+                  >
+                    {typeof image === "string" ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img
+                        src={image}
+                        alt={`${product.name} фото ${index + 1}`}
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      "Фото"
+                    )}
+                  </div>
+                )
+              )}
             </div>
           </div>
 

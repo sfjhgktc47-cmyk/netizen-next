@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { categories } from "@/data/categories";
 import { CatalogView } from "@/components/catalog-view";
+import { getPublicCatalogData } from "@/lib/public-catalog-db";
 
 export async function generateStaticParams() {
   return categories.map((category) => ({
@@ -29,6 +30,8 @@ export async function generateMetadata({
   };
 }
 
+export const dynamic = "force-dynamic";
+
 export default async function CatalogCategoryPage({
   params,
 }: {
@@ -42,5 +45,13 @@ export default async function CatalogCategoryPage({
     notFound();
   }
 
-  return <CatalogView categoryId={category} />;
+  const catalog = await getPublicCatalogData();
+
+  return (
+    <CatalogView
+      categoryId={category}
+      productsData={catalog.products}
+      positionsData={catalog.positions}
+    />
+  );
 }

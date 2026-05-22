@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { products } from "@/data/products";
-import { productPositions } from "@/data/product-positions";
+import { products as fallbackProducts, type ProductModel as CatalogProductBase } from "@/data/products";
+import { productPositions as fallbackProductPositions, type ProductPosition as CatalogPositionBase } from "@/data/product-positions";
 import { getModelPriceRange, getPriceNumber } from "@/lib/product-pricing";
 import { categories } from "@/data/categories";
 import { SiteHeader } from "@/components/site-header";
@@ -12,16 +12,21 @@ import { useTheme } from "@/components/theme-provider";
 
 type CatalogViewProps = {
   categoryId?: string;
+  productsData?: CatalogProductBase[];
+  positionsData?: CatalogPositionBase[];
 };
 
-type ProductModel = (typeof products)[number] & {
+type ProductModel = CatalogProductBase & {
   category?: string;
+  image?: string;
+  shortDescription?: string;
+  status?: string;
   price: string;
   minPrice: number;
   maxPrice: number;
 };
 
-type ProductPosition = (typeof productPositions)[number];
+type ProductPosition = CatalogPositionBase;
 
 type CatalogPosition = ProductPosition & {
   product: ProductModel;
@@ -121,8 +126,12 @@ function getOnlyDigits(value: string) {
   return Number(value.replace(/\D/g, ""));
 }
 
-function getProductPriceStats(modelSlug: string, fallbackPrice: string) {
-  const prices = productPositions
+function getProductPriceStats(
+  modelSlug: string,
+  fallbackPrice: string,
+  positions: ProductPosition[]
+) {
+  const prices = positions
     .filter((position) => position.modelSlug === modelSlug)
     .map((position) => getPriceNumber(position.price))
     .filter((price) => price > 0);
@@ -358,8 +367,16 @@ function getDisabledOptions(
   );
 }
 
-export function CatalogView({ categoryId }: CatalogViewProps) {
+export function CatalogView({
+  categoryId,
+  productsData = [],
+  positionsData = [],
+}: CatalogViewProps) {
   const { dark } = useTheme();
+
+  const catalogProductsData = productsData.length > 0 ? productsData : fallbackProducts;
+  const catalogPositionsData =
+    positionsData.length > 0 ? positionsData : fallbackProductPositions;
 
   const activeCategoryIndex = categories.findIndex(
     (category) => category.id === categoryId
@@ -447,15 +464,19 @@ export function CatalogView({ categoryId }: CatalogViewProps) {
 
   const allProducts = useMemo(
     () =>
-      products.map((product) => {
-        const priceStats = getProductPriceStats(product.slug, product.price);
+      catalogProductsData.map((product) => {
+        const priceStats = getProductPriceStats(
+          product.slug,
+          product.price,
+          catalogPositionsData
+        );
 
         return {
           ...product,
           ...priceStats,
         };
       }) as ProductModel[],
-    []
+    [catalogProductsData, catalogPositionsData]
   );
 
   const activeCategory = categories.find(
@@ -499,7 +520,7 @@ export function CatalogView({ categoryId }: CatalogViewProps) {
   }, [allProducts]);
 
   const enrichedPositions = useMemo(() => {
-    return productPositions
+    return catalogPositionsData
       .map((position) => {
         const product = productMap.get(position.modelSlug);
 
@@ -516,7 +537,7 @@ export function CatalogView({ categoryId }: CatalogViewProps) {
         };
       })
       .filter(Boolean) as CatalogPosition[];
-  }, [productMap]);
+  }, [catalogPositionsData, productMap]);
 
   const positionsForFilterOptions = useMemo(() => {
     return enrichedPositions.filter((position) => {
@@ -1173,11 +1194,20 @@ function GridProductCard({
       }`}
     >
       <div
-        className={`flex h-[220px] items-center justify-center rounded-2xl transition-colors duration-700 ${
+        className={`flex h-[220px] items-center justify-center overflow-hidden rounded-2xl transition-colors duration-700 ${
           dark ? "bg-white/[0.045] text-white/25" : "bg-slate-100 text-black/25"
         }`}
       >
-        Фото товара
+        {product.image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={product.image}
+            alt={product.name}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          "Фото товара"
+        )}
       </div>
 
       <div className="px-1 pb-1 pt-4">
@@ -1255,11 +1285,20 @@ function PositionProductCard({
       }`}
     >
       <div
-        className={`flex h-[220px] items-center justify-center rounded-2xl transition-colors duration-700 ${
+        className={`flex h-[220px] items-center justify-center overflow-hidden rounded-2xl transition-colors duration-700 ${
           dark ? "bg-white/[0.045] text-white/25" : "bg-slate-100 text-black/25"
         }`}
       >
-        Фото товара
+        {position.images?.[0] || position.product.image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={position.images?.[0] ?? position.product.image ?? ""}
+            alt={position.title}
+            className="h-full w-full object-cover"
+          />
+        ) : (
+          "Фото товара"
+        )}
       </div>
 
       <div className="px-1 pb-1 pt-4">

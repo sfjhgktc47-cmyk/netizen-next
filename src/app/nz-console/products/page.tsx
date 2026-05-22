@@ -43,7 +43,7 @@ export default async function AdminProductsPage() {
           <div className="hidden items-center gap-3 text-sm text-white/55 md:flex">
             <span>Карточки товаров</span>
             <span>·</span>
-            <span>{dbCount > 0 ? "PostgreSQL" : "демо fallback"}</span>
+            <span>PostgreSQL</span>
           </div>
 
           <Link
@@ -62,7 +62,7 @@ export default async function AdminProductsPage() {
           <div className="mt-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <div className="inline-flex rounded-full border border-blue-500/35 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-400">
-                {dbCount > 0 ? "Данные из БД" : "Fallback: демо-данные"}
+                Данные из БД
               </div>
 
               <h1 className="mt-5 text-4xl font-bold tracking-[-0.055em] sm:text-5xl">
@@ -70,7 +70,7 @@ export default async function AdminProductsPage() {
               </h1>
 
               <p className="mt-3 max-w-[800px] text-sm leading-relaxed text-white/55">
-                Это материнские карточки: iPhone 17 Pro, MacBook Pro 14, AirPods Pro. Теперь этот раздел умеет читать товары из PostgreSQL и создавать новые карточки через админку.
+                Это материнские карточки товаров. Раздел читает PostgreSQL и создаёт новые карточки через админку. Тестовые товары из кода больше не используются.
               </p>
             </div>
 
@@ -189,12 +189,10 @@ export default async function AdminProductsPage() {
 
                     <span
                       className={`rounded-full border px-2 py-0.5 text-[11px] ${
-                        product.source === "db"
-                          ? "border-blue-500/30 bg-blue-500/10 text-blue-300"
-                          : "border-orange-500/30 bg-orange-500/10 text-orange-300"
+                        "border-blue-500/30 bg-blue-500/10 text-blue-300"
                       }`}
                     >
-                      {product.source === "db" ? "БД" : "Демо"}
+                      БД
                     </span>
                   </div>
 

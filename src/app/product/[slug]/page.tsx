@@ -1,12 +1,20 @@
 import { notFound } from "next/navigation";
-import { productCards } from "@/data/product-cards";
-import { productPositions } from "@/data/product-positions";
+import {
+  getPublicProductBySlug,
+  getPublicProductSlugs,
+} from "@/lib/public-catalog-db";
 import { ProductDetailView } from "@/components/product-detail-view";
 
+export const dynamic = "force-dynamic";
+
 export async function generateStaticParams() {
-  return productCards.map((product) => ({
-    slug: product.slug,
-  }));
+  try {
+    const slugs = await getPublicProductSlugs();
+
+    return slugs.map((slug) => ({ slug }));
+  } catch {
+    return [];
+  }
 }
 
 export async function generateMetadata({
@@ -15,18 +23,17 @@ export async function generateMetadata({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
+  const data = await getPublicProductBySlug(slug);
 
-  const product = productCards.find((item) => item.slug === slug);
-
-  if (!product) {
+  if (!data) {
     return {
       title: "Товар не найден — Netizen",
     };
   }
 
   return {
-    title: `${product.name} — купить в Netizen`,
-    description: product.shortDescription,
+    title: `${data.product.name} — купить в Netizen`,
+    description: data.product.shortDescription || data.product.description,
   };
 }
 
@@ -40,17 +47,21 @@ export default async function ProductPage({
   const { slug } = await params;
   const { sku } = await searchParams;
 
-  const product = productCards.find((item) => item.slug === slug);
+  const data = await getPublicProductBySlug(slug);
 
-  if (!product) {
+  if (!data) {
     notFound();
   }
 
   const selectedPosition = sku
-    ? productPositions.find(
-        (position) => position.modelSlug === product.slug && position.sku === sku
-      )
+    ? data.positions.find((position) => position.sku === sku)
     : undefined;
 
-  return <ProductDetailView product={product} selectedPosition={selectedPosition} />;
+  return (
+    <ProductDetailView
+      product={data.product}
+      positions={data.positions}
+      selectedPosition={selectedPosition}
+    />
+  );
 }

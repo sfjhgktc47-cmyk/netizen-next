@@ -81,12 +81,10 @@ export default async function AdminProductDetailPage({
 
                       <span
                         className={`rounded-full border px-2 py-0.5 text-[11px] ${
-                          product.source === "db"
-                            ? "border-blue-500/30 bg-blue-500/10 text-blue-300"
-                            : "border-orange-500/30 bg-orange-500/10 text-orange-300"
+                          "border-blue-500/30 bg-blue-500/10 text-blue-300"
                         }`}
                       >
-                        {product.source === "db" ? "БД" : "Демо"}
+                        БД
                       </span>
                     </div>
 
@@ -153,11 +151,9 @@ export default async function AdminProductDetailPage({
         </section>
 
 
-        {product.source === "db" ? (
-          <section id="edit-product" className="mt-8">
-            <ProductEditForm product={product} categories={categories} />
-          </section>
-        ) : null}
+        <section id="edit-product" className="mt-8">
+          <ProductEditForm product={product} categories={categories} />
+        </section>
 
         <section className="mt-8 rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
           <SectionTitle
@@ -216,18 +212,12 @@ export default async function AdminProductDetailPage({
             </div>
           </div>
 
-          {product.source === "db" ? (
-            <div className="mt-8 rounded-[28px] border border-blue-500/20 bg-blue-500/10 p-6 text-sm leading-relaxed text-blue-100/80">
-              Позиции редактируются в отдельном разделе «Позиции / SKU», чтобы карточка товара не смешивалась с конкретными комплектациями.
-              <Link href="/nz-console/positions" className="ml-2 font-semibold text-blue-200 hover:text-white">
-                Открыть позиции →
-              </Link>
-            </div>
-          ) : (
-            <div className="mt-8 rounded-[28px] border border-orange-500/20 bg-orange-500/10 p-6 text-sm leading-relaxed text-orange-100/80">
-              Это демо-карточка из файлов. Позиции можно создавать и редактировать только у товаров из БД.
-            </div>
-          )}
+          <div className="mt-8 rounded-[28px] border border-blue-500/20 bg-blue-500/10 p-6 text-sm leading-relaxed text-blue-100/80">
+            Позиции редактируются в отдельном разделе «Позиции / SKU», чтобы карточка товара не смешивалась с конкретными комплектациями.
+            <Link href="/nz-console/positions" className="ml-2 font-semibold text-blue-200 hover:text-white">
+              Открыть позиции →
+            </Link>
+          </div>
         </section>
       </div>
     </main>
