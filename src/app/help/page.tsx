@@ -1,139 +1,137 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
-
-type Topic = {
-  id: string;
-  eyebrow: string;
-  title: string;
-  text: string;
-  icon: string;
-  badge: string;
-  intro: string;
-  placeholder: string;
-  quickMessages: string[];
-  hints: string[];
-};
+import { supportTopics } from "@/lib/support-topics";
 
 type ChatMessage = {
-  id: number;
-  role: "client" | "manager";
+  id: string;
+  role: "CLIENT" | "MANAGER";
+  name: string;
   text: string;
+  createdAt: string;
 };
 
-const topics: Topic[] = [
-  {
-    id: "selection",
-    eyebrow: "Выбор модели",
-    title: "Подбор техники",
-    text: "Поможем выбрать устройство под задачи, бюджет и сценарий использования.",
-    icon: "✦",
-    badge: "Выбор модели",
-    intro:
-      "Здравствуйте! Напишите ваш вопрос в свободной форме. Чтобы мы быстрее помогли, укажите: что хотите купить или с какой проблемой столкнулись, город, желаемую модель/конфигурацию и телефон для связи.",
-    placeholder: "Например: нужен iPhone для фото до 120 000 ₽",
-    quickMessages: [
-      "Нужен телефон для фото",
-      "Нужен ноутбук для работы",
-      "Помогите выбрать подарок",
-    ],
-    hints: ["Для чего нужна техника", "Бюджет", "Желаемый бренд или модель", "Город получения"],
-  },
-  {
-    id: "order",
-    eyebrow: "Заявка / наличие",
-    title: "Вопрос по заказу",
-    text: "Уточним наличие, конфигурацию, доставку и итоговую стоимость.",
-    icon: "№",
-    badge: "Заказ",
-    intro:
-      "Напишите номер заявки, модель или конфигурацию, которую хотите уточнить. Менеджер проверит наличие, цену, доставку и ответит здесь.",
-    placeholder: "Например: уточните наличие iPhone 17 Pro 256 GB Blue",
-    quickMessages: ["Проверить наличие", "Уточнить итоговую цену", "Изменить доставку"],
-    hints: ["Номер заявки, если есть", "Модель и память", "Цвет / SIM", "Город или способ получения"],
-  },
-  {
-    id: "problem",
-    eyebrow: "После покупки",
-    title: "Брак / проблема",
-    text: "Разберём проблему с товаром и подскажем дальнейшие действия.",
-    icon: "!",
-    badge: "Проблема",
-    intro:
-      "Опишите, что произошло с товаром после покупки. Чтобы менеджер быстрее разобрался, укажите номер заявки, модель, дату получения и коротко опишите ситуацию.",
-    placeholder: "Например: после покупки не включается устройство",
-    quickMessages: ["Товар не включается", "Есть внешний дефект", "Нужна консультация после покупки"],
-    hints: ["Номер заявки", "Модель товара", "Дата получения", "Описание проблемы"],
-  },
-  {
-    id: "warranty",
-    eyebrow: "Сервис",
-    title: "Гарантия",
-    text: "Подскажем условия гарантии и что подготовить для обращения.",
-    icon: "✓",
-    badge: "Сервис",
-    intro:
-      "Напишите, какой товар купили и какой вопрос по гарантии возник. Менеджер подскажет условия, документы и следующие шаги.",
-    placeholder: "Например: хочу уточнить гарантию по MacBook Pro",
-    quickMessages: ["Какая гарантия?", "Какие документы нужны?", "Как обратиться по гарантии?"],
-    hints: ["Модель", "Дата покупки", "Номер заявки", "Суть вопроса"],
-  },
-  {
-    id: "delivery",
-    eyebrow: "Курьер / ПВЗ",
-    title: "Доставка",
-    text: "Поможем уточнить адрес, сроки доставки и удобный способ получения.",
-    icon: "→",
-    badge: "Доставка",
-    intro:
-      "Напишите город, удобный способ получения и адрес, если нужна курьерская доставка. Если выбираете ПВЗ — укажите, что хотите забрать самовывозом.",
-    placeholder: "Например: хочу оформить курьерскую доставку в Москве",
-    quickMessages: ["Нужен курьер", "Хочу забрать в ПВЗ", "Уточнить сроки доставки"],
-    hints: ["Город", "Курьер или ПВЗ", "Адрес для курьера", "Удобное время"],
-  },
-];
+type SupportRequest = {
+  id: string;
+  number: string;
+  topicId: string;
+  status: string;
+  messages: ChatMessage[];
+};
+
+const statusLabels: Record<string, string> = {
+  NEW: "Новое",
+  IN_PROGRESS: "В работе",
+  WAITING_CLIENT: "Ожидает клиента",
+  CLOSED: "Закрыто",
+};
 
 export default function HelpPage() {
-  const [activeTopicId, setActiveTopicId] = useState(topics[0].id);
+  const [activeTopicId, setActiveTopicId] = useState(supportTopics[0].id);
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [customerName, setCustomerName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
+  const [requestsByTopic, setRequestsByTopic] = useState<Record<string, SupportRequest>>({});
+  const [isSending, setIsSending] = useState(false);
+  const [error, setError] = useState("");
 
-  const activeTopic = topics.find((topic) => topic.id === activeTopicId) ?? topics[0];
+  const activeTopic = useMemo(
+    () => supportTopics.find((topic) => topic.id === activeTopicId) ?? supportTopics[0],
+    [activeTopicId],
+  );
+  const activeRequest = requestsByTopic[activeTopicId];
+  const messages = activeRequest?.messages ?? [];
+
+  useEffect(() => {
+    if (!activeRequest?.number || activeRequest.status === "CLOSED") {
+      return;
+    }
+
+    const intervalId = window.setInterval(async () => {
+      try {
+        const response = await fetch(`/api/support/requests/${activeRequest.number}`, {
+          cache: "no-store",
+        });
+
+        if (!response.ok) {
+          return;
+        }
+
+        const data = (await response.json()) as { request: SupportRequest };
+        setRequestsByTopic((current) => ({
+          ...current,
+          [data.request.topicId]: data.request,
+        }));
+      } catch {
+        // В тестовой версии просто ждём следующую попытку.
+      }
+    }, 3000);
+
+    return () => window.clearInterval(intervalId);
+  }, [activeRequest?.number, activeRequest?.status]);
 
   function selectTopic(topicId: string) {
     setActiveTopicId(topicId);
     setMessage("");
-    setMessages([]);
+    setError("");
   }
 
-  function sendMessage(event: React.FormEvent<HTMLFormElement>) {
+  async function sendMessage(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-
     const trimmedMessage = message.trim();
 
-    if (!trimmedMessage) {
+    if (!trimmedMessage || isSending) {
       return;
     }
 
-    const nextId = Date.now();
+    setIsSending(true);
+    setError("");
 
-    setMessages((currentMessages) => [
-      ...currentMessages,
-      {
-        id: nextId,
-        role: "client",
-        text: trimmedMessage,
-      },
-      {
-        id: nextId + 1,
-        role: "manager",
-        text:
-          "Спасибо, обращение попадёт менеджеру в CRM и Telegram. После подключения интеграции ответ появится прямо в этом чате.",
-      },
-    ]);
-    setMessage("");
+    try {
+      const endpoint = activeRequest
+        ? `/api/support/requests/${activeRequest.number}/messages`
+        : "/api/support/requests";
+      const payload = activeRequest
+        ? {
+            text: trimmedMessage,
+            role: "CLIENT",
+            name: customerName.trim() || "Клиент",
+          }
+        : {
+            topicId: activeTopic.id,
+            message: trimmedMessage,
+            customerName: customerName.trim() || "Гость Нетизен",
+            phone: phone.trim(),
+            email: email.trim(),
+            source: "Сайт",
+          };
+
+      const response = await fetch(endpoint, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error("Не удалось отправить обращение.");
+      }
+
+      const data = (await response.json()) as { request: SupportRequest };
+      setRequestsByTopic((current) => ({
+        ...current,
+        [data.request.topicId]: data.request,
+      }));
+      setMessage("");
+    } catch {
+      setError("Не получилось отправить сообщение. Попробуйте ещё раз.");
+    } finally {
+      setIsSending(false);
+    }
   }
 
   return (
@@ -142,10 +140,7 @@ export default function HelpPage() {
         <SiteHeader />
 
         <section className="mt-10">
-          <Link
-            href="/"
-            className="text-sm text-blue-500 transition-colors hover:text-blue-400"
-          >
+          <Link href="/" className="text-sm text-blue-500 transition-colors hover:text-blue-400">
             ← На главную
           </Link>
 
@@ -160,24 +155,24 @@ export default function HelpPage() {
           </h1>
 
           <p className="mt-3 max-w-[720px] text-sm leading-relaxed text-muted">
-            Выберите тему обращения или сразу напишите вопрос. Менеджер поможет с
-            подбором, заказом, доставкой, гарантией или проблемой после покупки.
+            Выберите тему обращения или сразу напишите вопрос. Сообщение попадёт в админку в нужную папку, а ответ менеджера появится в этом чате.
           </p>
         </section>
 
         <div className="mt-6 border-t border-theme" />
 
         <section className="mt-6 grid gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
-          <aside className="grid gap-4 self-start">
-            {topics.map((topic) => {
+          <aside className="grid gap-3 self-start">
+            {supportTopics.map((topic) => {
               const isActive = topic.id === activeTopic.id;
+              const hasStartedChat = Boolean(requestsByTopic[topic.id]);
 
               return (
                 <button
                   key={topic.id}
                   type="button"
                   onClick={() => selectTopic(topic.id)}
-                  className={`flex gap-4 rounded-[26px] border p-5 text-left transition-all hover:-translate-y-0.5 hover:border-blue-500/45 ${
+                  className={`flex gap-4 rounded-[24px] border p-5 text-left transition-all hover:-translate-y-0.5 hover:border-blue-500/45 ${
                     isActive ? "border-blue-500/60 bg-blue-soft shadow-sm" : "card"
                   }`}
                 >
@@ -189,9 +184,16 @@ export default function HelpPage() {
                     {topic.icon}
                   </span>
 
-                  <span>
-                    <span className="text-xs font-medium uppercase tracking-[0.22em] text-blue-500">
-                      {topic.eyebrow}
+                  <span className="min-w-0 flex-1">
+                    <span className="flex items-center justify-between gap-3">
+                      <span className="text-xs font-medium uppercase tracking-[0.22em] text-blue-500">
+                        {topic.eyebrow}
+                      </span>
+                      {hasStartedChat ? (
+                        <span className="rounded-full bg-red-500 px-2 py-0.5 text-[11px] font-bold text-white">
+                          чат
+                        </span>
+                      ) : null}
                     </span>
 
                     <span className="mt-2 block text-xl font-bold tracking-[-0.035em]">
@@ -217,6 +219,12 @@ export default function HelpPage() {
                 <h2 className="mt-2 text-3xl font-bold tracking-[-0.045em]">
                   {activeTopic.title}
                 </h2>
+
+                {activeRequest ? (
+                  <p className="mt-2 text-sm text-muted">
+                    Обращение {activeRequest.number} · {statusLabels[activeRequest.status] ?? activeRequest.status}
+                  </p>
+                ) : null}
               </div>
 
               <span className="w-fit rounded-full border border-blue-500/35 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-500">
@@ -234,15 +242,14 @@ export default function HelpPage() {
                   {messages.map((chatMessage) => (
                     <div
                       key={chatMessage.id}
-                      className={`flex ${chatMessage.role === "client" ? "justify-end" : "justify-start"}`}
+                      className={`flex ${chatMessage.role === "CLIENT" ? "justify-end" : "justify-start"}`}
                     >
                       <div
                         className={`max-w-[720px] rounded-[24px] px-5 py-4 text-sm leading-relaxed ${
-                          chatMessage.role === "client"
-                            ? "bg-blue-600 text-white"
-                            : "bg-blue-soft text-main"
+                          chatMessage.role === "CLIENT" ? "bg-blue-600 text-white" : "bg-blue-soft text-main"
                         }`}
                       >
+                        <div className="mb-1 text-xs opacity-70">{chatMessage.name}</div>
                         {chatMessage.text}
                       </div>
                     </div>
@@ -263,6 +270,29 @@ export default function HelpPage() {
                     ))}
                   </div>
 
+                  {!activeRequest ? (
+                    <div className="mb-3 grid gap-3 md:grid-cols-3">
+                      <input
+                        value={customerName}
+                        onChange={(event) => setCustomerName(event.target.value)}
+                        placeholder="Ваше имя"
+                        className="min-h-11 rounded-2xl border border-theme bg-transparent px-4 text-sm outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+                      />
+                      <input
+                        value={phone}
+                        onChange={(event) => setPhone(event.target.value)}
+                        placeholder="Телефон"
+                        className="min-h-11 rounded-2xl border border-theme bg-transparent px-4 text-sm outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+                      />
+                      <input
+                        value={email}
+                        onChange={(event) => setEmail(event.target.value)}
+                        placeholder="E-mail"
+                        className="min-h-11 rounded-2xl border border-theme bg-transparent px-4 text-sm outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+                      />
+                    </div>
+                  ) : null}
+
                   <form onSubmit={sendMessage} className="flex flex-col gap-3 sm:flex-row">
                     <input
                       value={message}
@@ -273,24 +303,24 @@ export default function HelpPage() {
 
                     <button
                       type="submit"
-                      disabled={!message.trim()}
+                      disabled={!message.trim() || isSending}
                       className="rounded-2xl bg-blue-600 px-7 py-4 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-45"
                     >
-                      Отправить
+                      {isSending ? "Отправляем..." : "Отправить"}
                     </button>
                   </form>
 
+                  {error ? <p className="mt-3 text-xs text-red-500">{error}</p> : null}
+
                   <p className="mt-3 text-xs leading-relaxed text-muted-soft">
-                    Сейчас это чат-макет. Позже отправку можно подключить к Telegram-боту,
-                    чат-сервису или CRM, а ответ менеджера показывать прямо здесь.
+                    Обращение создаётся в нужной теме и сразу появляется в админке. Ответ менеджера подтягивается в этот чат автоматически.
                   </p>
                 </div>
               </div>
 
               <aside className="space-y-4 border-t border-theme p-6 lg:border-l lg:border-t-0">
                 <InfoCard title="Менеджер ответит здесь">
-                  Клиент пишет на сайте, менеджер получает обращение и отвечает. Ответ
-                  появится прямо в этом окне чата.
+                  Клиент пишет на сайте, менеджер получает обращение в админке и отвечает. Ответ появится прямо в этом окне чата.
                 </InfoCard>
 
                 <ContactCard label="Telegram" value="@netizen_store" />
@@ -322,21 +352,6 @@ export default function HelpPage() {
             </div>
           </section>
         </section>
-
-        <section className="mt-9 grid gap-5 md:grid-cols-3">
-          <BottomCard
-            title="Подбор без давления"
-            text="Поможем выбрать модель под задачи и бюджет без навязывания лишнего."
-          />
-          <BottomCard
-            title="Вопросы по заказу"
-            text="Уточним наличие, конфигурацию, доставку и итоговую стоимость."
-          />
-          <BottomCard
-            title="Помощь после покупки"
-            text="Если возник вопрос по товару, подскажем дальнейшие действия."
-          />
-        </section>
       </div>
     </main>
   );
@@ -356,15 +371,6 @@ function InfoCard({ title, children }: { title: string; children: React.ReactNod
     <div className="rounded-3xl border border-theme p-5">
       <h3 className="text-xl font-bold tracking-[-0.035em]">{title}</h3>
       <div className="mt-3 text-sm leading-relaxed text-muted">{children}</div>
-    </div>
-  );
-}
-
-function BottomCard({ title, text }: { title: string; text: string }) {
-  return (
-    <div className="card rounded-[26px] p-6">
-      <h3 className="text-2xl font-bold tracking-[-0.04em]">{title}</h3>
-      <p className="mt-3 text-sm leading-relaxed text-muted">{text}</p>
     </div>
   );
 }
