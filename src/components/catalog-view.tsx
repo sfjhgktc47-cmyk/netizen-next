@@ -27,6 +27,7 @@ type CatalogViewProps = {
 type ProductModel = CatalogProductBase & {
   category?: string;
   image?: string;
+  images?: string[];
   shortDescription?: string;
   status?: string;
   price: string;
@@ -105,6 +106,24 @@ function uniqueColorOptions(positions: ProductPosition[]) {
 
   return Array.from(map.values());
 }
+
+function getCleanImages(...sources: Array<string | string[] | undefined | null>) {
+  return Array.from(
+    new Set(
+      sources
+        .flatMap((source) => {
+          if (Array.isArray(source)) {
+            return source;
+          }
+
+          return source ? [source] : [];
+        })
+        .map((image) => image.trim())
+        .filter(Boolean)
+    )
+  );
+}
+
 
 function getStatusName(status: string) {
   const statuses: Record<string, string> = {
@@ -473,19 +492,39 @@ export function CatalogView({
   ]);
 
   const allProducts = useMemo(
-    () =>
-      catalogProductsData.map((product) => {
+    () => {
+      const positionImagesByModel = catalogPositionsData.reduce<Record<string, string[]>>(
+        (acc, position) => {
+          const images = getCleanImages(position.images);
+
+          if (images.length === 0) {
+            return acc;
+          }
+
+          acc[position.modelSlug] = getCleanImages(acc[position.modelSlug], images);
+          return acc;
+        },
+        {}
+      );
+
+      return catalogProductsData.map((product) => {
         const priceStats = getProductPriceStats(
           product.slug,
           product.price,
           catalogPositionsData
         );
+        const productImages = getCleanImages(product.image, product.images);
+        const positionImages = positionImagesByModel[product.slug] ?? [];
+        const images = getCleanImages(productImages, positionImages);
 
         return {
           ...product,
+          image: images[0] ?? "",
+          images,
           ...priceStats,
         };
-      }) as ProductModel[],
+      }) as ProductModel[];
+    },
     [catalogProductsData, catalogPositionsData]
   );
 
