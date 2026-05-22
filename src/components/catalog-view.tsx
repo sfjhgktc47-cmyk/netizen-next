@@ -705,7 +705,7 @@ export function CatalogView({
   );
 
   const productsByBrand = useMemo(() => {
-    const grouped = categoryProducts.reduce<Record<string, ProductModel[]>>(
+    const grouped = visibleModelProducts.reduce<Record<string, ProductModel[]>>(
       (acc, product) => {
         if (!acc[product.brand]) {
           acc[product.brand] = [];
@@ -721,7 +721,7 @@ export function CatalogView({
       brand,
       sortProductModels(brandProducts, sortMode),
     ] as [string, ProductModel[]]);
-  }, [categoryProducts, sortMode]);
+  }, [sortMode, visibleModelProducts]);
 
   const hasSpecificationFilters = Boolean(
     selectedModelSlug ||
@@ -733,9 +733,7 @@ export function CatalogView({
       priceTo
   );
 
-  const shouldShowPositionResults = Boolean(
-    hasSpecificationFilters || selectedBrand || activeCategory
-  );
+  const shouldShowPositionResults = Boolean(hasSpecificationFilters);
   const hasActiveFilters = Boolean(selectedBrand || hasSpecificationFilters);
   const resultCount = shouldShowPositionResults
     ? positionResults.length
