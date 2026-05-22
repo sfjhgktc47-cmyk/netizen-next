@@ -172,9 +172,10 @@ export default async function AdminProductsPage() {
               >
                 <Link
                   href={`/product/${product.slug}`}
-                  className="flex h-20 w-20 items-center justify-center rounded-2xl bg-white/[0.045] text-xs text-white/25"
+                  className="flex h-20 w-20 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.045] bg-cover bg-center bg-no-repeat text-xs text-white/25"
+                  style={product.image ? { backgroundImage: `url(${product.image})` } : undefined}
                 >
-                  Фото
+                  {product.image ? null : "Фото"}
                 </Link>
 
                 <div>

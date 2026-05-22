@@ -4,6 +4,8 @@ import type { FormEvent, ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
+import { ImageDropZone } from "@/components/admin/image-drop-zone";
+
 type AdminCategoryOption = {
   id: string;
   slug: string;
@@ -122,7 +124,7 @@ export function ProductEditForm({ product, categories }: Props) {
             Изменить карточку товара
           </h3>
           <p className="mt-2 max-w-[760px] text-sm leading-relaxed text-white/55">
-            Меняйте название, категорию, бренд, описание и статус. После сохранения данные обновятся в PostgreSQL.
+            Меняйте название, категорию, бренд, фото, описание и статус. Фото можно просто перетащить в блок загрузки.
           </p>
         </div>
 
@@ -163,9 +165,9 @@ export function ProductEditForm({ product, categories }: Props) {
           </select>
         </Field>
 
-        <Field label="Ссылка на фото">
-          <input value={image} onChange={(event) => setImage(event.target.value)} placeholder="/products/iphone.png" className={inputClass} />
-        </Field>
+        <div className="md:col-span-2 xl:col-span-2">
+          <ImageDropZone value={image} onChange={setImage} />
+        </div>
 
         <label className="flex min-h-12 items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-4 text-sm text-white/70">
           <input type="checkbox" checked={isNew} onChange={(event) => setIsNew(event.target.checked)} />
