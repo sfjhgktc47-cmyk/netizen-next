@@ -3,6 +3,7 @@
 import type { FormEvent, ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { ColorPickerField } from "@/components/admin/color-picker-field";
 
 type ProductOption = {
   id: string;
@@ -164,13 +165,15 @@ export function PositionCreateForm({ products, initialProductSlug }: Props) {
             <input value={memory} onChange={(event) => setMemory(event.target.value)} className={inputClass} />
           </Field>
 
-          <Field label="Цвет">
-            <input value={color} onChange={(event) => setColor(event.target.value)} className={inputClass} />
-          </Field>
-
-          <Field label="HEX цвета">
-            <input value={colorHex} onChange={(event) => setColorHex(event.target.value)} className={inputClass} />
-          </Field>
+          <div className="md:col-span-2">
+            <ColorPickerField
+              color={color}
+              colorHex={colorHex}
+              onColorChange={setColor}
+              onColorHexChange={setColorHex}
+              inputClassName={inputClass}
+            />
+          </div>
 
           <Field label="SIM">
             <input value={sim} onChange={(event) => setSim(event.target.value)} className={inputClass} />
