@@ -123,7 +123,18 @@ function getCleanImages(...sources: Array<string | string[] | undefined | null>)
     )
   );
 }
+function getModelImages(product: CatalogProductBase) {
+  const productWithImages = product as CatalogProductBase & {
+    image?: string | null;
+    images?: string[] | null;
+  };
 
+  return getCleanImages(productWithImages.image, productWithImages.images);
+}
+
+function getModelImage(product: ProductModel) {
+  return getModelImages(product)[0] ?? "";
+}
 
 function getStatusName(status: string) {
   const statuses: Record<string, string> = {
@@ -513,7 +524,7 @@ export function CatalogView({
           product.price,
           catalogPositionsData
         );
-        const productImages = getCleanImages(product.image, product.images);
+        const productImages = getModelImages(product);
         const positionImages = positionImagesByModel[product.slug] ?? [];
         const images = getCleanImages(productImages, positionImages);
 
@@ -1233,10 +1244,10 @@ function PositionProductCard({
           dark ? "bg-white/[0.045] text-white/25" : "bg-slate-100 text-black/25"
         }`}
       >
-        {position.images?.[0] || position.product.image ? (
+        {position.images?.[0] || getModelImage(position.product) ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
-            src={position.images?.[0] ?? position.product.image ?? ""}
+            src={position.images?.[0] ?? getModelImage(position.product)}
             alt={position.title}
             className="h-full w-full object-cover"
           />
