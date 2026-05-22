@@ -265,7 +265,7 @@ function CarouselProductCard({
       }`}
     >
       <div
-        className={`flex h-[190px] items-center justify-center overflow-hidden rounded-2xl transition-colors duration-700 ${
+        className={`flex aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-2xl transition-colors duration-700 ${
           dark ? "bg-white/[0.045] text-white/25" : "bg-slate-100 text-black/25"
         }`}
       >
@@ -275,7 +275,7 @@ function CarouselProductCard({
             src={image}
             alt={product.name}
             draggable={false}
-            className="h-full w-full object-cover transition-transform duration-700 group-hover:scale-105"
+            className="h-full w-full object-contain p-3 transition-transform duration-700 group-hover:scale-105"
           />
         ) : (
           "Фото товара"

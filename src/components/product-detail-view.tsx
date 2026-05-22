@@ -286,32 +286,32 @@ export function ProductDetailView({
 
         <section className="mt-8 grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
           <div className="card rounded-[36px] p-6">
-            <div className="soft-box flex min-h-[560px] items-center justify-center overflow-hidden rounded-[30px] text-muted-soft">
+            <div className="soft-box mx-auto flex aspect-[3/4] w-full max-w-[520px] items-center justify-center overflow-hidden rounded-[30px] text-muted-soft">
               {mediaImages[0] ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
                   src={mediaImages[0]}
                   alt={previewPosition?.title ?? product.name}
-                  className="h-full max-h-[560px] w-full object-contain"
+                  className="h-full w-full object-contain p-4"
                 />
               ) : (
                 "Фото товара"
               )}
             </div>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-4">
+            <div className="mx-auto mt-6 grid max-w-[520px] grid-cols-4 gap-4">
               {(mediaImages.length > 0 ? mediaImages.slice(0, 4) : Array.from({ length: 4 })).map(
                 (image, index) => (
                   <div
                     key={typeof image === "string" ? `${image}-${index}` : index}
-                    className="soft-box flex h-28 items-center justify-center overflow-hidden rounded-2xl text-xs text-muted-soft"
+                    className="soft-box flex aspect-[3/4] items-center justify-center overflow-hidden rounded-2xl text-xs text-muted-soft"
                   >
                     {typeof image === "string" ? (
                       // eslint-disable-next-line @next/next/no-img-element
                       <img
                         src={image}
                         alt={`${product.name} фото ${index + 1}`}
-                        className="h-full w-full object-cover"
+                        className="h-full w-full object-contain p-1"
                       />
                     ) : (
                       "Фото"
@@ -723,7 +723,7 @@ function ProductStrip({ title }: { title: string }) {
             href="/catalog"
             className="card group rounded-3xl p-4 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/35 hover:bg-blue-soft"
           >
-            <div className="soft-box flex h-[150px] items-center justify-center rounded-2xl text-sm text-muted-soft">
+            <div className="soft-box flex aspect-[3/4] items-center justify-center rounded-2xl text-sm text-muted-soft">
               Фото
             </div>
 
