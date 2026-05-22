@@ -6,63 +6,42 @@ import { useEffect, useState } from "react";
 import { AuthModal } from "@/components/auth-modal";
 import { useTheme } from "@/components/theme-provider";
 
-type HeaderUser = {
-  name: string;
-  phone: string;
-  email: string;
-};
+type AuthMode = "login" | "register";
 
-type HeaderAuthSession = {
-  role?: "customer" | "admin";
-  profile?: Partial<HeaderUser>;
-};
-
-type AuthMode = "login" | "register" | "admin";
-
-function readHeaderJson<T>(key: string): T | null {
-  try {
-    const value = localStorage.getItem(key);
-
-    if (!value) {
-      return null;
-    }
-
-    return JSON.parse(value) as T;
-  } catch {
-    return null;
-  }
-}
-
-function getHeaderUser(): HeaderUser | null {
-  const auth = readHeaderJson<HeaderAuthSession>("netizen-auth");
-
-  if (auth?.role !== "customer") {
-    return null;
-  }
-
-  const savedProfile =
-    auth.profile ?? readHeaderJson<Partial<HeaderUser>>("netizen-profile") ?? null;
-
-  if (!savedProfile) {
-    return { name: "", phone: "", email: "" };
-  }
-
-  return {
-    name: savedProfile.name ?? "",
-    phone: savedProfile.phone ?? "",
-    email: savedProfile.email ?? "",
+type HeaderAuthUser = {
+  role: "customer" | "admin";
+  profile?: {
+    name?: string;
+    lastName?: string;
+    phone?: string;
+    email?: string;
   };
-}
+};
 
-function getUserInitial(user: HeaderUser | null) {
-  const source = user?.name || user?.phone || user?.email || "П";
+type MeResponse = {
+  authenticated?: boolean;
+  user?: HeaderAuthUser;
+};
+
+function getUserInitial(user: HeaderAuthUser | null) {
+  if (!user) {
+    return "П";
+  }
+
+  if (user.role === "admin") {
+    return "A";
+  }
+
+  const source =
+    user.profile?.name || user.profile?.lastName || user.profile?.phone || user.profile?.email || "П";
+
   return source.trim()[0]?.toUpperCase() ?? "П";
 }
 
 export function SiteHeader() {
   const { dark, toggleTheme } = useTheme();
   const [cartCount, setCartCount] = useState(0);
-  const [authUser, setAuthUser] = useState<HeaderUser | null>(null);
+  const [authUser, setAuthUser] = useState<HeaderAuthUser | null>(null);
   const [authMode, setAuthMode] = useState<AuthMode>("login");
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
@@ -72,8 +51,15 @@ export function SiteHeader() {
       setCartCount(count);
     };
 
-    const updateAuthUser = () => {
-      setAuthUser(getHeaderUser());
+    const updateAuthUser = async () => {
+      try {
+        const response = await fetch("/api/auth/me", { cache: "no-store" });
+        const data = (await response.json().catch(() => ({}))) as MeResponse;
+
+        setAuthUser(data.authenticated && data.user ? data.user : null);
+      } catch {
+        setAuthUser(null);
+      }
     };
 
     const openAuthModal = (event: Event) => {
@@ -82,20 +68,24 @@ export function SiteHeader() {
       setIsAuthModalOpen(true);
     };
 
+    const handleAuthUpdate = () => {
+      void updateAuthUser();
+    };
+
     updateCartCount();
-    updateAuthUser();
+    handleAuthUpdate();
 
     window.addEventListener("storage", updateCartCount);
-    window.addEventListener("storage", updateAuthUser);
+    window.addEventListener("storage", handleAuthUpdate);
     window.addEventListener("netizen-cart-updated", updateCartCount);
-    window.addEventListener("netizen-auth-updated", updateAuthUser);
+    window.addEventListener("netizen-auth-updated", handleAuthUpdate);
     window.addEventListener("netizen-open-auth", openAuthModal);
 
     return () => {
       window.removeEventListener("storage", updateCartCount);
-      window.removeEventListener("storage", updateAuthUser);
+      window.removeEventListener("storage", handleAuthUpdate);
       window.removeEventListener("netizen-cart-updated", updateCartCount);
-      window.removeEventListener("netizen-auth-updated", updateAuthUser);
+      window.removeEventListener("netizen-auth-updated", handleAuthUpdate);
       window.removeEventListener("netizen-open-auth", openAuthModal);
     };
   }, []);
@@ -106,6 +96,9 @@ export function SiteHeader() {
     { label: "FAQ", href: "/faq" },
     { label: "Поддержка", href: "/help" },
   ];
+
+  const accountHref = authUser?.role === "admin" ? "/nz-console" : "/profile";
+  const accountLabel = authUser?.role === "admin" ? "Админ-панель" : "Личный кабинет";
 
   return (
     <header
@@ -196,9 +189,9 @@ export function SiteHeader() {
 
         {authUser ? (
           <Link
-            href="/profile"
-            aria-label="Личный кабинет"
-            title="Личный кабинет"
+            href={accountHref}
+            aria-label={accountLabel}
+            title={accountLabel}
             className={`flex h-11 w-11 items-center justify-center rounded-xl border text-sm font-bold transition-all duration-300 ${
               dark
                 ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
@@ -225,7 +218,7 @@ export function SiteHeader() {
         <AuthModal
           initialMode={authMode}
           onClose={() => setIsAuthModalOpen(false)}
-          onSuccess={() => setAuthUser(getHeaderUser())}
+          onSuccess={(user) => setAuthUser(user)}
         />
       )}
     </header>

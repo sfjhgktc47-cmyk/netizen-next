@@ -111,8 +111,10 @@ model ProductVariant {
 model Customer {
   id          String    @id @default(cuid())
   name        String
+  lastName    String    @default("")
   phone       String
   email       String    @default("")
+  passwordHash String   @default("")
   city        String    @default("")
   crmId       String    @default("")
   createdAt   DateTime  @default(now())

@@ -1,176 +1,123 @@
 "use client";
 
+import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
 
-type AuthMode = "login" | "register" | "admin";
+type AuthMode = "login" | "register";
 
 type CustomerProfile = {
+  id?: string;
   name: string;
+  lastName: string;
   phone: string;
   email: string;
 };
 
-type AuthSession = {
+type AuthUser = {
   role: "customer" | "admin";
-  createdAt: string;
   profile?: CustomerProfile;
+};
+
+type AuthResponse = {
+  ok?: boolean;
+  message?: string;
+  user?: AuthUser;
+  redirectTo?: string;
 };
 
 type AuthModalProps = {
   initialMode?: AuthMode;
   onClose: () => void;
-  onSuccess?: (session: AuthSession) => void;
+  onSuccess?: (user: AuthUser) => void;
 };
 
-const emptyProfile: CustomerProfile = {
-  name: "",
+const emptyLogin = {
+  login: "",
+  password: "",
+};
+
+const emptyRegister = {
+  firstName: "",
+  lastName: "",
   phone: "",
   email: "",
+  password: "",
 };
 
-function readJson<T>(key: string): T | null {
-  try {
-    const value = localStorage.getItem(key);
-
-    if (!value) {
-      return null;
-    }
-
-    return JSON.parse(value) as T;
-  } catch {
-    return null;
-  }
-}
-
-function writeJson<T>(key: string, value: T) {
-  localStorage.setItem(key, JSON.stringify(value));
-}
-
-function normalizeProfile(profile: Partial<CustomerProfile>): CustomerProfile {
-  return {
-    name: profile.name?.trim() ?? "",
-    phone: profile.phone?.trim() ?? "",
-    email: profile.email?.trim() ?? "",
+function saveProfileToBrowser(profile: CustomerProfile) {
+  const fullName = [profile.name, profile.lastName].filter(Boolean).join(" ").trim();
+  const value = {
+    id: profile.id,
+    name: profile.name,
+    lastName: profile.lastName,
+    fullName,
+    phone: profile.phone,
+    email: profile.email,
   };
-}
 
-function getSavedProfile() {
-  return normalizeProfile(
-    readJson<Partial<CustomerProfile>>("netizen-profile") ??
-      readJson<Partial<CustomerProfile>>("netizen-user") ??
-      readJson<Partial<CustomerProfile>>("netizen-customer") ??
-      emptyProfile
-  );
-}
-
-function isProfileEmpty(profile: CustomerProfile) {
-  return !profile.name && !profile.phone && !profile.email;
+  localStorage.setItem("netizen-profile", JSON.stringify(value));
+  localStorage.setItem("netizen-customer", JSON.stringify(value));
 }
 
 export function AuthModal({ initialMode = "login", onClose, onSuccess }: AuthModalProps) {
   const [mode, setMode] = useState<AuthMode>(initialMode);
-  const [profileDraft, setProfileDraft] = useState<CustomerProfile>(emptyProfile);
-  const [adminCode, setAdminCode] = useState("");
+  const [loginDraft, setLoginDraft] = useState(emptyLogin);
+  const [registerDraft, setRegisterDraft] = useState(emptyRegister);
   const [error, setError] = useState("");
-  const [hasSavedProfile, setHasSavedProfile] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     setMode(initialMode);
-    const savedProfile = getSavedProfile();
-
-    setProfileDraft(savedProfile);
-    setHasSavedProfile(!isProfileEmpty(savedProfile));
-    setAdminCode("");
     setError("");
   }, [initialMode]);
 
   const title = useMemo(() => {
-    if (mode === "register") {
-      return "Регистрация клиента";
-    }
-
-    if (mode === "admin") {
-      return "Вход в админ-панель";
-    }
-
-    return "Вход в личный кабинет";
+    return mode === "register" ? "Создать аккаунт" : "Вход в личный кабинет";
   }, [mode]);
 
-  function finishAuth(session: AuthSession) {
-    writeJson("netizen-auth", session);
-
-    if (session.profile) {
-      writeJson("netizen-profile", session.profile);
-      writeJson("netizen-customer", session.profile);
-    }
-
-    window.dispatchEvent(new Event("netizen-auth-updated"));
-    onSuccess?.(session);
-    onClose();
-  }
-
-  function handleCustomerSubmit() {
+  async function submitAuth() {
     setError("");
+    setIsSubmitting(true);
 
-    const normalizedProfile = normalizeProfile(profileDraft);
+    const url = mode === "register" ? "/api/auth/register" : "/api/auth/login";
+    const payload = mode === "register" ? registerDraft : loginDraft;
 
-    if (mode === "login") {
-      const savedProfile = getSavedProfile();
-      const fallbackProfile = normalizeProfile({
-        ...savedProfile,
-        email: normalizedProfile.email || savedProfile.email,
-        phone: normalizedProfile.phone || savedProfile.phone,
-        name: savedProfile.name || normalizedProfile.name,
+    try {
+      const response = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
       });
+      const data = (await response.json().catch(() => ({}))) as AuthResponse;
 
-      if (!fallbackProfile.phone && !fallbackProfile.email) {
-        setError("Укажи телефон или e-mail для входа.");
+      if (!response.ok || !data.user) {
+        setError(data.message || "Не получилось войти. Проверь данные и попробуй ещё раз.");
         return;
       }
 
-      finishAuth({
-        role: "customer",
-        createdAt: new Date().toISOString(),
-        profile: fallbackProfile,
-      });
-      return;
+      if (data.user.profile) {
+        saveProfileToBrowser(data.user.profile);
+      }
+
+      window.dispatchEvent(new Event("netizen-auth-updated"));
+      onSuccess?.(data.user);
+
+      if (data.redirectTo) {
+        window.location.href = data.redirectTo;
+        return;
+      }
+
+      onClose();
+    } catch {
+      setError("Сервер авторизации не ответил. Попробуй ещё раз.");
+    } finally {
+      setIsSubmitting(false);
     }
-
-    if (!normalizedProfile.name || !normalizedProfile.phone) {
-      setError("Для регистрации укажи имя и телефон.");
-      return;
-    }
-
-    finishAuth({
-      role: "customer",
-      createdAt: new Date().toISOString(),
-      profile: normalizedProfile,
-    });
-  }
-
-  function handleAdminSubmit() {
-    setError("");
-
-    const expectedCode = process.env.NEXT_PUBLIC_ADMIN_PIN || "netizen-admin";
-
-    if (adminCode.trim() !== expectedCode) {
-      setError("Неверный код администратора.");
-      return;
-    }
-
-    const session: AuthSession = {
-      role: "admin",
-      createdAt: new Date().toISOString(),
-    };
-
-    writeJson("netizen-admin-auth", session);
-    finishAuth(session);
-    window.location.href = "/nz-console";
   }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/55 px-4 py-8 backdrop-blur-sm">
-      <div className="card w-full max-w-[520px] rounded-[30px] p-6 shadow-2xl">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/70 px-4 py-8 backdrop-blur-md">
+      <div className="w-full max-w-[520px] rounded-[30px] border border-theme bg-page p-6 text-main shadow-[0_30px_120px_rgba(0,0,0,0.55)]">
         <div className="flex items-start justify-between gap-4">
           <div>
             <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-500">
@@ -180,7 +127,7 @@ export function AuthModal({ initialMode = "login", onClose, onSuccess }: AuthMod
               {title}
             </h2>
             <p className="mt-2 text-sm leading-relaxed text-muted">
-              Вход для клиента и быстрый доступ в админку теперь находятся здесь.
+              Вход работает через логин и пароль. После входа клиент попадёт в профиль, администратор — в консоль.
             </p>
           </div>
 
@@ -194,96 +141,118 @@ export function AuthModal({ initialMode = "login", onClose, onSuccess }: AuthMod
           </button>
         </div>
 
-        <div className="mt-6 grid grid-cols-3 gap-2 rounded-2xl border border-theme bg-blue-soft p-1">
+        <div className="mt-6 grid grid-cols-2 gap-2 rounded-2xl border border-theme bg-blue-soft p-1">
           <ModeButton active={mode === "login"} onClick={() => setMode("login")}>
             Войти
           </ModeButton>
           <ModeButton active={mode === "register"} onClick={() => setMode("register")}>
             Регистрация
           </ModeButton>
-          <ModeButton active={mode === "admin"} onClick={() => setMode("admin")}>
-            Админ
-          </ModeButton>
         </div>
 
-        {mode === "admin" ? (
-          <div className="mt-6 grid gap-4">
-            <label className="grid gap-2 text-sm font-medium">
-              Код администратора
-              <input
-                type="password"
-                value={adminCode}
-                onChange={(event) => setAdminCode(event.target.value)}
-                placeholder="Введите код"
-                className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
-              />
-            </label>
-
-            <p className="rounded-2xl border border-blue-500/25 bg-blue-500/10 p-4 text-sm leading-relaxed text-muted">
-              Сейчас это быстрый вход для тестового режима. Код по умолчанию:
-              <span className="font-semibold text-main"> netizen-admin</span>.
-              На проде лучше задать свой код через переменную
-              <span className="font-semibold text-main"> NEXT_PUBLIC_ADMIN_PIN</span>.
-            </p>
-          </div>
-        ) : (
-          <div className="mt-6 grid gap-4">
-            {mode === "register" && (
+        <div className="mt-6 grid gap-4">
+          {mode === "login" ? (
+            <>
               <label className="grid gap-2 text-sm font-medium">
-                Имя
+                Логин
                 <input
-                  value={profileDraft.name}
+                  value={loginDraft.login}
                   onChange={(event) =>
-                    setProfileDraft((current) => ({
-                      ...current,
-                      name: event.target.value,
-                    }))
+                    setLoginDraft((current) => ({ ...current, login: event.target.value }))
                   }
-                  placeholder="Например, Иван"
-                  className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+                  placeholder="Телефон, e-mail или логин"
+                  autoComplete="username"
+                  className="h-12 rounded-xl border border-theme bg-transparent px-4 text-main outline-none placeholder:text-muted-soft focus:border-blue-500/50"
                 />
               </label>
-            )}
 
-            <label className="grid gap-2 text-sm font-medium">
-              Телефон
-              <input
-                value={profileDraft.phone}
-                onChange={(event) =>
-                  setProfileDraft((current) => ({
-                    ...current,
-                    phone: event.target.value,
-                  }))
-                }
-                placeholder="+7 999 000-00-00"
-                className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
-              />
-            </label>
+              <label className="grid gap-2 text-sm font-medium">
+                Пароль
+                <input
+                  type="password"
+                  value={loginDraft.password}
+                  onChange={(event) =>
+                    setLoginDraft((current) => ({ ...current, password: event.target.value }))
+                  }
+                  placeholder="Введите пароль"
+                  autoComplete="current-password"
+                  className="h-12 rounded-xl border border-theme bg-transparent px-4 text-main outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+                />
+              </label>
+            </>
+          ) : (
+            <>
+              <div className="grid gap-4 sm:grid-cols-2">
+                <label className="grid gap-2 text-sm font-medium">
+                  Имя
+                  <input
+                    value={registerDraft.firstName}
+                    onChange={(event) =>
+                      setRegisterDraft((current) => ({ ...current, firstName: event.target.value }))
+                    }
+                    placeholder="Иван"
+                    autoComplete="given-name"
+                    className="h-12 rounded-xl border border-theme bg-transparent px-4 text-main outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+                  />
+                </label>
 
-            <label className="grid gap-2 text-sm font-medium">
-              E-mail
-              <input
-                type="email"
-                value={profileDraft.email}
-                onChange={(event) =>
-                  setProfileDraft((current) => ({
-                    ...current,
-                    email: event.target.value,
-                  }))
-                }
-                placeholder="mail@example.com"
-                className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
-              />
-            </label>
+                <label className="grid gap-2 text-sm font-medium">
+                  Фамилия
+                  <input
+                    value={registerDraft.lastName}
+                    onChange={(event) =>
+                      setRegisterDraft((current) => ({ ...current, lastName: event.target.value }))
+                    }
+                    placeholder="Иванов"
+                    autoComplete="family-name"
+                    className="h-12 rounded-xl border border-theme bg-transparent px-4 text-main outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+                  />
+                </label>
+              </div>
 
-            {mode === "login" && !hasSavedProfile && (
-              <p className="rounded-2xl border border-blue-500/25 bg-blue-500/10 p-4 text-sm leading-relaxed text-muted">
-                Если аккаунта ещё нет, введи телефон/e-mail или перейди на регистрацию.
-                Сейчас вход работает в тестовом режиме через данные в браузере.
-              </p>
-            )}
-          </div>
-        )}
+              <label className="grid gap-2 text-sm font-medium">
+                Телефон
+                <input
+                  value={registerDraft.phone}
+                  onChange={(event) =>
+                    setRegisterDraft((current) => ({ ...current, phone: event.target.value }))
+                  }
+                  placeholder="+7 999 000-00-00"
+                  autoComplete="tel"
+                  className="h-12 rounded-xl border border-theme bg-transparent px-4 text-main outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+                />
+              </label>
+
+              <label className="grid gap-2 text-sm font-medium">
+                E-mail <span className="text-muted">необязательно</span>
+                <input
+                  type="email"
+                  value={registerDraft.email}
+                  onChange={(event) =>
+                    setRegisterDraft((current) => ({ ...current, email: event.target.value }))
+                  }
+                  placeholder="mail@example.com"
+                  autoComplete="email"
+                  className="h-12 rounded-xl border border-theme bg-transparent px-4 text-main outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+                />
+              </label>
+
+              <label className="grid gap-2 text-sm font-medium">
+                Пароль
+                <input
+                  type="password"
+                  value={registerDraft.password}
+                  onChange={(event) =>
+                    setRegisterDraft((current) => ({ ...current, password: event.target.value }))
+                  }
+                  placeholder="Минимум 6 символов"
+                  autoComplete="new-password"
+                  className="h-12 rounded-xl border border-theme bg-transparent px-4 text-main outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+                />
+              </label>
+            </>
+          )}
+        </div>
 
         {error && (
           <div className="mt-5 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-500">
@@ -294,10 +263,11 @@ export function AuthModal({ initialMode = "login", onClose, onSuccess }: AuthMod
         <div className="mt-6 flex flex-col gap-3 sm:flex-row">
           <button
             type="button"
-            onClick={mode === "admin" ? handleAdminSubmit : handleCustomerSubmit}
-            className="rounded-xl bg-blue-600 px-6 py-3.5 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+            onClick={submitAuth}
+            disabled={isSubmitting}
+            className="rounded-xl bg-blue-600 px-6 py-3.5 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {mode === "admin" ? "Войти в админку →" : "Продолжить →"}
+            {isSubmitting ? "Проверяем..." : mode === "register" ? "Зарегистрироваться →" : "Войти →"}
           </button>
 
           <button
@@ -319,7 +289,7 @@ function ModeButton({
   onClick,
 }: {
   active: boolean;
-  children: React.ReactNode;
+  children: ReactNode;
   onClick: () => void;
 }) {
   return (
@@ -329,7 +299,7 @@ function ModeButton({
       className={`rounded-xl px-3 py-2.5 text-sm font-medium transition-colors ${
         active
           ? "bg-blue-600 text-white shadow-lg shadow-blue-600/20"
-          : "text-muted hover:bg-white/10 hover:text-main"
+          : "text-muted hover:bg-blue-soft hover:text-main"
       }`}
     >
       {children}

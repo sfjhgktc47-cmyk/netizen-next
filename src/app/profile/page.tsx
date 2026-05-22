@@ -8,6 +8,7 @@ import { formatPrice, getModelPriceRange } from "@/lib/product-pricing";
 
 type CustomerProfile = {
   name: string;
+  lastName: string;
   phone: string;
   email: string;
 };
@@ -43,9 +44,14 @@ type StoredOrder = {
 
 type ModalType = "profile" | "address" | null;
 
-type AuthSession = {
-  role?: "customer" | "admin";
+type AuthUser = {
+  role: "customer" | "admin";
   profile?: Partial<CustomerProfile>;
+};
+
+type MeResponse = {
+  authenticated?: boolean;
+  user?: AuthUser;
 };
 
 const supportRequests = [
@@ -63,6 +69,7 @@ const supportRequests = [
 
 const emptyProfile: CustomerProfile = {
   name: "",
+  lastName: "",
   phone: "",
   email: "",
 };
@@ -115,14 +122,13 @@ function getOrderDelivery(order: StoredOrder) {
   return order.delivery.title || "Курьерская доставка";
 }
 
-function getInitialLetter(name: string) {
-  const trimmedName = name.trim();
+function getInitialLetter(profile: CustomerProfile) {
+  const source = profile.name || profile.lastName || profile.phone || profile.email || "Н";
+  return source.trim()[0]?.toUpperCase() ?? "Н";
+}
 
-  if (!trimmedName) {
-    return "Н";
-  }
-
-  return trimmedName[0]?.toUpperCase() ?? "Н";
+function getFullName(profile: CustomerProfile) {
+  return [profile.name, profile.lastName].filter(Boolean).join(" ").trim();
 }
 
 export default function ProfilePage() {
@@ -138,30 +144,12 @@ export default function ProfilePage() {
   const [isProfileSaved, setIsProfileSaved] = useState(false);
 
   useEffect(() => {
-    const loadProfileState = () => {
-      const authSession = readJson<AuthSession>("netizen-auth");
-      const isCustomer = authSession?.role === "customer";
-      const savedProfile =
-        (isCustomer ? authSession.profile : null) ??
-        readJson<Partial<CustomerProfile>>("netizen-profile") ??
-        readJson<Partial<CustomerProfile>>("netizen-user") ??
-        readJson<Partial<CustomerProfile>>("netizen-customer") ??
-        emptyProfile;
-
-      const normalizedProfile = {
-        name: savedProfile.name ?? "",
-        phone: savedProfile.phone ?? "",
-        email: savedProfile.email ?? "",
-      };
-
+    const loadProfileState = async () => {
       const savedAddresses = readJson<string[]>("netizen-delivery-addresses") ?? [];
       const orderHistory = readJson<StoredOrder[]>("netizen-orders") ?? [];
       const lastOrder = readJson<StoredOrder>("netizen-last-order");
       const savedFavoriteSlugs = readJson<string[]>("netizen-favorite-slugs") ?? [];
 
-      setIsAuthenticated(isCustomer);
-      setProfile(normalizedProfile);
-      setDraftProfile(normalizedProfile);
       setAddresses(savedAddresses);
       setFavoriteSlugs(savedFavoriteSlugs);
 
@@ -171,16 +159,49 @@ export default function ProfilePage() {
         setOrders(orderHistory);
       }
 
-      setIsLoaded(true);
+      try {
+        const response = await fetch("/api/auth/me", { cache: "no-store" });
+        const data = (await response.json().catch(() => ({}))) as MeResponse;
+
+        if (data.authenticated && data.user?.role === "admin") {
+          window.location.href = "/nz-console";
+          return;
+        }
+
+        if (data.authenticated && data.user?.role === "customer" && data.user.profile) {
+          const normalizedProfile = {
+            name: data.user.profile.name ?? "",
+            lastName: data.user.profile.lastName ?? "",
+            phone: data.user.profile.phone ?? "",
+            email: data.user.profile.email ?? "",
+          };
+
+          setIsAuthenticated(true);
+          setProfile(normalizedProfile);
+          setDraftProfile(normalizedProfile);
+        } else {
+          setIsAuthenticated(false);
+          setProfile(emptyProfile);
+          setDraftProfile(emptyProfile);
+        }
+      } catch {
+        setIsAuthenticated(false);
+      } finally {
+        setIsLoaded(true);
+      }
     };
 
-    loadProfileState();
-    window.addEventListener("netizen-auth-updated", loadProfileState);
-    window.addEventListener("storage", loadProfileState);
+    const handleProfileUpdate = () => {
+      void loadProfileState();
+    };
+
+    handleProfileUpdate();
+    window.addEventListener("netizen-auth-updated", handleProfileUpdate);
+    window.addEventListener("storage", handleProfileUpdate);
 
     return () => {
-      window.removeEventListener("netizen-auth-updated", loadProfileState);
-      window.removeEventListener("storage", loadProfileState);
+      window.removeEventListener("netizen-auth-updated", handleProfileUpdate);
+      window.removeEventListener("storage", handleProfileUpdate);
     };
   }, []);
 
@@ -195,20 +216,31 @@ export default function ProfilePage() {
 
   const previewFavorites = favoriteProducts.slice(0, 4);
 
-  function saveProfile() {
+  async function saveProfile() {
     const normalizedProfile = {
       name: draftProfile.name.trim(),
+      lastName: draftProfile.lastName.trim(),
       phone: draftProfile.phone.trim(),
       email: draftProfile.email.trim(),
     };
 
+    const response = await fetch("/api/auth/profile", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        firstName: normalizedProfile.name,
+        lastName: normalizedProfile.lastName,
+        phone: normalizedProfile.phone,
+        email: normalizedProfile.email,
+      }),
+    });
+
+    if (!response.ok) {
+      return;
+    }
+
     setProfile(normalizedProfile);
     writeJson("netizen-profile", normalizedProfile);
-    writeJson("netizen-auth", {
-      role: "customer",
-      createdAt: new Date().toISOString(),
-      profile: normalizedProfile,
-    });
     window.dispatchEvent(new Event("netizen-auth-updated"));
     setIsProfileSaved(true);
     setActiveModal(null);
@@ -517,19 +549,20 @@ export default function ProfilePage() {
             <section className="card rounded-[28px] p-7">
               <div className="flex items-center gap-4">
                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-2xl font-bold text-white">
-                  {getInitialLetter(profile.name)}
+                  {getInitialLetter(profile)}
                 </div>
 
                 <div>
                   <div className="text-sm text-muted">Профиль</div>
                   <h2 className="text-2xl font-bold">
-                    {profile.name || "Гость Нетизен"}
+                    {getFullName(profile) || "Клиент Нетизен"}
                   </h2>
                 </div>
               </div>
 
               <div className="mt-7 space-y-4">
                 <ProfileField label="Имя" value={profile.name || "Не указано"} />
+                <ProfileField label="Фамилия" value={profile.lastName || "Не указана"} />
                 <ProfileField label="Телефон" value={profile.phone || "Не указан"} />
                 <ProfileField label="E-mail" value={profile.email || "Не указан"} />
               </div>
@@ -637,6 +670,21 @@ export default function ProfilePage() {
                   }))
                 }
                 placeholder="Например, Иван"
+                className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+              />
+            </label>
+
+            <label className="grid gap-2 text-sm font-medium">
+              Фамилия
+              <input
+                value={draftProfile.lastName}
+                onChange={(event) =>
+                  setDraftProfile((current) => ({
+                    ...current,
+                    lastName: event.target.value,
+                  }))
+                }
+                placeholder="Например, Иванов"
                 className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
               />
             </label>
@@ -772,7 +820,7 @@ function Modal({
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4 py-8 backdrop-blur-sm">
-      <div className="card w-full max-w-[560px] rounded-[28px] p-6 shadow-2xl">
+      <div className="w-full max-w-[560px] rounded-[28px] border border-theme bg-page p-6 text-main shadow-2xl">
         <div className="flex items-start justify-between gap-4">
           <div>
             <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-500">
