@@ -111,7 +111,11 @@ export function SupportConsole() {
   }, [activeTopicId, query, requests]);
 
   async function loadRequests(keepSelected = true) {
-    setIsLoading(true);
+    const shouldShowInitialLoading = !keepSelected && requests.length === 0;
+
+    if (shouldShowInitialLoading) {
+      setIsLoading(true);
+    }
 
     try {
       const [requestsResponse, topicsResponse] = await Promise.all([
@@ -337,11 +341,7 @@ export function SupportConsole() {
               <span className="rounded-full bg-white/10 px-3 py-1 text-sm text-white/70">{filteredRequests.length}</span>
             </div>
 
-            <div className="grid max-h-[760px] gap-3 overflow-y-auto pr-1">
-              {isLoading ? (
-                <EmptyState title="Загружаем обращения..." text="Секунду, обновляем список чатов." />
-              ) : null}
-
+            <div className="grid min-h-[360px] max-h-[760px] content-start gap-3 overflow-y-auto pr-1">
               {!isLoading && filteredRequests.length === 0 ? (
                 <EmptyState title="Обращений пока нет" text="Когда клиент напишет из поддержки, чат появится здесь." />
               ) : null}
