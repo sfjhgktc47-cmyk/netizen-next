@@ -3,11 +3,68 @@
 import Image from "next/image";
 import Link from "next/link";
 import { useEffect, useState } from "react";
+import { AuthModal } from "@/components/auth-modal";
 import { useTheme } from "@/components/theme-provider";
+
+type HeaderUser = {
+  name: string;
+  phone: string;
+  email: string;
+};
+
+type HeaderAuthSession = {
+  role?: "customer" | "admin";
+  profile?: Partial<HeaderUser>;
+};
+
+type AuthMode = "login" | "register" | "admin";
+
+function readHeaderJson<T>(key: string): T | null {
+  try {
+    const value = localStorage.getItem(key);
+
+    if (!value) {
+      return null;
+    }
+
+    return JSON.parse(value) as T;
+  } catch {
+    return null;
+  }
+}
+
+function getHeaderUser(): HeaderUser | null {
+  const auth = readHeaderJson<HeaderAuthSession>("netizen-auth");
+
+  if (auth?.role !== "customer") {
+    return null;
+  }
+
+  const savedProfile =
+    auth.profile ?? readHeaderJson<Partial<HeaderUser>>("netizen-profile") ?? null;
+
+  if (!savedProfile) {
+    return { name: "", phone: "", email: "" };
+  }
+
+  return {
+    name: savedProfile.name ?? "",
+    phone: savedProfile.phone ?? "",
+    email: savedProfile.email ?? "",
+  };
+}
+
+function getUserInitial(user: HeaderUser | null) {
+  const source = user?.name || user?.phone || user?.email || "П";
+  return source.trim()[0]?.toUpperCase() ?? "П";
+}
 
 export function SiteHeader() {
   const { dark, toggleTheme } = useTheme();
   const [cartCount, setCartCount] = useState(0);
+  const [authUser, setAuthUser] = useState<HeaderUser | null>(null);
+  const [authMode, setAuthMode] = useState<AuthMode>("login");
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   useEffect(() => {
     const updateCartCount = () => {
@@ -15,14 +72,31 @@ export function SiteHeader() {
       setCartCount(count);
     };
 
+    const updateAuthUser = () => {
+      setAuthUser(getHeaderUser());
+    };
+
+    const openAuthModal = (event: Event) => {
+      const customEvent = event as CustomEvent<AuthMode | undefined>;
+      setAuthMode(customEvent.detail ?? "login");
+      setIsAuthModalOpen(true);
+    };
+
     updateCartCount();
+    updateAuthUser();
 
     window.addEventListener("storage", updateCartCount);
+    window.addEventListener("storage", updateAuthUser);
     window.addEventListener("netizen-cart-updated", updateCartCount);
+    window.addEventListener("netizen-auth-updated", updateAuthUser);
+    window.addEventListener("netizen-open-auth", openAuthModal);
 
     return () => {
       window.removeEventListener("storage", updateCartCount);
+      window.removeEventListener("storage", updateAuthUser);
       window.removeEventListener("netizen-cart-updated", updateCartCount);
+      window.removeEventListener("netizen-auth-updated", updateAuthUser);
+      window.removeEventListener("netizen-open-auth", openAuthModal);
     };
   }, []);
 
@@ -120,13 +194,40 @@ export function SiteHeader() {
           )}
         </Link>
 
-        <Link
-  href="/profile"
-  className="rounded-xl border border-theme bg-transparent px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
->
-  Войти
-</Link>
+        {authUser ? (
+          <Link
+            href="/profile"
+            aria-label="Личный кабинет"
+            title="Личный кабинет"
+            className={`flex h-11 w-11 items-center justify-center rounded-xl border text-sm font-bold transition-all duration-300 ${
+              dark
+                ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
+                : "border-black/10 bg-white text-[#07111f] hover:border-blue-500/40 hover:bg-blue-50"
+            }`}
+          >
+            {getUserInitial(authUser)}
+          </Link>
+        ) : (
+          <button
+            type="button"
+            onClick={() => {
+              setAuthMode("login");
+              setIsAuthModalOpen(true);
+            }}
+            className="rounded-xl border border-theme bg-transparent px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
+          >
+            Войти
+          </button>
+        )}
       </div>
+
+      {isAuthModalOpen && (
+        <AuthModal
+          initialMode={authMode}
+          onClose={() => setIsAuthModalOpen(false)}
+          onSuccess={() => setAuthUser(getHeaderUser())}
+        />
+      )}
     </header>
   );
 }

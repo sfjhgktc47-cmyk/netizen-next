@@ -43,6 +43,11 @@ type StoredOrder = {
 
 type ModalType = "profile" | "address" | null;
 
+type AuthSession = {
+  role?: "customer" | "admin";
+  profile?: Partial<CustomerProfile>;
+};
+
 const supportRequests = [
   {
     topic: "Подбор техники",
@@ -122,6 +127,7 @@ function getInitialLetter(name: string) {
 
 export default function ProfilePage() {
   const [isLoaded, setIsLoaded] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profile, setProfile] = useState<CustomerProfile>(emptyProfile);
   const [draftProfile, setDraftProfile] = useState<CustomerProfile>(emptyProfile);
   const [addresses, setAddresses] = useState<string[]>([]);
@@ -132,36 +138,55 @@ export default function ProfilePage() {
   const [isProfileSaved, setIsProfileSaved] = useState(false);
 
   useEffect(() => {
-    const savedProfile =
-      readJson<Partial<CustomerProfile>>("netizen-profile") ??
-      readJson<Partial<CustomerProfile>>("netizen-user") ??
-      readJson<Partial<CustomerProfile>>("netizen-customer") ??
-      emptyProfile;
+    const loadProfileState = () => {
+      const authSession = readJson<AuthSession>("netizen-auth");
+      const isCustomer = authSession?.role === "customer";
+      const savedProfile =
+        (isCustomer ? authSession.profile : null) ??
+        readJson<Partial<CustomerProfile>>("netizen-profile") ??
+        readJson<Partial<CustomerProfile>>("netizen-user") ??
+        readJson<Partial<CustomerProfile>>("netizen-customer") ??
+        emptyProfile;
 
-    const normalizedProfile = {
-      name: savedProfile.name ?? "",
-      phone: savedProfile.phone ?? "",
-      email: savedProfile.email ?? "",
+      const normalizedProfile = {
+        name: savedProfile.name ?? "",
+        phone: savedProfile.phone ?? "",
+        email: savedProfile.email ?? "",
+      };
+
+      const savedAddresses = readJson<string[]>("netizen-delivery-addresses") ?? [];
+      const orderHistory = readJson<StoredOrder[]>("netizen-orders") ?? [];
+      const lastOrder = readJson<StoredOrder>("netizen-last-order");
+      const savedFavoriteSlugs = readJson<string[]>("netizen-favorite-slugs") ?? [];
+
+      setIsAuthenticated(isCustomer);
+      setProfile(normalizedProfile);
+      setDraftProfile(normalizedProfile);
+      setAddresses(savedAddresses);
+      setFavoriteSlugs(savedFavoriteSlugs);
+
+      if (lastOrder && !orderHistory.some((order) => order.number === lastOrder.number)) {
+        setOrders([lastOrder, ...orderHistory]);
+      } else {
+        setOrders(orderHistory);
+      }
+
+      setIsLoaded(true);
     };
 
-    const savedAddresses = readJson<string[]>("netizen-delivery-addresses") ?? [];
-    const orderHistory = readJson<StoredOrder[]>("netizen-orders") ?? [];
-    const lastOrder = readJson<StoredOrder>("netizen-last-order");
-    const savedFavoriteSlugs = readJson<string[]>("netizen-favorite-slugs") ?? [];
+    loadProfileState();
+    window.addEventListener("netizen-auth-updated", loadProfileState);
+    window.addEventListener("storage", loadProfileState);
 
-    setProfile(normalizedProfile);
-    setDraftProfile(normalizedProfile);
-    setAddresses(savedAddresses);
-    setFavoriteSlugs(savedFavoriteSlugs);
-
-    if (lastOrder && !orderHistory.some((order) => order.number === lastOrder.number)) {
-      setOrders([lastOrder, ...orderHistory]);
-    } else {
-      setOrders(orderHistory);
-    }
-
-    setIsLoaded(true);
+    return () => {
+      window.removeEventListener("netizen-auth-updated", loadProfileState);
+      window.removeEventListener("storage", loadProfileState);
+    };
   }, []);
+
+  function openAuthModal(mode: "login" | "register" = "login") {
+    window.dispatchEvent(new CustomEvent("netizen-open-auth", { detail: mode }));
+  }
 
   const favoriteProducts = useMemo(
     () => products.filter((product) => favoriteSlugs.includes(product.slug)),
@@ -179,6 +204,12 @@ export default function ProfilePage() {
 
     setProfile(normalizedProfile);
     writeJson("netizen-profile", normalizedProfile);
+    writeJson("netizen-auth", {
+      role: "customer",
+      createdAt: new Date().toISOString(),
+      profile: normalizedProfile,
+    });
+    window.dispatchEvent(new Event("netizen-auth-updated"));
     setIsProfileSaved(true);
     setActiveModal(null);
 
@@ -209,6 +240,55 @@ export default function ProfilePage() {
 
   if (!isLoaded) {
     return null;
+  }
+
+  if (!isAuthenticated) {
+    return (
+      <main className="min-h-screen bg-page px-6 py-6 text-main transition-colors duration-700">
+        <div className="mx-auto max-w-[1440px]">
+          <SiteHeader />
+
+          <section className="mt-10 grid min-h-[520px] place-items-center">
+            <div className="card w-full max-w-[720px] rounded-[34px] p-8 text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-2xl font-bold text-white">
+                👤
+              </div>
+
+              <div className="mt-6 text-sm font-medium uppercase tracking-[0.2em] text-blue-500">
+                Личный кабинет
+              </div>
+
+              <h1 className="mt-3 text-4xl font-bold tracking-[-0.05em] md:text-5xl">
+                Войдите или зарегистрируйтесь
+              </h1>
+
+              <p className="mx-auto mt-4 max-w-[560px] text-sm leading-relaxed text-muted">
+                Профиль, заявки, адреса доставки, избранное и обращения показываются
+                только после входа клиента.
+              </p>
+
+              <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+                <button
+                  type="button"
+                  onClick={() => openAuthModal("login")}
+                  className="rounded-xl bg-blue-600 px-6 py-3.5 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+                >
+                  Войти →
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => openAuthModal("register")}
+                  className="rounded-xl border border-theme bg-transparent px-6 py-3.5 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
+                >
+                  Зарегистрироваться
+                </button>
+              </div>
+            </div>
+          </section>
+        </div>
+      </main>
+    );
   }
 
   return (
