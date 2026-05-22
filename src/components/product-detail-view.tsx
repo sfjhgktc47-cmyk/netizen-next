@@ -286,7 +286,7 @@ export function ProductDetailView({
 
         <section className="mt-8 grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
           <div className="card rounded-[36px] p-6">
-            <div className="soft-box mx-auto flex aspect-[3/4] w-full max-w-[520px] items-center justify-center overflow-hidden rounded-[30px] text-muted-soft">
+            <div className="mx-auto flex aspect-[3/4] w-full max-w-[520px] items-center justify-center overflow-hidden rounded-[30px] border border-theme bg-white text-muted-soft">
               {mediaImages[0] ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -304,7 +304,7 @@ export function ProductDetailView({
                 (image, index) => (
                   <div
                     key={typeof image === "string" ? `${image}-${index}` : index}
-                    className="soft-box flex aspect-[3/4] items-center justify-center overflow-hidden rounded-2xl text-xs text-muted-soft"
+                    className="flex aspect-[3/4] items-center justify-center overflow-hidden rounded-2xl border border-theme bg-white text-xs text-muted-soft"
                   >
                     {typeof image === "string" ? (
                       // eslint-disable-next-line @next/next/no-img-element

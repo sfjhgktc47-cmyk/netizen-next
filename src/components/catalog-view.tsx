@@ -1241,7 +1241,11 @@ function PositionProductCard({
     >
       <div
         className={`flex aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-2xl transition-colors duration-700 ${
-          dark ? "bg-white/[0.045] text-white/25" : "bg-slate-100 text-black/25"
+          position.images?.[0] || getModelImage(position.product)
+            ? "bg-white text-slate-400"
+            : dark
+              ? "bg-white/[0.045] text-white/25"
+              : "bg-slate-100 text-black/25"
         }`}
       >
         {position.images?.[0] || getModelImage(position.product) ? (
