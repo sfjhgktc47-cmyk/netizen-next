@@ -270,11 +270,11 @@ export function ProductDetailView({
   }
 
   return (
-    <main className="min-h-screen bg-page px-4 py-4 text-main transition-colors duration-700 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-[1760px]">
+    <main className="min-h-screen bg-page px-6 py-6 text-main transition-colors duration-700">
+      <div className="mx-auto max-w-[1440px]">
         <SiteHeader />
 
-        <div className="mt-5 sm:mt-8 lg:mt-10">
+        <div className="mt-10">
           <Link
             href="/catalog"
             className="text-sm text-blue-500 transition-colors hover:text-blue-400"
@@ -283,17 +283,17 @@ export function ProductDetailView({
           </Link>
         </div>
 
-        <section className="mt-6 grid gap-6 sm:mt-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-start xl:gap-10">
+        <section className="mt-8 grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
           <div className="card rounded-[36px] p-6">
-            <div className="soft-box flex min-h-[300px] items-center justify-center rounded-[24px] text-muted-soft sm:min-h-[420px] sm:rounded-[30px] lg:min-h-[560px]">
+            <div className="soft-box flex min-h-[560px] items-center justify-center rounded-[30px] text-muted-soft">
               Фото товара
             </div>
 
-            <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-6 sm:gap-4 md:grid-cols-4">
+            <div className="mt-6 grid gap-4 md:grid-cols-4">
               {Array.from({ length: 4 }).map((_, index) => (
                 <div
                   key={index}
-                  className="soft-box flex h-20 items-center justify-center rounded-2xl text-xs text-muted-soft sm:h-28"
+                  className="soft-box flex h-28 items-center justify-center rounded-2xl text-xs text-muted-soft"
                 >
                   Фото
                 </div>
@@ -301,11 +301,11 @@ export function ProductDetailView({
             </div>
           </div>
 
-          <div className="lg:sticky lg:top-4">
+          <div className="lg:sticky lg:top-6">
             <div className="card rounded-[36px] p-8">
               <div className="text-sm text-muted">{product.brand}</div>
 
-              <h1 className="mt-2 text-4xl font-bold tracking-[-0.055em] sm:text-5xl">
+              <h1 className="mt-2 text-5xl font-bold tracking-[-0.055em]">
                 {product.name}
               </h1>
 
@@ -508,7 +508,7 @@ export function ProductDetailView({
                 <div className="mt-8 border-t border-theme pt-7">
                   <div className="text-sm text-muted">Цена</div>
 
-                  <div className="mt-1 text-3xl font-bold tracking-[-0.045em] sm:text-4xl">
+                  <div className="mt-1 text-4xl font-bold tracking-[-0.045em]">
                     {priceRange}
                   </div>
 
@@ -555,7 +555,7 @@ export function ProductDetailView({
                         </div>
                       )}
 
-                      <div className="mt-1 text-3xl font-bold tracking-[-0.045em] sm:text-4xl">
+                      <div className="mt-1 text-4xl font-bold tracking-[-0.045em]">
                         {activePosition.price}
                       </div>
                     </div>
@@ -664,7 +664,7 @@ export function ProductDetailView({
           </div>
         </section>
 
-        <section className="mt-5 sm:mt-8 lg:mt-10">
+        <section className="mt-10">
           {previewPosition && (
             <ProductTabs
               productName={product.name}
@@ -678,7 +678,7 @@ export function ProductDetailView({
           )}
         </section>
 
-        <section className="mt-5 sm:mt-8 lg:mt-10">
+        <section className="mt-10">
           <ProductStrip title="С этим товаром покупают" />
         </section>
 
@@ -695,7 +695,7 @@ function ProductStrip({ title }: { title: string }) {
     <section>
       <h2 className="text-3xl font-bold tracking-[-0.04em]">{title}</h2>
 
-      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-3 xl:grid-cols-5">
         {Array.from({ length: 5 }).map((_, index) => (
           <Link
             key={index}

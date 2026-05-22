@@ -212,8 +212,8 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen bg-page px-4 py-4 text-main transition-colors duration-700 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-[1760px]">
+    <main className="min-h-screen bg-page px-6 py-6 text-main transition-colors duration-700">
+      <div className="mx-auto max-w-[1440px]">
         <SiteHeader />
 
         <div className="mt-6">
@@ -348,7 +348,7 @@ export default function ProfilePage() {
               </div>
 
               {previewFavorites.length > 0 ? (
-                <div className="mt-6 grid gap-4 sm:mt-8 sm:grid-cols-2">
+                <div className="mt-8 grid gap-4 md:grid-cols-2">
                   {previewFavorites.map((product) => (
                     <article
                       key={product.slug}
@@ -433,7 +433,7 @@ export default function ProfilePage() {
             </section>
           </div>
 
-          <aside className="space-y-6 xl:sticky xl:top-6 xl:space-y-8">
+          <aside className="space-y-8 lg:sticky lg:top-6">
             <section className="card rounded-[28px] p-7">
               <div className="flex items-center gap-4">
                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-2xl font-bold text-white">
@@ -692,7 +692,7 @@ function Modal({
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 px-4 py-8 backdrop-blur-sm">
-      <div className="card w-full max-w-[560px] rounded-[24px] p-4 shadow-2xl sm:rounded-[28px] sm:p-6">
+      <div className="card w-full max-w-[560px] rounded-[28px] p-6 shadow-2xl">
         <div className="flex items-start justify-between gap-4">
           <div>
             <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-500">

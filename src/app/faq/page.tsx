@@ -212,8 +212,8 @@ export default function FaqPage() {
   }
 
   return (
-    <main className="min-h-screen bg-page px-4 py-4 text-main transition-colors duration-700 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-[1760px]">
+    <main className="min-h-screen bg-page px-6 py-6 text-main transition-colors duration-700">
+      <div className="mx-auto max-w-[1440px]">
         <SiteHeader />
 
         <section className="mt-6">
@@ -229,7 +229,7 @@ export default function FaqPage() {
 
           <div className="mt-4 flex flex-col gap-5 border-b border-theme pb-7 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <h1 className="max-w-[820px] text-4xl font-bold tracking-[-0.055em] sm:text-5xl lg:text-6xl">
+              <h1 className="max-w-[820px] text-5xl font-bold tracking-[-0.055em] md:text-6xl">
                 Частые вопросы
               </h1>
 
@@ -256,8 +256,8 @@ export default function FaqPage() {
           </div>
         </section>
 
-        <section className="mt-6 grid gap-5 lg:grid-cols-[320px_1fr] xl:grid-cols-[360px_1fr] xl:gap-7">
-          <aside className="mobile-scroll-snap -mx-1 flex gap-3 overflow-x-auto px-1 pb-2 lg:mx-0 lg:grid lg:overflow-visible lg:px-0 lg:pb-0 lg:sticky lg:top-6">
+        <section className="mt-6 grid gap-7 lg:grid-cols-[360px_1fr]">
+          <aside className="grid h-fit gap-3 lg:sticky lg:top-6">
             {faqCategories.map((category) => {
               const isActive = category.id === activeCategoryId;
 
@@ -266,7 +266,7 @@ export default function FaqPage() {
                   key={category.id}
                   type="button"
                   onClick={() => selectCategory(category.id)}
-                  className={`min-w-[280px] rounded-[24px] border p-4 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500/40 sm:p-5 lg:min-w-0 lg:rounded-[26px] ${
+                  className={`rounded-[26px] border p-5 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500/40 ${
                     isActive ? "border-blue-500/45 bg-blue-soft" : "card"
                   }`}
                 >
@@ -322,7 +322,7 @@ export default function FaqPage() {
 
             <div
               ref={questionsAreaRef}
-              className="relative p-4 pb-7 sm:p-5 sm:pb-8 md:p-7 md:pb-10"
+              className="relative p-5 pb-8 md:p-7 md:pb-10"
               style={{
                 minHeight: selectedQuestion
                   ? `${Math.max(activeQuestionHeight + 48, 260)}px`
@@ -341,7 +341,7 @@ export default function FaqPage() {
                       setActiveQuestion(null);
                     }
                   }}
-                  className="absolute left-4 right-4 top-4 z-30 cursor-pointer rounded-[22px] border border-blue-500/45 bg-[var(--card)] p-4 shadow-[0_30px_80px_rgba(15,23,42,0.24)] ring-1 ring-blue-500/10 sm:left-5 sm:right-5 sm:top-5 sm:p-5 md:left-7 md:right-7 md:top-7 md:p-6"
+                  className="absolute left-5 right-5 top-5 z-30 cursor-pointer rounded-[24px] border border-blue-500/45 bg-[var(--card)] p-5 shadow-[0_30px_80px_rgba(15,23,42,0.24)] ring-1 ring-blue-500/10 md:left-7 md:right-7 md:top-7 md:p-6"
                 >
                   <div className="flex items-start justify-between gap-4">
                     <h3 className="min-w-0 max-w-[920px] break-words text-lg font-bold leading-snug tracking-[-0.03em] md:text-xl">

@@ -27,7 +27,7 @@ export default function Home() {
           : "min-h-screen bg-[#f6f8fb] text-[#0b1220] transition-colors duration-700 ease-in-out"
       }
     >
-      <div className="mx-auto max-w-[1760px] px-4 py-4 sm:px-6 lg:px-8">
+      <div className="mx-auto max-w-[1440px] px-6 py-6">
         <SiteHeader />
 
         <Hero dark={dark} />
@@ -167,13 +167,13 @@ function Hero({ dark }: { dark: boolean }) {
           }`}
         />
 
-        <div className="relative z-10 flex h-full items-center px-5 py-8 sm:px-10 sm:py-12 lg:px-16">
+        <div className="relative z-10 flex h-full items-center px-8 py-12 sm:px-12 lg:px-16">
           <div className="max-w-[650px]">
             <div className="mb-7 inline-flex rounded-full border border-blue-500/50 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-500">
               {slide.badge}
             </div>
 
-            <h1 className="max-w-[620px] min-h-[150px] text-[36px] font-bold leading-[1.08] tracking-[-0.055em] sm:min-h-[190px] sm:text-[52px] lg:min-h-[220px] lg:text-[64px]">
+            <h1 className="max-w-[620px] min-h-[220px] text-[42px] font-bold leading-[1.12] tracking-[-0.055em] sm:text-[54px] lg:text-[64px]">
               {slide.title}
             </h1>
 
@@ -510,7 +510,7 @@ function PopularProducts({ dark }: { dark: boolean }) {
         onPointerCancel={handleProductsPointerUp}
         onPointerLeave={handleProductsPointerUp}
         onClickCapture={handleProductsClickCapture}
-        className="mobile-scroll-snap mt-8 cursor-grab select-none overflow-x-auto px-1 py-2 active:cursor-grabbing [&::-webkit-scrollbar]:hidden"
+        className="mt-8 cursor-grab select-none overflow-x-auto px-1 py-2 active:cursor-grabbing [&::-webkit-scrollbar]:hidden"
         style={{
           scrollbarWidth: "none",
           msOverflowStyle: "none",
@@ -520,7 +520,7 @@ function PopularProducts({ dark }: { dark: boolean }) {
           {products.map((product) => (
             <div
               key={product.slug}
-              className="w-[78vw] max-w-[320px] shrink-0 sm:w-[300px] lg:w-[310px]"
+              className="w-[280px] shrink-0 sm:w-[300px] lg:w-[310px]"
             >
               <ProductCard product={product} dark={dark} />
             </div>
@@ -852,7 +852,7 @@ function Footer({ dark }: { dark: boolean }) {
         dark
       )}`}
     >
-      <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-[1.25fr_1fr_1fr_1fr] lg:gap-10">
+      <div className="grid gap-10 lg:grid-cols-[1.25fr_1fr_1fr_1fr]">
         <div>
           <Link
             href="/"
@@ -935,7 +935,7 @@ function Footer({ dark }: { dark: boolean }) {
         ))}
       </div>
 
-      <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:mt-10 lg:grid-cols-3">
+      <div className="mt-10 grid gap-5 lg:grid-cols-3">
         {footerData.socials.map((item) => (
           <button
             key={item}

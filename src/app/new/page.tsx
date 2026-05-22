@@ -95,7 +95,7 @@ const albumRows = [
 export default function NewPage() {
   return (
     <main className="min-h-screen bg-page px-4 py-4 text-main transition-colors duration-700 sm:px-6">
-      <div className="mx-auto max-w-[1760px]">
+      <div className="mx-auto max-w-[1440px]">
         <SiteHeader />
 
         <div className="mt-5 space-y-5 md:mt-6 md:space-y-6">
@@ -125,7 +125,7 @@ export default function NewPage() {
             {albumRows.map((row, index) => {
               if (row.type === "large-with-stack") {
                 return (
-                  <div key={index} className="grid gap-5 xl:grid-cols-[1.25fr_0.8fr]">
+                  <div key={index} className="grid gap-5 lg:grid-cols-[1.25fr_0.8fr]">
                     <LargeAlbumCard item={row.main} />
                     <div className="grid gap-5">
                       <CompactAlbumCard item={row.left} />
@@ -138,7 +138,7 @@ export default function NewPage() {
               return (
                 <div key={index} className="grid gap-5">
                   <WideAlbumCard item={row.main} />
-                  <div className="grid gap-5 xl:grid-cols-2">
+                  <div className="grid gap-5 lg:grid-cols-2">
                     <MediumAlbumCard item={row.left} />
                     <MediumAlbumCard item={row.right} />
                   </div>
@@ -240,7 +240,7 @@ function WideAlbumCard({ item }: { item: AlbumItem }) {
   return (
     <Link
       href={getItemHref(item)}
-      className={`group relative min-h-[260px] overflow-hidden rounded-[24px] border p-5 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/35 sm:min-h-[300px] sm:rounded-[28px] sm:p-7 ${
+      className={`group relative min-h-[300px] overflow-hidden rounded-[28px] border p-5 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/35 sm:p-7 ${
         item.accent ? "border-blue-500/35 bg-blue-soft" : "card"
       }`}
     >
@@ -249,7 +249,7 @@ function WideAlbumCard({ item }: { item: AlbumItem }) {
       <div className="relative z-10 grid h-full gap-6 md:grid-cols-[0.78fr_1.22fr] md:items-center">
         <div>
           <AlbumBadge>{item.label ?? "Новинка"}</AlbumBadge>
-          <h1 className="mt-5 text-3xl font-bold tracking-[-0.055em] sm:text-5xl">
+          <h1 className="mt-5 text-4xl font-bold tracking-[-0.055em] sm:text-5xl">
             {getTitle(item)}
           </h1>
           <p className="mt-4 max-w-[470px] text-sm leading-relaxed text-muted">
@@ -274,7 +274,7 @@ function MediumAlbumCard({ item }: { item: AlbumItem }) {
   return (
     <Link
       href={getItemHref(item)}
-      className={`group relative min-h-[230px] overflow-hidden rounded-[24px] border p-5 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/35 sm:min-h-[255px] sm:rounded-[28px] sm:p-6 ${
+      className={`group relative min-h-[255px] overflow-hidden rounded-[28px] border p-5 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/35 sm:p-6 ${
         item.accent ? "border-blue-500/35 bg-blue-soft" : "card"
       }`}
     >
@@ -306,14 +306,14 @@ function LargeAlbumCard({ item }: { item: AlbumItem }) {
   return (
     <Link
       href={getItemHref(item)}
-      className="group relative min-h-[360px] overflow-hidden rounded-[24px] border border-blue-500/35 bg-blue-soft p-5 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/45 sm:min-h-[430px] sm:rounded-[30px] sm:p-7"
+      className="group relative min-h-[430px] overflow-hidden rounded-[30px] border border-blue-500/35 bg-blue-soft p-5 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/45 sm:p-7"
     >
       <CardGlow />
 
       <div className="relative z-10 grid h-full gap-8 md:grid-cols-[0.9fr_1.1fr] md:items-end">
         <div>
           <AlbumBadge>{item.label ?? "Главная новинка"}</AlbumBadge>
-          <h2 className="mt-6 text-4xl font-bold tracking-[-0.06em] sm:text-5xl">{getTitle(item)}</h2>
+          <h2 className="mt-6 text-5xl font-bold tracking-[-0.06em]">{getTitle(item)}</h2>
           <p className="mt-4 max-w-[450px] text-sm leading-relaxed text-muted">
             {getDescription(item)}
           </p>

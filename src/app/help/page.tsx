@@ -137,8 +137,8 @@ export default function HelpPage() {
   }
 
   return (
-    <main className="min-h-screen bg-page px-4 py-4 text-main transition-colors duration-700 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-[1760px]">
+    <main className="min-h-screen bg-page px-6 py-6 text-main transition-colors duration-700">
+      <div className="mx-auto max-w-[1440px]">
         <SiteHeader />
 
         <section className="mt-10">
@@ -155,7 +155,7 @@ export default function HelpPage() {
             </span>
           </div>
 
-          <h1 className="mt-5 max-w-[940px] text-3xl font-bold tracking-[-0.055em] sm:text-4xl md:text-5xl">
+          <h1 className="mt-5 max-w-[940px] text-4xl font-bold tracking-[-0.055em] md:text-5xl">
             Напишите нам — поможем разобраться
           </h1>
 
@@ -167,7 +167,7 @@ export default function HelpPage() {
 
         <div className="mt-6 border-t border-theme" />
 
-        <section className="mt-6 grid gap-5 lg:grid-cols-[300px_minmax(0,1fr)] xl:grid-cols-[320px_minmax(0,1fr)] xl:gap-8">
+        <section className="mt-6 grid gap-8 lg:grid-cols-[320px_minmax(0,1fr)]">
           <aside className="grid gap-4 self-start">
             {topics.map((topic) => {
               const isActive = topic.id === activeTopic.id;
@@ -177,7 +177,7 @@ export default function HelpPage() {
                   key={topic.id}
                   type="button"
                   onClick={() => selectTopic(topic.id)}
-                  className={`min-w-[280px] flex gap-4 rounded-[24px] border p-4 text-left transition-all hover:-translate-y-0.5 hover:border-blue-500/45 sm:p-5 lg:min-w-0 lg:rounded-[26px] ${
+                  className={`flex gap-4 rounded-[26px] border p-5 text-left transition-all hover:-translate-y-0.5 hover:border-blue-500/45 ${
                     isActive ? "border-blue-500/60 bg-blue-soft shadow-sm" : "card"
                   }`}
                 >
@@ -225,7 +225,7 @@ export default function HelpPage() {
             </div>
 
             <div className="grid lg:grid-cols-[minmax(0,1fr)_280px]">
-              <div className="flex min-h-[520px] flex-col lg:min-h-[640px]">
+              <div className="flex min-h-[640px] flex-col">
                 <div className="flex-1 space-y-4 p-6 md:p-8">
                   <div className="max-w-[720px] rounded-[24px] bg-blue-soft px-5 py-4 text-sm font-medium leading-relaxed text-main">
                     {activeTopic.intro}

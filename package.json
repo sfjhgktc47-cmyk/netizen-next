@@ -2,10 +2,6 @@
   "name": "netizen-next",
   "version": "0.1.0",
   "private": true,
-   "engines": {
-    "node": ">=20"
-    },
-    
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",
@@ -39,5 +35,8 @@
   },
   "prisma": {
     "seed": "node prisma/seed.js"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

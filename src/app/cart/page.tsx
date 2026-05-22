@@ -446,11 +446,11 @@ export default function CartPage() {
 
   if (isOrderSent) {
     return (
-      <main className="min-h-screen bg-page px-4 py-4 text-main transition-colors duration-700 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-[1760px]">
+      <main className="min-h-screen bg-page px-6 py-6 text-main transition-colors duration-700">
+        <div className="mx-auto max-w-[1440px]">
           <SiteHeader />
 
-          <section className="mx-auto mt-6 max-w-[760px] card rounded-[26px] p-6 text-center sm:mt-8 sm:rounded-[32px] sm:p-8 lg:mt-10 lg:p-10">
+          <section className="mx-auto mt-10 max-w-[760px] card rounded-[32px] p-10 text-center">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-2xl text-white">
               ✓
             </div>
@@ -487,11 +487,11 @@ export default function CartPage() {
 
   if (!hasItems) {
     return (
-      <main className="min-h-screen bg-page px-4 py-4 text-main transition-colors duration-700 sm:px-6 lg:px-8">
-        <div className="mx-auto max-w-[1760px]">
+      <main className="min-h-screen bg-page px-6 py-6 text-main transition-colors duration-700">
+        <div className="mx-auto max-w-[1440px]">
           <SiteHeader />
 
-          <section className="mt-6 card rounded-[26px] p-6 text-center sm:rounded-[32px] sm:p-8 lg:p-10">
+          <section className="mt-6 card rounded-[32px] p-10 text-center">
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-2xl text-white">
               🛒
             </div>
@@ -527,8 +527,8 @@ export default function CartPage() {
   }
 
   return (
-    <main className="min-h-screen bg-page px-4 py-4 text-main transition-colors duration-700 sm:px-6 lg:px-8">
-      <div className="mx-auto max-w-[1760px]">
+    <main className="min-h-screen bg-page px-6 py-6 text-main transition-colors duration-700">
+      <div className="mx-auto max-w-[1440px]">
         <SiteHeader />
 
         <div className="mt-6">
@@ -540,12 +540,12 @@ export default function CartPage() {
           </Link>
         </div>
 
-        <div className="mt-6 grid items-start gap-6 xl:grid-cols-[1fr_420px] xl:gap-8">
+        <div className="mt-6 grid items-start gap-8 lg:grid-cols-[1fr_420px]">
           <div className="space-y-6">
             <section className="card rounded-[32px] p-6 md:p-8">
               <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
                 <div>
-                  <h1 className="text-4xl font-bold tracking-[-0.04em] sm:text-5xl">
+                  <h1 className="text-5xl font-bold tracking-[-0.04em]">
                     Корзина
                   </h1>
 
@@ -584,10 +584,10 @@ export default function CartPage() {
                       key={item.sku}
                       className="rounded-3xl border border-theme bg-blue-soft p-5"
                     >
-                      <div className="grid gap-4 md:grid-cols-[120px_1fr] lg:grid-cols-[140px_1fr_auto] lg:items-center">
+                      <div className="grid gap-5 md:grid-cols-[140px_1fr_auto] md:items-center">
                         <Link
                           href={productHref}
-                          className="soft-box flex h-[180px] items-center justify-center rounded-2xl text-sm text-muted-soft md:h-[120px] lg:h-[140px]"
+                          className="soft-box flex h-[140px] items-center justify-center rounded-2xl text-sm text-muted-soft"
                         >
                           Фото
                         </Link>
@@ -637,7 +637,7 @@ export default function CartPage() {
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between gap-4 md:col-span-2 lg:col-span-1 lg:flex-col lg:items-end">
+                        <div className="flex items-center justify-between gap-6 md:flex-col md:items-end">
                           <div className="flex items-center gap-3">
                             <button
                               type="button"
@@ -707,7 +707,7 @@ export default function CartPage() {
             </section>
           </div>
 
-          <aside className="card h-fit rounded-[26px] p-5 sm:rounded-[32px] sm:p-6 lg:p-8 xl:sticky xl:top-6">
+          <aside className="card h-fit rounded-[32px] p-8 lg:sticky lg:top-6">
             <h2 className="text-2xl font-bold">Итого</h2>
 
             <div className="mt-6 space-y-4 text-muted">
@@ -1111,8 +1111,8 @@ function Modal({
   onClose: () => void;
 }) {
   return (
-    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 px-3 py-3 backdrop-blur-sm sm:px-4 md:items-center md:px-6">
-      <div className="card max-h-[92vh] w-full max-w-[720px] overflow-y-auto rounded-[24px] p-4 shadow-[0_30px_120px_rgba(0,102,255,0.25)] sm:rounded-[28px] sm:p-6 lg:p-8">
+    <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 px-4 py-4 backdrop-blur-sm md:items-center md:px-6">
+      <div className="card max-h-[92vh] w-full max-w-[720px] overflow-y-auto rounded-[28px] p-6 shadow-[0_30px_120px_rgba(0,102,255,0.25)] md:p-8">
         <div className="flex items-start justify-between gap-4">
           <h2 className="text-3xl font-bold tracking-[-0.04em]">{title}</h2>
 
@@ -1151,7 +1151,7 @@ function RecommendationStrip({
     <section>
       <h2 className="text-2xl font-bold">{title}</h2>
 
-      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-3 xl:grid-cols-5">
         {items.map((position) => {
           const product = getProductBySlug(position.modelSlug);
           const isAdded = addedSku === position.sku;
@@ -1221,7 +1221,7 @@ function ProductStrip({
     <section>
       <h2 className="text-2xl font-bold">{title}</h2>
 
-      <div className="mt-5 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+      <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-3 xl:grid-cols-5">
         {items.map((product, index) => (
           <Link
             key={`${product.slug}-${index}`}

@@ -83,34 +83,3 @@ a {
 .bg-blue-soft {
   background: var(--blue-soft);
 }
-
-/* responsive hardening */
-html,
-body {
-  width: 100%;
-  overflow-x: hidden;
-}
-
-img,
-svg,
-video,
-canvas {
-  max-width: 100%;
-}
-
-input,
-textarea,
-select,
-button {
-  font: inherit;
-}
-
-@media (max-width: 480px) {
-  .mobile-scroll-snap {
-    scroll-snap-type: x proximity;
-  }
-
-  .mobile-scroll-snap > * {
-    scroll-snap-align: start;
-  }
-}

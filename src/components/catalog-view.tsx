@@ -772,13 +772,13 @@ export function CatalogView({ categoryId }: CatalogViewProps) {
   }
 
   return (
-    <main className="min-h-screen bg-page px-4 py-4 text-main transition-colors duration-700 sm:px-6 lg:px-8">
+    <main className="min-h-screen bg-page px-4 py-6 text-main transition-colors duration-700 sm:px-6 xl:px-8">
       <div className="w-full">
-        <div className="mx-auto max-w-[1760px]">
+        <div className="mx-auto max-w-[1440px]">
           <SiteHeader />
         </div>
 
-        <section className="mt-5 sm:mt-8 lg:mt-10">
+        <section className="mt-10">
           <Link
             href="/"
             className="text-sm text-blue-500 transition-colors hover:text-blue-400"
@@ -786,9 +786,9 @@ export function CatalogView({ categoryId }: CatalogViewProps) {
             ← На главную
           </Link>
 
-          <div className="mt-5 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="mt-5 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <div className="mobile-scroll-snap -mx-1 flex gap-3 overflow-x-auto px-1 pb-2 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
+              <div className="flex flex-wrap items-center gap-3">
                 <span className="inline-flex rounded-full border border-blue-500/40 bg-blue-500/10 px-4 py-2 text-xs font-medium text-blue-500">
                   Каталог
                 </span>
@@ -798,7 +798,7 @@ export function CatalogView({ categoryId }: CatalogViewProps) {
                 ) : null}
               </div>
 
-              <h1 className="mt-4 text-4xl font-bold tracking-[-0.055em] sm:text-5xl lg:text-6xl">
+              <h1 className="mt-4 text-5xl font-bold tracking-[-0.055em] md:text-6xl">
                 {pageTitle}
               </h1>
 
@@ -807,11 +807,11 @@ export function CatalogView({ categoryId }: CatalogViewProps) {
               </p>
             </div>
 
-            <div className="grid gap-3 sm:flex sm:flex-wrap">
+            <div className="flex flex-wrap gap-3">
               <button
                 type="button"
                 onClick={() => setIsFilterOpen((prev) => !prev)}
-                className={`w-full rounded-xl border px-5 py-3 text-sm font-medium transition-all duration-300 sm:w-auto sm:px-6 sm:py-4 ${
+                className={`rounded-xl border px-6 py-4 text-sm font-medium transition-all duration-300 ${
                   isFilterOpen
                     ? "border-blue-500 bg-blue-600 text-white"
                     : "border-theme bg-transparent hover:border-blue-500/40 hover:bg-blue-soft"
@@ -833,12 +833,12 @@ export function CatalogView({ categoryId }: CatalogViewProps) {
           </div>
         </section>
 
-        <section className="mt-6 sm:mt-8">
-          <div className="mobile-scroll-snap -mx-1 flex gap-3 overflow-x-auto px-1 pb-2 sm:mx-0 sm:flex-wrap sm:overflow-visible sm:px-0 sm:pb-0">
+        <section className="mt-8">
+          <div className="flex flex-wrap items-center gap-3">
             <Link
               href="/catalog"
               onClick={handleResetCatalogState}
-              className={`shrink-0 rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-300 sm:px-5 sm:py-3 ${
+              className={`rounded-full border px-5 py-3 text-sm font-medium transition-all duration-300 ${
                 !categoryId && !selectedBrand && !hasSpecificationFilters
                   ? "border-blue-500 bg-blue-600 text-white"
                   : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
@@ -856,7 +856,7 @@ export function CatalogView({ categoryId }: CatalogViewProps) {
                     key={category.id}
                     href={category.href}
                     onClick={handleResetCatalogState}
-                    className={`shrink-0 rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-300 sm:px-5 sm:py-3 ${
+                    className={`rounded-full border px-5 py-3 text-sm font-medium transition-all duration-300 ${
                       isActive
                         ? "border-blue-500 bg-blue-600 text-white"
                         : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
@@ -872,7 +872,7 @@ export function CatalogView({ categoryId }: CatalogViewProps) {
               <button
                 type="button"
                 onClick={() => setIsCategoriesOpen((prev) => !prev)}
-                className="shrink-0 rounded-full border border-theme bg-transparent px-4 py-2.5 text-sm font-medium text-blue-500 transition-all duration-300 hover:border-blue-500/40 hover:bg-blue-soft sm:px-5 sm:py-3"
+                className="rounded-full border border-theme bg-transparent px-5 py-3 text-sm font-medium text-blue-500 transition-all duration-300 hover:border-blue-500/40 hover:bg-blue-soft"
               >
                 {isCategoriesOpen ? "Свернуть" : "Развернуть"}
               </button>
@@ -1007,7 +1007,7 @@ function SortControl({
       <button
         type="button"
         onClick={onToggle}
-        className={`w-full rounded-xl border px-5 py-3 text-sm font-medium transition-colors sm:w-auto sm:px-6 sm:py-4 ${
+        className={`rounded-xl border px-6 py-4 text-sm font-medium transition-colors ${
           isOpen
             ? "border-blue-500/40 bg-blue-500/10 text-blue-500"
             : "border-theme bg-transparent hover:border-blue-500/40 hover:bg-blue-soft"
@@ -1017,7 +1017,7 @@ function SortControl({
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 right-auto top-[calc(100%+10px)] z-30 w-[min(92vw,300px)] rounded-2xl border border-theme bg-page p-2 shadow-[0_24px_90px_rgba(15,23,42,0.22)] sm:left-auto sm:right-0 sm:w-[300px]">
+        <div className="absolute right-0 top-[calc(100%+10px)] z-30 w-[260px] rounded-2xl border border-theme bg-page p-2 shadow-[0_24px_90px_rgba(15,23,42,0.22)]">
           {sortModeOptions.map((option) => {
             const isActive = option.value === sortMode;
 
@@ -1147,7 +1147,7 @@ function ProductGrid({
         </div>
       </div>
 
-      <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
+      <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
         {products.map((product) => (
           <GridProductCard key={product.slug} product={product} dark={dark} />
         ))}
@@ -1173,7 +1173,7 @@ function GridProductCard({
       }`}
     >
       <div
-        className={`flex h-[180px] items-center justify-center rounded-2xl transition-colors duration-700 sm:h-[220px] ${
+        className={`flex h-[220px] items-center justify-center rounded-2xl transition-colors duration-700 ${
           dark ? "bg-white/[0.045] text-white/25" : "bg-slate-100 text-black/25"
         }`}
       >
@@ -1229,7 +1229,7 @@ function PositionGrid({
         </div>
       </div>
 
-      <div className="mt-5 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-5">
+      <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
         {positions.map((position) => (
           <PositionProductCard key={position.sku} position={position} dark={dark} />
         ))}
@@ -1255,7 +1255,7 @@ function PositionProductCard({
       }`}
     >
       <div
-        className={`flex h-[180px] items-center justify-center rounded-2xl transition-colors duration-700 sm:h-[220px] ${
+        className={`flex h-[220px] items-center justify-center rounded-2xl transition-colors duration-700 ${
           dark ? "bg-white/[0.045] text-white/25" : "bg-slate-100 text-black/25"
         }`}
       >
