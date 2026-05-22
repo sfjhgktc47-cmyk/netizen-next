@@ -2,6 +2,7 @@ import "server-only";
 
 import { promises as fs } from "fs";
 import path from "path";
+import { prisma } from "@/lib/db";
 import { getSupportTopic, supportTopics } from "@/lib/support-topics";
 
 export type SupportStatus = "NEW" | "IN_PROGRESS" | "WAITING_CLIENT" | "CLOSED";
@@ -65,6 +66,46 @@ function normalizeSupportRequest(request: SupportRequest): SupportRequest {
 
 function makeId(prefix = "msg") {
   return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+}
+
+async function syncSupportCustomer(input: {
+  customerName?: string;
+  phone?: string;
+  email?: string;
+}) {
+  const phone = input.phone?.trim() ?? "";
+
+  if (!phone || phone === "Не указан") {
+    return;
+  }
+
+  const name = input.customerName?.trim() || "Клиент";
+  const email = input.email?.trim();
+
+  try {
+    const existing = await prisma.customer.findFirst({ where: { phone } });
+
+    if (existing) {
+      await prisma.customer.update({
+        where: { id: existing.id },
+        data: {
+          name,
+          email: email || existing.email,
+        },
+      });
+      return;
+    }
+
+    await prisma.customer.create({
+      data: {
+        name,
+        phone,
+        email: email || "",
+      },
+    });
+  } catch (error) {
+    console.error("Support customer sync error", error);
+  }
 }
 
 async function ensureStore() {
@@ -198,6 +239,11 @@ export async function createSupportRequest(input: {
   db.lastNumber = nextNumber;
   db.requests.unshift(request);
   await writeDb(db);
+  await syncSupportCustomer({
+    customerName: request.customerName,
+    phone: request.phone,
+    email: request.email,
+  });
   return request;
 }
 

@@ -167,6 +167,46 @@ export async function POST(request: Request) {
           },
         });
 
+    const deliveryValue = deliveryMethod === "courier" ? address : pickupPoint;
+
+    if (deliveryValue) {
+      await prisma.address.updateMany({
+        where: {
+          customerId: savedCustomer.id,
+          NOT: {
+            value: deliveryValue,
+          },
+        },
+        data: {
+          isDefault: false,
+        },
+      });
+
+      const existingAddress = await prisma.address.findFirst({
+        where: {
+          customerId: savedCustomer.id,
+          type: deliveryMethod,
+          value: deliveryValue,
+        },
+      });
+
+      if (existingAddress) {
+        await prisma.address.update({
+          where: { id: existingAddress.id },
+          data: { isDefault: true },
+        });
+      } else {
+        await prisma.address.create({
+          data: {
+            customerId: savedCustomer.id,
+            type: deliveryMethod,
+            value: deliveryValue,
+            isDefault: true,
+          },
+        });
+      }
+    }
+
     const order = await prisma.order.create({
       data: {
         publicId: await generateOrderPublicId(),

@@ -1,84 +1,74 @@
 import Link from "next/link";
+import {
+  formatAdminPrice,
+  getAdminCustomers,
+  getClientStatusClass,
+  getCustomerMetrics,
+} from "@/lib/admin-customers-db";
 
-const customers = [
-  {
-    id: "CL-1001",
-    name: "Гость Нетизен",
-    phone: "+7 999 000-00-00",
-    email: "guest@netizen.ru",
-    city: "Москва",
-    orders: 2,
-    tickets: 1,
-    totalSpent: "134 980 ₽",
-    status: "Постоянный",
-    lastActivity: "Сегодня, 14:28",
-  },
-  {
-    id: "CL-1002",
-    name: "Иван",
-    phone: "+7 999 222-33-44",
-    email: "ivan@example.ru",
-    city: "Москва",
-    orders: 1,
-    tickets: 1,
-    totalSpent: "189 990 ₽",
-    status: "Новый",
-    lastActivity: "Вчера, 18:55",
-  },
-  {
-    id: "CL-1003",
-    name: "Мария",
-    phone: "+7 999 333-44-55",
-    email: "maria@example.ru",
-    city: "Москва",
-    orders: 3,
-    tickets: 1,
-    totalSpent: "259 980 ₽",
-    status: "VIP",
-    lastActivity: "12 мая, 16:40",
-  },
+export const dynamic = "force-dynamic";
+
+const statusTabs = [
+  { label: "Все", value: "all" },
+  { label: "Новые", value: "new" },
+  { label: "Постоянные", value: "regular" },
+  { label: "VIP", value: "vip" },
+  { label: "Требуют внимания", value: "attention" },
 ];
 
-const tabs = [
-  { label: "Все", count: customers.length, active: true },
-  { label: "Новые", count: 1, active: false },
-  { label: "Постоянные", count: 1, active: false },
-  { label: "VIP", count: 1, active: false },
-  { label: "Требуют внимания", count: 0, active: false },
-];
-
-function getStatusClass(status: string) {
-  if (status === "VIP") {
-    return "border-purple-500/35 bg-purple-500/10 text-purple-300";
-  }
-
-  if (status === "Постоянный") {
-    return "border-blue-500/35 bg-blue-500/10 text-blue-400";
-  }
-
-  if (status === "Новый") {
-    return "border-green-500/35 bg-green-500/10 text-green-300";
-  }
-
-  return "border-orange-500/35 bg-orange-500/10 text-orange-300";
+function normalize(value: string | undefined) {
+  return (value ?? "").trim().toLowerCase();
 }
 
-export default function AdminUsersPage() {
+function matchesStatus(status: string, filter: string) {
+  if (filter === "new") return status === "Новый";
+  if (filter === "regular") return status === "Постоянный";
+  if (filter === "vip") return status === "VIP";
+  if (filter === "attention") return status === "Требует внимания";
+  return true;
+}
+
+export default async function AdminUsersPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ q?: string; status?: string }>;
+}) {
+  const params = await searchParams;
+  const query = params?.q?.trim() ?? "";
+  const statusFilter = params?.status ?? "all";
+  const [customers, metrics] = await Promise.all([getAdminCustomers(), getCustomerMetrics()]);
+  const normalizedQuery = normalize(query);
+
+  const filteredCustomers = customers.filter((customer) => {
+    const queryMatch = normalizedQuery
+      ? [customer.name, customer.phone, customer.email, customer.city, customer.crmId]
+          .some((value) => normalize(value).includes(normalizedQuery))
+      : true;
+
+    return queryMatch && matchesStatus(customer.status, statusFilter);
+  });
+
+  const tabs = statusTabs.map((tab) => ({
+    ...tab,
+    active: statusFilter === tab.value,
+    count:
+      tab.value === "all"
+        ? customers.length
+        : customers.filter((customer) => matchesStatus(customer.status, tab.value)).length,
+  }));
+
   return (
     <main className="min-h-screen bg-[#020814] px-6 py-6 text-white">
       <div className="mx-auto max-w-[1600px]">
         <header className="flex min-h-[76px] items-center justify-between rounded-2xl border border-white/10 bg-white/[0.035] px-6">
-          <Link
-            href="/nz-console"
-            className="text-xl font-bold tracking-[-0.04em]"
-          >
+          <Link href="/nz-console" className="text-xl font-bold tracking-[-0.04em]">
             Netizen Console
           </Link>
 
           <div className="hidden items-center gap-3 text-sm text-white/55 md:flex">
             <span>Клиенты</span>
             <span>·</span>
-            <span>CRM-lite</span>
+            <span>PostgreSQL + заказы + поддержка</span>
           </div>
 
           <Link
@@ -90,17 +80,14 @@ export default function AdminUsersPage() {
         </header>
 
         <section className="mt-10">
-          <Link
-            href="/nz-console"
-            className="text-sm text-blue-400 transition-colors hover:text-blue-300"
-          >
+          <Link href="/nz-console" className="text-sm text-blue-400 transition-colors hover:text-blue-300">
             ← В админку
           </Link>
 
           <div className="mt-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <div className="inline-flex rounded-full border border-blue-500/35 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-400">
-                Клиентская база
+                Клиентская база из БД
               </div>
 
               <h1 className="mt-5 text-5xl font-bold tracking-[-0.055em]">
@@ -108,139 +95,160 @@ export default function AdminUsersPage() {
               </h1>
 
               <p className="mt-4 max-w-[820px] text-sm leading-relaxed text-white/55">
-                Здесь будет база клиентов магазина: контакты, заявки,
-                обращения, сумма покупок, город, адреса доставки и статус
-                клиента. Это основа для простой CRM внутри админки.
+                Клиенты больше не макет: они создаются из заказов и обращений, а админка показывает реальные контакты,
+                историю покупок, сумму заказов и обращения в поддержку.
               </p>
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <button className="rounded-xl border border-white/10 bg-white/[0.03] px-7 py-4 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10">
-                Экспорт
-              </button>
+              <Link
+                href="/nz-console/orders"
+                className="rounded-xl border border-white/10 bg-white/[0.03] px-7 py-4 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
+              >
+                Перейти к заявкам
+              </Link>
 
-              <button className="rounded-xl bg-blue-600 px-7 py-4 text-sm font-medium text-white transition-colors hover:bg-blue-500">
-                Добавить клиента →
-              </button>
+              <Link
+                href="/catalog"
+                className="rounded-xl bg-blue-600 px-7 py-4 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+              >
+                Создать клиента через заказ →
+              </Link>
             </div>
           </div>
         </section>
 
         <section className="mt-8 grid gap-5 md:grid-cols-4">
-          <MetricCard label="Всего клиентов" value={String(customers.length)} />
-          <MetricCard label="Постоянные" value="1" />
-          <MetricCard label="VIP" value="1" />
-          <MetricCard label="Сумма покупок" value="584 950 ₽" />
+          <MetricCard label="Всего клиентов" value={String(metrics.total)} />
+          <MetricCard label="Постоянные" value={String(metrics.regular)} />
+          <MetricCard label="VIP" value={String(metrics.vip)} />
+          <MetricCard label="Сумма покупок" value={formatAdminPrice(metrics.totalSpent)} />
         </section>
 
         <section className="mt-8">
           <div className="flex flex-wrap gap-2 border-b border-white/10">
-            {tabs.map((tab) => (
-              <button
-                key={tab.label}
-                className={`relative px-4 py-4 text-sm font-medium transition-colors ${
-                  tab.active
-                    ? "text-white"
-                    : "text-white/45 hover:text-white"
-                }`}
-              >
-                <span>{tab.label}</span>
+            {tabs.map((tab) => {
+              const href = query
+                ? `/nz-console/users?status=${tab.value}&q=${encodeURIComponent(query)}`
+                : `/nz-console/users?status=${tab.value}`;
 
-                <span
-                  className={`ml-2 rounded-full px-2 py-0.5 text-xs ${
-                    tab.active
-                      ? "bg-blue-600 text-white"
-                      : "bg-white/10 text-white/45"
+              return (
+                <Link
+                  key={tab.value}
+                  href={href}
+                  className={`relative px-4 py-4 text-sm font-medium transition-colors ${
+                    tab.active ? "text-white" : "text-white/45 hover:text-white"
                   }`}
                 >
-                  {tab.count}
-                </span>
+                  <span>{tab.label}</span>
 
-                {tab.active && (
-                  <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full bg-blue-500" />
-                )}
-              </button>
-            ))}
+                  <span
+                    className={`ml-2 rounded-full px-2 py-0.5 text-xs ${
+                      tab.active ? "bg-blue-600 text-white" : "bg-white/10 text-white/45"
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
+
+                  {tab.active && <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full bg-blue-500" />}
+                </Link>
+              );
+            })}
           </div>
         </section>
 
         <section className="mt-6 rounded-[28px] border border-white/10 bg-white/[0.035] p-5">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <form className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <div className="flex flex-1 flex-col gap-3 md:flex-row">
               <input
+                name="q"
+                defaultValue={query}
                 placeholder="Поиск по имени / телефону / e-mail / городу"
                 className="h-12 flex-1 rounded-xl border border-white/10 bg-black/20 px-5 text-sm text-white outline-none placeholder:text-white/35 focus:border-blue-500/50"
               />
 
-              <button className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10">
-                Статус
+              <select
+                name="status"
+                defaultValue={statusFilter}
+                className="h-12 rounded-xl border border-white/10 bg-[#06101f] px-5 text-sm font-medium text-white outline-none focus:border-blue-500/50"
+              >
+                {statusTabs.map((tab) => (
+                  <option key={tab.value} value={tab.value}>
+                    {tab.label}
+                  </option>
+                ))}
+              </select>
+
+              <button className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500">
+                Найти
               </button>
 
-              <button className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10">
-                Город
-              </button>
-
-              <button className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10">
-                Активность
-              </button>
+              <Link
+                href="/nz-console/users"
+                className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-center text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
+              >
+                Сбросить
+              </Link>
             </div>
-
-            <button className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500">
-              Добавить клиента
-            </button>
-          </div>
+          </form>
         </section>
 
         <section className="mt-6 grid gap-5 xl:grid-cols-[1fr_380px]">
           <div className="grid gap-4">
-            {customers.map((customer) => (
-              <Link
-                key={customer.id}
-                href={`/nz-console/users/${customer.id}`}
-                className="rounded-[30px] border border-white/10 bg-white/[0.035] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
-              >
-                <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
-                  <div className="flex items-start gap-4">
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-xl font-bold text-white">
-                      {customer.name.slice(0, 1)}
+            {filteredCustomers.length === 0 ? (
+              <div className="rounded-[30px] border border-white/10 bg-white/[0.035] p-10 text-center text-sm text-white/45">
+                Клиентов пока нет. Оформите тестовый заказ или создайте обращение с телефоном клиента.
+              </div>
+            ) : (
+              filteredCustomers.map((customer) => (
+                <Link
+                  key={customer.id}
+                  href={`/nz-console/users/${customer.id}`}
+                  className="rounded-[30px] border border-white/10 bg-white/[0.035] p-6 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
+                >
+                  <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+                    <div className="flex items-start gap-4">
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-xl font-bold text-white">
+                        {customer.name.slice(0, 1).toUpperCase() || "К"}
+                      </div>
+
+                      <div>
+                        <div className="flex flex-wrap items-center gap-3">
+                          <h2 className="text-2xl font-bold tracking-[-0.035em]">
+                            {customer.name}
+                          </h2>
+
+                          <span className={`rounded-full border px-3 py-1 text-sm ${getClientStatusClass(customer.status)}`}>
+                            {customer.status}
+                          </span>
+                        </div>
+
+                        <div className="mt-2 text-sm text-white/45">
+                          {customer.id} · {customer.city || "Город не указан"}
+                        </div>
+
+                        <div className="mt-3 flex flex-wrap gap-3 text-sm text-white/55">
+                          <span>{customer.phone}</span>
+                          {customer.email ? (
+                            <>
+                              <span>·</span>
+                              <span>{customer.email}</span>
+                            </>
+                          ) : null}
+                        </div>
+                      </div>
                     </div>
 
-                    <div>
-                      <div className="flex flex-wrap items-center gap-3">
-                        <h2 className="text-2xl font-bold tracking-[-0.035em]">
-                          {customer.name}
-                        </h2>
-
-                        <span
-                          className={`rounded-full border px-3 py-1 text-sm ${getStatusClass(
-                            customer.status
-                          )}`}
-                        >
-                          {customer.status}
-                        </span>
-                      </div>
-
-                      <div className="mt-2 text-sm text-white/45">
-                        {customer.id} · {customer.city}
-                      </div>
-
-                      <div className="mt-3 flex flex-wrap gap-3 text-sm text-white/55">
-                        <span>{customer.phone}</span>
-                        <span>·</span>
-                        <span>{customer.email}</span>
-                      </div>
+                    <div className="grid gap-3 sm:grid-cols-4 lg:min-w-[560px]">
+                      <MiniStat label="Заявок" value={String(customer.ordersCount)} />
+                      <MiniStat label="Обращений" value={String(customer.ticketsCount)} />
+                      <MiniStat label="Покупки" value={customer.totalSpentLabel} />
+                      <MiniStat label="Активность" value={customer.lastActivityLabel} />
                     </div>
                   </div>
-
-                  <div className="grid gap-3 sm:grid-cols-4 lg:min-w-[560px]">
-                    <MiniStat label="Заявок" value={String(customer.orders)} />
-                    <MiniStat label="Обращений" value={String(customer.tickets)} />
-                    <MiniStat label="Покупки" value={customer.totalSpent} />
-                    <MiniStat label="Активность" value={customer.lastActivity} />
-                  </div>
-                </div>
-              </Link>
-            ))}
+                </Link>
+              ))
+            )}
           </div>
 
           <aside className="space-y-5">
@@ -258,19 +266,18 @@ export default function AdminUsersPage() {
                 <InfoLine label="Заявки" value="история покупок" />
                 <InfoLine label="Обращения" value="чаты и темы" />
                 <InfoLine label="Доставка" value="адреса / ПВЗ" />
-                <InfoLine label="Статус" value="новый / VIP" />
+                <InfoLine label="Статус" value="автоматически" />
               </div>
             </section>
 
             <section className="rounded-[30px] border border-blue-500/25 bg-blue-500/10 p-6">
               <div className="font-semibold text-blue-400">
-                Зачем это нужно
+                Как попадает клиент
               </div>
 
               <p className="mt-3 text-sm leading-relaxed text-white/55">
-                Менеджер сможет быстро понять, кто клиент: новый, постоянный
-                или VIP, что он покупал, какие обращения создавал и какие адреса
-                использовал.
+                Клиент создаётся автоматически при оформлении заказа. Обращения в поддержку тоже обновляют карточку клиента,
+                если указан телефон.
               </p>
             </section>
           </aside>
