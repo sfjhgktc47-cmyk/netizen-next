@@ -12,11 +12,16 @@ type ProductOption = {
   slug: string;
   name: string;
   brand: string;
+  categorySlug: string;
+  category?: {
+    name: string;
+  } | null;
 };
 
 type Props = {
   products: ProductOption[];
   initialProductSlug?: string;
+  initialCategorySlug?: string;
 };
 
 const inputClass =
@@ -40,9 +45,16 @@ function onlyDigits(value: string) {
   return value.replace(/[^0-9]/g, "");
 }
 
-export function PositionCreateForm({ products, initialProductSlug }: Props) {
+function getProductCategoryName(product?: ProductOption) {
+  return product?.category?.name ?? product?.categorySlug ?? "Без категории";
+}
+
+export function PositionCreateForm({ products, initialProductSlug, initialCategorySlug }: Props) {
   const router = useRouter();
-  const initialProduct = products.find((product) => product.slug === initialProductSlug) ?? products[0];
+  const initialProduct =
+    products.find((product) => product.slug === initialProductSlug) ??
+    products.find((product) => product.categorySlug === initialCategorySlug) ??
+    products[0];
 
   const [productId, setProductId] = useState(initialProduct?.id ?? "");
   const [sku, setSku] = useState("");
@@ -60,6 +72,9 @@ export function PositionCreateForm({ products, initialProductSlug }: Props) {
   const [loading, setLoading] = useState(false);
 
   const selectedProduct = products.find((product) => product.id === productId);
+  const categoryProductsCount = initialCategorySlug
+    ? products.filter((product) => product.categorySlug === initialCategorySlug).length
+    : products.length;
 
   const suggestedSku = useMemo(() => {
     const base = [selectedProduct?.slug, memory, color, sim].filter(Boolean).join("-");
@@ -123,7 +138,7 @@ export function PositionCreateForm({ products, initialProductSlug }: Props) {
   if (products.length === 0) {
     return (
       <div className="rounded-[34px] border border-orange-500/25 bg-orange-500/10 p-6 text-sm leading-relaxed text-orange-100/80">
-        Сначала создайте материнскую карточку товара. После этого сюда можно будет добавить конкретную SKU-позицию.
+        Сначала создайте материнскую карточку товара и привяжите её к категории. После этого сюда можно будет добавить конкретную SKU-позицию.
       </div>
     );
   }
@@ -142,11 +157,25 @@ export function PositionCreateForm({ products, initialProductSlug }: Props) {
             <select value={productId} onChange={(event) => setProductId(event.target.value)} className={inputClass}>
               {products.map((product) => (
                 <option key={product.id} value={product.id}>
-                  {product.name} · {product.brand}
+                  {product.name} · {product.brand} · {getProductCategoryName(product)}
                 </option>
               ))}
             </select>
           </Field>
+
+          <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm leading-relaxed text-white/55">
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-white/35">Категория позиции</div>
+            <div className="mt-2 font-semibold text-white">{getProductCategoryName(selectedProduct)}</div>
+            <p className="mt-1 text-xs leading-relaxed text-white/45">
+              У позиции нет отдельной категории: она автоматически берётся из выбранной материнской карточки.
+            </p>
+          </div>
+
+          {initialCategorySlug && categoryProductsCount === 0 ? (
+            <div className="rounded-2xl border border-orange-500/25 bg-orange-500/10 p-4 text-sm leading-relaxed text-orange-100/80">
+              В этой категории пока нет карточек товара. Сначала создайте карточку в этой категории, потом добавьте к ней SKU-позицию.
+            </div>
+          ) : null}
 
           <Field label="Артикул / SKU">
             <input

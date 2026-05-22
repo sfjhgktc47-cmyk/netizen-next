@@ -4,6 +4,17 @@ import { prisma } from "@/lib/db";
 
 export type AdminCategoryStatus = "active" | "draft" | "hidden" | "out_of_stock";
 
+
+export type AdminCategoryProductItem = {
+  id: string;
+  slug: string;
+  name: string;
+  brand: string;
+  categorySlug: string;
+  status: AdminCategoryStatus;
+  variantsCount: number;
+};
+
 export type AdminCategoryItem = {
   id: string;
   slug: string;
@@ -93,4 +104,34 @@ export async function getAdminCategoryByIdOrSlug(idOrSlug: string): Promise<Admi
   });
 
   return category ? toAdminCategory(category) : null;
+}
+
+export async function getAdminProductsForCategory(
+  categoryId: string,
+  categorySlug: string,
+): Promise<AdminCategoryProductItem[]> {
+  const products = await prisma.product.findMany({
+    where: {
+      OR: [
+        { categoryId },
+        { categorySlug },
+      ],
+    },
+    include: {
+      _count: {
+        select: { variants: true },
+      },
+    },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+  });
+
+  return products.map((product) => ({
+    id: product.id,
+    slug: product.slug,
+    name: product.name,
+    brand: product.brand,
+    categorySlug: product.categorySlug,
+    status: product.status as AdminCategoryStatus,
+    variantsCount: product._count.variants,
+  }));
 }

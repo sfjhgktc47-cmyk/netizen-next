@@ -51,6 +51,16 @@ export async function POST(request: NextRequest) {
   const category = await prisma.category.findUnique({
     where: { slug: String(body.categorySlug) },
   });
+
+  if (!category) {
+    return NextResponse.json(
+      {
+        error: "Категория не найдена. Сначала создайте её в админке или выберите существующую.",
+      },
+      { status: 400 },
+    );
+  }
+
   const images = normalizeImages(body.images);
   const mainImage = images[0] ?? String(body.image ?? "");
 

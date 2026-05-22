@@ -71,6 +71,16 @@ export async function PATCH(
   const category = await prisma.category.findUnique({
     where: { slug: categorySlug },
   });
+
+  if (!category) {
+    return NextResponse.json(
+      {
+        error: "Категория не найдена. Сначала создайте её в админке или выберите существующую.",
+      },
+      { status: 400 },
+    );
+  }
+
   const images = toStringArrayValue(body?.images);
   const mainImage = images[0] ?? toStringValue(body?.image);
 

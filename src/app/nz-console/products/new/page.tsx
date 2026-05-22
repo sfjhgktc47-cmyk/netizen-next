@@ -5,7 +5,12 @@ import { getAdminCategories } from "@/lib/admin-products-db";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminNewProductPage() {
+export default async function AdminNewProductPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ category?: string }>;
+}) {
+  const resolvedSearchParams = await searchParams;
   const categories = await getAdminCategories();
 
   return (
@@ -51,7 +56,7 @@ export default async function AdminNewProductPage() {
         </section>
 
         <section className="mt-8">
-          <ProductCreateForm categories={categories} />
+          <ProductCreateForm categories={categories} initialCategorySlug={resolvedSearchParams?.category} />
         </section>
       </div>
     </main>

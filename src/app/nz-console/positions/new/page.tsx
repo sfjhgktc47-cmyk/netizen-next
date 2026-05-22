@@ -8,7 +8,7 @@ export const dynamic = "force-dynamic";
 export default async function AdminNewPositionPage({
   searchParams,
 }: {
-  searchParams?: Promise<{ product?: string }>;
+  searchParams?: Promise<{ product?: string; category?: string }>;
 }) {
   const resolvedSearchParams = await searchParams;
   const products = await prisma.product.findMany({
@@ -17,6 +17,12 @@ export default async function AdminNewPositionPage({
       slug: true,
       name: true,
       brand: true,
+      categorySlug: true,
+      category: {
+        select: {
+          name: true,
+        },
+      },
     },
     orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
   });
@@ -66,7 +72,7 @@ export default async function AdminNewPositionPage({
         </section>
 
         <section className="mt-8">
-          <PositionCreateForm products={products} initialProductSlug={resolvedSearchParams?.product} />
+          <PositionCreateForm products={products} initialProductSlug={resolvedSearchParams?.product} initialCategorySlug={resolvedSearchParams?.category} />
         </section>
       </div>
     </main>

@@ -14,6 +14,7 @@ type AdminCategoryOption = {
 
 type Props = {
   categories: AdminCategoryOption[];
+  initialCategorySlug?: string;
 };
 
 const inputClass =
@@ -32,12 +33,20 @@ function slugify(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
-export function ProductCreateForm({ categories }: Props) {
+function getInitialCategorySlug(categories: AdminCategoryOption[], initialCategorySlug?: string) {
+  if (initialCategorySlug && categories.some((category) => category.slug === initialCategorySlug)) {
+    return initialCategorySlug;
+  }
+
+  return categories[0]?.slug ?? "";
+}
+
+export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
   const router = useRouter();
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [brand, setBrand] = useState("Apple");
-  const [categorySlug, setCategorySlug] = useState(categories[0]?.slug ?? "smartphones");
+  const [categorySlug, setCategorySlug] = useState(() => getInitialCategorySlug(categories, initialCategorySlug));
   const [shortDescription, setShortDescription] = useState("");
   const [description, setDescription] = useState("");
   const [status, setStatus] = useState("active");
@@ -105,6 +114,12 @@ export function ProductCreateForm({ categories }: Props) {
             text="Карточка — это модель товара: название, категория, бренд, фото и описание. Конкретные SKU, цены и остатки добавляются отдельно в разделе «Позиции / SKU»."
           />
 
+          {categories.length === 0 ? (
+            <div className="mt-8 rounded-2xl border border-orange-500/25 bg-orange-500/10 p-4 text-sm leading-relaxed text-orange-100/80">
+              Сначала создайте хотя бы одну категорию в разделе «Категории». Без категории карточку товара сохранить нельзя.
+            </div>
+          ) : null}
+
           <div className="mt-8 grid gap-5 md:grid-cols-2">
             <Field label="Название карточки">
               <input
@@ -130,7 +145,9 @@ export function ProductCreateForm({ categories }: Props) {
                 value={categorySlug}
                 onChange={(event) => setCategorySlug(event.target.value)}
                 className={inputClass}
+                disabled={categories.length === 0}
               >
+                {categories.length === 0 ? <option value="">Нет категорий</option> : null}
                 {categories.map((category) => (
                   <option key={category.slug} value={category.slug}>
                     {category.name}
@@ -234,7 +251,7 @@ export function ProductCreateForm({ categories }: Props) {
 
         <button
           type="submit"
-          disabled={loading}
+          disabled={loading || categories.length === 0}
           className="mt-6 w-full rounded-xl bg-blue-600 px-5 py-4 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
         >
           {loading ? "Сохраняю..." : "Создать карточку →"}
