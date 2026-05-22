@@ -30,6 +30,10 @@ function slugify(value: string) {
     .replace(/^-+|-+$/g, "");
 }
 
+function normalizeSku(value: string) {
+  return value.trim().toUpperCase().replace(/\s+/g, "-");
+}
+
 export function PositionCreateForm({ products, initialProductSlug }: Props) {
   const router = useRouter();
   const initialProduct = products.find((product) => product.slug === initialProductSlug) ?? products[0];
@@ -37,38 +41,33 @@ export function PositionCreateForm({ products, initialProductSlug }: Props) {
   const [productId, setProductId] = useState(initialProduct?.id ?? "");
   const [sku, setSku] = useState("");
   const [title, setTitle] = useState("");
-  const [memory, setMemory] = useState("256 GB");
-  const [color, setColor] = useState("Black");
-  const [colorHex, setColorHex] = useState("#111827");
-  const [sim, setSim] = useState("eSIM");
+  const [memory, setMemory] = useState("");
+  const [color, setColor] = useState("");
+  const [colorHex, setColorHex] = useState("");
+  const [sim, setSim] = useState("");
   const [price, setPrice] = useState("");
   const [oldPrice, setOldPrice] = useState("");
-  const [stock, setStock] = useState("1");
+  const [stock, setStock] = useState("");
   const [status, setStatus] = useState("active");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const selectedProduct = products.find((product) => product.id === productId);
 
-  const generatedSku = useMemo(() => {
-    if (sku) {
-      return sku.toUpperCase();
-    }
-
+  const suggestedSku = useMemo(() => {
     const base = [selectedProduct?.slug, memory, color, sim]
       .filter(Boolean)
       .join("-");
 
-    return base.toUpperCase().replace(/\s+/g, "-");
-  }, [color, memory, selectedProduct?.slug, sim, sku]);
+    return normalizeSku(base);
+  }, [color, memory, selectedProduct?.slug, sim]);
 
-  const finalTitle = useMemo(() => {
-    if (title.trim()) {
-      return title.trim();
-    }
-
+  const suggestedTitle = useMemo(() => {
     return [selectedProduct?.name, memory, color, sim].filter(Boolean).join(" ").trim();
-  }, [color, memory, selectedProduct?.name, sim, title]);
+  }, [color, memory, selectedProduct?.name, sim]);
+
+  const finalSku = sku.trim() ? normalizeSku(sku) : suggestedSku;
+  const finalTitle = title.trim() || suggestedTitle;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -76,7 +75,7 @@ export function PositionCreateForm({ products, initialProductSlug }: Props) {
     setLoading(true);
 
     try {
-      if (!productId || !generatedSku || !finalTitle || !price) {
+      if (!productId || !finalSku || !finalTitle || !price) {
         throw new Error("Выберите карточку и заполните SKU, название позиции и цену.");
       }
 
@@ -86,16 +85,16 @@ export function PositionCreateForm({ products, initialProductSlug }: Props) {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          sku: generatedSku,
-          slug: slugify(generatedSku),
+          sku: finalSku,
+          slug: slugify(finalSku),
           title: finalTitle,
-          memory,
-          color,
-          colorHex,
-          sim,
+          memory: memory.trim(),
+          color: color.trim(),
+          colorHex: colorHex.trim(),
+          sim: sim.trim(),
           price: Number(price),
           oldPrice: oldPrice ? Number(oldPrice) : null,
-          stock: Number(stock),
+          stock: stock ? Number(stock) : 0,
           status,
         }),
       });
@@ -145,24 +144,29 @@ export function PositionCreateForm({ products, initialProductSlug }: Props) {
 
           <Field label="Артикул / SKU">
             <input
-              value={generatedSku}
+              value={sku}
               onChange={(event) => setSku(event.target.value.toUpperCase())}
-              placeholder="IP17PRO-256-BLACK-ESIM"
+              placeholder="Например: IP17PRO-256-BLACK-ESIM"
               className={inputClass}
             />
           </Field>
 
           <Field label="Название позиции">
             <input
-              value={finalTitle}
+              value={title}
               onChange={(event) => setTitle(event.target.value)}
-              placeholder="iPhone 17 Pro 256 GB Black eSIM"
+              placeholder="Например: iPhone 17 Pro 256 GB Black eSIM"
               className={inputClass}
             />
           </Field>
 
           <Field label="Память">
-            <input value={memory} onChange={(event) => setMemory(event.target.value)} className={inputClass} />
+            <input
+              value={memory}
+              onChange={(event) => setMemory(event.target.value)}
+              placeholder="Например: 256 GB"
+              className={inputClass}
+            />
           </Field>
 
           <div className="md:col-span-2">
@@ -176,19 +180,42 @@ export function PositionCreateForm({ products, initialProductSlug }: Props) {
           </div>
 
           <Field label="SIM">
-            <input value={sim} onChange={(event) => setSim(event.target.value)} className={inputClass} />
+            <input
+              value={sim}
+              onChange={(event) => setSim(event.target.value)}
+              placeholder="Например: eSIM или SIM + eSIM"
+              className={inputClass}
+            />
           </Field>
 
           <Field label="Цена">
-            <input value={price} onChange={(event) => setPrice(event.target.value)} inputMode="numeric" className={inputClass} />
+            <input
+              value={price}
+              onChange={(event) => setPrice(event.target.value)}
+              inputMode="numeric"
+              placeholder="Например: 109990"
+              className={inputClass}
+            />
           </Field>
 
           <Field label="Старая цена">
-            <input value={oldPrice} onChange={(event) => setOldPrice(event.target.value)} inputMode="numeric" className={inputClass} />
+            <input
+              value={oldPrice}
+              onChange={(event) => setOldPrice(event.target.value)}
+              inputMode="numeric"
+              placeholder="Например: 119990, если есть скидка"
+              className={inputClass}
+            />
           </Field>
 
           <Field label="Остаток">
-            <input value={stock} onChange={(event) => setStock(event.target.value)} inputMode="numeric" className={inputClass} />
+            <input
+              value={stock}
+              onChange={(event) => setStock(event.target.value)}
+              inputMode="numeric"
+              placeholder="Например: 3"
+              className={inputClass}
+            />
           </Field>
 
           <Field label="Статус">
@@ -199,6 +226,16 @@ export function PositionCreateForm({ products, initialProductSlug }: Props) {
               <option value="out_of_stock">Нет в наличии</option>
             </select>
           </Field>
+        </div>
+
+        <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-xs leading-relaxed text-white/45">
+          <span className="text-white/65">Подсказка:</span> поля теперь пустые и полностью редактируемые. Если SKU или название оставить пустыми, система соберёт их из карточки, памяти, цвета и SIM.
+          {finalSku || finalTitle ? (
+            <div className="mt-2 text-white/55">
+              Будет создано: <span className="font-semibold text-white">{finalSku || "SKU не заполнен"}</span>
+              {finalTitle ? <span> · {finalTitle}</span> : null}
+            </div>
+          ) : null}
         </div>
 
         {error ? (
