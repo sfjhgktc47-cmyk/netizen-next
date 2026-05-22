@@ -78,8 +78,6 @@ export function ProductDetailView({
   selectedPosition,
 }: ProductDetailViewProps) {
 
-  const initialPosition = selectedPosition ?? positions[0];
-
   const [selectedColor, setSelectedColor] = useState(selectedPosition?.color ?? "");
   const [selectedMemory, setSelectedMemory] = useState(selectedPosition?.memory ?? "");
   const [selectedSim, setSelectedSim] = useState(selectedPosition?.sim ?? "");
@@ -117,7 +115,12 @@ export function ProductDetailView({
   ]);
 
   const hasInvalidCompleteConfiguration = isConfigurationComplete && !activePosition;
-  const previewPosition = activePosition ?? initialPosition;
+
+  // Фото позиции показываем только тогда, когда клиент реально выбрал
+  // конкретную конфигурацию или пришёл по ссылке на конкретный SKU.
+  // До выбора конфигурации остаётся фото материнской карточки, чтобы
+  // разные комплектации не смешивались в галерее.
+  const previewPosition = activePosition ?? selectedPosition;
   const mediaImages =
     previewPosition?.images && previewPosition.images.length > 0
       ? previewPosition.images

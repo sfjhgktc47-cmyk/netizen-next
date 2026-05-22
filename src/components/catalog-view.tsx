@@ -723,8 +723,11 @@ export function CatalogView({
       priceTo
   );
 
+  const shouldShowPositionResults = Boolean(
+    hasSpecificationFilters || selectedBrand || activeCategory
+  );
   const hasActiveFilters = Boolean(selectedBrand || hasSpecificationFilters);
-  const resultCount = hasSpecificationFilters
+  const resultCount = shouldShowPositionResults
     ? positionResults.length
     : visibleModelProducts.length;
 
@@ -738,15 +741,9 @@ export function CatalogView({
         ? activeCategory.name
         : "Каталог техники";
 
-  const pageDescription = hasSpecificationFilters
-    ? "Показаны товары, которые подходят под выбранные параметры. Чем точнее выбор, тем точнее результат."
-    : selectedBrand
-      ? activeCategory
-        ? `Все товары ${selectedBrand} в категории «${activeCategory.name}» показаны одной сеткой. Можно быстро сравнить модели и перейти к выбору конфигурации.`
-        : `Вся техника ${selectedBrand} показана одной сеткой. Можно быстро сравнить модели и перейти к выбору конфигурации.`
-      : activeCategory
-        ? activeCategory.description
-        : "Выберите устройство по категории, бренду или параметрам. Конфигурацию подберёте на странице товара.";
+  const pageDescription = shouldShowPositionResults
+    ? "Показаны конкретные позиции / SKU из базы: фото, конфигурация, цена и наличие. Можно сразу открыть нужную комплектацию."
+    : "Выберите устройство по категории, бренду или параметрам. В каталоге будут показаны конкретные позиции из БД.";
 
   const catalogTrail = [
     activeCategory?.name,
@@ -912,6 +909,7 @@ export function CatalogView({
             priceFrom={priceFrom}
             priceTo={priceTo}
             hasSpecificationFilters={hasSpecificationFilters}
+            showPositionResults={shouldShowPositionResults}
             resultCount={resultCount}
             onReset={handleResetCatalogState}
           />
@@ -963,44 +961,35 @@ export function CatalogView({
           )}
 
           <div className="min-w-0 flex-1">
-            {hasSpecificationFilters ? (
+            {shouldShowPositionResults ? (
               positionResults.length > 0 ? (
                 <PositionGrid
                   positions={sortedPositionResults}
                   title={
-                    selectedModel?.name ?? selectedBrand ?? activeCategory?.name ?? "Подборка"
+                    selectedModel?.name ?? selectedBrand ?? activeCategory?.name ?? "Позиции / SKU"
                   }
-                  subtitle={`${positionResults.length} товаров по выбранным параметрам`}
+                  subtitle={`${positionResults.length} конкретных позиций в подборке`}
                   dark={dark}
                 />
               ) : (
                 <EmptyCatalogState onReset={resetSpecificationFilters} />
               )
             ) : sortedVisibleModelProducts.length > 0 ? (
-              selectedBrand ? (
-                <ProductGrid
-                  products={sortedVisibleModelProducts}
-                  title={selectedBrand}
-                  subtitle={`${sortedVisibleModelProducts.length} товар в подборке`}
+              productsByBrand.map(([brand, brandProducts]) => (
+                <ProductCarousel
+                  key={brand}
+                  title={brand}
+                  subtitle={
+                    activeCategory
+                      ? `${activeCategory.name} · ${brandProducts.length} товар`
+                      : `${brandProducts.length} товар в подборке`
+                  }
+                  products={brandProducts}
+                  actionLabel="Смотреть все"
+                  actionOnClick={() => handleSelectBrand(brand)}
                   dark={dark}
                 />
-              ) : (
-                productsByBrand.map(([brand, brandProducts]) => (
-                  <ProductCarousel
-                    key={brand}
-                    title={brand}
-                    subtitle={
-                      activeCategory
-                        ? `${activeCategory.name} · ${brandProducts.length} товар`
-                        : `${brandProducts.length} товар в подборке`
-                    }
-                    products={brandProducts}
-                    actionLabel="Смотреть все"
-                    actionOnClick={() => handleSelectBrand(brand)}
-                    dark={dark}
-                  />
-                ))
-              )
+              ))
             ) : (
               <EmptyCatalogState onReset={handleResetCatalogState} />
             )}
@@ -1084,6 +1073,7 @@ function ActiveFilterSummary({
   priceFrom,
   priceTo,
   hasSpecificationFilters,
+  showPositionResults,
   resultCount,
   onReset,
 }: {
@@ -1096,6 +1086,7 @@ function ActiveFilterSummary({
   priceFrom: string;
   priceTo: string;
   hasSpecificationFilters: boolean;
+  showPositionResults: boolean;
   resultCount: number;
   onReset: () => void;
 }) {
@@ -1130,8 +1121,8 @@ function ActiveFilterSummary({
           </div>
 
           <p className="mt-3 text-sm text-muted">
-            {hasSpecificationFilters
-              ? `Показаны подходящие товары: ${resultCount}.`
+            {showPositionResults
+              ? `Показаны позиции / SKU: ${resultCount}.`
               : `Показаны модели товаров: ${resultCount}.`}
           </p>
         </div>
