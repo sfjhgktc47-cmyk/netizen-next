@@ -45,6 +45,24 @@ function nowIso() {
   return new Date().toISOString();
 }
 
+function normalizeSupportTopicId(topicId: string) {
+  if (topicId === "payment") {
+    return "other";
+  }
+
+  return getSupportTopic(topicId).id;
+}
+
+function normalizeSupportRequest(request: SupportRequest): SupportRequest {
+  const topic = getSupportTopic(normalizeSupportTopicId(request.topicId));
+
+  return {
+    ...request,
+    topicId: topic.id,
+    topicTitle: topic.title,
+  };
+}
+
 function makeId(prefix = "msg") {
   return `${prefix}_${Date.now()}_${Math.random().toString(16).slice(2)}`;
 }
@@ -71,7 +89,9 @@ async function readDb(): Promise<SupportDb> {
     const parsed = JSON.parse(raw) as SupportDb;
     return {
       lastNumber: typeof parsed.lastNumber === "number" ? parsed.lastNumber : 200,
-      requests: Array.isArray(parsed.requests) ? parsed.requests : [],
+      requests: Array.isArray(parsed.requests)
+        ? parsed.requests.map((request) => normalizeSupportRequest(request as SupportRequest))
+        : [],
     };
   } catch {
     return { lastNumber: 200, requests: [] };
@@ -146,7 +166,7 @@ export async function createSupportRequest(input: {
   source?: SupportRequest["source"];
 }) {
   const db = await readDb();
-  const topic = getSupportTopic(input.topicId);
+  const topic = getSupportTopic(normalizeSupportTopicId(input.topicId));
   const createdAt = nowIso();
   const nextNumber = db.lastNumber + 1;
   const request: SupportRequest = {
@@ -241,7 +261,7 @@ export async function updateSupportRequest(
   }
 
   const current = db.requests[index];
-  const topic = input.topicId ? getSupportTopic(input.topicId) : null;
+  const topic = input.topicId ? getSupportTopic(normalizeSupportTopicId(input.topicId)) : null;
   const nextRequest: SupportRequest = {
     ...current,
     status: input.status ?? current.status,

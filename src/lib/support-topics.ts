@@ -84,20 +84,6 @@ export const supportTopics: SupportTopic[] = [
     hints: ["Город", "Курьер или ПВЗ", "Адрес для курьера", "Удобное время"],
   },
   {
-    id: "payment",
-    eyebrow: "Оплата",
-    title: "Оплата",
-    shortTitle: "Оплата",
-    text: "Ответим по оплате наличными, подтверждению и итоговой сумме.",
-    icon: "₽",
-    badge: "Оплата",
-    intro:
-      "Напишите вопрос по оплате. Сейчас оплата только наличными при получении после подтверждения менеджером.",
-    placeholder: "Например: можно оплатить наличными при получении?",
-    quickMessages: ["Как оплатить?", "Когда оплачивать?", "Уточнить итоговую сумму"],
-    hints: ["Номер заявки, если есть", "Способ получения", "Сумма или модель", "Вопрос по оплате"],
-  },
-  {
     id: "other",
     eyebrow: "Другое",
     title: "Другое",
@@ -114,5 +100,9 @@ export const supportTopics: SupportTopic[] = [
 ];
 
 export function getSupportTopic(topicId: string) {
+  if (topicId === "payment") {
+    return supportTopics.find((topic) => topic.id === "other") ?? supportTopics[0];
+  }
+
   return supportTopics.find((topic) => topic.id === topicId) ?? supportTopics[0];
 }
