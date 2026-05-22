@@ -4,7 +4,7 @@ import type { FormEvent, ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { ImageDropZone } from "@/components/admin/image-drop-zone";
+import { ImageLibraryField } from "@/components/admin/image-library-field";
 
 type AdminCategoryOption = {
   id: string;
@@ -43,7 +43,7 @@ export function ProductCreateForm({ categories }: Props) {
   const [status, setStatus] = useState("active");
   const [isNew, setIsNew] = useState(true);
   const [isPopular, setIsPopular] = useState(false);
-  const [image, setImage] = useState("");
+  const [images, setImages] = useState<string[]>([]);
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -72,7 +72,8 @@ export function ProductCreateForm({ categories }: Props) {
           categorySlug,
           shortDescription,
           description,
-          image,
+          image: images[0] ?? "",
+          images,
           status,
           isNew,
           isPopular,
@@ -181,7 +182,13 @@ export function ProductCreateForm({ categories }: Props) {
           </div>
 
           <div className="mt-5">
-            <ImageDropZone value={image} onChange={setImage} />
+            <ImageLibraryField
+              value={images}
+              onChange={setImages}
+              label="Фотографии карточки"
+              hint="Перетащите несколько общих фото модели. Первое фото будет главным до выбора конкретной позиции/SKU."
+              maxImages={10}
+            />
           </div>
 
           <div className="mt-5 grid gap-5">

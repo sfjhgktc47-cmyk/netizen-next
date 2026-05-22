@@ -2,6 +2,18 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/db";
 
+function normalizeImages(value: unknown) {
+  if (Array.isArray(value)) {
+    return value.map(String).map((item) => item.trim()).filter(Boolean);
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    return [value.trim()];
+  }
+
+  return [];
+}
+
 function normalizeStatus(value: unknown) {
   if (value === "draft" || value === "hidden" || value === "out_of_stock") {
     return value;
@@ -39,6 +51,8 @@ export async function POST(request: NextRequest) {
   const category = await prisma.category.findUnique({
     where: { slug: String(body.categorySlug) },
   });
+  const images = normalizeImages(body.images);
+  const mainImage = images[0] ?? String(body.image ?? "");
 
   const product = await prisma.product.create({
     data: {
@@ -49,7 +63,8 @@ export async function POST(request: NextRequest) {
       categoryId: category?.id ?? null,
       description: String(body.description ?? ""),
       shortDescription: String(body.shortDescription ?? ""),
-      image: String(body.image ?? ""),
+      image: mainImage,
+      images,
       colors: Array.isArray(body.colors) ? body.colors.map(String) : [],
       status: normalizeStatus(body.status),
       isNew: Boolean(body.isNew),

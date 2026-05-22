@@ -4,6 +4,8 @@ import "server-only";
 
 import { prisma } from "@/lib/db";
 import { categories as fileCategories } from "@/data/categories";
+import { productCards } from "@/data/product-cards";
+import { productPositions } from "@/data/product-positions";
 
 export type AdminProductStatus = "active" | "draft" | "hidden" | "out_of_stock";
 
@@ -24,6 +26,7 @@ export type AdminProductListItem = {
   description: string;
   status: AdminProductStatus;
   image: string;
+  images: string[];
   isNew: boolean;
   isPopular: boolean;
   variantsCount: number;
@@ -80,6 +83,30 @@ export function getAdminStatusClass(status: string) {
 }
 
 
+function moneyToNumber(value: unknown) {
+  if (typeof value === "number") {
+    return value;
+  }
+
+  if (typeof value !== "string") {
+    return 0;
+  }
+
+  const normalized = value.replace(/[^0-9]/g, "");
+  return normalized ? Number(normalized) : 0;
+}
+
+function getDemoCategoryName(categorySlug: string) {
+  return fileCategories.find((category) => category.id === categorySlug)?.name ?? categorySlug;
+}
+
+function normalizeProductImages(product: any) {
+  const images = Array.isArray(product.images) ? product.images.map(String).filter(Boolean) : [];
+  const mainImage = String(product.image ?? "");
+
+  return images.length > 0 ? images : mainImage ? [mainImage] : [];
+}
+
 function toAdminProduct(product: any): AdminProductListItem {
   const variants = Array.isArray(product.variants) ? product.variants : [];
   const prices = variants
@@ -96,7 +123,8 @@ function toAdminProduct(product: any): AdminProductListItem {
     shortDescription: String(product.shortDescription ?? ""),
     description: String(product.description ?? ""),
     status: product.status,
-    image: String(product.image ?? ""),
+    image: normalizeProductImages(product)[0] ?? "",
+    images: normalizeProductImages(product),
     isNew: Boolean(product.isNew),
     isPopular: Boolean(product.isPopular),
     variantsCount: variants.length,
@@ -121,6 +149,64 @@ function toAdminVariant(variant: any): AdminVariantItem {
     oldPrice: variant.oldPrice === null || variant.oldPrice === undefined ? null : Number(variant.oldPrice),
     stock: Number(variant.stock ?? 0),
     status: variant.status,
+  };
+}
+
+function getDemoProducts(): AdminProductListItem[] {
+  return productCards.map((product) => {
+    const variants = productPositions.filter((position) => position.modelSlug === product.slug);
+    const prices = variants.map((variant) => moneyToNumber(variant.price)).filter((price) => price > 0);
+
+    return {
+      id: product.slug,
+      slug: product.slug,
+      name: product.name,
+      brand: product.brand,
+      categorySlug: product.category,
+      categoryName: getDemoCategoryName(product.category),
+      shortDescription: product.shortDescription,
+      description: product.shortDescription,
+      status: product.status === "active" ? "active" : "draft",
+      image: "",
+      images: [],
+      isNew: false,
+      isPopular: true,
+      variantsCount: variants.length,
+      minPrice: prices.length > 0 ? Math.min(...prices) : null,
+      stockTotal: variants.reduce((sum, variant) => sum + variant.stock, 0),
+      source: "demo",
+    };
+  });
+}
+
+function getDemoProductBySlug(slug: string): AdminProductDetail | null {
+  const product = getDemoProducts().find((item) => item.slug === slug);
+
+  if (!product) {
+    return null;
+  }
+
+  const variants = productPositions
+    .filter((position) => position.modelSlug === slug)
+    .map((position) => ({
+      id: position.sku,
+      sku: position.sku,
+      slug: position.sku.toLowerCase(),
+      title: position.title,
+      memory: position.memory,
+      color: position.color,
+      colorHex: position.colorHex,
+      sim: position.sim,
+      images: [],
+      price: moneyToNumber(position.price),
+      oldPrice: position.oldPrice ? moneyToNumber(position.oldPrice) : null,
+      stock: position.stock,
+      status: position.stock > 0 ? "active" : "out_of_stock",
+    } satisfies AdminVariantItem));
+
+  return {
+    ...product,
+    variants,
   };
 }
 
@@ -165,7 +251,7 @@ export async function getAdminProducts(): Promise<AdminProductListItem[]> {
     console.error("Failed to load products from database", error);
   }
 
-  return [];
+  return getDemoProducts();
 }
 
 export async function getAdminProductBySlug(slug: string): Promise<AdminProductDetail | null> {
@@ -190,5 +276,5 @@ export async function getAdminProductBySlug(slug: string): Promise<AdminProductD
     console.error("Failed to load product from database", error);
   }
 
-  return null;
+  return getDemoProductBySlug(slug);
 }

@@ -62,6 +62,7 @@ model Product {
   description      String           @default("")
   shortDescription String           @default("")
   image            String           @default("")
+  images           String[]         @default([])
   colors           String[]         @default([])
   status           EntityStatus     @default(active)
   isNew            Boolean          @default(false)

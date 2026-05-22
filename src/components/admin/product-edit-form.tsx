@@ -4,7 +4,7 @@ import type { FormEvent, ReactNode } from "react";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
-import { ImageDropZone } from "@/components/admin/image-drop-zone";
+import { ImageLibraryField } from "@/components/admin/image-library-field";
 
 type AdminCategoryOption = {
   id: string;
@@ -22,6 +22,7 @@ type ProductForEdit = {
   description: string;
   status: string;
   image: string;
+  images?: string[];
   isNew: boolean;
   isPopular: boolean;
 };
@@ -57,7 +58,13 @@ export function ProductEditForm({ product, categories }: Props) {
   const [shortDescription, setShortDescription] = useState(product.shortDescription);
   const [description, setDescription] = useState(product.description);
   const [status, setStatus] = useState(product.status);
-  const [image, setImage] = useState(product.image);
+  const [images, setImages] = useState<string[]>(
+    Array.isArray(product.images) && product.images.length > 0
+      ? product.images
+      : product.image
+        ? [product.image]
+        : []
+  );
   const [isNew, setIsNew] = useState(product.isNew);
   const [isPopular, setIsPopular] = useState(product.isPopular);
 
@@ -90,7 +97,8 @@ export function ProductEditForm({ product, categories }: Props) {
           categorySlug,
           shortDescription,
           description,
-          image,
+          image: images[0] ?? "",
+          images,
           status,
           isNew,
           isPopular,
@@ -166,7 +174,13 @@ export function ProductEditForm({ product, categories }: Props) {
         </Field>
 
         <div className="md:col-span-2 xl:col-span-2">
-          <ImageDropZone value={image} onChange={setImage} />
+          <ImageLibraryField
+            value={images}
+            onChange={setImages}
+            label="Фотографии карточки"
+            hint="Перетащите несколько общих фото модели. Эти фото показываются до выбора конкретной позиции/SKU."
+            maxImages={10}
+          />
         </div>
 
         <label className="flex min-h-12 items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-4 text-sm text-white/70">

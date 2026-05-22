@@ -124,9 +124,11 @@ export function ProductDetailView({
   const mediaImages =
     previewPosition?.images && previewPosition.images.length > 0
       ? previewPosition.images
-      : product.image
-        ? [product.image]
-        : [];
+      : product.images && product.images.length > 0
+        ? product.images
+        : product.image
+          ? [product.image]
+          : [];
 
   const priceRange = useMemo(() => {
     const prices = positions

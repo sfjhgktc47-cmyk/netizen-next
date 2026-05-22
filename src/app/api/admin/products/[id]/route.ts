@@ -18,6 +18,18 @@ function toStringValue(value: unknown) {
   return typeof value === "string" ? value : "";
 }
 
+function toStringArrayValue(value: unknown) {
+  if (Array.isArray(value)) {
+    return value.map(String).map((item) => item.trim()).filter(Boolean);
+  }
+
+  if (typeof value === "string" && value.trim()) {
+    return [value.trim()];
+  }
+
+  return [];
+}
+
 function toBooleanValue(value: unknown) {
   return value === true || value === "true";
 }
@@ -59,6 +71,8 @@ export async function PATCH(
   const category = await prisma.category.findUnique({
     where: { slug: categorySlug },
   });
+  const images = toStringArrayValue(body?.images);
+  const mainImage = images[0] ?? toStringValue(body?.image);
 
   try {
     const product = await prisma.product.update({
@@ -71,7 +85,8 @@ export async function PATCH(
         categoryId: category?.id ?? null,
         shortDescription: toStringValue(body?.shortDescription),
         description: toStringValue(body?.description),
-        image: toStringValue(body?.image),
+        image: mainImage,
+        images,
         status: normalizeStatus(body?.status),
         isNew: toBooleanValue(body?.isNew),
         isPopular: toBooleanValue(body?.isPopular),

@@ -12,6 +12,7 @@ export type PublicProductModel = {
   description: string;
   shortDescription: string;
   image: string;
+  images: string[];
   colors: string[];
   status: string;
 };
@@ -54,6 +55,11 @@ function getVariantStatus(status: string, stock: number) {
   return "active";
 }
 
+function getProductImages(product: ProductWithVariants) {
+  const images = Array.isArray(product.images) ? product.images.map(String).filter(Boolean) : [];
+  return images.length > 0 ? images : product.image ? [product.image] : [];
+}
+
 function getProductColors(product: ProductWithVariants) {
   const variantColors = product.variants
     .map((variant) => variant.colorHex)
@@ -90,7 +96,8 @@ function toPublicProduct(product: ProductWithVariants): PublicProductModel {
     price: getPriceRange(product.variants),
     description: product.description,
     shortDescription: product.shortDescription || product.description,
-    image: product.image,
+    image: getProductImages(product)[0] ?? "",
+    images: getProductImages(product),
     colors: getProductColors(product),
     status: product.status,
   };
