@@ -2,13 +2,38 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/db";
 
+type VariantStatus = "active" | "draft" | "hidden" | "out_of_stock";
+
+const allowedStatuses = new Set<VariantStatus>(["active", "draft", "hidden", "out_of_stock"]);
+
 function toNullableInt(value: unknown) {
   if (value === undefined || value === null || value === "") {
     return null;
   }
 
   const numberValue = Number(value);
-  return Number.isFinite(numberValue) ? numberValue : null;
+  return Number.isFinite(numberValue) ? Math.max(0, Math.round(numberValue)) : null;
+}
+
+function toRequiredInt(value: unknown) {
+  const numberValue = Number(value);
+  return Number.isFinite(numberValue) ? Math.max(0, Math.round(numberValue)) : null;
+}
+
+function normalizeStatus(value: unknown, stock: number): VariantStatus {
+  if (typeof value === "string" && allowedStatuses.has(value as VariantStatus)) {
+    return value as VariantStatus;
+  }
+
+  return stock > 0 ? "active" : "out_of_stock";
+}
+
+function getErrorMessage(error: unknown) {
+  if (error instanceof Error) {
+    return error.message;
+  }
+
+  return "Неизвестная ошибка.";
 }
 
 export async function GET(
@@ -32,35 +57,71 @@ export async function POST(
   const { id } = await params;
   const body = await request.json();
 
-  if (!body?.sku || !body?.slug || !body?.title || body?.price === undefined) {
+  const price = toRequiredInt(body?.price);
+  const stock = toRequiredInt(body?.stock) ?? 0;
+
+  if (!body?.sku || !body?.slug || !body?.title || price === null) {
     return NextResponse.json(
       {
-        error: "sku, slug, title and price are required",
+        error: "Укажите SKU, slug, название позиции и цену.",
       },
       { status: 400 },
     );
   }
 
-  const stock = Number.isFinite(Number(body.stock)) ? Number(body.stock) : 0;
-
-  const variant = await prisma.productVariant.create({
-    data: {
-      productId: id,
-      sku: String(body.sku),
-      slug: String(body.slug),
-      title: String(body.title),
-      memory: String(body.memory ?? ""),
-      color: String(body.color ?? ""),
-      colorHex: String(body.colorHex ?? ""),
-      sim: String(body.sim ?? ""),
-      price: Number(body.price),
-      oldPrice: toNullableInt(body.oldPrice),
-      stock,
-      status: stock > 0 ? "active" : "out_of_stock",
-      seoTitle: String(body.seoTitle ?? ""),
-      seoDescription: String(body.seoDescription ?? ""),
-    },
+  const product = await prisma.product.findUnique({
+    where: { id },
+    select: { id: true },
   });
 
-  return NextResponse.json({ variant }, { status: 201 });
+  if (!product) {
+    return NextResponse.json(
+      {
+        error: "Карточка товара не найдена.",
+      },
+      { status: 404 },
+    );
+  }
+
+  try {
+    const variant = await prisma.productVariant.create({
+      data: {
+        productId: id,
+        sku: String(body.sku),
+        slug: String(body.slug),
+        title: String(body.title),
+        memory: String(body.memory ?? ""),
+        color: String(body.color ?? ""),
+        colorHex: String(body.colorHex ?? ""),
+        sim: String(body.sim ?? ""),
+        price,
+        oldPrice: toNullableInt(body.oldPrice),
+        stock,
+        status: normalizeStatus(body.status, stock),
+        seoTitle: String(body.seoTitle ?? ""),
+        seoDescription: String(body.seoDescription ?? ""),
+      },
+    });
+
+    return NextResponse.json({ variant }, { status: 201 });
+  } catch (error) {
+    const message = getErrorMessage(error);
+
+    if (message.includes("Unique constraint")) {
+      return NextResponse.json(
+        {
+          error: "Такая SKU или такой slug позиции уже есть у товара.",
+        },
+        { status: 409 },
+      );
+    }
+
+    return NextResponse.json(
+      {
+        error: "Не удалось создать позицию.",
+        details: message,
+      },
+      { status: 500 },
+    );
+  }
 }

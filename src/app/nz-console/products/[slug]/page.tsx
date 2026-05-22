@@ -2,11 +2,8 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
-import { ProductEditForm } from "@/components/admin/product-edit-form";
 import { ProductVariantCreateForm } from "@/components/admin/product-variant-create-form";
-import { ProductVariantEditForm } from "@/components/admin/product-variant-edit-form";
 import {
-  getAdminCategories,
   getAdminProductBySlug,
   getAdminStatusClass,
   getAdminStatusLabel,
@@ -28,10 +25,7 @@ export default async function AdminProductDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [product, categories] = await Promise.all([
-    getAdminProductBySlug(slug),
-    getAdminCategories(),
-  ]);
+  const product = await getAdminProductBySlug(slug);
 
   if (!product) {
     notFound();
@@ -122,7 +116,7 @@ export default async function AdminProductDetailPage({
               </h2>
 
               <p className="mt-3 text-sm leading-relaxed text-white/55">
-                Сейчас эта страница читает данные из БД. Карточку и позиции можно редактировать ниже на этой странице.
+                Сейчас эта страница читает данные из БД. Позиции уже можно добавлять ниже на этой странице. Редактирование и скрытие подключим следующим проходом.
               </p>
 
               <div className="mt-6 grid gap-3">
@@ -134,13 +128,6 @@ export default async function AdminProductDetailPage({
                 </Link>
 
                 <a
-                  href="#edit-product"
-                  className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4 text-center text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
-                >
-                  Редактировать карточку
-                </a>
-
-                <a
                   href="#add-variant"
                   className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4 text-center text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
                 >
@@ -150,13 +137,6 @@ export default async function AdminProductDetailPage({
             </aside>
           </div>
         </section>
-
-
-        {product.source === "db" ? (
-          <section id="edit-product" className="mt-8">
-            <ProductEditForm product={product} categories={categories} />
-          </section>
-        ) : null}
 
         <section className="mt-8 rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
           <SectionTitle
@@ -212,30 +192,12 @@ export default async function AdminProductDetailPage({
           </div>
 
           {product.source === "db" ? (
-            <>
-              {product.variants.length > 0 ? (
-                <div className="mt-8 space-y-4">
-                  <SectionTitle
-                    label="Правки"
-                    title="Редактирование позиций"
-                    text="Можно изменить цену, остаток, параметры, статус или удалить ошибочную SKU."
-                  />
-
-                  <div className="space-y-4">
-                    {product.variants.map((variant) => (
-                      <ProductVariantEditForm key={variant.id} productId={product.id} variant={variant} />
-                    ))}
-                  </div>
-                </div>
-              ) : null}
-
-              <div id="add-variant">
-                <ProductVariantCreateForm productId={product.id} productName={product.name} />
-              </div>
-            </>
+            <div id="add-variant">
+              <ProductVariantCreateForm productId={product.id} productName={product.name} />
+            </div>
           ) : (
             <div className="mt-8 rounded-[28px] border border-orange-500/20 bg-orange-500/10 p-6 text-sm leading-relaxed text-orange-100/80">
-              Это демо-карточка из файлов. Позиции можно создавать и редактировать только у товаров из БД.
+              Это демо-карточка из файлов. Позиции можно создавать только у товаров из БД.
             </div>
           )}
         </section>
