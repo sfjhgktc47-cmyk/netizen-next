@@ -1,12 +1,16 @@
 import { NextResponse } from "next/server";
 
 import { getPublicCatalogData } from "@/lib/public-catalog-db";
+import { getSiteEditorSettings } from "@/lib/site-settings-db";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const catalog = await getPublicCatalogData();
+    const [catalog, siteSettings] = await Promise.all([
+      getPublicCatalogData(),
+      getSiteEditorSettings(),
+    ]);
 
     const configuredProducts = catalog.productCards.filter((product) => {
       const images = [product.image, ...(Array.isArray(product.images) ? product.images : [])]
@@ -32,6 +36,7 @@ export async function GET() {
         explicitNewArrivals.length > 0
           ? explicitNewArrivals
           : dbProducts.slice(0, 3),
+      siteSettings,
     });
   } catch (error) {
     console.error("Home data loading failed", error);

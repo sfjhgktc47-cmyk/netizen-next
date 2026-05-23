@@ -23,6 +23,14 @@ type MeResponse = {
   user?: HeaderAuthUser;
 };
 
+type HeaderSiteSettings = {
+  branding?: {
+    storeName?: string;
+    logoLight?: string;
+    logoDark?: string;
+  };
+};
+
 function getUserInitial(user: HeaderAuthUser | null) {
   if (!user) {
     return "П";
@@ -44,6 +52,7 @@ export function SiteHeader() {
   const [authUser, setAuthUser] = useState<HeaderAuthUser | null>(null);
   const [authMode, setAuthMode] = useState<AuthMode>("login");
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [siteSettings, setSiteSettings] = useState<HeaderSiteSettings | null>(null);
 
   useEffect(() => {
     const updateCartCount = () => {
@@ -62,6 +71,19 @@ export function SiteHeader() {
       }
     };
 
+    const updateSiteSettings = async () => {
+      try {
+        const response = await fetch("/api/site-settings", { cache: "no-store" });
+        const data = (await response.json().catch(() => ({}))) as {
+          site?: HeaderSiteSettings;
+        };
+
+        setSiteSettings(data.site ?? null);
+      } catch {
+        setSiteSettings(null);
+      }
+    };
+
     const openAuthModal = (event: Event) => {
       const customEvent = event as CustomEvent<AuthMode | undefined>;
       setAuthMode(customEvent.detail ?? "login");
@@ -74,6 +96,7 @@ export function SiteHeader() {
 
     updateCartCount();
     handleAuthUpdate();
+    void updateSiteSettings();
 
     window.addEventListener("storage", updateCartCount);
     window.addEventListener("storage", handleAuthUpdate);
@@ -109,6 +132,9 @@ export function SiteHeader() {
 
   const accountHref = authUser?.role === "admin" ? "/nz-console" : "/profile";
   const accountLabel = authUser?.role === "admin" ? "Админ-панель" : "Личный кабинет";
+  const logoLight = siteSettings?.branding?.logoLight?.trim() || "/logo-light.png";
+  const logoDark = siteSettings?.branding?.logoDark?.trim() || "/logo-dark.png";
+  const storeName = siteSettings?.branding?.storeName?.trim() || "Нетизен";
 
   return (
     <header
@@ -123,8 +149,8 @@ export function SiteHeader() {
         className="relative flex h-12 w-[150px] items-center justify-start overflow-hidden"
       >
         <Image
-          src={dark ? "/logo-light.png" : "/logo-dark.png"}
-          alt="Нетизен"
+          src={dark ? logoLight : logoDark}
+          alt={storeName}
           width={150}
           height={48}
           priority

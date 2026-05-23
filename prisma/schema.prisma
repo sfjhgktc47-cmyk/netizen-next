@@ -246,3 +246,11 @@ model SupportMessage {
 
   @@index([requestId, createdAt])
 }
+
+model SiteSetting {
+  id        String   @id @default(cuid())
+  key       String   @unique
+  value     Json     @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}

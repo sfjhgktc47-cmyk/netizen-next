@@ -39,11 +39,35 @@ type HomeProduct = {
   isPopular?: boolean;
 };
 
+type HomeBlockSetting = {
+  id: string;
+  enabled: boolean;
+  order: number;
+};
+
+type PublicSiteSettings = {
+  branding?: {
+    storeName?: string;
+    logoLight?: string;
+    logoDark?: string;
+  };
+  contacts?: {
+    phone?: string;
+    phoneText?: string;
+    email?: string;
+    emailText?: string;
+    telegram?: string;
+    telegramText?: string;
+  };
+  homeBlocks?: HomeBlockSetting[];
+};
+
 type HomePayload = {
   categories?: HomeCategory[];
   products?: HomeProduct[];
   popularProducts?: HomeProduct[];
   newArrivals?: HomeProduct[];
+  siteSettings?: PublicSiteSettings;
 };
 
 const fallbackCategories: HomeCategory[] = [
@@ -105,6 +129,7 @@ export default function Home() {
   const [categories, setCategories] = useState<HomeCategory[]>([]);
   const [popularProducts, setPopularProducts] = useState<HomeProduct[]>([]);
   const [newArrivals, setNewArrivals] = useState<HomeProduct[]>([]);
+  const [siteSettings, setSiteSettings] = useState<PublicSiteSettings | null>(null);
 
   useEffect(() => {
     let mounted = true;
@@ -123,6 +148,7 @@ export default function Home() {
           : allProducts.filter((product) => product.isNew);
 
         setCategories(Array.isArray(payload.categories) ? payload.categories : []);
+        setSiteSettings(payload.siteSettings ?? null);
         setPopularProducts(dbPopularProducts.filter(isConfiguredProduct));
         setNewArrivals(
           dbNewArrivals
@@ -134,6 +160,7 @@ export default function Home() {
         if (!mounted) return;
 
         setCategories([]);
+        setSiteSettings(null);
         setPopularProducts([]);
         setNewArrivals([]);
       });
@@ -144,6 +171,11 @@ export default function Home() {
   }, []);
 
   const visibleCategories = categories.length ? categories : fallbackCategories;
+
+  function isHomeBlockEnabled(blockId: string) {
+    const block = siteSettings?.homeBlocks?.find((item) => item.id === blockId);
+    return block ? block.enabled : true;
+  }
 
   return (
     <main
@@ -156,13 +188,19 @@ export default function Home() {
       <div className="mx-auto max-w-[1440px] px-6 py-6">
         <SiteHeader />
 
-        <Hero dark={dark} />
-        <Benefits dark={dark} />
-        <Categories dark={dark} categories={visibleCategories.slice(0, 12)} />
-        <PopularProducts dark={dark} products={popularProducts.slice(0, 12)} />
-        <NewArrivals dark={dark} products={newArrivals} />
-        <SupportBlock dark={dark} />
-        <Footer dark={dark} />
+        {isHomeBlockEnabled("hero") && <Hero dark={dark} />}
+        {isHomeBlockEnabled("benefits") && <Benefits dark={dark} />}
+        {isHomeBlockEnabled("categories") && (
+          <Categories dark={dark} categories={visibleCategories.slice(0, 12)} />
+        )}
+        {isHomeBlockEnabled("popular-products") && (
+          <PopularProducts dark={dark} products={popularProducts.slice(0, 12)} />
+        )}
+        {isHomeBlockEnabled("new-arrivals") && (
+          <NewArrivals dark={dark} products={newArrivals} />
+        )}
+        {isHomeBlockEnabled("support") && <SupportBlock dark={dark} />}
+        <Footer dark={dark} siteSettings={siteSettings} />
       </div>
     </main>
   );
@@ -1108,7 +1146,19 @@ function SupportBlock({ dark }: { dark: boolean }) {
   );
 }
 
-function Footer({ dark }: { dark: boolean }) {
+function Footer({
+  dark,
+  siteSettings,
+}: {
+  dark: boolean;
+  siteSettings: PublicSiteSettings | null;
+}) {
+  const contacts = siteSettings?.contacts;
+  const branding = siteSettings?.branding;
+  const logoLight = branding?.logoLight?.trim() || "/logo-light.png";
+  const logoDark = branding?.logoDark?.trim() || "/logo-dark.png";
+  const storeName = branding?.storeName?.trim() || "Netizen";
+
   return (
     <footer
       className={`rounded-[32px] border p-10 transition-all duration-700 ${panelClass(
@@ -1122,8 +1172,8 @@ function Footer({ dark }: { dark: boolean }) {
             className="relative flex h-12 w-[170px] items-center justify-start overflow-hidden"
           >
             <Image
-              src={dark ? "/logo-light.png" : "/logo-dark.png"}
-              alt="Нетизен"
+              src={dark ? logoLight : logoDark}
+              alt={storeName}
               width={170}
               height={48}
               className="h-auto max-h-10 w-auto object-contain transition-opacity duration-700"
@@ -1133,22 +1183,22 @@ function Footer({ dark }: { dark: boolean }) {
           <div className="mt-8 space-y-6">
             <FooterContact
               icon="☎"
-              title={footerData.contacts.phone}
-              text={footerData.contacts.phoneText}
+              title={contacts?.phone || footerData.contacts.phone}
+              text={contacts?.phoneText || footerData.contacts.phoneText}
               dark={dark}
             />
 
             <FooterContact
               icon="✈"
-              title={footerData.contacts.telegram}
-              text={footerData.contacts.telegramText}
+              title={contacts?.telegram || footerData.contacts.telegram}
+              text={contacts?.telegramText || footerData.contacts.telegramText}
               dark={dark}
             />
 
             <FooterContact
               icon="✉"
-              title={footerData.contacts.email}
-              text={footerData.contacts.emailText}
+              title={contacts?.email || footerData.contacts.email}
+              text={contacts?.emailText || footerData.contacts.emailText}
               dark={dark}
             />
           </div>
@@ -1218,7 +1268,7 @@ function Footer({ dark }: { dark: boolean }) {
           dark ? "border-white/10 text-white/45" : "border-black/10 text-black/45"
         }`}
       >
-        <div>© 2024 Netizen. Все права защищены.</div>
+        <div>© 2024 {storeName}. Все права защищены.</div>
 
         <div className="flex flex-wrap gap-6">
           {footerData.legal.map((item) => (
