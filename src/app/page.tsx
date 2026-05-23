@@ -565,10 +565,12 @@ function PopularProducts({ dark, products }: { dark: boolean; products: HomeProd
         }
       />
 
-      <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {products.map((product) => (
-          <ProductCard key={`${product.slug}-${product.name}`} product={product} dark={dark} />
-        ))}
+      <div className="mt-8 -mx-4 overflow-x-auto px-4 pb-2 [scrollbar-width:none] sm:-mx-5 sm:px-5 lg:-mx-6 lg:px-6 [&::-webkit-scrollbar]:hidden">
+        <div className="flex w-max gap-5 snap-x snap-mandatory">
+          {products.map((product) => (
+            <ProductCard key={`${product.slug}-${product.name}`} product={product} dark={dark} />
+          ))}
+        </div>
       </div>
 
       <div className="mt-8 flex justify-center lg:hidden">
@@ -586,16 +588,16 @@ function ProductCard({ product, dark }: { product: HomeProduct; dark: boolean })
   return (
     <Link
       href={getProductHref(product)}
-      className={`group block rounded-2xl border p-4 transition duration-500 hover:-translate-y-1 ${panelClass(dark)} hover:border-blue-500/35`}
+      className={`group block w-[224px] shrink-0 snap-start rounded-2xl border p-3.5 transition duration-500 hover:-translate-y-1 sm:w-[248px] lg:w-[268px] ${panelClass(dark)} hover:border-blue-500/35`}
     >
-      <div className={`relative aspect-[3/4] overflow-hidden rounded-xl ${image ? "bg-white" : dark ? "bg-white/[0.045]" : "bg-slate-100"}`}>
+      <div className={`relative aspect-[4/3] overflow-hidden rounded-xl ${image ? "bg-white" : dark ? "bg-white/[0.045]" : "bg-slate-100"}`}>
         {image ? (
           <Image
             src={image}
             alt={product.name}
             width={420}
-            height={560}
-            className="h-full w-full object-contain p-2 transition duration-500 group-hover:scale-105"
+            height={315}
+            className="h-full w-full object-contain p-3 transition duration-500 group-hover:scale-105"
             unoptimized
           />
         ) : (
@@ -605,7 +607,7 @@ function ProductCard({ product, dark }: { product: HomeProduct; dark: boolean })
 
       <div className="pt-4">
         <p className={`text-xs ${textMuted(dark)}`}>{product.brand}</p>
-        <h3 className="mt-1 line-clamp-2 min-h-[40px] text-base font-black leading-tight">{product.name}</h3>
+        <h3 className="mt-1 line-clamp-2 min-h-[38px] text-[15px] font-black leading-tight sm:text-base">{product.name}</h3>
         <p className={`mt-1 text-sm ${textMuted(dark)}`}>{product.price}</p>
 
         <div className="mt-3 flex h-5 gap-2">
