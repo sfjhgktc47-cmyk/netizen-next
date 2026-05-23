@@ -30,6 +30,7 @@ type ProductModel = CatalogProductBase & {
   images?: string[];
   shortDescription?: string;
   status?: string;
+  isPopular?: boolean;
   price: string;
   minPrice: number;
   maxPrice: number;
@@ -245,6 +246,7 @@ type CatalogUrlFilters = {
   priceFrom: string;
   priceTo: string;
   sortMode: SortMode;
+  onlyPopular: boolean;
 };
 
 const defaultUrlFilters: CatalogUrlFilters = {
@@ -257,6 +259,7 @@ const defaultUrlFilters: CatalogUrlFilters = {
   priceFrom: "",
   priceTo: "",
   sortMode: "popular",
+  onlyPopular: false,
 };
 
 function isSortMode(value: string | null): value is SortMode {
@@ -281,6 +284,7 @@ function parseCatalogUrlFilters(params: URLSearchParams): CatalogUrlFilters {
     priceFrom: params.get("priceFrom") ?? "",
     priceTo: params.get("priceTo") ?? "",
     sortMode: isSortMode(sort) ? sort : "popular",
+    onlyPopular: params.get("popular") === "1",
   };
 }
 
@@ -311,6 +315,7 @@ function writeCatalogUrlFiltersToWindow(filters: CatalogUrlFilters) {
     "priceFrom",
     "priceTo",
     "sort",
+    "popular",
   ].forEach((key) => params.delete(key));
 
   if (filters.selectedBrand) params.set("brand", filters.selectedBrand);
@@ -322,6 +327,7 @@ function writeCatalogUrlFiltersToWindow(filters: CatalogUrlFilters) {
   if (filters.priceFrom) params.set("priceFrom", filters.priceFrom);
   if (filters.priceTo) params.set("priceTo", filters.priceTo);
   if (filters.sortMode !== "popular") params.set("sort", filters.sortMode);
+  if (filters.onlyPopular) params.set("popular", "1");
 
   const nextUrl = `${url.pathname}${params.toString() ? `?${params.toString()}` : ""}${url.hash}`;
   const currentUrl = `${window.location.pathname}${window.location.search}${window.location.hash}`;
@@ -438,6 +444,7 @@ export function CatalogView({
   const [priceFrom, setPriceFrom] = useState("");
   const [priceTo, setPriceTo] = useState("");
   const [sortMode, setSortMode] = useState<SortMode>("popular");
+  const [onlyPopular, setOnlyPopular] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
 
   useEffect(() => {
@@ -459,6 +466,7 @@ export function CatalogView({
       setPriceFrom(filters.priceFrom);
       setPriceTo(filters.priceTo);
       setSortMode(filters.sortMode);
+      setOnlyPopular(filters.onlyPopular);
     }
 
     syncFiltersFromUrl();
@@ -489,8 +497,10 @@ export function CatalogView({
       priceFrom,
       priceTo,
       sortMode,
+      onlyPopular,
     });
   }, [
+    onlyPopular,
     priceFrom,
     priceTo,
     selectedBrand,
@@ -553,10 +563,18 @@ export function CatalogView({
 
   const categoryProducts = useMemo(
     () =>
-      categoryId
-        ? allProducts.filter((product) => product.category === categoryId)
-        : allProducts,
-    [allProducts, categoryId]
+      allProducts.filter((product) => {
+        if (categoryId && product.category !== categoryId) {
+          return false;
+        }
+
+        if (onlyPopular && !product.isPopular) {
+          return false;
+        }
+
+        return true;
+      }),
+    [allProducts, categoryId, onlyPopular]
   );
 
   const visibleModelProducts = useMemo(
@@ -605,6 +623,10 @@ export function CatalogView({
         return false;
       }
 
+      if (onlyPopular && !position.product.isPopular) {
+        return false;
+      }
+
       if (selectedBrand && position.brand !== selectedBrand) {
         return false;
       }
@@ -615,7 +637,7 @@ export function CatalogView({
 
       return true;
     });
-  }, [categoryId, enrichedPositions, selectedBrand, selectedModelSlug]);
+  }, [categoryId, enrichedPositions, onlyPopular, selectedBrand, selectedModelSlug]);
 
   const memoryOptions = useMemo(
     () => uniqueValues(positionsForFilterOptions.map((position) => position.memory)),
@@ -697,6 +719,10 @@ export function CatalogView({
         return false;
       }
 
+      if (onlyPopular && !position.product.isPopular) {
+        return false;
+      }
+
       if (selectedBrand && position.brand !== selectedBrand) {
         return false;
       }
@@ -734,6 +760,7 @@ export function CatalogView({
   }, [
     categoryId,
     enrichedPositions,
+    onlyPopular,
     priceFrom,
     priceTo,
     selectedBrand,
@@ -784,7 +811,7 @@ export function CatalogView({
   );
 
   const shouldShowPositionResults = Boolean(hasSpecificationFilters);
-  const hasActiveFilters = Boolean(selectedBrand || hasSpecificationFilters);
+  const hasActiveFilters = Boolean(onlyPopular || selectedBrand || hasSpecificationFilters);
   const resultCount = shouldShowPositionResults
     ? positionResults.length
     : visibleModelProducts.length;
@@ -797,11 +824,15 @@ export function CatalogView({
         : selectedBrand
       : activeCategory
         ? activeCategory.name
-        : "Каталог техники";
+        : onlyPopular
+          ? "Популярные товары"
+          : "Каталог техники";
 
-  const pageDescription = shouldShowPositionResults
-    ? "Показаны конкретные позиции / SKU из базы: фото, конфигурация, цена и наличие. Можно сразу открыть нужную комплектацию."
-    : "Выберите устройство по категории, бренду или параметрам. В каталоге будут показаны конкретные позиции из БД.";
+  const pageDescription = onlyPopular
+    ? "Показаны модели, отмеченные в админке как популярные. Можно открыть карточку товара или уточнить подборку фильтрами."
+    : shouldShowPositionResults
+      ? "Показаны конкретные позиции / SKU из базы: фото, конфигурация, цена и наличие. Можно сразу открыть нужную комплектацию."
+      : "Выберите устройство по категории, бренду или параметрам. В каталоге будут показаны конкретные позиции из БД.";
 
   const catalogTrail = [
     activeCategory?.name,
@@ -832,6 +863,7 @@ export function CatalogView({
   }
 
   function handleResetCatalogState() {
+    setOnlyPopular(false);
     setSelectedBrand(null);
     resetSpecificationFilters();
     setSortMode("popular");
@@ -915,12 +947,31 @@ export function CatalogView({
               href="/catalog"
               onClick={handleResetCatalogState}
               className={`rounded-full border px-5 py-3 text-sm font-medium transition-all duration-300 ${
-                !categoryId && !selectedBrand && !hasSpecificationFilters
+                !onlyPopular && !categoryId && !selectedBrand && !hasSpecificationFilters
                   ? "border-blue-500 bg-blue-600 text-white"
                   : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
               }`}
             >
               Все товары
+            </Link>
+
+
+
+            <Link
+              href="/catalog?popular=1"
+              onClick={() => {
+                setOnlyPopular(true);
+                setSelectedBrand(null);
+                resetSpecificationFilters();
+                setSortMode("popular");
+              }}
+              className={`rounded-full border px-5 py-3 text-sm font-medium transition-all duration-300 ${
+                onlyPopular && !categoryId && !selectedBrand && !hasSpecificationFilters
+                  ? "border-blue-500 bg-blue-600 text-white"
+                  : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
+              }`}
+            >
+              Популярные
             </Link>
 
             {(isCategoriesOpen ? categories : categories.slice(0, 6)).map(
@@ -958,6 +1009,7 @@ export function CatalogView({
 
         {hasActiveFilters && (
           <ActiveFilterSummary
+            onlyPopular={onlyPopular}
             selectedBrand={selectedBrand}
             selectedModel={selectedModel?.name ?? null}
             selectedMemory={selectedMemory}
@@ -1121,6 +1173,7 @@ function SortControl({
 }
 
 function ActiveFilterSummary({
+  onlyPopular,
   selectedBrand,
   selectedModel,
   selectedMemory,
@@ -1133,6 +1186,7 @@ function ActiveFilterSummary({
   resultCount,
   onReset,
 }: {
+  onlyPopular: boolean;
   selectedBrand: string | null;
   selectedModel: string | null;
   selectedMemory: string | null;
@@ -1146,6 +1200,7 @@ function ActiveFilterSummary({
   onReset: () => void;
 }) {
   const filterTags = [
+    onlyPopular ? "Популярные товары" : null,
     selectedBrand ? `Бренд: ${selectedBrand}` : null,
     selectedModel ? `Модель: ${selectedModel}` : null,
     selectedMemory ? `Память: ${selectedMemory}` : null,

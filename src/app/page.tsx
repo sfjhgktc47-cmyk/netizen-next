@@ -174,7 +174,7 @@ function Hero({ dark }: { dark: boolean }) {
       primaryLabel: "Написать в поддержку",
       primaryHref: "/help",
       secondaryLabel: "Популярное",
-      secondaryHref: "/catalog",
+      secondaryHref: "/catalog?popular=1",
       imageDark: "/hero/main-dark.png",
       imageLight: "/hero/main-light.png",
     },
@@ -662,7 +662,7 @@ function PopularProducts({
 
       <div className="mt-8 flex justify-center">
         <Link
-          href="/catalog"
+          href="/catalog?popular=1"
           className={`min-w-[320px] rounded-xl border px-10 py-4 text-center text-sm font-medium transition-all duration-500 hover:-translate-y-0.5 ${
             dark
               ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
