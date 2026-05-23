@@ -8,14 +8,17 @@ export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const [catalog, siteSettings, pageBlocks] = await Promise.all([
+    const [catalog, siteSettings, homeBlocks] = await Promise.all([
       getPublicCatalogData(),
       getSiteEditorSettings(),
-      getPublicPageBlocks("new"),
+      getPublicPageBlocks("home"),
     ]);
 
     const products = catalog.productCards.filter((product) => product.slug !== "catalog");
     const explicitNewArrivals = products.filter((product) => product.isNew);
+    const pageBlocks = homeBlocks.filter((block) =>
+      ["new-arrivals", "promo-banner", "product-carousel", "support"].includes(block.type)
+    );
 
     return NextResponse.json({
       products,
