@@ -11,22 +11,192 @@ import {
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminOrdersPage() {
-  const [orders, metrics] = await Promise.all([getAdminOrders(), getOrderMetrics()]);
+type OrderStatusFilter = "all" | "new" | "confirming" | "in_work" | "ready" | "completed" | "cancelled";
+type DateFilter = "all" | "today" | "week" | "month";
 
-  const tabs = [
-    { label: "Все", count: orders.length, active: true },
-    { label: "Новые", count: orders.filter((order) => order.status === "new").length, active: false },
-    { label: "Ожидают", count: orders.filter((order) => order.status === "confirming").length, active: false },
-    { label: "В работе", count: orders.filter((order) => order.status === "in_work").length, active: false },
-    { label: "Завершены", count: orders.filter((order) => order.status === "completed").length, active: false },
-    { label: "Отменены", count: orders.filter((order) => order.status === "cancelled").length, active: false },
-  ];
+type SearchParams = {
+  q?: string | string[];
+  status?: string | string[];
+  date?: string | string[];
+};
+
+type AdminOrdersPageProps = {
+  searchParams?: Promise<SearchParams>;
+};
+
+const statusTabs: Array<{ label: string; value: OrderStatusFilter }> = [
+  { label: "Все", value: "all" },
+  { label: "Новые", value: "new" },
+  { label: "Ожидают", value: "confirming" },
+  { label: "В работе", value: "in_work" },
+  { label: "Готовы", value: "ready" },
+  { label: "Завершены", value: "completed" },
+  { label: "Отменены", value: "cancelled" },
+];
+
+const dateOptions: Array<{ label: string; value: DateFilter }> = [
+  { label: "За всё время", value: "all" },
+  { label: "Сегодня", value: "today" },
+  { label: "7 дней", value: "week" },
+  { label: "30 дней", value: "month" },
+];
+
+function readParam(value: string | string[] | undefined) {
+  if (Array.isArray(value)) {
+    return value[0] ?? "";
+  }
+
+  return value ?? "";
+}
+
+function normalizeStatusFilter(value: string): OrderStatusFilter {
+  if (
+    value === "new" ||
+    value === "confirming" ||
+    value === "in_work" ||
+    value === "ready" ||
+    value === "completed" ||
+    value === "cancelled"
+  ) {
+    return value;
+  }
+
+  return "all";
+}
+
+function normalizeDateFilter(value: string): DateFilter {
+  if (value === "today" || value === "week" || value === "month") {
+    return value;
+  }
+
+  return "all";
+}
+
+function getDateStart(filter: DateFilter) {
+  const now = new Date();
+
+  if (filter === "today") {
+    const start = new Date(now);
+    start.setHours(0, 0, 0, 0);
+    return start;
+  }
+
+  if (filter === "week") {
+    const start = new Date(now);
+    start.setDate(start.getDate() - 7);
+    start.setHours(0, 0, 0, 0);
+    return start;
+  }
+
+  if (filter === "month") {
+    const start = new Date(now);
+    start.setDate(start.getDate() - 30);
+    start.setHours(0, 0, 0, 0);
+    return start;
+  }
+
+  return null;
+}
+
+function orderMatchesBaseFilters(
+  order: Awaited<ReturnType<typeof getAdminOrders>>[number],
+  filters: { query: string; date: DateFilter },
+) {
+  const normalizedQuery = filters.query.trim().toLowerCase();
+
+  if (normalizedQuery) {
+    const itemsText = order.items
+      .map((item) => [item.title, item.productTitle, item.sku, item.brand, item.memory, item.color, item.sim].join(" "))
+      .join(" ");
+
+    const searchableText = [
+      order.publicId,
+      order.customerName,
+      order.phone,
+      order.email,
+      order.address,
+      order.pickupPoint,
+      getDeliveryLabel(order.deliveryType),
+      getOrderStatusLabel(order.status),
+      itemsText,
+    ]
+      .join(" ")
+      .toLowerCase();
+
+    if (!searchableText.includes(normalizedQuery)) {
+      return false;
+    }
+  }
+
+  const dateStart = getDateStart(filters.date);
+
+  if (dateStart && order.createdAt < dateStart) {
+    return false;
+  }
+
+  return true;
+}
+
+function orderMatchesStatus(order: Awaited<ReturnType<typeof getAdminOrders>>[number], status: OrderStatusFilter) {
+  if (status === "all") {
+    return true;
+  }
+
+  return order.status === status;
+}
+
+function getTabCount(orders: Awaited<ReturnType<typeof getAdminOrders>>, status: OrderStatusFilter) {
+  if (status === "all") {
+    return orders.length;
+  }
+
+  return orders.filter((order) => order.status === status).length;
+}
+
+function createOrdersHref(params: {
+  query: string;
+  status: OrderStatusFilter;
+  date: DateFilter;
+}) {
+  const queryParams = new URLSearchParams();
+
+  if (params.query.trim()) {
+    queryParams.set("q", params.query.trim());
+  }
+
+  if (params.status !== "all") {
+    queryParams.set("status", params.status);
+  }
+
+  if (params.date !== "all") {
+    queryParams.set("date", params.date);
+  }
+
+  const queryString = queryParams.toString();
+  return queryString ? `/nz-console/orders?${queryString}` : "/nz-console/orders";
+}
+
+export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageProps) {
+  const rawParams = (await searchParams) ?? {};
+  const [allOrders, metrics] = await Promise.all([getAdminOrders(), getOrderMetrics()]);
+
+  const searchQuery = readParam(rawParams.q);
+  const selectedStatus = normalizeStatusFilter(readParam(rawParams.status));
+  const selectedDate = normalizeDateFilter(readParam(rawParams.date));
+
+  const baseFilteredOrders = allOrders.filter((order) =>
+    orderMatchesBaseFilters(order, {
+      query: searchQuery,
+      date: selectedDate,
+    }),
+  );
+
+  const orders = baseFilteredOrders.filter((order) => orderMatchesStatus(order, selectedStatus));
 
   return (
-    <main className="min-h-screen bg-[#020814] px-6 py-6 text-white">
+    <main className="min-h-screen bg-[#020814] px-4 py-4 text-white sm:px-6 sm:py-6">
       <div className="mx-auto max-w-[1600px]">
-        <header className="flex min-h-[76px] items-center justify-between rounded-2xl border border-white/10 bg-white/[0.035] px-6">
+        <header className="flex min-h-[76px] items-center justify-between rounded-2xl border border-white/10 bg-white/[0.035] px-4 sm:px-6">
           <Link href="/nz-console" className="text-xl font-bold tracking-[-0.04em]">
             Netizen Console
           </Link>
@@ -39,7 +209,7 @@ export default async function AdminOrdersPage() {
 
           <Link
             href="/"
-            className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
+            className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10 sm:px-5"
           >
             На сайт →
           </Link>
@@ -56,7 +226,7 @@ export default async function AdminOrdersPage() {
                 Заявки из БД
               </div>
 
-              <h1 className="mt-5 text-5xl font-bold tracking-[-0.055em]">
+              <h1 className="mt-5 text-4xl font-bold tracking-[-0.055em] sm:text-5xl">
                 Заявки
               </h1>
 
@@ -86,41 +256,86 @@ export default async function AdminOrdersPage() {
 
         <section className="mt-8">
           <div className="flex flex-wrap gap-2 border-b border-white/10">
-            {tabs.map((tab) => (
-              <button
-                key={tab.label}
-                className={`relative px-4 py-4 text-sm font-medium transition-colors ${
-                  tab.active ? "text-white" : "text-white/45 hover:text-white"
-                }`}
-              >
-                <span>{tab.label}</span>
-                <span
-                  className={`ml-2 rounded-full px-2 py-0.5 text-xs ${
-                    tab.active ? "bg-blue-600 text-white" : "bg-white/10 text-white/45"
+            {statusTabs.map((tab) => {
+              const active = tab.value === selectedStatus;
+              const href = createOrdersHref({
+                query: searchQuery,
+                status: tab.value,
+                date: selectedDate,
+              });
+
+              return (
+                <Link
+                  key={tab.value}
+                  href={href}
+                  className={`relative px-4 py-4 text-sm font-medium transition-colors ${
+                    active ? "text-white" : "text-white/45 hover:text-white"
                   }`}
                 >
-                  {tab.count}
-                </span>
-                {tab.active && <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full bg-blue-500" />}
-              </button>
-            ))}
+                  <span>{tab.label}</span>
+                  <span
+                    className={`ml-2 rounded-full px-2 py-0.5 text-xs ${
+                      active ? "bg-blue-600 text-white" : "bg-white/10 text-white/45"
+                    }`}
+                  >
+                    {getTabCount(baseFilteredOrders, tab.value)}
+                  </span>
+                  {active && <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full bg-blue-500" />}
+                </Link>
+              );
+            })}
           </div>
         </section>
 
         <section className="mt-6 rounded-[28px] border border-white/10 bg-white/[0.035] p-5">
-          <div className="flex flex-col gap-3 md:flex-row">
+          <form className="flex flex-col gap-3 lg:flex-row" action="/nz-console/orders">
             <input
-              placeholder="Поиск подключим следующим шагом"
+              name="q"
+              defaultValue={searchQuery}
+              placeholder="Поиск по заявке, клиенту, телефону, товару или SKU"
               className="h-12 flex-1 rounded-xl border border-white/10 bg-black/20 px-5 text-sm text-white outline-none placeholder:text-white/35 focus:border-blue-500/50"
-              disabled
             />
-            <button className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium text-white/60">
-              Статус
+
+            <select
+              name="status"
+              defaultValue={selectedStatus}
+              className="h-12 rounded-xl border border-white/10 bg-[#07101d] px-5 text-sm font-medium text-white outline-none transition-colors focus:border-blue-500/50"
+            >
+              {statusTabs.map((tab) => (
+                <option key={tab.value} value={tab.value}>
+                  {tab.label}
+                </option>
+              ))}
+            </select>
+
+            <select
+              name="date"
+              defaultValue={selectedDate}
+              className="h-12 rounded-xl border border-white/10 bg-[#07101d] px-5 text-sm font-medium text-white outline-none transition-colors focus:border-blue-500/50"
+            >
+              {dateOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.label}
+                </option>
+              ))}
+            </select>
+
+            <button
+              type="submit"
+              className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+            >
+              Применить
             </button>
-            <button className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium text-white/60">
-              Дата
-            </button>
-          </div>
+
+            {(searchQuery || selectedStatus !== "all" || selectedDate !== "all") && (
+              <Link
+                href="/nz-console/orders"
+                className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-semibold text-white/70 transition-colors hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-white"
+              >
+                Сбросить
+              </Link>
+            )}
+          </form>
         </section>
 
         <section className="mt-6 overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.035]">
@@ -136,7 +351,7 @@ export default async function AdminOrdersPage() {
 
           {orders.length === 0 ? (
             <div className="p-10 text-center text-sm text-white/45">
-              Заявок пока нет. Оформите тестовую заявку через корзину сайта.
+              По текущим фильтрам заявок нет.
             </div>
           ) : (
             orders.map((order) => {
@@ -158,6 +373,7 @@ export default async function AdminOrdersPage() {
                   <div>
                     <div className="font-semibold">{order.customerName}</div>
                     <div className="mt-1 text-xs text-white/45">{order.phone}</div>
+                    {order.email && <div className="mt-1 text-xs text-white/35">{order.email}</div>}
                   </div>
 
                   <div>
