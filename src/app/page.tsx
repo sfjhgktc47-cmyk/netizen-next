@@ -2,18 +2,10 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import {
-  useEffect,
-  useRef,
-  useState,
-  type MouseEvent,
-  type PointerEvent,
-} from "react";
-import { AnimatePresence, motion } from "framer-motion";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { useTheme } from "@/components/theme-provider";
 import { footerData } from "@/data/footer";
-import { products } from "@/data/products";
 
 type HomeCategory = {
   id: string;
@@ -21,26 +13,216 @@ type HomeCategory = {
   name: string;
   description: string;
   href: string;
+  image?: string;
 };
+
+type HomeProduct = {
+  slug: string;
+  name: string;
+  brand: string;
+  category: string;
+  categoryName: string;
+  price: string;
+  shortDescription?: string;
+  image: string;
+  images?: string[];
+  colors: string[];
+};
+
+type HomePayload = {
+  categories?: HomeCategory[];
+  products?: HomeProduct[];
+};
+
+const defaultCategories: HomeCategory[] = [
+  {
+    id: "smartphones",
+    slug: "smartphones",
+    name: "Смартфоны",
+    description: "iPhone, Samsung, Xiaomi и другие",
+    href: "/catalog/smartphones",
+  },
+  {
+    id: "laptops",
+    slug: "laptops",
+    name: "Ноутбуки",
+    description: "MacBook, Windows и игровые модели",
+    href: "/catalog/laptops",
+  },
+  {
+    id: "watches",
+    slug: "watches",
+    name: "Умные часы",
+    description: "Apple Watch, Samsung Galaxy Watch и другие",
+    href: "/catalog/watches",
+  },
+  {
+    id: "headphones",
+    slug: "headphones",
+    name: "Наушники",
+    description: "AirPods, Sony, JBL и другие",
+    href: "/catalog/headphones",
+  },
+  {
+    id: "tablets",
+    slug: "tablets",
+    name: "Планшеты",
+    description: "iPad, Samsung Galaxy и другие",
+    href: "/catalog/tablets",
+  },
+  {
+    id: "accessories",
+    slug: "accessories",
+    name: "Аксессуары",
+    description: "Чехлы, зарядки, кабели и другое",
+    href: "/catalog/accessories",
+  },
+  {
+    id: "home",
+    slug: "home",
+    name: "Для дома",
+    description: "Умные устройства для вашего дома",
+    href: "/catalog/home",
+  },
+  {
+    id: "gaming",
+    slug: "gaming",
+    name: "Игровая техника",
+    description: "Консоли, геймпады и аксессуары",
+    href: "/catalog/gaming",
+  },
+];
+
+const demoProducts: HomeProduct[] = [
+  {
+    slug: "catalog",
+    name: "iPhone 17 Pro",
+    brand: "Apple",
+    category: "smartphones",
+    categoryName: "Смартфоны",
+    price: "от 109 990 ₽",
+    shortDescription: "Флагманская модель Apple",
+    image: "",
+    colors: ["#d9d9d9", "#4b5563", "#f97316"],
+  },
+  {
+    slug: "catalog",
+    name: "MacBook Pro 14",
+    brand: "Apple",
+    category: "laptops",
+    categoryName: "Ноутбуки",
+    price: "от 189 990 ₽",
+    shortDescription: "Премиальный ноутбук",
+    image: "",
+    colors: ["#d1d5db", "#374151", "#111827"],
+  },
+  {
+    slug: "catalog",
+    name: "AirPods Pro",
+    brand: "Apple",
+    category: "headphones",
+    categoryName: "Наушники",
+    price: "от 24 990 ₽",
+    shortDescription: "Компактные наушники",
+    image: "",
+    colors: ["#ffffff", "#1f2937"],
+  },
+  {
+    slug: "catalog",
+    name: "Apple Watch Ultra",
+    brand: "Apple",
+    category: "watches",
+    categoryName: "Часы",
+    price: "от 79 990 ₽",
+    shortDescription: "Часы для спорта и города",
+    image: "",
+    colors: ["#2f2f2f", "#f97316", "#f3f4f6"],
+  },
+];
+
+const benefitItems = [
+  {
+    icon: "▣",
+    title: "Только оригинал",
+    text: "Работаем напрямую с официальными поставщиками.",
+  },
+  {
+    icon: "◇",
+    title: "Гарантия и сервис",
+    text: "Официальная гарантия и собственный сервисный центр.",
+  },
+  {
+    icon: "▸",
+    title: "Быстрая доставка",
+    text: "Доставка от 1 дня по Москве и от 2 дней по России.",
+  },
+  {
+    icon: "⌑",
+    title: "Безопасная оплата",
+    text: "Защищённые платежи и несколько способов оплаты.",
+  },
+  {
+    icon: "☏",
+    title: "Поддержка 24/7",
+    text: "Мы всегда на связи и поможем с выбором.",
+  },
+];
+
+function pageClass(dark: boolean) {
+  return dark
+    ? "min-h-screen bg-[#030811] text-white transition-colors duration-700"
+    : "min-h-screen bg-[#f4f7fb] text-[#07111f] transition-colors duration-700";
+}
+
+function panelClass(dark: boolean) {
+  return dark
+    ? "border-white/10 bg-white/[0.035] shadow-[0_24px_90px_rgba(0,85,255,0.08)]"
+    : "border-black/10 bg-white shadow-[0_24px_90px_rgba(15,23,42,0.08)]";
+}
+
+function softPanelClass(dark: boolean) {
+  return dark
+    ? "border-white/10 bg-[#07101d]"
+    : "border-black/10 bg-white";
+}
+
+function textMuted(dark: boolean) {
+  return dark ? "text-white/58" : "text-slate-500";
+}
+
+function blueButton() {
+  return "inline-flex items-center justify-center rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_34px_rgba(37,99,235,0.28)] transition hover:-translate-y-0.5 hover:bg-blue-500";
+}
+
+function getProductHref(product: HomeProduct) {
+  return product.slug === "catalog" ? "/catalog" : `/product/${product.slug}`;
+}
+
+function getImage(product: HomeProduct) {
+  return product.image || product.images?.[0] || "";
+}
 
 export default function Home() {
   const { dark } = useTheme();
-  const [catalogCategories, setCatalogCategories] = useState<HomeCategory[]>([]);
+  const [categories, setCategories] = useState<HomeCategory[]>([]);
+  const [products, setProducts] = useState<HomeProduct[]>([]);
 
   useEffect(() => {
     let mounted = true;
 
-    fetch("/api/categories")
+    fetch("/api/home", { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : Promise.reject()))
-      .then((payload) => {
-        if (mounted && Array.isArray(payload?.categories)) {
-          setCatalogCategories(payload.categories);
-        }
+      .then((payload: HomePayload) => {
+        if (!mounted) return;
+
+        setCategories(Array.isArray(payload.categories) ? payload.categories : []);
+        setProducts(Array.isArray(payload.products) ? payload.products : []);
       })
       .catch(() => {
-        if (mounted) {
-          setCatalogCategories([]);
-        }
+        if (!mounted) return;
+
+        setCategories([]);
+        setProducts([]);
       });
 
     return () => {
@@ -48,22 +230,18 @@ export default function Home() {
     };
   }, []);
 
-  return (
-    <main
-      className={
-        dark
-          ? "min-h-screen bg-[#020814] text-white transition-colors duration-700 ease-in-out"
-          : "min-h-screen bg-[#f6f8fb] text-[#0b1220] transition-colors duration-700 ease-in-out"
-      }
-    >
-      <div className="mx-auto max-w-[1440px] px-6 py-6">
-        <SiteHeader />
+  const visibleCategories = categories.length ? categories : defaultCategories;
+  const visibleProducts = products.length ? products : demoProducts;
 
-        <Hero dark={dark} />
+  return (
+    <main className={pageClass(dark)}>
+      <div className="mx-auto max-w-[1440px] px-4 py-4 sm:px-5 lg:px-6">
+        <SiteHeader />
+        <Hero dark={dark} products={visibleProducts} />
         <Benefits dark={dark} />
-        <Categories dark={dark} categories={catalogCategories} />
-        <PopularProducts dark={dark} />
-        <NewArrivals dark={dark} />
+        <Categories dark={dark} categories={visibleCategories.slice(0, 12)} />
+        <PopularProducts dark={dark} products={visibleProducts.slice(0, 8)} />
+        <NewArrivals dark={dark} products={visibleProducts.slice(0, 3)} />
         <SupportBlock dark={dark} />
         <Footer dark={dark} />
       </div>
@@ -71,186 +249,113 @@ export default function Home() {
   );
 }
 
-function panelClass(dark: boolean) {
-  return dark
-    ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)]"
-    : "border-black/10 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)]";
-}
-
-function mutedTextClass(dark: boolean) {
-  return dark ? "text-white/55" : "text-black/55";
-}
-
-function Hero({ dark }: { dark: boolean }) {
-  const slides = [
-    {
-      badge: "Оригинальная техника. Премиальный сервис.",
-      title: "Техника премиум-класса для тех, кто создаёт будущее.",
-      text: "Лучшие устройства от мировых брендов. Официальная гарантия, быстрая доставка и поддержка 24/7.",
-      primaryLabel: "Перейти в каталог",
-      primaryHref: "/catalog",
-      secondaryLabel: "Новинки",
-      secondaryHref: "/new",
-      imageDark: "/hero/main-dark.png",
-      imageLight: "/hero/main-light.png",
-    },
-    {
-      badge: "Новинки уже в каталоге.",
-      title: "Подберите технику под свои задачи.",
-      text: "Смартфоны, ноутбуки, наушники и аксессуары с понятной конфигурацией перед покупкой.",
-      primaryLabel: "Смотреть новинки",
-      primaryHref: "/new",
-      secondaryLabel: "Каталог",
-      secondaryHref: "/catalog",
-      imageDark: "/hero/main-dark.png",
-      imageLight: "/hero/main-light.png",
-    },
-    {
-      badge: "Поможем с выбором.",
-      title: "Не уверены в модели? Подскажем.",
-      text: "Расскажем, чем отличаются конфигурации, и поможем оформить заявку без лишних действий.",
-      primaryLabel: "Написать в поддержку",
-      primaryHref: "/help",
-      secondaryLabel: "Популярное",
-      secondaryHref: "/catalog",
-      imageDark: "/hero/main-dark.png",
-      imageLight: "/hero/main-light.png",
-    },
-  ];
-
-  const [activeSlide, setActiveSlide] = useState(0);
-  const [dragStartX, setDragStartX] = useState<number | null>(null);
-  const [isHeroHovered, setIsHeroHovered] = useState(false);
-
-  const slide = slides[activeSlide];
-  const image = dark ? slide.imageDark : slide.imageLight;
-
-  function goToNextSlide() {
-    setActiveSlide((current) => (current + 1) % slides.length);
-  }
-
-  function goToPrevSlide() {
-    setActiveSlide((current) =>
-      current === 0 ? slides.length - 1 : current - 1
-    );
-  }
-
-  function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
-    setDragStartX(event.clientX);
-  }
-
-  function handlePointerUp(event: PointerEvent<HTMLDivElement>) {
-    if (dragStartX === null) return;
-
-    const distance = dragStartX - event.clientX;
-    const swipeThreshold = 50;
-
-    if (Math.abs(distance) > swipeThreshold) {
-      if (distance > 0) {
-        goToNextSlide();
-      } else {
-        goToPrevSlide();
-      }
-    }
-
-    setDragStartX(null);
-  }
-
-  useEffect(() => {
-    if (slides.length <= 1 || isHeroHovered) return;
-
-    const interval = window.setInterval(() => {
-      setActiveSlide((current) => (current + 1) % slides.length);
-    }, 5000);
-
-    return () => window.clearInterval(interval);
-  }, [slides.length, isHeroHovered]);
+function Hero({ dark, products }: { dark: boolean; products: HomeProduct[] }) {
+  const heroProducts = products.filter((product) => getImage(product)).slice(0, 4);
+  const mainHeroImage = heroProducts[0] ? getImage(heroProducts[0]) : "";
 
   return (
-    <section className="relative mt-6 overflow-hidden rounded-[34px]">
+    <section className="relative overflow-hidden pt-8 lg:pt-10">
       <div
-        onPointerDown={handlePointerDown}
-        onPointerUp={handlePointerUp}
-        onPointerLeave={() => {
-          setDragStartX(null);
-          setIsHeroHovered(false);
-        }}
-        onMouseEnter={() => setIsHeroHovered(true)}
-        onMouseLeave={() => setIsHeroHovered(false)}
-        className={`relative h-[560px] cursor-grab select-none overflow-hidden rounded-[34px] transition-all duration-700 active:cursor-grabbing ${
-          dark ? "bg-[#020814]" : "bg-white"
+        className={`relative overflow-hidden rounded-[34px] border px-5 py-10 sm:px-8 lg:min-h-[500px] lg:px-12 lg:py-14 ${
+          dark ? "border-white/5 bg-[#030811]" : "border-transparent bg-white/0"
         }`}
       >
         <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-700"
-          style={{
-            backgroundImage: `url(${image})`,
-          }}
-        />
-
-        <div
-          className={`absolute inset-0 transition-all duration-700 ${
+          className={`pointer-events-none absolute inset-0 ${
             dark
-              ? "bg-gradient-to-r from-[#020814]/95 via-[#020814]/55 to-[#020814]/5"
-              : "bg-gradient-to-r from-white/95 via-white/55 to-white/5"
+              ? "bg-[radial-gradient(circle_at_75%_45%,rgba(37,99,235,0.22),transparent_36%),linear-gradient(180deg,rgba(2,8,20,0),rgba(2,8,20,0.88))]"
+              : "bg-[radial-gradient(circle_at_74%_42%,rgba(37,99,235,0.13),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0),rgba(244,247,251,0.9))]"
           }`}
         />
 
-        <div className="relative z-10 flex h-full items-center px-8 py-12 sm:px-12 lg:px-16">
-          <div className="max-w-[650px]">
-            <div className="mb-7 inline-flex rounded-full border border-blue-500/50 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-500">
-              {slide.badge}
+        <div className="relative z-10 grid items-center gap-10 lg:grid-cols-[0.95fr_1.05fr]">
+          <div>
+            <div className="inline-flex rounded-full border border-blue-500/25 bg-blue-500/10 px-4 py-2 text-xs font-semibold text-blue-500">
+              Оригинальная техника. Премиальный сервис.
             </div>
 
-            <h1 className="max-w-[620px] min-h-[220px] text-[42px] font-bold leading-[1.12] tracking-[-0.055em] sm:text-[54px] lg:text-[64px]">
-              {slide.title}
+            <h1 className="mt-8 max-w-[690px] text-[34px] font-black leading-[1.06] tracking-[-0.055em] sm:text-[48px] lg:text-[58px]">
+              Техника премиум-класса для тех, кто создаёт будущее.
             </h1>
 
-            <p
-              className={`mt-6 max-w-[470px] text-base leading-relaxed lg:text-lg ${mutedTextClass(
-                dark
-              )}`}
-            >
-              {slide.text}
+            <p className={`mt-5 max-w-[470px] text-base leading-relaxed ${textMuted(dark)}`}>
+              Лучшие устройства от мировых брендов. Официальная гарантия, быстрая доставка и поддержка 24/7.
             </p>
 
-            <div className="mt-8 flex flex-wrap gap-4">
-              <Link
-                href={slide.primaryHref}
-                className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-7 py-4 text-sm font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500"
-              >
-                {slide.primaryLabel} →
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link href="/catalog" className={blueButton()}>
+                Перейти в каталог →
               </Link>
 
               <Link
-                href={slide.secondaryHref}
-                className={`inline-flex items-center justify-center rounded-xl border px-7 py-4 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 ${
+                href="/new"
+                className={`inline-flex items-center justify-center rounded-xl border px-6 py-3 text-sm font-semibold transition hover:-translate-y-0.5 ${
                   dark
                     ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
-                    : "border-black/10 bg-white text-black hover:border-blue-500/40 hover:bg-blue-50"
+                    : "border-black/10 bg-white text-slate-900 hover:border-blue-500/40 hover:bg-blue-50"
                 }`}
               >
-                {slide.secondaryLabel} →
+                Новинки →
               </Link>
             </div>
+          </div>
 
-            <div className="mt-8 flex items-center gap-2">
-              {slides.map((item, index) => {
-                const isActive = activeSlide === index;
+          <div className="relative min-h-[300px] lg:min-h-[440px]">
+            <div
+              className={`absolute bottom-2 left-1/2 h-7 w-[88%] -translate-x-1/2 rounded-full blur-xl ${
+                dark ? "bg-blue-600/70" : "bg-blue-500/30"
+              }`}
+            />
 
-                return (
-                  <button
-                    key={item.title}
-                    type="button"
-                    onClick={() => setActiveSlide(index)}
-                    aria-label={`Открыть слайд ${index + 1}`}
-                    className={`rounded-full bg-blue-600 transition-all duration-300 ${
-                      isActive ? "h-1.5 w-10" : "h-1.5 w-1.5"
-                    }`}
-                  />
-                );
-              })}
+            <div
+              className={`absolute bottom-6 left-1/2 h-24 w-[92%] -translate-x-1/2 rounded-[50%] border ${
+                dark
+                  ? "border-blue-500/45 bg-blue-500/10"
+                  : "border-blue-500/25 bg-white shadow-[0_20px_90px_rgba(37,99,235,0.16)]"
+              }`}
+            />
+
+            <div className="absolute inset-x-0 bottom-12 mx-auto flex max-w-[680px] items-end justify-center gap-4 px-4">
+              {heroProducts.length > 0 ? (
+                heroProducts.map((product, index) => (
+                  <Link
+                    key={product.slug}
+                    href={getProductHref(product)}
+                    className={`group relative flex items-center justify-center overflow-hidden rounded-[28px] border bg-white transition duration-500 hover:-translate-y-2 ${
+                      index === 0
+                        ? "h-[280px] w-[220px] sm:h-[340px] sm:w-[265px]"
+                        : "hidden h-[190px] w-[145px] sm:flex"
+                    } ${dark ? "border-white/10" : "border-black/10"}`}
+                    style={{ transform: index === 1 ? "rotate(-4deg)" : index === 2 ? "rotate(4deg)" : undefined }}
+                  >
+                    <Image
+                      src={getImage(product)}
+                      alt={product.name}
+                      width={420}
+                      height={560}
+                      className="h-full w-full object-contain p-2 transition duration-500 group-hover:scale-105"
+                      unoptimized
+                    />
+                  </Link>
+                ))
+              ) : (
+                <div
+                  className={`flex h-[310px] w-[70%] items-center justify-center rounded-[32px] border text-center text-sm ${
+                    dark
+                      ? "border-white/10 bg-white/[0.04] text-white/40"
+                      : "border-black/10 bg-white text-slate-400"
+                  }`}
+                >
+                  Добавь товары с фото в админке — они появятся здесь
+                </div>
+              )}
             </div>
+
+            {mainHeroImage ? (
+              <div className="absolute right-5 top-5 hidden rounded-2xl border border-blue-500/20 bg-blue-600 px-4 py-3 text-xs font-bold text-white shadow-2xl shadow-blue-600/30 md:block">
+                Подскажем выбрать
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
@@ -259,31 +364,22 @@ function Hero({ dark }: { dark: boolean }) {
 }
 
 function Benefits({ dark }: { dark: boolean }) {
-  const items = [
-    "Только оригинал",
-    "Гарантия и сервис",
-    "Быстрая доставка",
-    "Безопасная оплата",
-    "Поддержка 24/7",
-  ];
-
   return (
-    <section
-      className={`mt-10 grid grid-cols-1 gap-4 rounded-2xl border p-6 transition-all duration-700 md:grid-cols-5 ${panelClass(
-        dark
-      )}`}
-    >
-      {items.map((item) => (
-        <div key={item} className="flex gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-blue-500/30 text-blue-500">
-            ✓
+    <section className={`mt-6 grid grid-cols-1 gap-3 rounded-2xl border p-3 transition md:grid-cols-5 ${panelClass(dark)}`}>
+      {benefitItems.map((item) => (
+        <div
+          key={item.title}
+          className={`flex min-h-[86px] items-center gap-3 rounded-xl px-3 py-4 ${
+            dark ? "bg-white/[0.018]" : "bg-white"
+          }`}
+        >
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-blue-500/25 bg-blue-500/10 text-blue-500">
+            {item.icon}
           </div>
 
           <div>
-            <div className="font-semibold">{item}</div>
-            <div className={`mt-1 text-sm ${mutedTextClass(dark)}`}>
-              Короткое описание преимущества.
-            </div>
+            <div className="text-sm font-bold">{item.title}</div>
+            <div className={`mt-1 text-xs leading-snug ${textMuted(dark)}`}>{item.text}</div>
           </div>
         </div>
       ))}
@@ -291,112 +387,88 @@ function Benefits({ dark }: { dark: boolean }) {
   );
 }
 
-function Categories({ dark, categories }: { dark: boolean; categories: HomeCategory[] }) {
-  const categoryVisuals: Record<string, string> = {
-    smartphones: "/categories/smartphones.png",
-    laptops: "/categories/laptops.png",
-    watches: "/categories/watches.png",
-    headphones: "/categories/headphones.png",
-    tablets: "/categories/tablets.png",
-    accessories: "/categories/accessories.png",
-    home: "/categories/home.png",
-    vacuums: "/categories/vacuums.png",
-    beauty: "/categories/beauty.png",
-    monitors: "/categories/monitors.png",
-    gaming: "/categories/gaming.png",
-    tv: "/categories/tv.png",
-  };
-
+function SectionTitle({
+  title,
+  text,
+  dark,
+  action,
+}: {
+  title: string;
+  text: string;
+  dark: boolean;
+  action?: ReactNode;
+}) {
   return (
-    <section className="py-20">
-      <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h2 className="text-4xl font-bold tracking-[-0.04em]">
-            Выберите категорию
-          </h2>
-
-          <p className={`mt-3 ${mutedTextClass(dark)}`}>
-            Выберите направление и найдите свой идеальный гаджет
-          </p>
-        </div>
+    <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+      <div>
+        <h2 className="text-[32px] font-black leading-none tracking-[-0.045em] sm:text-[42px]">{title}</h2>
+        <p className={`mt-3 text-sm ${textMuted(dark)}`}>{text}</p>
       </div>
+      {action}
+    </div>
+  );
+}
 
-      <div className="mt-8 grid grid-cols-1 auto-rows-fr gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {categories.map((category) => {
-          const image = categoryVisuals[category.id];
+function Categories({ dark, categories }: { dark: boolean; categories: HomeCategory[] }) {
+  return (
+    <section className="py-16">
+      <SectionTitle
+        title="Выберите категорию"
+        text="Выберите направление и найдите свой идеальный гаджет"
+        dark={dark}
+      />
 
-          return (
-            <Link
-              key={category.id}
-              href={category.href}
-              className={`group relative h-[190px] overflow-hidden rounded-2xl border p-5 transition-all duration-500 hover:-translate-y-1 ${
-                dark
-                  ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
-                  : "border-black/10 bg-white shadow-[0_20px_70px_rgba(15,23,42,0.08)] hover:border-blue-500/35 hover:shadow-[0_28px_90px_rgba(15,23,42,0.12)]"
-              }`}
-            >
-              <div className="relative z-10 flex h-full min-h-0 flex-col justify-between">
-                <div className="max-w-[58%]">
-                  <h3 className="text-lg font-bold leading-tight">
-                    {category.name}
-                  </h3>
-
-                  <p
-                    className={`mt-2 line-clamp-2 text-sm leading-relaxed ${mutedTextClass(
-                      dark
-                    )}`}
-                  >
-                    {category.description}
-                  </p>
-                </div>
-
-                <div
-                  className={`mt-5 flex h-10 w-10 items-center justify-center rounded-xl border text-base font-bold transition-all duration-300 group-hover:translate-x-1 ${
-                    dark
-                      ? "border-blue-500/35 bg-blue-500/10 text-blue-400 group-hover:bg-blue-600 group-hover:text-white"
-                      : "border-black/10 bg-white text-black shadow-sm group-hover:border-blue-500 group-hover:bg-blue-600 group-hover:text-white"
-                  }`}
-                >
-                  →
-                </div>
+      <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {categories.map((category, index) => (
+          <Link
+            key={category.slug || category.id || category.name}
+            href={category.href || `/catalog/${category.slug}`}
+            className={`group relative h-[150px] overflow-hidden rounded-2xl border p-5 transition duration-500 hover:-translate-y-1 ${softPanelClass(dark)} ${
+              dark ? "hover:border-blue-500/40 hover:bg-blue-500/[0.045]" : "hover:border-blue-500/40 hover:shadow-[0_18px_70px_rgba(15,23,42,0.1)]"
+            }`}
+          >
+            <div className="relative z-10 flex h-full flex-col justify-between">
+              <div className="max-w-[58%]">
+                <h3 className="text-base font-black leading-tight">{category.name}</h3>
+                <p className={`mt-2 line-clamp-2 text-xs leading-relaxed ${textMuted(dark)}`}>{category.description}</p>
               </div>
 
-              <div className="absolute bottom-0 right-0 top-0 flex w-[48%] items-center justify-center overflow-hidden">
-                {image ? (
-                  <div
-                    className="h-full w-full bg-contain bg-center bg-no-repeat opacity-95 transition-transform duration-500 group-hover:scale-105"
-                    style={{
-                      backgroundImage: `url(${image})`,
-                    }}
-                  />
-                ) : (
-                  <div
-                    className={`h-24 w-24 rounded-2xl ${
-                      dark ? "bg-white/[0.04]" : "bg-slate-100"
-                    }`}
-                  />
-                )}
-              </div>
-
-              <div
-                className={`pointer-events-none absolute inset-y-0 right-0 w-[55%] ${
+              <span
+                className={`flex h-8 w-8 items-center justify-center rounded-full border text-sm transition group-hover:translate-x-1 ${
                   dark
-                    ? "bg-gradient-to-l from-blue-500/5 to-transparent"
-                    : "bg-gradient-to-l from-slate-50/80 to-transparent"
+                    ? "border-blue-500/30 bg-blue-500/10 text-blue-400 group-hover:bg-blue-600 group-hover:text-white"
+                    : "border-black/10 bg-white text-slate-900 group-hover:border-blue-500 group-hover:bg-blue-600 group-hover:text-white"
                 }`}
-              />
-            </Link>
-          );
-        })}
+              >
+                →
+              </span>
+            </div>
+
+            <div className="absolute bottom-0 right-0 top-0 flex w-[45%] items-center justify-center overflow-hidden">
+              {category.image ? (
+                <Image
+                  src={category.image}
+                  alt={category.name}
+                  width={220}
+                  height={220}
+                  className="h-full w-full object-contain p-3 transition duration-500 group-hover:scale-105"
+                  unoptimized
+                />
+              ) : (
+                <div className={`flex h-24 w-24 items-center justify-center rounded-3xl text-3xl font-black ${dark ? "bg-blue-500/10 text-blue-400/70" : "bg-blue-50 text-blue-500/60"}`}>
+                  {index + 1}
+                </div>
+              )}
+            </div>
+          </Link>
+        ))}
       </div>
 
-      <div className="mt-8 flex justify-center">
+      <div className="mt-7 flex justify-center">
         <Link
           href="/catalog"
-          className={`min-w-[280px] rounded-xl border px-10 py-4 text-center text-sm font-medium transition-all duration-500 hover:-translate-y-0.5 ${
-            dark
-              ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
-              : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
+          className={`inline-flex min-w-[260px] justify-center rounded-xl border px-8 py-3 text-sm font-semibold transition hover:-translate-y-0.5 ${
+            dark ? "border-white/10 bg-white/[0.03] hover:bg-blue-500/10" : "border-black/10 bg-white hover:bg-blue-50"
           }`}
         >
           Смотреть все категории →
@@ -406,181 +478,28 @@ function Categories({ dark, categories }: { dark: boolean; categories: HomeCateg
   );
 }
 
-function PopularProducts({ dark }: { dark: boolean }) {
-  const sliderRef = useRef<HTMLDivElement | null>(null);
-  const dragStartXRef = useRef<number | null>(null);
-  const scrollStartRef = useRef(0);
-  const didDragRef = useRef(false);
-
-  const [scrollProgress, setScrollProgress] = useState(0);
-
-  function updateProgress() {
-    const slider = sliderRef.current;
-
-    if (!slider) return;
-
-    const maxScroll = slider.scrollWidth - slider.clientWidth;
-
-    if (maxScroll <= 0) {
-      setScrollProgress(0);
-      return;
-    }
-
-    setScrollProgress(slider.scrollLeft / maxScroll);
-  }
-
-  function scrollProducts(direction: "prev" | "next") {
-    const slider = sliderRef.current;
-
-    if (!slider) return;
-
-    const distance = direction === "next" ? 330 : -330;
-
-    slider.scrollBy({
-      left: distance,
-      behavior: "smooth",
-    });
-
-    window.setTimeout(updateProgress, 350);
-  }
-
-  function handleProductsPointerDown(event: PointerEvent<HTMLDivElement>) {
-    const slider = sliderRef.current;
-
-    if (!slider) return;
-
-    dragStartXRef.current = event.clientX;
-    scrollStartRef.current = slider.scrollLeft;
-    didDragRef.current = false;
-  }
-
-  function handleProductsPointerMove(event: PointerEvent<HTMLDivElement>) {
-    const slider = sliderRef.current;
-
-    if (!slider || dragStartXRef.current === null) return;
-
-    const distance = dragStartXRef.current - event.clientX;
-
-    if (Math.abs(distance) > 6) {
-      didDragRef.current = true;
-    }
-
-    slider.scrollLeft = scrollStartRef.current + distance;
-    updateProgress();
-  }
-
-  function handleProductsPointerUp() {
-    dragStartXRef.current = null;
-
-    window.setTimeout(() => {
-      didDragRef.current = false;
-    }, 120);
-  }
-
-  function handleProductsClickCapture(event: MouseEvent<HTMLDivElement>) {
-    if (!didDragRef.current) return;
-
-    event.preventDefault();
-    event.stopPropagation();
-
-    window.setTimeout(() => {
-      didDragRef.current = false;
-    }, 120);
-  }
-
+function PopularProducts({ dark, products }: { dark: boolean; products: HomeProduct[] }) {
   return (
-    <section className="pb-20">
-      <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h2 className="text-[42px] font-bold leading-none tracking-[-0.04em] lg:text-[52px]">
-            Популярные товары
-          </h2>
+    <section className="pb-16">
+      <SectionTitle
+        title="Популярные товары"
+        text="Выберите модель — конфигурацию подберёте на странице товара."
+        dark={dark}
+        action={
+          <Link href="/catalog" className="text-sm font-semibold text-blue-500 transition hover:text-blue-400">
+            Смотреть все →
+          </Link>
+        }
+      />
 
-          <p className={`mt-3 text-base ${mutedTextClass(dark)}`}>
-            Выберите модель — конфигурацию подберёте на странице товара.
-          </p>
-        </div>
-
-        <div className="flex items-center gap-3">
-          <button
-            type="button"
-            onClick={() => scrollProducts("prev")}
-            className={`flex h-11 w-11 items-center justify-center rounded-xl border text-lg transition-all duration-300 hover:-translate-y-0.5 ${
-              dark
-                ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
-                : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
-            }`}
-            aria-label="Предыдущие товары"
-          >
-            ←
-          </button>
-
-          <button
-            type="button"
-            onClick={() => scrollProducts("next")}
-            className={`flex h-11 w-11 items-center justify-center rounded-xl border text-lg transition-all duration-300 hover:-translate-y-0.5 ${
-              dark
-                ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
-                : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
-            }`}
-            aria-label="Следующие товары"
-          >
-            →
-          </button>
-        </div>
+      <div className="mt-8 grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {products.map((product) => (
+          <ProductCard key={`${product.slug}-${product.name}`} product={product} dark={dark} />
+        ))}
       </div>
 
-      <div
-        ref={sliderRef}
-        onScroll={updateProgress}
-        onPointerDown={handleProductsPointerDown}
-        onPointerMove={handleProductsPointerMove}
-        onPointerUp={handleProductsPointerUp}
-        onPointerCancel={handleProductsPointerUp}
-        onPointerLeave={handleProductsPointerUp}
-        onClickCapture={handleProductsClickCapture}
-        className="mt-8 cursor-grab select-none overflow-x-auto px-1 py-2 active:cursor-grabbing [&::-webkit-scrollbar]:hidden"
-        style={{
-          scrollbarWidth: "none",
-          msOverflowStyle: "none",
-        }}
-      >
-        <div className="flex gap-6">
-          {products.map((product) => (
-            <div
-              key={product.slug}
-              className="w-[280px] shrink-0 sm:w-[300px] lg:w-[310px]"
-            >
-              <ProductCard product={product} dark={dark} />
-            </div>
-          ))}
-        </div>
-      </div>
-
-      <div className="mt-6 flex justify-center">
-        <div
-          className={`h-1.5 w-[180px] overflow-hidden rounded-full ${
-            dark ? "bg-white/10" : "bg-black/10"
-          }`}
-        >
-          <div
-            className="h-full rounded-full bg-blue-600 transition-all duration-300"
-            style={{
-              width: `${Math.max(18, scrollProgress * 100)}%`,
-            }}
-          />
-        </div>
-      </div>
-
-      <div className="mt-8 flex justify-center">
-        <Link
-          href="/catalog"
-          className={`min-w-[320px] rounded-xl border px-10 py-4 text-center text-sm font-medium transition-all duration-500 hover:-translate-y-0.5 ${
-            dark
-              ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
-              : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
-          }`}
-        >
+      <div className="mt-8 flex justify-center lg:hidden">
+        <Link href="/catalog" className={blueButton()}>
           Смотреть все товары →
         </Link>
       </div>
@@ -588,56 +507,45 @@ function PopularProducts({ dark }: { dark: boolean }) {
   );
 }
 
-function ProductCard({
-  product,
-  dark,
-}: {
-  product: {
-    slug: string;
-    name: string;
-    price: string;
-    colors: string[];
-  };
-  dark: boolean;
-}) {
+function ProductCard({ product, dark }: { product: HomeProduct; dark: boolean }) {
+  const image = getImage(product);
+
   return (
     <Link
-      href={`/product/${product.slug}`}
-      draggable={false}
-      className={`group block h-full rounded-3xl border p-4 transition-all duration-500 hover:-translate-y-1 ${
-        dark
-          ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
-          : "border-black/10 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)] hover:border-blue-500/35"
-      }`}
+      href={getProductHref(product)}
+      className={`group block rounded-2xl border p-4 transition duration-500 hover:-translate-y-1 ${panelClass(dark)} hover:border-blue-500/35`}
     >
-      <div
-        className={`flex h-[230px] items-center justify-center rounded-2xl transition-colors duration-700 ${
-          dark ? "bg-white/[0.045] text-white/25" : "bg-slate-100 text-black/25"
-        }`}
-      >
-        Фото товара
+      <div className={`relative aspect-[3/4] overflow-hidden rounded-xl ${image ? "bg-white" : dark ? "bg-white/[0.045]" : "bg-slate-100"}`}>
+        {image ? (
+          <Image
+            src={image}
+            alt={product.name}
+            width={420}
+            height={560}
+            className="h-full w-full object-contain p-2 transition duration-500 group-hover:scale-105"
+            unoptimized
+          />
+        ) : (
+          <div className={`flex h-full items-center justify-center text-sm ${dark ? "text-white/30" : "text-slate-400"}`}>Фото товара</div>
+        )}
       </div>
 
-      <div className="px-1 pb-1 pt-4">
-        <h3 className="text-lg font-bold leading-tight">{product.name}</h3>
+      <div className="pt-4">
+        <p className={`text-xs ${textMuted(dark)}`}>{product.brand}</p>
+        <h3 className="mt-1 line-clamp-2 min-h-[40px] text-base font-black leading-tight">{product.name}</h3>
+        <p className={`mt-1 text-sm ${textMuted(dark)}`}>{product.price}</p>
 
-        <p className={`mt-1 text-sm ${mutedTextClass(dark)}`}>
-          {product.price}
-        </p>
-
-        <div className="mt-4 flex gap-3">
-          {product.colors.map((color) => (
+        <div className="mt-3 flex h-5 gap-2">
+          {product.colors.slice(0, 5).map((color) => (
             <span
               key={color}
-              className={`h-5 w-5 rounded-full border ${
-                dark ? "border-white/15" : "border-black/10"
-              }`}
+              className={`h-4 w-4 rounded-full border ${dark ? "border-white/20" : "border-black/10"}`}
               style={{ backgroundColor: color }}
             />
           ))}
         </div>
 
-        <div className="mt-5 w-full rounded-xl bg-blue-600 py-3.5 text-center text-sm font-medium text-white transition-all duration-300 group-hover:bg-blue-500">
+        <div className="mt-4 rounded-xl bg-blue-600 py-3 text-center text-sm font-semibold text-white transition group-hover:bg-blue-500">
           Перейти →
         </div>
       </div>
@@ -645,228 +553,169 @@ function ProductCard({
   );
 }
 
-function NewArrivals({ dark }: { dark: boolean }) {
+function NewArrivals({ dark, products }: { dark: boolean; products: HomeProduct[] }) {
+  const [mainProduct, secondProduct, thirdProduct] = products;
+
   return (
-    <section className="pb-20">
-      <h2 className="text-5xl font-bold">Новинки</h2>
+    <section className="pb-16">
+      <SectionTitle title="Новинки" text="Техника, которая только появилась" dark={dark} />
 
-      <p className={`mt-3 ${mutedTextClass(dark)}`}>
-        Техника, которая только появилась
-      </p>
+      <div className="mt-8 grid gap-4 lg:grid-cols-2">
+        <PromoCard
+          product={mainProduct}
+          dark={dark}
+          large
+          title={mainProduct?.name || "Новые модели уже в каталоге"}
+          subtitle={mainProduct?.shortDescription || "Мощь. Красота. Доступнее."}
+        />
 
-      <div className="mt-8 grid gap-5 lg:grid-cols-2">
-        <div
-          className={`min-h-[360px] rounded-3xl border p-10 transition-all duration-700 ${panelClass(
-            dark
-          )}`}
-        >
-          <div className="text-sm font-bold uppercase text-blue-500">
-            Новинка
-          </div>
-
-          <h3 className="mt-6 text-5xl font-bold">iPhone 17e</h3>
-
-          <p className={`mt-4 text-xl ${mutedTextClass(dark)}`}>
-            Мощь. Красота. Доступнее.
-          </p>
-
-          <Link
-            href="/catalog"
-            className="mt-10 inline-flex rounded-xl bg-blue-600 px-8 py-4 font-medium text-white transition-all duration-300 hover:bg-blue-500"
-          >
-            Подробнее →
-          </Link>
-        </div>
-
-        <div className="grid gap-5">
-          {["AirPods Max", "Samsung Galaxy S25 Ultra"].map((item) => (
-            <div
-              key={item}
-              className={`rounded-3xl border p-8 transition-all duration-700 ${panelClass(
-                dark
-              )}`}
-            >
-              <div className="text-sm font-bold uppercase text-blue-500">
-                Новинка
-              </div>
-
-              <h3 className="mt-4 text-3xl font-bold">{item}</h3>
-
-              <p className={`mt-3 ${mutedTextClass(dark)}`}>от 59 990 ₽</p>
-            </div>
-          ))}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1">
+          <PromoCard
+            product={secondProduct}
+            dark={dark}
+            title={secondProduct?.name || "AirPods Max"}
+            subtitle={secondProduct?.shortDescription || "Звук, в который хочется погружаться."}
+          />
+          <PromoCard
+            product={thirdProduct}
+            dark={dark}
+            title={thirdProduct?.name || "Samsung Galaxy S25 Ultra"}
+            subtitle={thirdProduct?.shortDescription || "AI-камера. Профессиональная мощность."}
+          />
         </div>
       </div>
     </section>
   );
 }
 
-function SupportBlock({ dark }: { dark: boolean }) {
-  const [activeFaqId, setActiveFaqId] = useState<number | null>(1);
-
-  const supportCards = [
-    {
-      title: "Только оригинал",
-      text: "Работаем напрямую с официальными поставщиками.",
-    },
-    {
-      title: "Официальная гарантия",
-      text: "Гарантия производителя и собственная поддержка.",
-    },
-    {
-      title: "Быстрая доставка",
-      text: "По Москве — 1 день, по России — от 2 дней.",
-    },
-    {
-      title: "Безопасная оплата",
-      text: "Защищённые платежи и удобные способы оплаты.",
-    },
-  ];
-
-  const questions = [
-    {
-      id: 1,
-      question: "Можно ли выбрать конфигурацию?",
-      answer:
-        "Да. На странице товара можно выбрать нужный объём памяти, цвет и доступные параметры модели.",
-    },
-    {
-      id: 2,
-      question: "Есть ли техника в наличии?",
-      answer:
-        "Да, большинство популярных моделей есть в наличии. Актуальный статус наличия показывается в карточке товара.",
-    },
-    {
-      id: 3,
-      question: "Как оформить заказ?",
-      answer:
-        "Добавьте товар в корзину, укажите контакты и способ доставки — после этого менеджер подтвердит заказ.",
-    },
-    {
-      id: 4,
-      question: "Можно ли заказать товар под запрос?",
-      answer:
-        "Да. Если нужной конфигурации нет в наличии, мы можем привезти её под заказ. Сроки и условия уточняются индивидуально.",
-    },
-  ];
-
-  const orderedQuestions =
-    activeFaqId === null
-      ? questions
-      : [
-          ...questions.filter((item) => item.id === activeFaqId),
-          ...questions.filter((item) => item.id !== activeFaqId),
-        ];
+function PromoCard({
+  product,
+  dark,
+  title,
+  subtitle,
+  large = false,
+}: {
+  product?: HomeProduct;
+  dark: boolean;
+  title: string;
+  subtitle: string;
+  large?: boolean;
+}) {
+  const image = product ? getImage(product) : "";
 
   return (
-    <section
-      className={`mb-20 rounded-[32px] border p-8 transition-all duration-700 md:p-10 ${panelClass(
-        dark
-      )}`}
+    <Link
+      href={product ? getProductHref(product) : "/catalog"}
+      className={`group relative overflow-hidden rounded-2xl border p-6 transition duration-500 hover:-translate-y-1 ${panelClass(dark)} ${
+        large ? "min-h-[330px]" : "min-h-[185px]"
+      }`}
     >
-      <h2 className="text-4xl font-bold tracking-[-0.04em] md:text-5xl">
-        Сервис и поддержка Нетизен
-      </h2>
+      <div className="relative z-10 max-w-[58%]">
+        <div className="text-xs font-black uppercase tracking-[0.16em] text-blue-500">Новинка</div>
+        <h3 className={`mt-4 font-black tracking-[-0.04em] ${large ? "text-4xl" : "text-2xl"}`}>{title}</h3>
+        <p className={`mt-3 text-sm leading-relaxed ${textMuted(dark)}`}>{subtitle}</p>
+        <p className={`mt-5 text-sm ${textMuted(dark)}`}>{product?.price || "от 89 990 ₽"}</p>
+        <span className="mt-6 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white transition group-hover:bg-blue-500">
+          →
+        </span>
+      </div>
 
-      <p className={`mt-4 text-lg md:text-xl ${mutedTextClass(dark)}`}>
-        Подскажем, чем отличаются модели и как оформить заказ.
-      </p>
+      {image ? (
+        <div className="absolute bottom-0 right-0 top-0 flex w-[48%] items-center justify-center bg-white/95">
+          <Image
+            src={image}
+            alt={title}
+            width={520}
+            height={520}
+            className="h-full w-full object-contain p-4 transition duration-500 group-hover:scale-105"
+            unoptimized
+          />
+        </div>
+      ) : (
+        <div className={`absolute bottom-0 right-0 top-0 w-[48%] ${dark ? "bg-blue-500/10" : "bg-blue-50"}`} />
+      )}
+    </Link>
+  );
+}
 
-      <div className="mt-8 grid items-start gap-6 lg:grid-cols-2">
-        <div className="grid grid-cols-1 gap-5 self-start sm:grid-cols-2">
-          {supportCards.map((item) => (
-            <div
-              key={item.title}
-              className={`flex h-[170px] flex-col justify-start rounded-2xl border p-6 transition-colors duration-300 ${
-                dark
-                  ? "border-white/10 bg-white/[0.025] hover:border-blue-500/25 hover:bg-blue-500/[0.03]"
-                  : "border-black/10 bg-white/80 hover:border-blue-500/25 hover:bg-blue-50/40"
-              }`}
-            >
-              <div className="text-lg leading-none text-blue-500">✓</div>
+function SupportBlock({ dark }: { dark: boolean }) {
+  const [open, setOpen] = useState(1);
+  const questions = useMemo(
+    () => [
+      {
+        id: 1,
+        question: "Можно ли выбрать конфигурацию?",
+        answer: "Да. На странице товара можно выбрать память, цвет и доступные параметры модели.",
+      },
+      {
+        id: 2,
+        question: "Есть ли техника в наличии?",
+        answer: "Актуальное наличие показывается в карточке товара и подтверждается менеджером.",
+      },
+      {
+        id: 3,
+        question: "Как оформить заказ?",
+        answer: "Добавьте товар в корзину, укажите контакты и способ доставки — дальше менеджер всё подтвердит.",
+      },
+      {
+        id: 4,
+        question: "Можно ли заказать под запрос?",
+        answer: "Да, если нужной конфигурации нет в наличии, мы можем привезти её под заказ.",
+      },
+    ],
+    [],
+  );
 
-              <h3 className="mt-6 text-base font-bold leading-tight">
-                {item.title}
-              </h3>
+  return (
+    <section className={`mb-16 overflow-hidden rounded-[28px] border p-6 sm:p-8 lg:p-10 ${panelClass(dark)}`}>
+      <div className="grid gap-8 lg:grid-cols-[0.86fr_1fr_0.7fr] lg:items-start">
+        <div>
+          <h2 className="text-[32px] font-black leading-tight tracking-[-0.045em] sm:text-[42px]">Сервис и поддержка Netizen</h2>
+          <p className={`mt-3 text-sm leading-relaxed ${textMuted(dark)}`}>Подскажем, чем отличаются модели и как оформить заказ.</p>
 
-              <p
-                className={`mt-3 text-sm leading-relaxed ${mutedTextClass(
-                  dark
-                )}`}
-              >
-                {item.text}
-              </p>
-            </div>
-          ))}
+          <div className="mt-7 grid grid-cols-2 gap-3">
+            {benefitItems.slice(0, 4).map((item) => (
+              <div key={item.title} className={`rounded-2xl border p-4 ${softPanelClass(dark)}`}>
+                <div className="text-blue-500">{item.icon}</div>
+                <div className="mt-4 text-sm font-black">{item.title}</div>
+                <p className={`mt-2 text-xs leading-relaxed ${textMuted(dark)}`}>{item.text}</p>
+              </div>
+            ))}
+          </div>
         </div>
 
-        <div className="relative min-h-[330px] self-start">
-          <div className="grid gap-4">
-            {orderedQuestions.map((item) => {
-              const isOpen = activeFaqId === item.id;
+        <div className="space-y-3">
+          {questions.map((item) => {
+            const isOpen = open === item.id;
 
-              return (
-                <motion.div
-                  key={item.id}
-                  layout
-                  transition={{ duration: 0.32, ease: [0.22, 1, 0.36, 1] }}
-                  className={`relative rounded-2xl border transition-colors duration-300 ${
-                    isOpen ? "z-20" : "z-0"
-                  } ${
-                    dark
-                      ? "border-white/10 bg-[#08111f] hover:border-blue-500/30"
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => setOpen(isOpen ? 0 : item.id)}
+                className={`w-full rounded-2xl border p-5 text-left transition ${
+                  isOpen
+                    ? "border-blue-500/70 bg-blue-500/10"
+                    : dark
+                      ? "border-white/10 bg-white/[0.025] hover:border-blue-500/30"
                       : "border-black/10 bg-white hover:border-blue-500/30"
-                  }`}
-                >
-                  <button
-                    onClick={() =>
-                      setActiveFaqId((prev) =>
-                        prev === item.id ? null : item.id
-                      )
-                    }
-                    className="group relative w-full px-6 py-5 text-left"
-                  >
-                    <div className="flex items-center justify-between gap-4">
-                      <span className="font-semibold">{item.question}</span>
+                }`}
+              >
+                <span className="flex items-center justify-between gap-4 font-semibold">
+                  {item.question}
+                  <span className="text-blue-500">{isOpen ? "−" : "+"}</span>
+                </span>
 
-                      <span
-                        className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border text-blue-500 transition-all duration-300 group-hover:translate-x-1 ${
-                          dark
-                            ? "border-white/10 bg-white/[0.03] group-hover:border-blue-500/40 group-hover:bg-blue-500/10"
-                            : "border-black/10 bg-white group-hover:border-blue-500/40 group-hover:bg-blue-50"
-                        } ${isOpen ? "rotate-45" : "rotate-0"}`}
-                      >
-                        +
-                      </span>
-                    </div>
-                  </button>
+                {isOpen ? <p className={`mt-4 text-sm leading-relaxed ${textMuted(dark)}`}>{item.answer}</p> : null}
+              </button>
+            );
+          })}
+        </div>
 
-                  <AnimatePresence initial={false}>
-                    {isOpen && (
-                      <motion.div
-                        initial={{ opacity: 0, y: -8 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        exit={{ opacity: 0, y: -8 }}
-                        transition={{ duration: 0.25 }}
-                        className={`absolute left-0 right-0 top-[62px] z-30 rounded-b-2xl border-x border-b px-6 pb-6 pt-1 shadow-2xl ${
-                          dark
-                            ? "border-white/10 bg-[#08111f]"
-                            : "border-black/10 bg-white"
-                        }`}
-                      >
-                        <p
-                          className={`pr-10 text-sm leading-relaxed ${mutedTextClass(
-                            dark
-                          )}`}
-                        >
-                          {item.answer}
-                        </p>
-                      </motion.div>
-                    )}
-                  </AnimatePresence>
-                </motion.div>
-              );
-            })}
+        <div className={`hidden min-h-[330px] items-end justify-center overflow-hidden rounded-3xl border lg:flex ${dark ? "border-white/10 bg-blue-500/10" : "border-black/10 bg-blue-50"}`}>
+          <div className="pb-10 text-center">
+            <div className="text-7xl">🐻</div>
+            <div className="mt-4 rounded-full bg-blue-600 px-4 py-2 text-xs font-bold text-white">Поможем выбрать</div>
           </div>
         </div>
       </div>
@@ -876,129 +725,55 @@ function SupportBlock({ dark }: { dark: boolean }) {
 
 function Footer({ dark }: { dark: boolean }) {
   return (
-    <footer
-      className={`rounded-[32px] border p-10 transition-all duration-700 ${panelClass(
-        dark
-      )}`}
-    >
-      <div className="grid gap-10 lg:grid-cols-[1.25fr_1fr_1fr_1fr]">
+    <footer className={`rounded-[28px] border p-6 sm:p-8 lg:p-10 ${panelClass(dark)}`}>
+      <div className="grid gap-10 lg:grid-cols-[1.15fr_1fr_1fr_1fr]">
         <div>
-          <Link
-            href="/"
-            className="relative flex h-12 w-[170px] items-center justify-start overflow-hidden"
-          >
-            <Image
-              src={dark ? "/logo-light.png" : "/logo-dark.png"}
-              alt="Нетизен"
-              width={170}
-              height={48}
-              className="h-auto max-h-10 w-auto object-contain transition-opacity duration-700"
-            />
+          <Link href="/" className="flex text-2xl font-black tracking-[0.06em]">
+            NETIZEN
           </Link>
 
-          <div className="mt-8 space-y-6">
-            <FooterContact
-              icon="☎"
-              title={footerData.contacts.phone}
-              text={footerData.contacts.phoneText}
-              dark={dark}
-            />
-
-            <FooterContact
-              icon="✈"
-              title={footerData.contacts.telegram}
-              text={footerData.contacts.telegramText}
-              dark={dark}
-            />
-
-            <FooterContact
-              icon="✉"
-              title={footerData.contacts.email}
-              text={footerData.contacts.emailText}
-              dark={dark}
-            />
+          <div className="mt-7 space-y-4">
+            <FooterContact icon="☎" title={footerData.contacts.phone} text={footerData.contacts.phoneText} dark={dark} />
+            <FooterContact icon="✈" title={footerData.contacts.telegram} text={footerData.contacts.telegramText} dark={dark} />
+            <FooterContact icon="✉" title={footerData.contacts.email} text={footerData.contacts.emailText} dark={dark} />
           </div>
 
-          <div
-            className={`mt-8 border-t pt-7 ${
-              dark ? "border-white/10" : "border-black/10"
-            }`}
-          >
-            <h3 className="text-xl font-bold">Будьте в курсе новинок</h3>
-
-            <p
-              className={`mt-3 max-w-[360px] text-sm leading-relaxed ${mutedTextClass(
-                dark
-              )}`}
-            >
-              Подпишитесь и узнавайте первыми о новых поступлениях и акциях.
-            </p>
-
-            <div
-              className={`mt-5 flex h-14 overflow-hidden rounded-xl border transition-all duration-700 ${
-                dark ? "border-white/10 bg-black/20" : "border-black/10 bg-white"
-              }`}
-            >
+          <div className={`mt-7 border-t pt-6 ${dark ? "border-white/10" : "border-black/10"}`}>
+            <h3 className="text-base font-black">Будьте в курсе новинок</h3>
+            <p className={`mt-2 text-sm leading-relaxed ${textMuted(dark)}`}>Подпишитесь и узнавайте первыми о новых поступлениях и акциях.</p>
+            <div className={`mt-4 flex h-12 overflow-hidden rounded-xl border ${dark ? "border-white/10 bg-black/20" : "border-black/10 bg-white"}`}>
               <input
                 placeholder="Ваш e-mail"
-                className={`min-w-0 flex-1 bg-transparent px-5 outline-none ${
-                  dark
-                    ? "text-white placeholder:text-white/35"
-                    : "text-black placeholder:text-black/35"
-                }`}
+                className={`min-w-0 flex-1 bg-transparent px-4 text-sm outline-none ${dark ? "placeholder:text-white/35" : "placeholder:text-slate-400"}`}
               />
-
-              <button className="w-16 bg-blue-600 text-2xl text-white transition-colors hover:bg-blue-500">
-                →
-              </button>
+              <button className="w-12 bg-blue-600 text-white">→</button>
             </div>
           </div>
         </div>
 
         {footerData.columns.map((column) => (
-          <FooterColumn
-            key={column.title}
-            title={column.title}
-            items={column.links}
-          />
+          <FooterColumn key={column.title} title={column.title} items={column.links} dark={dark} />
         ))}
       </div>
 
-      <div className="mt-10 grid gap-5 lg:grid-cols-3">
+      <div className="mt-8 grid gap-3 sm:grid-cols-3">
         {footerData.socials.map((item) => (
-          <button
-            key={item}
-            className={`rounded-xl border px-10 py-4 text-blue-500 transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500 hover:bg-blue-500/10 ${
-              dark
-                ? "border-blue-500/30 bg-white/[0.02]"
-                : "border-blue-500/30 bg-white"
-            }`}
-          >
+          <button key={item} className={`rounded-xl border px-6 py-3 text-sm font-semibold text-blue-500 transition hover:-translate-y-0.5 ${dark ? "border-blue-500/25 bg-white/[0.02]" : "border-blue-500/20 bg-white"}`}>
             {item}
           </button>
         ))}
       </div>
 
-      <div
-        className={`mt-10 flex flex-col gap-6 border-t pt-8 text-sm transition-colors duration-700 lg:flex-row lg:items-center lg:justify-between ${
-          dark ? "border-white/10 text-white/45" : "border-black/10 text-black/45"
-        }`}
-      >
+      <div className={`mt-8 flex flex-col gap-4 border-t pt-6 text-xs sm:flex-row sm:items-center sm:justify-between ${dark ? "border-white/10 text-white/45" : "border-black/10 text-slate-500"}`}>
         <div>© 2024 Netizen. Все права защищены.</div>
-
-        <div className="flex flex-wrap gap-6">
+        <div className="flex flex-wrap gap-4">
           {footerData.legal.map((item) => (
-            <Link
-              key={item}
-              href="#"
-              className="transition-colors hover:text-blue-500"
-            >
+            <Link key={item} href="#" className="hover:text-blue-500">
               {item}
             </Link>
           ))}
         </div>
-
-        <div className="flex flex-wrap items-center gap-5 text-lg font-bold opacity-70">
+        <div className="flex gap-3 font-black opacity-70">
           {footerData.payments.map((item) => (
             <span key={item}>{item}</span>
           ))}
@@ -1008,57 +783,29 @@ function Footer({ dark }: { dark: boolean }) {
   );
 }
 
-function FooterContact({
-  icon,
-  title,
-  text,
-  dark,
-}: {
-  icon: string;
-  title: string;
-  text: string;
-  dark: boolean;
-}) {
+function FooterContact({ icon, title, text, dark }: { icon: string; title: string; text: string; dark: boolean }) {
   return (
-    <div className="flex items-start gap-4">
-      <div
-        className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-blue-500 transition-all duration-700 ${
-          dark ? "bg-blue-500/10" : "bg-blue-50"
-        }`}
-      >
-        {icon}
-      </div>
-
+    <div className="flex items-start gap-3">
+      <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-blue-500 ${dark ? "bg-blue-500/10" : "bg-blue-50"}`}>{icon}</div>
       <div>
-        <div className="font-semibold">{title}</div>
-        <div className={`mt-1 text-sm ${mutedTextClass(dark)}`}>{text}</div>
+        <div className="text-sm font-semibold">{title}</div>
+        <div className={`mt-1 text-xs ${textMuted(dark)}`}>{text}</div>
       </div>
     </div>
   );
 }
 
-function FooterColumn({
-  title,
-  items,
-}: {
-  title: string;
-  items: string[] | { label: string; href: string }[];
-}) {
+function FooterColumn({ title, items, dark }: { title: string; items: string[] | { label: string; href: string }[]; dark: boolean }) {
   return (
     <div>
-      <h3 className="text-xl font-bold">{title}</h3>
-
-      <div className="mt-6 flex flex-col gap-4 opacity-60">
+      <h3 className="font-black">{title}</h3>
+      <div className={`mt-5 flex flex-col gap-3 text-sm ${textMuted(dark)}`}>
         {items.map((item) => {
           const label = typeof item === "string" ? item : item.label;
           const href = typeof item === "string" ? "#" : item.href;
 
           return (
-            <Link
-              key={label}
-              href={href}
-              className="transition-colors hover:text-blue-500"
-            >
+            <Link key={label} href={href} className="transition hover:text-blue-500">
               {label}
             </Link>
           );
