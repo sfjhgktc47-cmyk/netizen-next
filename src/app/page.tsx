@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type PointerEvent, type ReactNode } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { useTheme } from "@/components/theme-provider";
 import { footerData } from "@/data/footer";
@@ -237,7 +237,7 @@ export default function Home() {
     <main className={pageClass(dark)}>
       <div className="mx-auto max-w-[1440px] px-4 py-4 sm:px-5 lg:px-6">
         <SiteHeader />
-        <Hero dark={dark} products={visibleProducts} />
+        <Hero dark={dark} />
         <Benefits dark={dark} />
         <Categories dark={dark} categories={visibleCategories.slice(0, 12)} />
         <PopularProducts dark={dark} products={visibleProducts.slice(0, 8)} />
@@ -249,113 +249,176 @@ export default function Home() {
   );
 }
 
-function Hero({ dark, products }: { dark: boolean; products: HomeProduct[] }) {
-  const heroProducts = products.filter((product) => getImage(product)).slice(0, 4);
-  const mainHeroImage = heroProducts[0] ? getImage(heroProducts[0]) : "";
+function Hero({ dark }: { dark: boolean }) {
+  const slides = [
+    {
+      badge: "Оригинальная техника. Премиальный сервис.",
+      title: "Техника премиум-класса для тех, кто создаёт будущее.",
+      text: "Лучшие устройства от мировых брендов. Официальная гарантия, быстрая доставка и поддержка 24/7.",
+      primaryLabel: "Перейти в каталог",
+      primaryHref: "/catalog",
+      secondaryLabel: "Новинки",
+      secondaryHref: "/new",
+      imageDark: "/hero/main-dark.png",
+      imageLight: "/hero/main-light.png",
+    },
+    {
+      badge: "Новинки уже в каталоге.",
+      title: "Подберите технику под свои задачи.",
+      text: "Смартфоны, ноутбуки, наушники и аксессуары с понятной конфигурацией перед покупкой.",
+      primaryLabel: "Смотреть новинки",
+      primaryHref: "/new",
+      secondaryLabel: "Каталог",
+      secondaryHref: "/catalog",
+      imageDark: "/hero/main-dark.png",
+      imageLight: "/hero/main-light.png",
+    },
+    {
+      badge: "Поможем с выбором.",
+      title: "Не уверены в модели? Подскажем.",
+      text: "Расскажем, чем отличаются конфигурации, и поможем оформить заявку без лишних действий.",
+      primaryLabel: "Написать в поддержку",
+      primaryHref: "/help",
+      secondaryLabel: "Популярное",
+      secondaryHref: "/catalog",
+      imageDark: "/hero/main-dark.png",
+      imageLight: "/hero/main-light.png",
+    },
+  ];
+
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [dragStartX, setDragStartX] = useState<number | null>(null);
+  const [isHeroHovered, setIsHeroHovered] = useState(false);
+
+  const slide = slides[activeSlide];
+  const image = dark ? slide.imageDark : slide.imageLight;
+
+  function goToNextSlide() {
+    setActiveSlide((current) => (current + 1) % slides.length);
+  }
+
+  function goToPrevSlide() {
+    setActiveSlide((current) =>
+      current === 0 ? slides.length - 1 : current - 1
+    );
+  }
+
+  function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
+    setDragStartX(event.clientX);
+  }
+
+  function handlePointerUp(event: PointerEvent<HTMLDivElement>) {
+    if (dragStartX === null) return;
+
+    const distance = dragStartX - event.clientX;
+    const swipeThreshold = 50;
+
+    if (Math.abs(distance) > swipeThreshold) {
+      if (distance > 0) {
+        goToNextSlide();
+      } else {
+        goToPrevSlide();
+      }
+    }
+
+    setDragStartX(null);
+  }
+
+  useEffect(() => {
+    if (slides.length <= 1 || isHeroHovered) return;
+
+    const interval = window.setInterval(() => {
+      setActiveSlide((current) => (current + 1) % slides.length);
+    }, 5000);
+
+    return () => window.clearInterval(interval);
+  }, [slides.length, isHeroHovered]);
 
   return (
-    <section className="relative overflow-hidden pt-8 lg:pt-10">
+    <section className="relative mt-6 overflow-hidden rounded-[34px]">
       <div
-        className={`relative overflow-hidden rounded-[34px] border px-5 py-10 sm:px-8 lg:min-h-[500px] lg:px-12 lg:py-14 ${
-          dark ? "border-white/5 bg-[#030811]" : "border-transparent bg-white/0"
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerLeave={() => {
+          setDragStartX(null);
+          setIsHeroHovered(false);
+        }}
+        onMouseEnter={() => setIsHeroHovered(true)}
+        onMouseLeave={() => setIsHeroHovered(false)}
+        className={`relative h-[560px] cursor-grab select-none overflow-hidden rounded-[34px] transition-all duration-700 active:cursor-grabbing ${
+          dark ? "bg-[#020814]" : "bg-white"
         }`}
       >
         <div
-          className={`pointer-events-none absolute inset-0 ${
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-700"
+          style={{
+            backgroundImage: `url(${image})`,
+          }}
+        />
+
+        <div
+          className={`absolute inset-0 transition-all duration-700 ${
             dark
-              ? "bg-[radial-gradient(circle_at_75%_45%,rgba(37,99,235,0.22),transparent_36%),linear-gradient(180deg,rgba(2,8,20,0),rgba(2,8,20,0.88))]"
-              : "bg-[radial-gradient(circle_at_74%_42%,rgba(37,99,235,0.13),transparent_34%),linear-gradient(180deg,rgba(255,255,255,0),rgba(244,247,251,0.9))]"
+              ? "bg-gradient-to-r from-[#020814]/95 via-[#020814]/55 to-[#020814]/5"
+              : "bg-gradient-to-r from-white/95 via-white/55 to-white/5"
           }`}
         />
 
-        <div className="relative z-10 grid items-center gap-10 lg:grid-cols-[0.95fr_1.05fr]">
-          <div>
-            <div className="inline-flex rounded-full border border-blue-500/25 bg-blue-500/10 px-4 py-2 text-xs font-semibold text-blue-500">
-              Оригинальная техника. Премиальный сервис.
+        <div className="relative z-10 flex h-full items-center px-8 py-12 sm:px-12 lg:px-16">
+          <div className="max-w-[650px]">
+            <div className="mb-7 inline-flex rounded-full border border-blue-500/50 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-500">
+              {slide.badge}
             </div>
 
-            <h1 className="mt-8 max-w-[690px] text-[34px] font-black leading-[1.06] tracking-[-0.055em] sm:text-[48px] lg:text-[58px]">
-              Техника премиум-класса для тех, кто создаёт будущее.
+            <h1 className="max-w-[620px] min-h-[220px] text-[42px] font-bold leading-[1.12] tracking-[-0.055em] sm:text-[54px] lg:text-[64px]">
+              {slide.title}
             </h1>
 
-            <p className={`mt-5 max-w-[470px] text-base leading-relaxed ${textMuted(dark)}`}>
-              Лучшие устройства от мировых брендов. Официальная гарантия, быстрая доставка и поддержка 24/7.
+            <p
+              className={`mt-6 max-w-[470px] text-base leading-relaxed lg:text-lg ${mutedTextClass(
+                dark
+              )}`}
+            >
+              {slide.text}
             </p>
 
-            <div className="mt-7 flex flex-wrap gap-3">
-              <Link href="/catalog" className={blueButton()}>
-                Перейти в каталог →
+            <div className="mt-8 flex flex-wrap gap-4">
+              <Link
+                href={slide.primaryHref}
+                className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-7 py-4 text-sm font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500"
+              >
+                {slide.primaryLabel} →
               </Link>
 
               <Link
-                href="/new"
-                className={`inline-flex items-center justify-center rounded-xl border px-6 py-3 text-sm font-semibold transition hover:-translate-y-0.5 ${
+                href={slide.secondaryHref}
+                className={`inline-flex items-center justify-center rounded-xl border px-7 py-4 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 ${
                   dark
                     ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
-                    : "border-black/10 bg-white text-slate-900 hover:border-blue-500/40 hover:bg-blue-50"
+                    : "border-black/10 bg-white text-black hover:border-blue-500/40 hover:bg-blue-50"
                 }`}
               >
-                Новинки →
+                {slide.secondaryLabel} →
               </Link>
             </div>
-          </div>
 
-          <div className="relative min-h-[300px] lg:min-h-[440px]">
-            <div
-              className={`absolute bottom-2 left-1/2 h-7 w-[88%] -translate-x-1/2 rounded-full blur-xl ${
-                dark ? "bg-blue-600/70" : "bg-blue-500/30"
-              }`}
-            />
+            <div className="mt-8 flex items-center gap-2">
+              {slides.map((item, index) => {
+                const isActive = activeSlide === index;
 
-            <div
-              className={`absolute bottom-6 left-1/2 h-24 w-[92%] -translate-x-1/2 rounded-[50%] border ${
-                dark
-                  ? "border-blue-500/45 bg-blue-500/10"
-                  : "border-blue-500/25 bg-white shadow-[0_20px_90px_rgba(37,99,235,0.16)]"
-              }`}
-            />
-
-            <div className="absolute inset-x-0 bottom-12 mx-auto flex max-w-[680px] items-end justify-center gap-4 px-4">
-              {heroProducts.length > 0 ? (
-                heroProducts.map((product, index) => (
-                  <Link
-                    key={product.slug}
-                    href={getProductHref(product)}
-                    className={`group relative flex items-center justify-center overflow-hidden rounded-[28px] border bg-white transition duration-500 hover:-translate-y-2 ${
-                      index === 0
-                        ? "h-[280px] w-[220px] sm:h-[340px] sm:w-[265px]"
-                        : "hidden h-[190px] w-[145px] sm:flex"
-                    } ${dark ? "border-white/10" : "border-black/10"}`}
-                    style={{ transform: index === 1 ? "rotate(-4deg)" : index === 2 ? "rotate(4deg)" : undefined }}
-                  >
-                    <Image
-                      src={getImage(product)}
-                      alt={product.name}
-                      width={420}
-                      height={560}
-                      className="h-full w-full object-contain p-2 transition duration-500 group-hover:scale-105"
-                      unoptimized
-                    />
-                  </Link>
-                ))
-              ) : (
-                <div
-                  className={`flex h-[310px] w-[70%] items-center justify-center rounded-[32px] border text-center text-sm ${
-                    dark
-                      ? "border-white/10 bg-white/[0.04] text-white/40"
-                      : "border-black/10 bg-white text-slate-400"
-                  }`}
-                >
-                  Добавь товары с фото в админке — они появятся здесь
-                </div>
-              )}
+                return (
+                  <button
+                    key={item.title}
+                    type="button"
+                    onClick={() => setActiveSlide(index)}
+                    aria-label={`Открыть слайд ${index + 1}`}
+                    className={`rounded-full bg-blue-600 transition-all duration-300 ${
+                      isActive ? "h-1.5 w-10" : "h-1.5 w-1.5"
+                    }`}
+                  />
+                );
+              })}
             </div>
-
-            {mainHeroImage ? (
-              <div className="absolute right-5 top-5 hidden rounded-2xl border border-blue-500/20 bg-blue-600 px-4 py-3 text-xs font-bold text-white shadow-2xl shadow-blue-600/30 md:block">
-                Подскажем выбрать
-              </div>
-            ) : null}
           </div>
         </div>
       </div>
@@ -602,38 +665,63 @@ function PromoCard({
   large?: boolean;
 }) {
   const image = product ? getImage(product) : "";
+  const hasImage = Boolean(image);
 
   return (
     <Link
       href={product ? getProductHref(product) : "/catalog"}
-      className={`group relative overflow-hidden rounded-2xl border p-6 transition duration-500 hover:-translate-y-1 ${panelClass(dark)} ${
+      className={`group relative overflow-hidden rounded-2xl border transition duration-500 hover:-translate-y-1 ${panelClass(dark)} ${
         large ? "min-h-[330px]" : "min-h-[185px]"
       }`}
     >
-      <div className="relative z-10 max-w-[58%]">
+      <div
+        className={`pointer-events-none absolute inset-0 ${
+          dark
+            ? "bg-[radial-gradient(circle_at_82%_42%,rgba(37,99,235,0.22),transparent_34%),linear-gradient(135deg,rgba(37,99,235,0.08),transparent_55%)]"
+            : "bg-[radial-gradient(circle_at_82%_42%,rgba(37,99,235,0.13),transparent_34%),linear-gradient(135deg,rgba(37,99,235,0.06),transparent_55%)]"
+        }`}
+      />
+
+      <div className={`relative z-10 p-6 ${hasImage ? "max-w-[56%]" : "max-w-full"}`}>
         <div className="text-xs font-black uppercase tracking-[0.16em] text-blue-500">Новинка</div>
-        <h3 className={`mt-4 font-black tracking-[-0.04em] ${large ? "text-4xl" : "text-2xl"}`}>{title}</h3>
-        <p className={`mt-3 text-sm leading-relaxed ${textMuted(dark)}`}>{subtitle}</p>
+        <h3 className={`mt-4 break-words font-black tracking-[-0.04em] ${large ? "text-3xl sm:text-4xl" : "text-2xl"}`}>
+          {title}
+        </h3>
+        <p className={`mt-3 max-w-[320px] text-sm leading-relaxed ${textMuted(dark)}`}>{subtitle}</p>
         <p className={`mt-5 text-sm ${textMuted(dark)}`}>{product?.price || "от 89 990 ₽"}</p>
         <span className="mt-6 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white transition group-hover:bg-blue-500">
           →
         </span>
       </div>
 
-      {image ? (
-        <div className="absolute bottom-0 right-0 top-0 flex w-[48%] items-center justify-center bg-white/95">
+      {hasImage ? (
+        <div className="absolute inset-y-0 right-0 flex w-[52%] items-center justify-center overflow-hidden">
+          <div
+            className={`absolute inset-0 ${
+              dark
+                ? "bg-[linear-gradient(90deg,rgba(3,8,17,0)_0%,rgba(15,23,42,0.55)_35%,rgba(37,99,235,0.13)_100%)]"
+                : "bg-[linear-gradient(90deg,rgba(255,255,255,0)_0%,rgba(248,250,252,0.76)_42%,rgba(239,246,255,0.95)_100%)]"
+            }`}
+          />
           <Image
             src={image}
             alt={title}
-            width={520}
-            height={520}
-            className="h-full w-full object-contain p-4 transition duration-500 group-hover:scale-105"
+            width={720}
+            height={560}
+            className={`relative z-10 h-full w-full object-cover transition duration-500 group-hover:scale-105 ${
+              dark ? "mix-blend-screen opacity-85" : "opacity-95"
+            }`}
             unoptimized
           />
+          <div
+            className={`pointer-events-none absolute inset-y-0 left-0 w-24 ${
+              dark
+                ? "bg-gradient-to-r from-[#07101d] to-transparent"
+                : "bg-gradient-to-r from-white to-transparent"
+            }`}
+          />
         </div>
-      ) : (
-        <div className={`absolute bottom-0 right-0 top-0 w-[48%] ${dark ? "bg-blue-500/10" : "bg-blue-50"}`} />
-      )}
+      ) : null}
     </Link>
   );
 }
