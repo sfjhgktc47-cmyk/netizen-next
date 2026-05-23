@@ -1,97 +1,17 @@
 import Link from "next/link";
 
-const adminSections = [
-  {
-    title: "Карточки товаров",
-    description:
-      "Материнские карточки, которые видит клиент: iPhone 17 Pro, MacBook Pro 14, AirPods Pro.",
-    href: "/nz-console/products",
-    value: "3",
-    label: "карточки",
-  },
-  {
-    title: "Позиции / SKU",
-    description:
-      "Конкретные конфигурации с ценой, наличием и SKU: память, цвет, SIM, склад.",
-    href: "/nz-console/positions",
-    value: "4",
-    label: "позиции",
-  },
-  {
-    title: "Заявки",
-    description: "Корзина, новые заказы, статусы и подтверждение клиентов.",
-    href: "/nz-console/orders",
-    value: "4",
-    label: "новые",
-  },
-  {
-    title: "Обращения",
-    description:
-      "Единый центр коммуникации: темы, диалоги и связь с заявками.",
-    href: "/nz-console/support",
-    value: "7",
-    label: "в работе",
-  },
-  {
-    title: "Категории",
-    description: "Категории каталога, SEO-страницы и структура витрины.",
-    href: "/nz-console/categories",
-    value: "12",
-    label: "категорий",
-  },
-  {
-    title: "Клиенты",
-    description:
-      "Клиентская база, заявки, обращения, адреса и история покупок.",
-    href: "/nz-console/users",
-    value: "3",
-    label: "клиента",
-  },
-  {
-    title: "Редактор сайта",
-    description:
-      "Витрина сайта: логотипы, цвета, hero, блоки главной, каталог и страница товара.",
-    href: "/nz-console/site-editor",
-    value: "8",
-    label: "блоков",
-  },
-  {
-    title: "Настройки",
-    description: "Интеграции, роли, доставка, уведомления и безопасность.",
-    href: "/nz-console/settings",
-    value: "⚙",
-    label: "система",
-  },
-];
+import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
+import { getAdminDashboardData } from "@/lib/admin-dashboard-db";
 
-const recentActions = [
-  {
-    title: "Создана карточка",
-    text: "iPhone 17 Pro · материнская карточка товара",
-    time: "Сегодня",
-  },
-  {
-    title: "Добавлена позиция",
-    text: "iPhone 17 Pro 256 GB Silver eSIM · 109 990 ₽ · 4 шт.",
-    time: "Сегодня",
-  },
-  {
-    title: "Новая заявка",
-    text: "iPhone 17 Pro · Москва · ожидает подтверждения",
-    time: "2 мин назад",
-  },
-  {
-    title: "Обращение в поддержку",
-    text: "Тема: Подбор техники",
-    time: "12 мин назад",
-  },
-];
+export const dynamic = "force-dynamic";
 
-export default function AdminDashboardPage() {
+export default async function AdminDashboardPage() {
+  const dashboard = await getAdminDashboardData();
+
   return (
-    <main className="min-h-screen bg-[#020814] px-6 py-6 text-white">
+    <main className="min-h-screen bg-[#020814] px-4 py-4 text-white sm:px-6 sm:py-6">
       <div className="mx-auto max-w-[1440px]">
-        <header className="flex min-h-[76px] items-center justify-between rounded-2xl border border-white/10 bg-white/[0.035] px-6">
+        <header className="flex min-h-[76px] flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.035] px-4 sm:px-6">
           <Link
             href="/nz-console"
             className="text-xl font-bold tracking-[-0.04em]"
@@ -102,42 +22,48 @@ export default function AdminDashboardPage() {
           <div className="hidden items-center gap-3 text-sm text-white/55 md:flex">
             <span>Панель управления</span>
             <span>·</span>
-            <span>тестовый режим</span>
+            <span>данные из PostgreSQL</span>
           </div>
 
-          <Link
-            href="/"
-            className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
-          >
-            На сайт →
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href="/"
+              className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
+            >
+              На сайт →
+            </Link>
+            <AdminLogoutButton />
+          </div>
         </header>
 
         <section className="mt-10 grid gap-8 lg:grid-cols-[1fr_360px]">
-          <div className="rounded-[34px] border border-white/10 bg-white/[0.035] p-8">
+          <div className="rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
             <div className="inline-flex rounded-full border border-blue-500/35 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-400">
               Админ-панель
             </div>
 
-            <h1 className="mt-6 max-w-[760px] text-5xl font-bold tracking-[-0.055em] md:text-6xl">
+            <h1 className="mt-6 max-w-[760px] text-4xl font-bold tracking-[-0.055em] sm:text-5xl md:text-6xl">
               Управление магазином
             </h1>
 
             <p className="mt-5 max-w-[720px] text-sm leading-relaxed text-white/55">
-              Здесь будет управление карточками товаров, позициями / SKU,
-              заявками, категориями, обращениями клиентов, витриной сайта,
-              ролями и системными настройками.
+              Здесь собраны реальные данные магазина: карточки товаров, SKU,
+              категории, клиенты, заявки и обращения. Цифры на главной панели
+              больше не захардкожены и считаются из базы.
             </p>
 
-            <div className="mt-8 grid gap-4 md:grid-cols-4">
-              <MetricCard label="Карточки" value="3" />
-              <MetricCard label="Позиции / SKU" value="4" />
-              <MetricCard label="Заявки сегодня" value="4" />
-              <MetricCard label="Обращения" value="7" />
+            <div className="mt-8 grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
+              {dashboard.metrics.map((metric) => (
+                <MetricCard
+                  key={metric.label}
+                  label={metric.label}
+                  value={metric.value}
+                />
+              ))}
             </div>
           </div>
 
-          <aside className="rounded-[34px] border border-white/10 bg-white/[0.035] p-8">
+          <aside className="rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
             <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-400">
               Быстрые действия
             </div>
@@ -162,33 +88,34 @@ export default function AdminDashboardPage() {
               </Link>
 
               <Link
+                href="/nz-console/categories/new"
+                className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4 text-center text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
+              >
+                Создать категорию
+              </Link>
+
+              <Link
                 href="/nz-console/orders"
                 className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4 text-center text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
               >
                 Смотреть заявки
               </Link>
-
-              <Link
-                href="/nz-console/site-editor"
-                className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4 text-center text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
-              >
-                Редактор сайта
-              </Link>
             </div>
 
             <div className="mt-8 rounded-2xl border border-blue-500/25 bg-blue-500/10 p-5">
-              <div className="font-semibold text-blue-400">Важно</div>
+              <div className="font-semibold text-blue-400">Логика каталога</div>
 
               <p className="mt-2 text-sm leading-relaxed text-white/55">
-                Карточка — это то, что видит клиент. Позиция / SKU — это
-                конкретная конфигурация с ценой, наличием и складом.
+                Категория содержит карточки товаров. Карточка содержит позиции
+                / SKU. Клиент видит карточку, а конкретную конфигурацию выбирает
+                уже на странице товара.
               </p>
             </div>
           </aside>
         </section>
 
         <section className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-          {adminSections.map((section) => (
+          {dashboard.sections.map((section) => (
             <Link
               key={section.href}
               href={section.href}
@@ -223,7 +150,7 @@ export default function AdminDashboardPage() {
           ))}
         </section>
 
-        <section className="my-10 rounded-[34px] border border-white/10 bg-white/[0.035] p-8">
+        <section className="my-10 rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
           <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
             <div>
               <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-400">
@@ -235,31 +162,44 @@ export default function AdminDashboardPage() {
               </h2>
             </div>
 
-            <button className="w-fit rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10">
-              Обновить
-            </button>
+            <Link
+              href="/nz-console/orders"
+              className="w-fit rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
+            >
+              Смотреть заявки
+            </Link>
           </div>
 
-          <div className="mt-8 grid gap-4">
-            {recentActions.map((action) => (
-              <div
-                key={`${action.title}-${action.time}`}
-                className="rounded-2xl border border-white/10 bg-black/20 p-5"
-              >
-                <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                  <div>
-                    <h3 className="text-lg font-bold">{action.title}</h3>
+          {dashboard.recentActions.length > 0 ? (
+            <div className="mt-8 grid gap-4">
+              {dashboard.recentActions.map((action) => (
+                <Link
+                  key={`${action.title}-${action.href}-${action.createdAt.toISOString()}`}
+                  href={action.href}
+                  className="rounded-2xl border border-white/10 bg-black/20 p-5 transition-colors hover:border-blue-500/35 hover:bg-blue-500/[0.06]"
+                >
+                  <div className="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div>
+                      <h3 className="text-lg font-bold">{action.title}</h3>
 
-                    <p className="mt-1 text-sm text-white/55">{action.text}</p>
+                      <p className="mt-1 text-sm text-white/55">
+                        {action.text}
+                      </p>
+                    </div>
+
+                    <span className="w-fit rounded-full border border-white/10 px-4 py-2 text-sm text-white/45">
+                      {action.time}
+                    </span>
                   </div>
-
-                  <span className="w-fit rounded-full border border-white/10 px-4 py-2 text-sm text-white/45">
-                    {action.time}
-                  </span>
-                </div>
-              </div>
-            ))}
-          </div>
+                </Link>
+              ))}
+            </div>
+          ) : (
+            <div className="mt-8 rounded-2xl border border-white/10 bg-black/20 p-6 text-sm leading-relaxed text-white/55">
+              Пока событий нет. Создай категорию, карточку товара или тестовую
+              заявку — они появятся здесь автоматически.
+            </div>
+          )}
         </section>
       </div>
     </main>
