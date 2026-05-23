@@ -674,6 +674,7 @@ function ModuleSettings({ block, onSettingChange }: { block: SitePageBlock; onSe
   const hasImageField = ["promo-banner", "text-image"].includes(block.type);
   const hasLimitField = ["category-grid", "popular-products", "new-arrivals", "product-carousel", "related-products", "catalog-grid"].includes(block.type);
   const hasFilterField = ["popular-products", "product-carousel"].includes(block.type);
+  const isNewArrivalsBlock = block.type === "new-arrivals";
 
   return (
     <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.025] p-4">
@@ -724,6 +725,72 @@ function ModuleSettings({ block, onSettingChange }: { block: SitePageBlock; onSe
           </Field>
         )}
 
+        {isNewArrivalsBlock && (
+          <>
+            <Field label="Товары в новинках: slug через запятую или с новой строки">
+              <textarea
+                value={getSettingText(settings, "productSlugs")}
+                onChange={(event) => onSettingChange("productSlugs", event.target.value)}
+                className="admin-textarea min-h-[96px] md:col-span-2"
+                placeholder="iphone-17e\nmacbook-pro-m5\nairpods-pro-3"
+              />
+            </Field>
+
+            <Field label="Метка над карточкой">
+              <input value={getSettingText(settings, "badgeText") || "Новинка"} onChange={(event) => onSettingChange("badgeText", event.target.value)} className="admin-input" />
+            </Field>
+
+            <Field label="Размер заголовка блока">
+              <select value={getSettingText(settings, "sectionTitleSize") || "large"} onChange={(event) => onSettingChange("sectionTitleSize", event.target.value)} className="admin-input">
+                <option value="small">Компактный</option>
+                <option value="medium">Средний</option>
+                <option value="large">Крупный</option>
+              </select>
+            </Field>
+
+            <Field label="Размер названия в карточках">
+              <select value={getSettingText(settings, "cardTitleSize") || "medium"} onChange={(event) => onSettingChange("cardTitleSize", event.target.value)} className="admin-input">
+                <option value="small">Компактный</option>
+                <option value="medium">Средний</option>
+                <option value="large">Крупный</option>
+              </select>
+            </Field>
+
+            <Field label="Размер описания в карточках">
+              <select value={getSettingText(settings, "cardTextSize") || "medium"} onChange={(event) => onSettingChange("cardTextSize", event.target.value)} className="admin-input">
+                <option value="small">Компактный</option>
+                <option value="medium">Средний</option>
+                <option value="large">Крупный</option>
+              </select>
+            </Field>
+
+            <div className="md:col-span-2 rounded-2xl border border-white/10 bg-black/20 p-4">
+              <div className="text-sm font-bold text-white/80">Тексты карточек</div>
+              <p className="mt-1 text-xs leading-relaxed text-white/45">Можно оставить пустым — тогда название берётся из товара, а описание из карточки товара.</p>
+              <div className="mt-4 grid gap-4 md:grid-cols-2">
+                <Field label="Главная карточка — своё название">
+                  <input value={getSettingText(settings, "featuredTitle")} onChange={(event) => onSettingChange("featuredTitle", event.target.value)} className="admin-input" />
+                </Field>
+                <Field label="Главная карточка — своё описание">
+                  <input value={getSettingText(settings, "featuredDescription")} onChange={(event) => onSettingChange("featuredDescription", event.target.value)} className="admin-input" />
+                </Field>
+                <Field label="Вторая карточка — своё название">
+                  <input value={getSettingText(settings, "secondTitle")} onChange={(event) => onSettingChange("secondTitle", event.target.value)} className="admin-input" />
+                </Field>
+                <Field label="Вторая карточка — своё описание">
+                  <input value={getSettingText(settings, "secondDescription")} onChange={(event) => onSettingChange("secondDescription", event.target.value)} className="admin-input" />
+                </Field>
+                <Field label="Третья карточка — своё название">
+                  <input value={getSettingText(settings, "thirdTitle")} onChange={(event) => onSettingChange("thirdTitle", event.target.value)} className="admin-input" />
+                </Field>
+                <Field label="Третья карточка — своё описание">
+                  <input value={getSettingText(settings, "thirdDescription")} onChange={(event) => onSettingChange("thirdDescription", event.target.value)} className="admin-input" />
+                </Field>
+              </div>
+            </div>
+          </>
+        )}
+
         {hasButtonFields && (
           <label className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/70">
             <input type="checkbox" checked={getSettingBoolean(settings, "showButton", true)} onChange={(event) => onSettingChange("showButton", event.target.checked)} />
@@ -751,7 +818,7 @@ function ModuleSettings({ block, onSettingChange }: { block: SitePageBlock; onSe
         )}
       </div>
 
-      {!hasTextFields && !hasButtonFields && !hasImageField && !hasLimitField && !hasFilterField ? (
+      {!hasTextFields && !hasButtonFields && !hasImageField && !hasLimitField && !hasFilterField && !isNewArrivalsBlock ? (
         <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-white/45">
           У этого системного модуля пока нет дополнительных полей. Его можно включать, скрывать и менять порядок.
         </div>

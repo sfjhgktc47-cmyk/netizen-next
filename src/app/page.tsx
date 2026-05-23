@@ -87,7 +87,7 @@ const defaultHomePageBlocks: HomePageBlock[] = [
   { id: "benefits", pageKey: "home", type: "benefits", title: "Преимущества", description: "", enabled: true, sortOrder: 20, settings: {} },
   { id: "categories", pageKey: "home", type: "category-grid", title: "Категории", description: "", enabled: true, sortOrder: 30, settings: { title: "Выберите категорию", subtitle: "Выберите направление и найдите свой идеальный гаджет", limit: 12, showButton: true, buttonText: "Смотреть все категории →", buttonHref: "/catalog" } },
   { id: "popular-products", pageKey: "home", type: "popular-products", title: "Популярные товары", description: "", enabled: true, sortOrder: 40, settings: { title: "Популярные товары", subtitle: "Выберите модель — конфигурацию подберёте на странице товара.", limit: 12, showButton: true, buttonText: "Смотреть все товары →", buttonHref: "/catalog?popular=1" } },
-  { id: "new-arrivals", pageKey: "home", type: "new-arrivals", title: "Новинки", description: "", enabled: true, sortOrder: 50, settings: { title: "Новинки", subtitle: "Техника, которая только появилась", limit: 3 } },
+  { id: "new-arrivals", pageKey: "home", type: "new-arrivals", title: "Новинки", description: "", enabled: true, sortOrder: 50, settings: { title: "Новинки", subtitle: "Техника, которая только появилась", limit: 3, productSlugs: "", badgeText: "Новинка", featuredTitle: "", featuredDescription: "", secondTitle: "", secondDescription: "", thirdTitle: "", thirdDescription: "", sectionTitleSize: "large", cardTitleSize: "medium", cardTextSize: "medium" } },
   { id: "support", pageKey: "home", type: "support", title: "Поддержка", description: "", enabled: true, sortOrder: 60, settings: {} },
 ];
 
@@ -113,6 +113,7 @@ function isConfiguredProduct(product: HomeProduct) {
 export default function Home() {
   const { dark } = useTheme();
   const [categories, setCategories] = useState<HomeCategory[]>([]);
+  const [allProducts, setAllProducts] = useState<HomeProduct[]>([]);
   const [popularProducts, setPopularProducts] = useState<HomeProduct[]>([]);
   const [newArrivals, setNewArrivals] = useState<HomeProduct[]>([]);
   const [homeBlocks, setHomeBlocks] = useState<HomePageBlock[]>([]);
@@ -137,12 +138,9 @@ export default function Home() {
         setCategories(Array.isArray(payload.categories) ? payload.categories : []);
         setSiteSettings(payload.siteSettings ?? null);
         setHomeBlocks(Array.isArray(payload.pageBlocks) ? payload.pageBlocks : []);
+        setAllProducts(allProducts.filter((product) => product.slug !== "catalog"));
         setPopularProducts(dbPopularProducts.filter(isConfiguredProduct));
-        setNewArrivals(
-          dbNewArrivals
-            .filter((product) => product.slug !== "catalog")
-            .slice(0, 3)
-        );
+        setNewArrivals(dbNewArrivals.filter((product) => product.slug !== "catalog"));
       })
       .catch(() => {
         if (!mounted) return;
@@ -150,6 +148,7 @@ export default function Home() {
         setCategories([]);
         setSiteSettings(null);
         setHomeBlocks([]);
+        setAllProducts([]);
         setPopularProducts([]);
         setNewArrivals([]);
       });
@@ -182,7 +181,7 @@ export default function Home() {
             dark={dark}
             categories={visibleCategories}
             popularProducts={popularProducts}
-            allProducts={popularProducts.length ? popularProducts : newArrivals}
+            allProducts={allProducts}
             newArrivals={newArrivals}
           />
         ))}
@@ -266,12 +265,30 @@ function HomeModule({
   }
 
   if (type === "new-arrivals") {
+    const selectedProducts = pickProductsForBlock(
+      allProducts.length ? allProducts : newArrivals,
+      newArrivals,
+      getBlockText(settings, "productSlugs", "")
+    );
+
     return (
       <NewArrivals
         dark={dark}
-        products={newArrivals.slice(0, getBlockNumber(settings, "limit", 3))}
+        products={selectedProducts.slice(0, getBlockNumber(settings, "limit", 3))}
         title={getBlockText(settings, "title", "Новинки")}
         subtitle={getBlockText(settings, "subtitle", "Техника, которая только появилась")}
+        badgeText={getBlockText(settings, "badgeText", "Новинка")}
+        sectionTitleSize={getBlockText(settings, "sectionTitleSize", "large")}
+        cardTitleSize={getBlockText(settings, "cardTitleSize", "medium")}
+        cardTextSize={getBlockText(settings, "cardTextSize", "medium")}
+        buttonText={getBlockText(settings, "buttonText", "Смотреть новинки →")}
+        buttonHref={getBlockText(settings, "buttonHref", "/catalog?new=1")}
+        showButton={getBlockBoolean(settings, "showButton", false)}
+        overrides={[
+          { title: getBlockText(settings, "featuredTitle", ""), description: getBlockText(settings, "featuredDescription", "") },
+          { title: getBlockText(settings, "secondTitle", ""), description: getBlockText(settings, "secondDescription", "") },
+          { title: getBlockText(settings, "thirdTitle", ""), description: getBlockText(settings, "thirdDescription", "") },
+        ]}
       />
     );
   }
@@ -289,6 +306,28 @@ function HomeModule({
   }
 
   return null;
+}
+
+function getSelectedSlugs(value: string) {
+  return value
+    .split(/[\n,;]+/)
+    .map((slug) => slug.trim())
+    .filter(Boolean);
+}
+
+function pickProductsForBlock(allProducts: HomeProduct[], fallbackProducts: HomeProduct[], slugList: string) {
+  const slugs = getSelectedSlugs(slugList);
+
+  if (slugs.length === 0) {
+    return fallbackProducts.length ? fallbackProducts : allProducts;
+  }
+
+  const bySlug = new Map(allProducts.map((product) => [product.slug, product]));
+  const selected = slugs
+    .map((slug) => bySlug.get(slug))
+    .filter((product): product is HomeProduct => Boolean(product));
+
+  return selected.length ? selected : fallbackProducts;
 }
 
 function getBlockText(settings: Record<string, string | number | boolean | null>, key: string, fallback: string) {
@@ -967,11 +1006,27 @@ function NewArrivals({
   products,
   title = "Новинки",
   subtitle = "Техника, которая только появилась",
+  badgeText = "Новинка",
+  sectionTitleSize = "large",
+  cardTitleSize = "medium",
+  cardTextSize = "medium",
+  buttonText = "Смотреть новинки →",
+  buttonHref = "/catalog?new=1",
+  showButton = false,
+  overrides = [],
 }: {
   dark: boolean;
   products: HomeProduct[];
   title?: string;
   subtitle?: string;
+  badgeText?: string;
+  sectionTitleSize?: string;
+  cardTitleSize?: string;
+  cardTextSize?: string;
+  buttonText?: string;
+  buttonHref?: string;
+  showButton?: boolean;
+  overrides?: Array<{ title?: string; description?: string }>;
 }) {
   const items = products
     .filter((product) => product.slug !== "catalog")
@@ -982,7 +1037,7 @@ function NewArrivals({
     return (
       <section className="pb-20">
         <div className="mb-8">
-          <h2 className="text-[42px] font-bold leading-none tracking-[-0.04em] lg:text-[52px]">
+          <h2 className={`${sectionTitleClass(sectionTitleSize)} font-bold leading-none tracking-[-0.04em]`}>
             {title}
           </h2>
           <p className={`mt-3 text-base ${mutedTextClass(dark)}`}>
@@ -997,8 +1052,7 @@ function NewArrivals({
               : "border-black/10 bg-white text-black/55"
           }`}
         >
-          Новинки пока не выбраны. Добавьте товар в админке, включите галочку
-          “Новинка” и загрузите фото для блока “Новинки”.
+          Новинки пока не выбраны. В редакторе сайта укажите slug товаров или включите галочку “Новинка” у товаров в админке.
         </div>
       </section>
     );
@@ -1006,23 +1060,56 @@ function NewArrivals({
 
   return (
     <section className="pb-20">
-      <div className="mb-8">
-        <h2 className="text-[42px] font-bold leading-none tracking-[-0.04em] lg:text-[52px]">
-          {title}
-        </h2>
+      <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h2 className={`${sectionTitleClass(sectionTitleSize)} font-bold leading-none tracking-[-0.04em]`}>
+            {title}
+          </h2>
 
-        <p className={`mt-3 text-base ${mutedTextClass(dark)}`}>
-          {subtitle}
-        </p>
+          <p className={`mt-3 text-base ${mutedTextClass(dark)}`}>
+            {subtitle}
+          </p>
+        </div>
+
+        {showButton ? (
+          <Link
+            href={buttonHref}
+            className={`inline-flex rounded-xl border px-6 py-3 text-sm font-medium transition-all duration-500 hover:-translate-y-0.5 ${
+              dark
+                ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
+                : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
+            }`}
+          >
+            {buttonText}
+          </Link>
+        ) : null}
       </div>
 
       <div className="grid gap-4">
-        <NewArrivalCard item={mainItem} dark={dark} featured />
+        <NewArrivalCard
+          item={mainItem}
+          dark={dark}
+          featured
+          badgeText={badgeText}
+          titleOverride={overrides[0]?.title}
+          descriptionOverride={overrides[0]?.description}
+          cardTitleSize={cardTitleSize}
+          cardTextSize={cardTextSize}
+        />
 
         {secondaryItems.length > 0 ? (
           <div className="grid gap-4 lg:grid-cols-2">
-            {secondaryItems.map((item) => (
-              <NewArrivalCard key={`${item.slug}-${item.name}`} item={item} dark={dark} />
+            {secondaryItems.map((item, index) => (
+              <NewArrivalCard
+                key={`${item.slug}-${item.name}`}
+                item={item}
+                dark={dark}
+                badgeText={badgeText}
+                titleOverride={overrides[index + 1]?.title}
+                descriptionOverride={overrides[index + 1]?.description}
+                cardTitleSize={cardTitleSize}
+                cardTextSize={cardTextSize}
+              />
             ))}
           </div>
         ) : null}
@@ -1031,20 +1118,50 @@ function NewArrivals({
   );
 }
 
+function sectionTitleClass(size: string) {
+  if (size === "small") return "text-3xl lg:text-4xl";
+  if (size === "medium") return "text-[38px] lg:text-[46px]";
+  return "text-[42px] lg:text-[52px]";
+}
+
+function cardTitleClass(size: string, featured: boolean) {
+  if (size === "small") return featured ? "text-3xl lg:text-4xl" : "text-xl lg:text-2xl";
+  if (size === "large") return featured ? "text-5xl lg:text-6xl" : "text-3xl lg:text-4xl";
+  return featured ? "text-4xl lg:text-5xl" : "text-2xl lg:text-3xl";
+}
+
+function cardTextClass(size: string, featured: boolean) {
+  if (size === "small") return "text-sm";
+  if (size === "large") return featured ? "text-lg" : "text-base";
+  return featured ? "text-base" : "text-sm";
+}
+
 function NewArrivalCard({
   item,
   dark,
   featured = false,
+  badgeText = "Новинка",
+  titleOverride = "",
+  descriptionOverride = "",
+  cardTitleSize = "medium",
+  cardTextSize = "medium",
 }: {
   item: HomeProduct;
   dark: boolean;
   featured?: boolean;
+  badgeText?: string;
+  titleOverride?: string;
+  descriptionOverride?: string;
+  cardTitleSize?: string;
+  cardTextSize?: string;
 }) {
   const promoImage = item.promoImage?.trim() ?? "";
   const href = item.slug === "catalog" ? "/catalog" : `/product/${item.slug}`;
+  const title = titleOverride.trim() || item.name;
   const description =
+    descriptionOverride.trim() ||
     item.shortDescription ||
-    "Новая модель в каталоге. Откройте карточку, чтобы выбрать конфигурацию.";
+    "Откройте карточку, чтобы выбрать конфигурацию.";
 
   return (
     <Link
@@ -1061,21 +1178,23 @@ function NewArrivalCard({
     >
       <div className={`${featured ? "p-8 lg:p-10" : "p-7 lg:p-8"} relative z-10 flex flex-col items-start justify-center`}>
         <div className="text-xs font-bold uppercase tracking-[0.18em] text-blue-500">
-          Новинка
+          {badgeText}
         </div>
 
         <h3
-          className={`mt-4 max-w-[420px] font-bold leading-[1.05] tracking-[-0.045em] ${
-            featured ? "text-4xl lg:text-5xl" : "text-2xl lg:text-3xl"
-          }`}
+          className={`mt-4 max-w-[460px] font-bold leading-[1.05] tracking-[-0.045em] ${cardTitleClass(
+            cardTitleSize,
+            featured
+          )}`}
         >
-          {item.name}
+          {title}
         </h3>
 
         <p
-          className={`mt-4 max-w-[360px] leading-relaxed ${
-            featured ? "text-base" : "text-sm"
-          } ${mutedTextClass(dark)}`}
+          className={`mt-4 max-w-[380px] leading-relaxed ${cardTextClass(
+            cardTextSize,
+            featured
+          )} ${mutedTextClass(dark)}`}
         >
           {description}
         </p>
@@ -1104,7 +1223,7 @@ function NewArrivalCard({
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={promoImage}
-            alt={item.name}
+            alt={title}
             draggable={false}
             className="h-full w-full object-contain object-right transition-transform duration-700 group-hover:scale-[1.03]"
           />
@@ -1119,7 +1238,6 @@ function NewArrivalCard({
     </Link>
   );
 }
-
 
 function PromoBanner({
   dark,

@@ -14,17 +14,22 @@ export async function GET() {
       getPublicPageBlocks("home"),
     ]);
 
-    const configuredProducts = catalog.productCards.filter((product) => {
-      const images = [product.image, ...(Array.isArray(product.images) ? product.images : [])]
-        .map((image) => String(image ?? "").trim())
-        .filter(Boolean);
-
-      return product.slug !== "catalog" && images.length > 0;
-    });
-
     const dbProducts = catalog.productCards.filter(
       (product) => product.slug !== "catalog"
     );
+
+    const configuredProducts = dbProducts.filter((product) => {
+      const images = [
+        product.image,
+        product.promoImage,
+        ...(Array.isArray(product.images) ? product.images : []),
+      ]
+        .map((image) => String(image ?? "").trim())
+        .filter(Boolean);
+
+      return images.length > 0;
+    });
+
     const explicitNewArrivals = dbProducts.filter((product) => product.isNew);
 
     return NextResponse.json({
@@ -32,7 +37,7 @@ export async function GET() {
         ...category,
         image: category.image || "",
       })),
-      products: configuredProducts,
+      products: dbProducts,
       popularProducts: configuredProducts.filter((product) => product.isPopular),
       newArrivals:
         explicitNewArrivals.length > 0

@@ -42,7 +42,7 @@ const defaultPageBlocks = {
     ["benefits", "Преимущества", 20, { title: "Преимущества" }],
     ["category-grid", "Категории", 30, { title: "Выберите категорию", subtitle: "Выберите направление и найдите свой идеальный гаджет", limit: 12, showButton: true, buttonText: "Смотреть все категории →", buttonHref: "/catalog" }],
     ["popular-products", "Популярные товары", 40, { title: "Популярные товары", subtitle: "Выберите модель — конфигурацию подберёте на странице товара.", limit: 12, showButton: true, buttonText: "Смотреть все товары →", buttonHref: "/catalog?popular=1", filter: "popular" }],
-    ["new-arrivals", "Новинки", 50, { title: "Новинки", subtitle: "Техника, которая только появилась", limit: 3 }],
+    ["new-arrivals", "Новинки", 50, { title: "Новинки", subtitle: "Техника, которая только появилась", limit: 3, productSlugs: "", badgeText: "Новинка", featuredTitle: "", featuredDescription: "", secondTitle: "", secondDescription: "", thirdTitle: "", thirdDescription: "", sectionTitleSize: "large", cardTitleSize: "medium", cardTextSize: "medium" }],
     ["support", "Поддержка", 60, { title: "Сервис и поддержка" }],
   ],
   catalog: [
@@ -51,6 +51,12 @@ const defaultPageBlocks = {
     ["catalog-filters", "Фильтры каталога", 30, { showFilters: true, showSort: true }],
     ["catalog-grid", "Сетка товаров", 40, { columns: 4, limit: 24 }],
     ["catalog-empty", "Пустое состояние", 50, { title: "Ничего не найдено" }],
+  ],
+  new: [
+    ["promo-banner", "Баннер новинок", 10, { title: "Новые поступления", subtitle: "Самые свежие модели и конфигурации", buttonText: "В каталог →", buttonHref: "/catalog?new=1", tone: "blue" }],
+    ["new-arrivals", "Новинки", 20, { title: "Новинки", subtitle: "Техника, которая только появилась", limit: 6, productSlugs: "", badgeText: "Новинка", featuredTitle: "", featuredDescription: "", secondTitle: "", secondDescription: "", thirdTitle: "", thirdDescription: "", sectionTitleSize: "large", cardTitleSize: "medium", cardTextSize: "medium" }],
+    ["product-carousel", "Ещё новинки", 30, { title: "Ещё новинки", subtitle: "Все новые товары из каталога", filter: "new", limit: 12, showButton: true, buttonText: "Открыть каталог →", buttonHref: "/catalog?new=1" }],
+    ["support", "Поддержка", 40, { title: "Поможем выбрать новинку", subtitle: "Расскажем отличия и подберём конфигурацию." }],
   ],
   product: [
     ["product-gallery", "Галерея товара", 10, { ratio: "3:4" }],
