@@ -176,6 +176,9 @@ export default async function AdminPositionDetailPage({
               oldPrice: variant.oldPrice,
               stock: variant.stock,
               status: variant.status,
+              seoTitle: variant.seoTitle,
+              seoDescription: variant.seoDescription,
+              seoKeywords: variant.seoKeywords,
             }}
           />
         </section>

@@ -84,6 +84,7 @@ export async function PATCH(
         status: normalizeStatus(body.status, stock),
         seoTitle: String(body.seoTitle ?? ""),
         seoDescription: String(body.seoDescription ?? ""),
+        seoKeywords: String(body.seoKeywords ?? ""),
       },
     });
 

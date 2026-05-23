@@ -68,6 +68,9 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
   const [oldPrice, setOldPrice] = useState("");
   const [stock, setStock] = useState("");
   const [status, setStatus] = useState("active");
+  const [seoTitle, setSeoTitle] = useState("");
+  const [seoDescription, setSeoDescription] = useState("");
+  const [seoKeywords, setSeoKeywords] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -117,6 +120,9 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
           oldPrice: oldPrice ? Number(oldPrice) : null,
           stock: stock ? Number(stock) : 0,
           status,
+          seoTitle: seoTitle.trim(),
+          seoDescription: seoDescription.trim(),
+          seoKeywords: seoKeywords.trim(),
         }),
       });
 
@@ -261,6 +267,43 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
               <option value="out_of_stock">Нет в наличии</option>
             </select>
           </Field>
+
+          <div className="md:col-span-2 mt-2 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4">
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-400">SEO позиции</div>
+            <p className="mt-2 text-xs leading-relaxed text-white/45">
+              Описание остаётся у карточки товара, а у SKU можно задать SEO-заголовок, SEO-описание и ключи для конкретной комплектации.
+            </p>
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <Field label="SEO title">
+                <input
+                  value={seoTitle}
+                  onChange={(event) => setSeoTitle(event.target.value)}
+                  placeholder="Купить iPhone 17 Pro 256 GB Silver eSIM"
+                  className={inputClass}
+                />
+              </Field>
+
+              <Field label="SEO keywords">
+                <input
+                  value={seoKeywords}
+                  onChange={(event) => setSeoKeywords(event.target.value)}
+                  placeholder="iphone 17 pro, 256gb, silver, esim"
+                  className={inputClass}
+                />
+              </Field>
+
+              <div className="md:col-span-2">
+                <Field label="SEO description">
+                  <textarea
+                    value={seoDescription}
+                    onChange={(event) => setSeoDescription(event.target.value)}
+                    placeholder="Короткое SEO-описание конкретной SKU-позиции."
+                    className="min-h-24 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-white/30 focus:border-blue-500/60"
+                  />
+                </Field>
+              </div>
+            </div>
+          </div>
         </div>
 
         <div className="mt-8">

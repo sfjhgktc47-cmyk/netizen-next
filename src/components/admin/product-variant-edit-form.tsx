@@ -23,6 +23,9 @@ type Variant = {
   oldPrice: number | null;
   stock: number;
   status: VariantStatus | string;
+  seoTitle?: string;
+  seoDescription?: string;
+  seoKeywords?: string;
 };
 
 type Props = {
@@ -70,6 +73,9 @@ export function ProductVariantEditForm({ productId, variant }: Props) {
   const [oldPrice, setOldPrice] = useState(variant.oldPrice ? String(variant.oldPrice) : "");
   const [stock, setStock] = useState(String(variant.stock));
   const [status, setStatus] = useState(String(variant.status || "active"));
+  const [seoTitle, setSeoTitle] = useState(variant.seoTitle ?? "");
+  const [seoDescription, setSeoDescription] = useState(variant.seoDescription ?? "");
+  const [seoKeywords, setSeoKeywords] = useState(variant.seoKeywords ?? "");
 
   const [loading, setLoading] = useState(false);
   const [deleting, setDeleting] = useState(false);
@@ -105,6 +111,9 @@ export function ProductVariantEditForm({ productId, variant }: Props) {
           oldPrice: oldPrice ? Number(oldPrice) : null,
           stock: stock ? Number(stock) : 0,
           status,
+          seoTitle: seoTitle.trim(),
+          seoDescription: seoDescription.trim(),
+          seoKeywords: seoKeywords.trim(),
         }),
       });
 
@@ -235,6 +244,36 @@ export function ProductVariantEditForm({ productId, variant }: Props) {
             <option value="out_of_stock">Нет в наличии</option>
           </select>
         </Field>
+
+        <div className="md:col-span-2 xl:col-span-4 flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-black/20 p-4">
+          <button type="button" onClick={() => setStatus("active")} className="rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-2 text-sm font-semibold text-green-200 transition-colors hover:bg-green-500/20">В продажу</button>
+          <button type="button" onClick={() => setStatus("draft")} className="rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 py-2 text-sm font-semibold text-blue-200 transition-colors hover:bg-blue-500/20">В черновик</button>
+          <button type="button" onClick={() => setStatus("hidden")} className="rounded-xl border border-orange-500/30 bg-orange-500/10 px-4 py-2 text-sm font-semibold text-orange-100 transition-colors hover:bg-orange-500/20">Скрыть</button>
+        </div>
+
+        <div className="md:col-span-2 xl:col-span-4 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4">
+          <div className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-400">SEO позиции</div>
+          <p className="mt-2 text-xs leading-relaxed text-white/45">
+            Описание товара остаётся у карточки, а здесь задаются SEO-данные конкретной SKU-позиции.
+          </p>
+          <div className="mt-4 grid gap-4 md:grid-cols-2">
+            <Field label="SEO title">
+              <input value={seoTitle} onChange={(event) => setSeoTitle(event.target.value)} className={inputClass} />
+            </Field>
+            <Field label="SEO keywords">
+              <input value={seoKeywords} onChange={(event) => setSeoKeywords(event.target.value)} className={inputClass} />
+            </Field>
+            <div className="md:col-span-2">
+              <Field label="SEO description">
+                <textarea
+                  value={seoDescription}
+                  onChange={(event) => setSeoDescription(event.target.value)}
+                  className="min-h-24 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-white/30 focus:border-blue-500/60"
+                />
+              </Field>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div className="mt-8">

@@ -1,9 +1,19 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 
+import { PositionVisibilityButton } from "@/components/admin/position-visibility-button";
+import { PositionsImportForm } from "@/components/admin/positions-import-form";
 import { prisma } from "@/lib/db";
 
 export const dynamic = "force-dynamic";
+
+type SearchParams = {
+  tab?: string;
+  q?: string;
+  productId?: string;
+  stock?: string;
+  status?: string;
+};
 
 function formatPrice(value: number | null | undefined) {
   if (value === null || value === undefined) {
@@ -17,32 +27,166 @@ function getStockLabel(stock: number) {
   return stock > 0 ? `${stock} шт.` : "Нет";
 }
 
+function getStatusLabel(status: string) {
+  if (status === "active") {
+    return "В продаже";
+  }
 
-export default async function AdminPositionsPage() {
-  const variants = await prisma.productVariant.findMany({
-    include: {
-      product: {
-        select: {
-          slug: true,
-          name: true,
-          image: true,
+  if (status === "draft") {
+    return "Черновик";
+  }
+
+  if (status === "hidden") {
+    return "Скрыта";
+  }
+
+  return "Нет в наличии";
+}
+
+function getStatusClass(status: string, stock: number) {
+  if (status === "hidden") {
+    return "border-white/10 bg-white/[0.03] text-white/45";
+  }
+
+  if (status === "draft") {
+    return "border-blue-500/30 bg-blue-500/10 text-blue-300";
+  }
+
+  if (stock <= 0 || status === "out_of_stock") {
+    return "border-orange-500/30 bg-orange-500/10 text-orange-300";
+  }
+
+  return "border-green-500/30 bg-green-500/10 text-green-300";
+}
+
+function buildHref(params: SearchParams, patch: SearchParams) {
+  const merged = new URLSearchParams();
+  const next = { ...params, ...patch };
+
+  for (const [key, value] of Object.entries(next)) {
+    if (value) {
+      merged.set(key, value);
+    }
+  }
+
+  const query = merged.toString();
+
+  return query ? `/nz-console/positions?${query}` : "/nz-console/positions";
+}
+
+function matchesTab(variant: { status: string; stock: number }, tab: string) {
+  if (tab === "active") {
+    return variant.status === "active" && variant.stock > 0;
+  }
+
+  if (tab === "out") {
+    return variant.stock <= 0 || variant.status === "out_of_stock";
+  }
+
+  if (tab === "draft") {
+    return variant.status === "draft";
+  }
+
+  if (tab === "hidden") {
+    return variant.status === "hidden";
+  }
+
+  return true;
+}
+
+export default async function AdminPositionsPage({
+  searchParams,
+}: {
+  searchParams: Promise<SearchParams>;
+}) {
+  const params = await searchParams;
+  const activeTab = params.tab ?? "all";
+  const q = (params.q ?? "").trim().toLowerCase();
+  const selectedProductId = params.productId ?? "";
+  const selectedStock = params.stock ?? "";
+  const selectedStatus = params.status ?? "";
+
+  const [variants, products] = await Promise.all([
+    prisma.productVariant.findMany({
+      include: {
+        product: {
+          select: {
+            id: true,
+            slug: true,
+            name: true,
+            brand: true,
+            image: true,
+          },
         },
       },
-    },
-    orderBy: [{ createdAt: "desc" }],
-  });
+      orderBy: [{ createdAt: "desc" }],
+    }),
+    prisma.product.findMany({
+      select: { id: true, name: true, brand: true },
+      orderBy: [{ name: "asc" }],
+    }),
+  ]);
 
   const activeCount = variants.filter((variant) => variant.status === "active" && variant.stock > 0).length;
   const outOfStockCount = variants.filter((variant) => variant.stock <= 0 || variant.status === "out_of_stock").length;
   const draftCount = variants.filter((variant) => variant.status === "draft").length;
   const hiddenCount = variants.filter((variant) => variant.status === "hidden").length;
 
+  const filteredVariants = variants.filter((variant) => {
+    if (!matchesTab(variant, activeTab)) {
+      return false;
+    }
+
+    if (selectedProductId && variant.productId !== selectedProductId) {
+      return false;
+    }
+
+    if (selectedStatus && variant.status !== selectedStatus) {
+      return false;
+    }
+
+    if (selectedStock === "in" && variant.stock <= 0) {
+      return false;
+    }
+
+    if (selectedStock === "out" && variant.stock > 0) {
+      return false;
+    }
+
+    if (q) {
+      const haystack = [
+        variant.sku,
+        variant.title,
+        variant.slug,
+        variant.color,
+        variant.memory,
+        variant.sim,
+        variant.product.name,
+        variant.product.brand,
+      ]
+        .join(" ")
+        .toLowerCase();
+
+      return haystack.includes(q);
+    }
+
+    return true;
+  });
+
+  const currentParams: SearchParams = {
+    tab: activeTab === "all" ? undefined : activeTab,
+    q: params.q,
+    productId: selectedProductId,
+    stock: selectedStock,
+    status: selectedStatus,
+  };
+
   const tabs = [
-    { label: "Все", count: variants.length, active: true },
-    { label: "В продаже", count: activeCount, active: false },
-    { label: "Нет в наличии", count: outOfStockCount, active: false },
-    { label: "Под заказ", count: draftCount, active: false },
-    { label: "Скрытые", count: hiddenCount, active: false },
+    { label: "Все", value: "all", count: variants.length },
+    { label: "В продаже", value: "active", count: activeCount },
+    { label: "Нет в наличии", value: "out", count: outOfStockCount },
+    { label: "Черновики", value: "draft", count: draftCount },
+    { label: "Скрытые", value: "hidden", count: hiddenCount },
   ];
 
   return (
@@ -79,14 +223,14 @@ export default async function AdminPositionsPage() {
               </h1>
 
               <p className="mt-3 max-w-[760px] text-sm leading-relaxed text-white/55">
-                Здесь лежат конкретные товары, которые реально продаются: конфигурация, цена, цена до акции, наличие и SKU. Каждая позиция привязана к материнской карточке товара.
+                Здесь лежат конкретные товары, которые реально продаются: конфигурация, цена, цена до акции, наличие и SEO конкретной позиции. Описание остаётся у материнской карточки товара.
               </p>
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <button className="rounded-xl border border-blue-500/35 bg-blue-500/10 px-7 py-4 text-sm font-medium text-blue-400 transition-colors hover:bg-blue-500/15">
+              <a href="#positions-import" className="rounded-xl border border-blue-500/35 bg-blue-500/10 px-7 py-4 text-sm font-medium text-blue-400 transition-colors hover:bg-blue-500/15">
                 Импорт XLSX
-              </button>
+              </a>
 
               <Link
                 href="/nz-console/positions/new"
@@ -100,57 +244,83 @@ export default async function AdminPositionsPage() {
 
         <section className="mt-8">
           <div className="flex flex-wrap gap-2 border-b border-white/10">
-            {tabs.map((tab) => (
-              <button
-                key={tab.label}
-                className={`relative px-4 py-4 text-sm font-medium transition-colors ${
-                  tab.active ? "text-white" : "text-white/45 hover:text-white"
-                }`}
-              >
-                <span>{tab.label}</span>
+            {tabs.map((tab) => {
+              const active = activeTab === tab.value || (!activeTab && tab.value === "all");
+              return (
+                <Link
+                  key={tab.value}
+                  href={buildHref(currentParams, { tab: tab.value === "all" ? undefined : tab.value })}
+                  className={`relative px-4 py-4 text-sm font-medium transition-colors ${
+                    active ? "text-white" : "text-white/45 hover:text-white"
+                  }`}
+                >
+                  <span>{tab.label}</span>
 
-                <span className={`ml-2 rounded-full px-2 py-0.5 text-xs ${tab.active ? "bg-blue-600 text-white" : "bg-white/10 text-white/45"}`}>
-                  {tab.count}
-                </span>
+                  <span className={`ml-2 rounded-full px-2 py-0.5 text-xs ${active ? "bg-blue-600 text-white" : "bg-white/10 text-white/45"}`}>
+                    {tab.count}
+                  </span>
 
-                {tab.active && <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full bg-blue-500" />}
-              </button>
-            ))}
+                  {active && <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full bg-blue-500" />}
+                </Link>
+              );
+            })}
           </div>
         </section>
 
         <section className="mt-6 rounded-[28px] border border-white/10 bg-white/[0.035] p-5">
-          <div className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+          <form className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
+            <input type="hidden" name="tab" value={activeTab === "all" ? "" : activeTab} />
             <div className="flex flex-1 flex-col gap-3 md:flex-row">
               <input
+                name="q"
+                defaultValue={params.q ?? ""}
                 placeholder="Поиск по названию / модели / SKU"
                 className="h-12 flex-1 rounded-xl border border-white/10 bg-black/20 px-5 text-sm text-white outline-none placeholder:text-white/35 focus:border-blue-500/50"
               />
 
-              <button className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10">
-                Модель
-              </button>
+              <select name="productId" defaultValue={selectedProductId} className="h-12 rounded-xl border border-white/10 bg-[#060c16] px-5 text-sm font-medium text-white outline-none transition-colors hover:border-blue-500/40 focus:border-blue-500/50">
+                <option value="">Все модели</option>
+                {products.map((product) => (
+                  <option key={product.id} value={product.id}>
+                    {product.name} · {product.brand}
+                  </option>
+                ))}
+              </select>
 
-              <button className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10">
-                Наличие
-              </button>
+              <select name="stock" defaultValue={selectedStock} className="h-12 rounded-xl border border-white/10 bg-[#060c16] px-5 text-sm font-medium text-white outline-none transition-colors hover:border-blue-500/40 focus:border-blue-500/50">
+                <option value="">Любое наличие</option>
+                <option value="in">В наличии</option>
+                <option value="out">Нет в наличии</option>
+              </select>
 
-              <button className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10">
-                Статус
-              </button>
+              <select name="status" defaultValue={selectedStatus} className="h-12 rounded-xl border border-white/10 bg-[#060c16] px-5 text-sm font-medium text-white outline-none transition-colors hover:border-blue-500/40 focus:border-blue-500/50">
+                <option value="">Любой статус</option>
+                <option value="active">Активна</option>
+                <option value="draft">Черновик</option>
+                <option value="hidden">Скрыта</option>
+                <option value="out_of_stock">Нет в наличии</option>
+              </select>
             </div>
 
-            <Link
-              href="/nz-console/positions/new"
-              className="rounded-xl bg-blue-600 px-6 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-blue-500"
-            >
-              Добавить позицию
-            </Link>
-          </div>
+            <div className="flex flex-wrap gap-3">
+              <Link href="/nz-console/positions" className="rounded-xl border border-white/10 bg-white/[0.03] px-6 py-3 text-center text-sm font-medium text-white transition-colors hover:border-blue-500/40 hover:bg-blue-500/10">
+                Сбросить
+              </Link>
+              <button type="submit" className="rounded-xl bg-blue-600 px-6 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-blue-500">
+                Применить
+              </button>
+              <Link
+                href="/nz-console/positions/new"
+                className="rounded-xl bg-blue-600 px-6 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-blue-500"
+              >
+                Добавить позицию
+              </Link>
+            </div>
+          </form>
         </section>
 
         <section className="mt-6 overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.035]">
-          <div className="hidden grid-cols-[1.15fr_1.25fr_0.75fr_0.65fr_0.65fr_0.75fr_0.75fr_0.7fr_140px] border-b border-white/10 bg-black/25 px-5 py-4 text-sm text-white/45 xl:grid">
+          <div className="hidden grid-cols-[1.05fr_1.2fr_0.65fr_0.6fr_0.55fr_0.65fr_0.65fr_0.75fr_0.65fr_190px] border-b border-white/10 bg-black/25 px-5 py-4 text-sm text-white/45 xl:grid">
             <div>Модель</div>
             <div>Позиция / SKU</div>
             <div>Цвет</div>
@@ -159,81 +329,110 @@ export default async function AdminPositionsPage() {
             <div>Цена</div>
             <div>До акции</div>
             <div>Наличие</div>
-            <div className="text-right">Редактировать</div>
+            <div>Статус</div>
+            <div className="text-right">Действия</div>
           </div>
 
           <div className="divide-y divide-white/10">
-            {variants.length > 0 ? (
-              variants.map((variant) => (
-                <div
-                  key={variant.id}
-                  className="grid gap-5 bg-white/[0.015] p-5 transition-colors hover:bg-blue-500/[0.04] xl:grid-cols-[1.15fr_1.25fr_0.75fr_0.65fr_0.65fr_0.75fr_0.75fr_0.7fr_140px] xl:items-center"
-                >
-                  <AdminCell label="Модель">
-                    <Link
-                      href={`/nz-console/products/${variant.product.slug}`}
-                      className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-sm text-blue-400 transition-colors hover:bg-blue-500/15"
-                    >
-                      {variant.product.name}
-                    </Link>
-                  </AdminCell>
+            {filteredVariants.length > 0 ? (
+              filteredVariants.map((variant) => {
+                const image = variant.images?.[0] ?? variant.product.image;
 
-                  <div className="flex items-center gap-3">
-                    <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/[0.045] text-[10px] text-white/25">
-                      {variant.images?.[0] || variant.product.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={variant.images?.[0] ?? variant.product.image} alt={variant.title} className="h-full w-full object-cover" />
-                      ) : (
-                        "Фото"
-                      )}
+                return (
+                  <div
+                    key={variant.id}
+                    className="grid gap-5 bg-white/[0.015] p-5 transition-colors hover:bg-blue-500/[0.04] xl:grid-cols-[1.05fr_1.2fr_0.65fr_0.6fr_0.55fr_0.65fr_0.65fr_0.75fr_0.65fr_190px] xl:items-center"
+                  >
+                    <AdminCell label="Модель">
+                      <Link
+                        href={`/nz-console/products/${variant.product.slug}`}
+                        className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-sm text-blue-400 transition-colors hover:bg-blue-500/15"
+                      >
+                        {variant.product.name}
+                      </Link>
+                    </AdminCell>
+
+                    <div className="flex items-center gap-3">
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/[0.045] text-[10px] text-white/25">
+                        {image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img src={image} alt={variant.title} className="h-full w-full object-cover" />
+                        ) : (
+                          "Фото"
+                        )}
+                      </div>
+                      <div>
+                        <div className="font-semibold">{variant.title}</div>
+                        <div className="mt-1 text-sm text-white/35">SKU {variant.sku}</div>
+                        <div className="mt-1 text-xs text-white/30">Фото: {variant.images?.length ?? 0}</div>
+                      </div>
                     </div>
+
+                    <AdminCell label="Цвет">{variant.color || "—"}</AdminCell>
+                    <AdminCell label="Память">{variant.memory || "—"}</AdminCell>
+                    <AdminCell label="SIM">{variant.sim || "—"}</AdminCell>
+                    <AdminCell label="Цена">{formatPrice(variant.price)}</AdminCell>
+
+                    <AdminCell label="До акции">
+                      <span className="text-white/50 line-through">{formatPrice(variant.oldPrice)}</span>
+                    </AdminCell>
+
                     <div>
-                      <div className="font-semibold">{variant.title}</div>
-                      <div className="mt-1 text-sm text-white/35">SKU {variant.sku}</div>
-                      <div className="mt-1 text-xs text-white/30">Фото: {variant.images?.length ?? 0}</div>
+                      <div className="mb-1 text-xs text-white/35 xl:hidden">Наличие</div>
+                      <span className={`rounded-full border px-3 py-1 text-sm ${variant.stock > 0 ? "border-green-500/30 bg-green-500/10 text-green-300" : "border-orange-500/30 bg-orange-500/10 text-orange-300"}`}>
+                        {getStockLabel(variant.stock)}
+                      </span>
+                    </div>
+
+                    <div>
+                      <div className="mb-1 text-xs text-white/35 xl:hidden">Статус</div>
+                      <span className={`rounded-full border px-3 py-1 text-sm ${getStatusClass(variant.status, variant.stock)}`}>
+                        {getStatusLabel(variant.status)}
+                      </span>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2 xl:justify-end">
+                      <Link
+                        href={`/nz-console/positions/${encodeURIComponent(variant.sku)}`}
+                        className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-sm transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
+                      >
+                        Изменить
+                      </Link>
+                      <PositionVisibilityButton
+                        variant={{
+                          id: variant.id,
+                          productId: variant.productId,
+                          sku: variant.sku,
+                          slug: variant.slug,
+                          title: variant.title,
+                          memory: variant.memory,
+                          color: variant.color,
+                          colorHex: variant.colorHex,
+                          sim: variant.sim,
+                          images: variant.images,
+                          price: variant.price,
+                          oldPrice: variant.oldPrice,
+                          stock: variant.stock,
+                          status: variant.status,
+                          seoTitle: variant.seoTitle,
+                          seoDescription: variant.seoDescription,
+                          seoKeywords: variant.seoKeywords,
+                        }}
+                      />
                     </div>
                   </div>
-
-                  <AdminCell label="Цвет">{variant.color || "—"}</AdminCell>
-                  <AdminCell label="Память">{variant.memory || "—"}</AdminCell>
-                  <AdminCell label="SIM">{variant.sim || "—"}</AdminCell>
-                  <AdminCell label="Цена">{formatPrice(variant.price)}</AdminCell>
-
-                  <AdminCell label="До акции">
-                    <span className="text-white/50 line-through">{formatPrice(variant.oldPrice)}</span>
-                  </AdminCell>
-
-                  <div>
-                    <div className="mb-1 text-xs text-white/35 xl:hidden">Наличие</div>
-                    <span className={`rounded-full border px-3 py-1 text-sm ${variant.stock > 0 ? "border-green-500/30 bg-green-500/10 text-green-300" : "border-orange-500/30 bg-orange-500/10 text-orange-300"}`}>
-                      {getStockLabel(variant.stock)}
-                    </span>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2 xl:justify-end">
-                    <Link
-                      href={`/nz-console/positions/${encodeURIComponent(variant.sku)}`}
-                      className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-sm transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
-                    >
-                      Изменить
-                    </Link>
-                  </div>
-                </div>
-              ))
+                );
+              })
             ) : (
               <div className="p-8 text-center text-sm text-white/45">
-                В БД пока нет SKU-позиций. Нажмите «Добавить позицию», выберите карточку и создайте первую комплектацию.
+                По выбранным фильтрам SKU-позиций нет. Создайте позицию вручную или загрузите XLSX.
               </div>
             )}
           </div>
         </section>
 
-        <section className="my-8 rounded-[28px] border border-blue-500/25 bg-blue-500/10 p-6">
-          <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-400">XLSX</div>
-          <h2 className="mt-3 text-2xl font-bold tracking-[-0.035em]">Импорт позиций</h2>
-          <p className="mt-3 max-w-[980px] text-sm leading-relaxed text-white/55">
-            Excel будет обновлять именно позиции: sku, model, name, price, oldPrice, stock, color, memory, sim и status.
-          </p>
+        <section id="positions-import" className="my-8 scroll-mt-6">
+          <PositionsImportForm />
         </section>
       </div>
     </main>
