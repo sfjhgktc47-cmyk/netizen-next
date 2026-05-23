@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
 
-export type PageKey = "home" | "catalog" | "new" | "product" | "cart" | "profile";
+export type PageKey = "home" | "catalog" | "product" | "cart" | "profile";
 
 export type PageBlockType =
   | "hero"
@@ -77,11 +77,6 @@ export const builderPages: BuilderPage[] = [
     description: "Заголовок, фильтры, сетка товаров, пустые состояния и баннеры.",
   },
   {
-    key: "new",
-    title: "Новинки",
-    description: "Отдельная страница новинок и её баннерные модули.",
-  },
-  {
     key: "product",
     title: "Карточка товара",
     description: "Галерея, информация, описание, похожие товары и дополнительные блоки.",
@@ -109,9 +104,15 @@ export const moduleLibrary: ModuleDefinition[] = [
   {
     type: "benefits",
     title: "Преимущества",
-    description: "Ряд преимуществ магазина.",
+    description: "Редактируемый блок преимуществ магазина.",
     pageKeys: ["home"],
-    defaultSettings: { title: "Преимущества", subtitle: "" },
+    defaultSettings: {
+      title: "Преимущества",
+      subtitle: "Почему выбирают Netizen",
+      style: "cards",
+      source: "library",
+      limit: 6,
+    },
   },
   {
     type: "category-grid",
@@ -146,12 +147,12 @@ export const moduleLibrary: ModuleDefinition[] = [
     type: "new-arrivals",
     title: "Новинки",
     description: "Баннерный блок новинок с отдельным promo-фото.",
-    pageKeys: ["home", "catalog", "new"],
+    pageKeys: ["home", "catalog"],
     defaultSettings: {
       title: "Новинки",
       subtitle: "Техника, которая только появилась",
       limit: 3,
-      showButton: true,
+      showButton: false,
       buttonText: "Смотреть новинки →",
       buttonHref: "/catalog?new=1",
     },
@@ -160,28 +161,34 @@ export const moduleLibrary: ModuleDefinition[] = [
     type: "support",
     title: "Поддержка",
     description: "Блок помощи и сервиса.",
-    pageKeys: ["home", "new", "product", "cart", "profile"],
+    pageKeys: ["home", "product", "cart", "profile"],
     defaultSettings: { title: "Сервис и поддержка", subtitle: "Поможем с выбором и заказом." },
   },
   {
     type: "promo-banner",
-    title: "Промо-баннер",
-    description: "Отдельный баннер с текстом, кнопкой и изображением.",
-    pageKeys: ["home", "catalog", "new", "product", "cart", "profile"],
+    title: "Баннер",
+    description: "Редактируемый баннер с текстом, кнопкой, изображением и стилем.",
+    pageKeys: ["home", "catalog", "product", "cart", "profile"],
     defaultSettings: {
-      title: "Новый промо-блок",
+      bannerId: "",
+      label: "Промо",
+      title: "Новый баннер",
       subtitle: "Добавьте текст, ссылку и изображение.",
       image: "",
       buttonText: "Подробнее →",
       buttonHref: "/catalog",
       tone: "blue",
+      layout: "split",
+      height: 320,
+      imageFit: "contain",
+      imageSide: "right",
     },
   },
   {
     type: "text-image",
     title: "Текст + картинка",
     description: "Apple-style секция с крупным текстом и изображением.",
-    pageKeys: ["home", "catalog", "new", "product"],
+    pageKeys: ["home", "catalog", "product"],
     defaultSettings: {
       title: "Заголовок секции",
       subtitle: "Описание секции можно менять без кода.",
@@ -194,7 +201,7 @@ export const moduleLibrary: ModuleDefinition[] = [
     type: "product-carousel",
     title: "Карусель товаров",
     description: "Гибкая карусель товаров: популярные, новинки или все товары.",
-    pageKeys: ["home", "catalog", "new", "product"],
+    pageKeys: ["home", "catalog", "product"],
     defaultSettings: {
       title: "Товары",
       subtitle: "Подборка из каталога",
@@ -327,12 +334,6 @@ export const defaultPageBlocks: Record<PageKey, Array<Omit<SitePageBlock, "id" |
     makeDefaultBlock("catalog", "catalog-filters", 30),
     makeDefaultBlock("catalog", "catalog-grid", 40),
     makeDefaultBlock("catalog", "catalog-empty", 50),
-  ],
-  new: [
-    makeDefaultBlock("new", "promo-banner", 10),
-    makeDefaultBlock("new", "new-arrivals", 20),
-    makeDefaultBlock("new", "product-carousel", 30),
-    makeDefaultBlock("new", "support", 40),
   ],
   product: [
     makeDefaultBlock("product", "product-gallery", 10),

@@ -39,10 +39,10 @@ const categories = [
 const defaultPageBlocks = {
   home: [
     ["hero", "Hero", 10, { title: "", subtitle: "" }],
-    ["benefits", "Преимущества", 20, { title: "Преимущества" }],
+    ["benefits", "Преимущества", 20, { title: "Преимущества", subtitle: "Почему выбирают Netizen", source: "library", limit: 6, style: "cards" }],
     ["category-grid", "Категории", 30, { title: "Выберите категорию", subtitle: "Выберите направление и найдите свой идеальный гаджет", limit: 12, showButton: true, buttonText: "Смотреть все категории →", buttonHref: "/catalog" }],
     ["popular-products", "Популярные товары", 40, { title: "Популярные товары", subtitle: "Выберите модель — конфигурацию подберёте на странице товара.", limit: 12, showButton: true, buttonText: "Смотреть все товары →", buttonHref: "/catalog?popular=1", filter: "popular" }],
-    ["new-arrivals", "Новинки", 50, { title: "Новинки", subtitle: "Техника, которая только появилась", limit: 3, productSlugs: "", badgeText: "Новинка", featuredTitle: "", featuredDescription: "", secondTitle: "", secondDescription: "", thirdTitle: "", thirdDescription: "", sectionTitleSize: "large", cardTitleSize: "medium", cardTextSize: "medium" }],
+    ["new-arrivals", "Новинки", 50, { title: "Новинки", subtitle: "Техника, которая только появилась", limit: 3 }],
     ["support", "Поддержка", 60, { title: "Сервис и поддержка" }],
   ],
   catalog: [
@@ -51,12 +51,6 @@ const defaultPageBlocks = {
     ["catalog-filters", "Фильтры каталога", 30, { showFilters: true, showSort: true }],
     ["catalog-grid", "Сетка товаров", 40, { columns: 4, limit: 24 }],
     ["catalog-empty", "Пустое состояние", 50, { title: "Ничего не найдено" }],
-  ],
-  new: [
-    ["promo-banner", "Баннер новинок", 10, { title: "Новые поступления", subtitle: "Самые свежие модели и конфигурации", buttonText: "В каталог →", buttonHref: "/catalog?new=1", tone: "blue" }],
-    ["new-arrivals", "Новинки", 20, { title: "Новинки", subtitle: "Техника, которая только появилась", limit: 6, productSlugs: "", badgeText: "Новинка", featuredTitle: "", featuredDescription: "", secondTitle: "", secondDescription: "", thirdTitle: "", thirdDescription: "", sectionTitleSize: "large", cardTitleSize: "medium", cardTextSize: "medium" }],
-    ["product-carousel", "Ещё новинки", 30, { title: "Ещё новинки", subtitle: "Все новые товары из каталога", filter: "new", limit: 12, showButton: true, buttonText: "Открыть каталог →", buttonHref: "/catalog?new=1" }],
-    ["support", "Поддержка", 40, { title: "Поможем выбрать новинку", subtitle: "Расскажем отличия и подберём конфигурацию." }],
   ],
   product: [
     ["product-gallery", "Галерея товара", 10, { ratio: "3:4" }],
@@ -99,6 +93,42 @@ async function seedPageBlocks() {
   }
 }
 
+
+async function seedSiteContent() {
+  const benefitsCount = await prisma.siteBenefit.count();
+
+  if (benefitsCount === 0) {
+    await prisma.siteBenefit.createMany({
+      data: [
+        { title: "Только оригинал", description: "Работаем с проверенными поставщиками.", icon: "✓", sortOrder: 10 },
+        { title: "Гарантия и сервис", description: "Поможем после покупки и решим вопросы.", icon: "✓", sortOrder: 20 },
+        { title: "Быстрая доставка", description: "По Москве — быстро, по России — надёжно.", icon: "✓", sortOrder: 30 },
+        { title: "Безопасная оплата", description: "Удобные способы оплаты и подтверждение заказа.", icon: "✓", sortOrder: 40 },
+        { title: "Поддержка 24/7", description: "Подскажем с выбором и конфигурацией.", icon: "✓", sortOrder: 50 },
+      ],
+    });
+  }
+
+  const bannersCount = await prisma.siteBanner.count();
+
+  if (bannersCount === 0) {
+    await prisma.siteBanner.create({
+      data: {
+        adminTitle: "Основной промо-баннер",
+        label: "Промо",
+        title: "Соберите витрину без кода",
+        subtitle: "Создавайте баннеры в редакторе и подключайте их к модулям главной.",
+        buttonText: "В каталог →",
+        buttonHref: "/catalog",
+        placement: "home",
+        tone: "blue",
+        layout: "split",
+        sortOrder: 10,
+      },
+    });
+  }
+}
+
 async function main() {
   for (const category of categories) {
     await prisma.category.upsert({
@@ -134,8 +164,9 @@ async function main() {
   });
 
   await seedPageBlocks();
+  await seedSiteContent();
 
-  console.log(`Seed complete: categories, admin account and page builder blocks are ready. Admin login: ${adminLogin}`);
+  console.log(`Seed complete: categories, admin account, page builder blocks and content library are ready. Admin login: ${adminLogin}`);
 }
 
 main()

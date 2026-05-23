@@ -50,6 +50,36 @@ type HomePageBlock = {
   settings?: Record<string, string | number | boolean | null>;
 };
 
+type HomeBanner = {
+  id: string;
+  adminTitle: string;
+  label: string;
+  title: string;
+  subtitle: string;
+  description: string;
+  buttonText: string;
+  buttonHref: string;
+  imageLight: string;
+  imageDark: string;
+  imageMobile: string;
+  placement: string;
+  tone: string;
+  layout: string;
+  enabled: boolean;
+  sortOrder: number;
+};
+
+type HomeBenefit = {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  image: string;
+  href: string;
+  enabled: boolean;
+  sortOrder: number;
+};
+
 type HomeBlockSetting = {
   id: string;
   enabled: boolean;
@@ -80,6 +110,8 @@ type HomePayload = {
   newArrivals?: HomeProduct[];
   pageBlocks?: HomePageBlock[];
   siteSettings?: PublicSiteSettings;
+  banners?: HomeBanner[];
+  benefits?: HomeBenefit[];
 };
 
 const defaultHomePageBlocks: HomePageBlock[] = [
@@ -87,7 +119,7 @@ const defaultHomePageBlocks: HomePageBlock[] = [
   { id: "benefits", pageKey: "home", type: "benefits", title: "Преимущества", description: "", enabled: true, sortOrder: 20, settings: {} },
   { id: "categories", pageKey: "home", type: "category-grid", title: "Категории", description: "", enabled: true, sortOrder: 30, settings: { title: "Выберите категорию", subtitle: "Выберите направление и найдите свой идеальный гаджет", limit: 12, showButton: true, buttonText: "Смотреть все категории →", buttonHref: "/catalog" } },
   { id: "popular-products", pageKey: "home", type: "popular-products", title: "Популярные товары", description: "", enabled: true, sortOrder: 40, settings: { title: "Популярные товары", subtitle: "Выберите модель — конфигурацию подберёте на странице товара.", limit: 12, showButton: true, buttonText: "Смотреть все товары →", buttonHref: "/catalog?popular=1" } },
-  { id: "new-arrivals", pageKey: "home", type: "new-arrivals", title: "Новинки", description: "", enabled: true, sortOrder: 50, settings: { title: "Новинки", subtitle: "Техника, которая только появилась", limit: 3, productSlugs: "", badgeText: "Новинка", featuredTitle: "", featuredDescription: "", secondTitle: "", secondDescription: "", thirdTitle: "", thirdDescription: "", sectionTitleSize: "large", cardTitleSize: "medium", cardTextSize: "medium" } },
+  { id: "new-arrivals", pageKey: "home", type: "new-arrivals", title: "Новинки", description: "", enabled: true, sortOrder: 50, settings: { title: "Новинки", subtitle: "Техника, которая только появилась", limit: 3 } },
   { id: "support", pageKey: "home", type: "support", title: "Поддержка", description: "", enabled: true, sortOrder: 60, settings: {} },
 ];
 
@@ -113,10 +145,11 @@ function isConfiguredProduct(product: HomeProduct) {
 export default function Home() {
   const { dark } = useTheme();
   const [categories, setCategories] = useState<HomeCategory[]>([]);
-  const [allProducts, setAllProducts] = useState<HomeProduct[]>([]);
   const [popularProducts, setPopularProducts] = useState<HomeProduct[]>([]);
   const [newArrivals, setNewArrivals] = useState<HomeProduct[]>([]);
   const [homeBlocks, setHomeBlocks] = useState<HomePageBlock[]>([]);
+  const [banners, setBanners] = useState<HomeBanner[]>([]);
+  const [benefits, setBenefits] = useState<HomeBenefit[]>([]);
   const [siteSettings, setSiteSettings] = useState<PublicSiteSettings | null>(null);
 
   useEffect(() => {
@@ -138,9 +171,14 @@ export default function Home() {
         setCategories(Array.isArray(payload.categories) ? payload.categories : []);
         setSiteSettings(payload.siteSettings ?? null);
         setHomeBlocks(Array.isArray(payload.pageBlocks) ? payload.pageBlocks : []);
-        setAllProducts(allProducts.filter((product) => product.slug !== "catalog"));
+        setBanners(Array.isArray(payload.banners) ? payload.banners : []);
+        setBenefits(Array.isArray(payload.benefits) ? payload.benefits : []);
         setPopularProducts(dbPopularProducts.filter(isConfiguredProduct));
-        setNewArrivals(dbNewArrivals.filter((product) => product.slug !== "catalog"));
+        setNewArrivals(
+          dbNewArrivals
+            .filter((product) => product.slug !== "catalog")
+            .slice(0, 3)
+        );
       })
       .catch(() => {
         if (!mounted) return;
@@ -148,7 +186,8 @@ export default function Home() {
         setCategories([]);
         setSiteSettings(null);
         setHomeBlocks([]);
-        setAllProducts([]);
+        setBanners([]);
+        setBenefits([]);
         setPopularProducts([]);
         setNewArrivals([]);
       });
@@ -181,8 +220,10 @@ export default function Home() {
             dark={dark}
             categories={visibleCategories}
             popularProducts={popularProducts}
-            allProducts={allProducts}
+            allProducts={popularProducts.length ? popularProducts : newArrivals}
             newArrivals={newArrivals}
+            banners={banners}
+            benefits={benefits}
           />
         ))}
         <Footer dark={dark} siteSettings={siteSettings} />
@@ -199,6 +240,8 @@ function HomeModule({
   popularProducts,
   allProducts,
   newArrivals,
+  banners,
+  benefits,
 }: {
   block: HomePageBlock;
   dark: boolean;
@@ -206,6 +249,8 @@ function HomeModule({
   popularProducts: HomeProduct[];
   allProducts: HomeProduct[];
   newArrivals: HomeProduct[];
+  banners: HomeBanner[];
+  benefits: HomeBenefit[];
 }) {
   const settings = block.settings ?? {};
   const type = block.type || block.id;
@@ -216,7 +261,14 @@ function HomeModule({
   }
 
   if (type === "benefits") {
-    return <Benefits dark={dark} />;
+    return (
+      <Benefits
+        dark={dark}
+        benefits={benefits.slice(0, getBlockNumber(settings, "limit", 6))}
+        title={getBlockText(settings, "title", "Преимущества")}
+        subtitle={getBlockText(settings, "subtitle", "Почему выбирают Netizen")}
+      />
+    );
   }
 
   if (type === "category-grid" || type === "categories") {
@@ -265,36 +317,21 @@ function HomeModule({
   }
 
   if (type === "new-arrivals") {
-    const selectedProducts = pickProductsForBlock(
-      allProducts.length ? allProducts : newArrivals,
-      newArrivals,
-      getBlockText(settings, "productSlugs", "")
-    );
-
     return (
       <NewArrivals
         dark={dark}
-        products={selectedProducts.slice(0, getBlockNumber(settings, "limit", 3))}
+        products={newArrivals.slice(0, getBlockNumber(settings, "limit", 3))}
         title={getBlockText(settings, "title", "Новинки")}
         subtitle={getBlockText(settings, "subtitle", "Техника, которая только появилась")}
-        badgeText={getBlockText(settings, "badgeText", "Новинка")}
-        sectionTitleSize={getBlockText(settings, "sectionTitleSize", "large")}
-        cardTitleSize={getBlockText(settings, "cardTitleSize", "medium")}
-        cardTextSize={getBlockText(settings, "cardTextSize", "medium")}
-        buttonText={getBlockText(settings, "buttonText", "Смотреть новинки →")}
-        buttonHref={getBlockText(settings, "buttonHref", "/catalog?new=1")}
-        showButton={getBlockBoolean(settings, "showButton", false)}
-        overrides={[
-          { title: getBlockText(settings, "featuredTitle", ""), description: getBlockText(settings, "featuredDescription", "") },
-          { title: getBlockText(settings, "secondTitle", ""), description: getBlockText(settings, "secondDescription", "") },
-          { title: getBlockText(settings, "thirdTitle", ""), description: getBlockText(settings, "thirdDescription", "") },
-        ]}
       />
     );
   }
 
   if (type === "promo-banner") {
-    return <PromoBanner dark={dark} settings={settings} />;
+    const bannerId = getBlockText(settings, "bannerId", "");
+    const selectedBanner = banners.find((banner) => banner.id === bannerId);
+
+    return <PromoBanner dark={dark} settings={settings} banner={selectedBanner} />;
   }
 
   if (type === "text-image") {
@@ -306,28 +343,6 @@ function HomeModule({
   }
 
   return null;
-}
-
-function getSelectedSlugs(value: string) {
-  return value
-    .split(/[\n,;]+/)
-    .map((slug) => slug.trim())
-    .filter(Boolean);
-}
-
-function pickProductsForBlock(allProducts: HomeProduct[], fallbackProducts: HomeProduct[], slugList: string) {
-  const slugs = getSelectedSlugs(slugList);
-
-  if (slugs.length === 0) {
-    return fallbackProducts.length ? fallbackProducts : allProducts;
-  }
-
-  const bySlug = new Map(allProducts.map((product) => [product.slug, product]));
-  const selected = slugs
-    .map((slug) => bySlug.get(slug))
-    .filter((product): product is HomeProduct => Boolean(product));
-
-  return selected.length ? selected : fallbackProducts;
 }
 
 function getBlockText(settings: Record<string, string | number | boolean | null>, key: string, fallback: string) {
@@ -551,35 +566,66 @@ function Hero({ dark }: { dark: boolean }) {
   );
 }
 
-function Benefits({ dark }: { dark: boolean }) {
-  const items = [
-    "Только оригинал",
-    "Гарантия и сервис",
-    "Быстрая доставка",
-    "Безопасная оплата",
-    "Поддержка 24/7",
+function Benefits({
+  dark,
+  benefits,
+  title = "Преимущества",
+  subtitle = "Почему выбирают Netizen",
+}: {
+  dark: boolean;
+  benefits: HomeBenefit[];
+  title?: string;
+  subtitle?: string;
+}) {
+  const fallbackItems: HomeBenefit[] = [
+    { id: "original", title: "Только оригинал", description: "Работаем с проверенными поставщиками.", icon: "✓", image: "", href: "", enabled: true, sortOrder: 10 },
+    { id: "warranty", title: "Гарантия и сервис", description: "Поможем после покупки и решим вопросы.", icon: "✓", image: "", href: "", enabled: true, sortOrder: 20 },
+    { id: "delivery", title: "Быстрая доставка", description: "По Москве — быстро, по России — надёжно.", icon: "✓", image: "", href: "", enabled: true, sortOrder: 30 },
+    { id: "payment", title: "Безопасная оплата", description: "Удобные способы оплаты и подтверждение заказа.", icon: "✓", image: "", href: "", enabled: true, sortOrder: 40 },
+    { id: "support", title: "Поддержка 24/7", description: "Подскажем с выбором и конфигурацией.", icon: "✓", image: "", href: "", enabled: true, sortOrder: 50 },
   ];
+  const items = benefits.length ? benefits : fallbackItems;
 
   return (
-    <section
-      className={`mt-10 grid grid-cols-1 gap-4 rounded-2xl border p-6 transition-all duration-700 md:grid-cols-5 ${panelClass(
-        dark
-      )}`}
-    >
-      {items.map((item) => (
-        <div key={item} className="flex gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-blue-500/30 text-blue-500">
-            ✓
-          </div>
-
-          <div>
-            <div className="font-semibold">{item}</div>
-            <div className={`mt-1 text-sm ${mutedTextClass(dark)}`}>
-              Короткое описание преимущества.
-            </div>
-          </div>
+    <section className={`mt-10 rounded-2xl border p-6 transition-all duration-700 ${panelClass(dark)}`}>
+      <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+        <div>
+          <h2 className="text-3xl font-bold tracking-[-0.04em]">{title}</h2>
+          <p className={`mt-2 text-sm ${mutedTextClass(dark)}`}>{subtitle}</p>
         </div>
-      ))}
+      </div>
+
+      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-5">
+        {items.map((item) => {
+          const card = (
+            <div className="flex gap-4">
+              <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-blue-500/30 text-blue-500">
+                {item.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img src={item.image} alt="" className="h-full w-full object-cover" />
+                ) : (
+                  item.icon || "✓"
+                )}
+              </div>
+
+              <div>
+                <div className="font-semibold">{item.title}</div>
+                <div className={`mt-1 text-sm ${mutedTextClass(dark)}`}>
+                  {item.description}
+                </div>
+              </div>
+            </div>
+          );
+
+          return item.href ? (
+            <Link key={item.id} href={item.href} className="rounded-xl transition-opacity hover:opacity-80">
+              {card}
+            </Link>
+          ) : (
+            <div key={item.id}>{card}</div>
+          );
+        })}
+      </div>
     </section>
   );
 }
@@ -1006,27 +1052,11 @@ function NewArrivals({
   products,
   title = "Новинки",
   subtitle = "Техника, которая только появилась",
-  badgeText = "Новинка",
-  sectionTitleSize = "large",
-  cardTitleSize = "medium",
-  cardTextSize = "medium",
-  buttonText = "Смотреть новинки →",
-  buttonHref = "/catalog?new=1",
-  showButton = false,
-  overrides = [],
 }: {
   dark: boolean;
   products: HomeProduct[];
   title?: string;
   subtitle?: string;
-  badgeText?: string;
-  sectionTitleSize?: string;
-  cardTitleSize?: string;
-  cardTextSize?: string;
-  buttonText?: string;
-  buttonHref?: string;
-  showButton?: boolean;
-  overrides?: Array<{ title?: string; description?: string }>;
 }) {
   const items = products
     .filter((product) => product.slug !== "catalog")
@@ -1037,7 +1067,7 @@ function NewArrivals({
     return (
       <section className="pb-20">
         <div className="mb-8">
-          <h2 className={`${sectionTitleClass(sectionTitleSize)} font-bold leading-none tracking-[-0.04em]`}>
+          <h2 className="text-[42px] font-bold leading-none tracking-[-0.04em] lg:text-[52px]">
             {title}
           </h2>
           <p className={`mt-3 text-base ${mutedTextClass(dark)}`}>
@@ -1052,7 +1082,8 @@ function NewArrivals({
               : "border-black/10 bg-white text-black/55"
           }`}
         >
-          Новинки пока не выбраны. В редакторе сайта укажите slug товаров или включите галочку “Новинка” у товаров в админке.
+          Новинки пока не выбраны. Добавьте товар в админке, включите галочку
+          “Новинка” и загрузите фото для блока “Новинки”.
         </div>
       </section>
     );
@@ -1060,56 +1091,23 @@ function NewArrivals({
 
   return (
     <section className="pb-20">
-      <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
-        <div>
-          <h2 className={`${sectionTitleClass(sectionTitleSize)} font-bold leading-none tracking-[-0.04em]`}>
-            {title}
-          </h2>
+      <div className="mb-8">
+        <h2 className="text-[42px] font-bold leading-none tracking-[-0.04em] lg:text-[52px]">
+          {title}
+        </h2>
 
-          <p className={`mt-3 text-base ${mutedTextClass(dark)}`}>
-            {subtitle}
-          </p>
-        </div>
-
-        {showButton ? (
-          <Link
-            href={buttonHref}
-            className={`inline-flex rounded-xl border px-6 py-3 text-sm font-medium transition-all duration-500 hover:-translate-y-0.5 ${
-              dark
-                ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
-                : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
-            }`}
-          >
-            {buttonText}
-          </Link>
-        ) : null}
+        <p className={`mt-3 text-base ${mutedTextClass(dark)}`}>
+          {subtitle}
+        </p>
       </div>
 
       <div className="grid gap-4">
-        <NewArrivalCard
-          item={mainItem}
-          dark={dark}
-          featured
-          badgeText={badgeText}
-          titleOverride={overrides[0]?.title}
-          descriptionOverride={overrides[0]?.description}
-          cardTitleSize={cardTitleSize}
-          cardTextSize={cardTextSize}
-        />
+        <NewArrivalCard item={mainItem} dark={dark} featured />
 
         {secondaryItems.length > 0 ? (
           <div className="grid gap-4 lg:grid-cols-2">
-            {secondaryItems.map((item, index) => (
-              <NewArrivalCard
-                key={`${item.slug}-${item.name}`}
-                item={item}
-                dark={dark}
-                badgeText={badgeText}
-                titleOverride={overrides[index + 1]?.title}
-                descriptionOverride={overrides[index + 1]?.description}
-                cardTitleSize={cardTitleSize}
-                cardTextSize={cardTextSize}
-              />
+            {secondaryItems.map((item) => (
+              <NewArrivalCard key={`${item.slug}-${item.name}`} item={item} dark={dark} />
             ))}
           </div>
         ) : null}
@@ -1118,50 +1116,20 @@ function NewArrivals({
   );
 }
 
-function sectionTitleClass(size: string) {
-  if (size === "small") return "text-3xl lg:text-4xl";
-  if (size === "medium") return "text-[38px] lg:text-[46px]";
-  return "text-[42px] lg:text-[52px]";
-}
-
-function cardTitleClass(size: string, featured: boolean) {
-  if (size === "small") return featured ? "text-3xl lg:text-4xl" : "text-xl lg:text-2xl";
-  if (size === "large") return featured ? "text-5xl lg:text-6xl" : "text-3xl lg:text-4xl";
-  return featured ? "text-4xl lg:text-5xl" : "text-2xl lg:text-3xl";
-}
-
-function cardTextClass(size: string, featured: boolean) {
-  if (size === "small") return "text-sm";
-  if (size === "large") return featured ? "text-lg" : "text-base";
-  return featured ? "text-base" : "text-sm";
-}
-
 function NewArrivalCard({
   item,
   dark,
   featured = false,
-  badgeText = "Новинка",
-  titleOverride = "",
-  descriptionOverride = "",
-  cardTitleSize = "medium",
-  cardTextSize = "medium",
 }: {
   item: HomeProduct;
   dark: boolean;
   featured?: boolean;
-  badgeText?: string;
-  titleOverride?: string;
-  descriptionOverride?: string;
-  cardTitleSize?: string;
-  cardTextSize?: string;
 }) {
   const promoImage = item.promoImage?.trim() ?? "";
   const href = item.slug === "catalog" ? "/catalog" : `/product/${item.slug}`;
-  const title = titleOverride.trim() || item.name;
   const description =
-    descriptionOverride.trim() ||
     item.shortDescription ||
-    "Откройте карточку, чтобы выбрать конфигурацию.";
+    "Новая модель в каталоге. Откройте карточку, чтобы выбрать конфигурацию.";
 
   return (
     <Link
@@ -1178,23 +1146,21 @@ function NewArrivalCard({
     >
       <div className={`${featured ? "p-8 lg:p-10" : "p-7 lg:p-8"} relative z-10 flex flex-col items-start justify-center`}>
         <div className="text-xs font-bold uppercase tracking-[0.18em] text-blue-500">
-          {badgeText}
+          Новинка
         </div>
 
         <h3
-          className={`mt-4 max-w-[460px] font-bold leading-[1.05] tracking-[-0.045em] ${cardTitleClass(
-            cardTitleSize,
-            featured
-          )}`}
+          className={`mt-4 max-w-[420px] font-bold leading-[1.05] tracking-[-0.045em] ${
+            featured ? "text-4xl lg:text-5xl" : "text-2xl lg:text-3xl"
+          }`}
         >
-          {title}
+          {item.name}
         </h3>
 
         <p
-          className={`mt-4 max-w-[380px] leading-relaxed ${cardTextClass(
-            cardTextSize,
-            featured
-          )} ${mutedTextClass(dark)}`}
+          className={`mt-4 max-w-[360px] leading-relaxed ${
+            featured ? "text-base" : "text-sm"
+          } ${mutedTextClass(dark)}`}
         >
           {description}
         </p>
@@ -1223,7 +1189,7 @@ function NewArrivalCard({
           // eslint-disable-next-line @next/next/no-img-element
           <img
             src={promoImage}
-            alt={title}
+            alt={item.name}
             draggable={false}
             className="h-full w-full object-contain object-right transition-transform duration-700 group-hover:scale-[1.03]"
           />
@@ -1239,18 +1205,26 @@ function NewArrivalCard({
   );
 }
 
+
 function PromoBanner({
   dark,
   settings,
+  banner,
 }: {
   dark: boolean;
   settings: Record<string, string | number | boolean | null>;
+  banner?: HomeBanner;
 }) {
-  const title = getBlockText(settings, "title", "Промо-блок");
-  const subtitle = getBlockText(settings, "subtitle", "Добавьте текст и изображение в редакторе сайта.");
-  const image = getBlockText(settings, "image", "");
-  const buttonText = getBlockText(settings, "buttonText", "Подробнее →");
-  const buttonHref = getBlockText(settings, "buttonHref", "/catalog");
+  const title = banner?.title || getBlockText(settings, "title", "Промо-блок");
+  const subtitle = banner?.subtitle || banner?.description || getBlockText(settings, "subtitle", "Добавьте текст и изображение в редакторе сайта.");
+  const image = banner
+    ? dark
+      ? banner.imageDark || banner.imageLight || banner.imageMobile
+      : banner.imageLight || banner.imageDark || banner.imageMobile
+    : getBlockText(settings, "image", "");
+  const label = banner?.label || getBlockText(settings, "label", "Промо");
+  const buttonText = banner?.buttonText || getBlockText(settings, "buttonText", "Подробнее →");
+  const buttonHref = banner?.buttonHref || getBlockText(settings, "buttonHref", "/catalog");
 
   return (
     <section className="pb-20">
@@ -1263,7 +1237,7 @@ function PromoBanner({
         }`}
       >
         <div className="flex flex-col items-start justify-center p-8 lg:p-10">
-          <div className="text-xs font-bold uppercase tracking-[0.18em] text-blue-500">Промо</div>
+          <div className="text-xs font-bold uppercase tracking-[0.18em] text-blue-500">{label}</div>
           <h2 className="mt-4 max-w-[520px] text-4xl font-bold leading-[1.05] tracking-[-0.05em] lg:text-5xl">
             {title}
           </h2>

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { SiteContentLibraryForm } from "@/components/admin/site-content-library-form";
 import { useMemo, useState, type ReactNode } from "react";
 
 import type {
@@ -20,6 +21,7 @@ type SettingsTab = "branding" | "contacts" | "seo";
 type Props = {
   initialSettings: SiteEditorSettings;
   initialPageBuilder: PageBuilderState;
+  initialContentLibrary: SiteContentLibrary;
 };
 
 const settingTabs: Array<{ key: SettingsTab; title: string; text: string }> = [
@@ -28,9 +30,10 @@ const settingTabs: Array<{ key: SettingsTab; title: string; text: string }> = [
   { key: "seo", title: "SEO", text: "Title, description и ключевые слова." },
 ];
 
-export function SiteEditorForm({ initialSettings, initialPageBuilder }: Props) {
+export function SiteEditorForm({ initialSettings, initialPageBuilder, initialContentLibrary }: Props) {
   const [settings, setSettings] = useState(initialSettings);
   const [pageBuilder, setPageBuilder] = useState(initialPageBuilder);
+  const [contentLibrary, setContentLibrary] = useState(initialContentLibrary);
   const [activePage, setActivePage] = useState<PageKey>("home");
   const [activeSettingsTab, setActiveSettingsTab] = useState<SettingsTab>("branding");
   const [selectedBlockId, setSelectedBlockId] = useState<string>("");
@@ -473,6 +476,7 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder }: Props) {
                 onMove={(direction) => moveBlock(selectedBlock, direction)}
                 onDelete={() => removeBlock(selectedBlock)}
                 disabled={builderState === "saving"}
+                contentLibrary={contentLibrary}
               />
             ) : (
               <div className="rounded-3xl border border-dashed border-white/15 bg-black/20 p-8 text-sm text-white/45">
@@ -481,6 +485,11 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder }: Props) {
             )}
           </section>
         </section>
+
+        <SiteContentLibraryForm
+          initialLibrary={contentLibrary}
+          onChange={setContentLibrary}
+        />
 
         <details className="mt-6 rounded-[34px] border border-white/10 bg-white/[0.035] p-5 sm:p-8">
           <summary className="cursor-pointer list-none">
@@ -606,6 +615,7 @@ function ModuleInspector({
   onMove,
   onDelete,
   disabled,
+  contentLibrary,
 }: {
   block: SitePageBlock;
   module?: ModuleDefinition;
@@ -618,6 +628,7 @@ function ModuleInspector({
   onMove: (direction: "up" | "down") => void;
   onDelete: () => void;
   disabled: boolean;
+  contentLibrary: SiteContentLibrary;
 }) {
   return (
     <div>
@@ -676,19 +687,28 @@ function ModuleInspector({
         </Field>
       </div>
 
-      <ModuleSettings block={block} onSettingChange={onSettingChange} />
+      <ModuleSettings block={block} onSettingChange={onSettingChange} contentLibrary={contentLibrary} />
     </div>
   );
 }
 
-function ModuleSettings({ block, onSettingChange }: { block: SitePageBlock; onSettingChange: (key: string, value: PageBlockSettings[string]) => void }) {
+function ModuleSettings({ block, onSettingChange, contentLibrary }: { block: SitePageBlock; onSettingChange: (key: string, value: PageBlockSettings[string]) => void; contentLibrary: SiteContentLibrary }) {
   const settings = block.settings;
-  const hasTextFields = ["category-grid", "popular-products", "new-arrivals", "promo-banner", "text-image", "product-carousel", "catalog-header", "catalog-empty", "support"].includes(block.type);
-  const hasButtonFields = ["category-grid", "popular-products", "new-arrivals", "promo-banner", "product-carousel"].includes(block.type);
-  const hasImageField = ["promo-banner", "text-image"].includes(block.type);
+
+  if (block.type === "promo-banner") {
+    return <BannerModuleEditor settings={settings} onSettingChange={onSettingChange} contentLibrary={contentLibrary} />;
+  }
+
+  if (block.type === "benefits") {
+    return <BenefitsModuleEditor settings={settings} onSettingChange={onSettingChange} contentLibrary={contentLibrary} />;
+  }
+
+  const hasTextFields = ["category-grid", "popular-products", "new-arrivals", "text-image", "product-carousel", "catalog-header", "catalog-empty", "support"].includes(block.type);
+  const hasButtonFields = ["category-grid", "popular-products", "new-arrivals", "product-carousel"].includes(block.type);
+  const hasImageField = ["text-image"].includes(block.type);
   const hasLimitField = ["category-grid", "popular-products", "new-arrivals", "product-carousel", "related-products", "catalog-grid"].includes(block.type);
   const hasFilterField = block.type === "product-carousel";
-  const hasToneField = ["promo-banner", "text-image"].includes(block.type);
+  const hasToneField = ["text-image"].includes(block.type);
 
   return (
     <div className="mt-7 rounded-3xl border border-white/10 bg-black/20 p-5 sm:p-6">
@@ -776,6 +796,98 @@ function ModuleSettings({ block, onSettingChange }: { block: SitePageBlock; onSe
           У этого системного блока пока нет полей. Его можно включить, скрыть или поменять порядок.
         </div>
       ) : null}
+    </div>
+  );
+}
+
+function BannerModuleEditor({
+  settings,
+  onSettingChange,
+  contentLibrary,
+}: {
+  settings: PageBlockSettings;
+  onSettingChange: (key: string, value: PageBlockSettings[string]) => void;
+  contentLibrary: SiteContentLibrary;
+}) {
+  const selectedBannerId = getSettingText(settings, "bannerId");
+  const selectedBanner = contentLibrary.banners.find((banner) => banner.id === selectedBannerId);
+
+  return (
+    <div className="mt-7 rounded-3xl border border-white/10 bg-black/20 p-5 sm:p-6">
+      <div>
+        <div className="text-xs font-medium uppercase tracking-[0.16em] text-white/35">Баннер из библиотеки</div>
+        <h3 className="mt-2 text-xl font-bold tracking-[-0.035em]">Что показываем на сайте</h3>
+        <p className="mt-2 text-sm text-white/45">Создай баннер ниже в библиотеке, а здесь просто выбери его для модуля.</p>
+      </div>
+
+      <div className="mt-5 grid gap-4 md:grid-cols-2">
+        <Field label="Выбрать баннер">
+          <select value={selectedBannerId} onChange={(event) => onSettingChange("bannerId", event.target.value)} className="admin-input">
+            <option value="">Не выбран — использовать ручные поля</option>
+            {contentLibrary.banners.map((banner) => (
+              <option key={banner.id} value={banner.id}>{banner.adminTitle}</option>
+            ))}
+          </select>
+        </Field>
+        <Field label="Ручной заголовок, если баннер не выбран">
+          <input value={getSettingText(settings, "title")} onChange={(event) => onSettingChange("title", event.target.value)} className="admin-input" />
+        </Field>
+        <Field label="Ручное описание">
+          <input value={getSettingText(settings, "subtitle")} onChange={(event) => onSettingChange("subtitle", event.target.value)} className="admin-input" />
+        </Field>
+        <Field label="Ручная картинка">
+          <input value={getSettingText(settings, "image")} onChange={(event) => onSettingChange("image", event.target.value)} className="admin-input" />
+        </Field>
+      </div>
+
+      {selectedBanner ? (
+        <div className="mt-5 rounded-2xl border border-blue-500/25 bg-blue-500/10 p-4 text-sm text-blue-100/80">
+          Выбран: <b>{selectedBanner.adminTitle}</b>. Текст, картинки и ссылка редактируются в блоке “Баннеры и преимущества” ниже.
+        </div>
+      ) : null}
+    </div>
+  );
+}
+
+function BenefitsModuleEditor({
+  settings,
+  onSettingChange,
+  contentLibrary,
+}: {
+  settings: PageBlockSettings;
+  onSettingChange: (key: string, value: PageBlockSettings[string]) => void;
+  contentLibrary: SiteContentLibrary;
+}) {
+  return (
+    <div className="mt-7 rounded-3xl border border-white/10 bg-black/20 p-5 sm:p-6">
+      <div>
+        <div className="text-xs font-medium uppercase tracking-[0.16em] text-white/35">Преимущества из библиотеки</div>
+        <h3 className="mt-2 text-xl font-bold tracking-[-0.035em]">Настройки блока</h3>
+        <p className="mt-2 text-sm text-white/45">Карточки преимуществ создаются ниже в библиотеке. Здесь меняется только заголовок и вид блока.</p>
+      </div>
+
+      <div className="mt-5 grid gap-4 md:grid-cols-2">
+        <Field label="Заголовок блока">
+          <input value={getSettingText(settings, "title")} onChange={(event) => onSettingChange("title", event.target.value)} className="admin-input" />
+        </Field>
+        <Field label="Описание блока">
+          <input value={getSettingText(settings, "subtitle")} onChange={(event) => onSettingChange("subtitle", event.target.value)} className="admin-input" />
+        </Field>
+        <Field label="Стиль">
+          <select value={getSettingText(settings, "style") || "cards"} onChange={(event) => onSettingChange("style", event.target.value)} className="admin-input">
+            <option value="cards">Карточки</option>
+            <option value="line">В одну строку</option>
+            <option value="compact">Компактно</option>
+          </select>
+        </Field>
+        <Field label="Сколько показывать">
+          <input type="number" min={1} value={getSettingNumber(settings, "limit", 6)} onChange={(event) => onSettingChange("limit", Number(event.target.value))} className="admin-input" />
+        </Field>
+      </div>
+
+      <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.025] p-4 text-sm text-white/45">
+        Активных преимуществ в библиотеке: {contentLibrary.benefits.filter((benefit) => benefit.enabled).length}.
+      </div>
     </div>
   );
 }
