@@ -375,7 +375,7 @@ function Hero({ dark }: { dark: boolean }) {
             </h1>
 
             <p
-              className={`mt-6 max-w-[470px] text-base leading-relaxed lg:text-lg ${mutedTextClass(
+              className={`mt-6 max-w-[470px] text-base leading-relaxed lg:text-lg ${textMuted(
                 dark
               )}`}
             >
