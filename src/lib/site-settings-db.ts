@@ -343,16 +343,20 @@ function normalizeAddresses(value: unknown): SiteAddressSettings[] {
   const defaults = defaultSiteEditorSettings.contacts.addresses;
   const source = Array.isArray(value) ? value : defaults;
 
-  const addresses = source
-    .map((item, index) => {
+  const addresses: SiteAddressSettings[] = source
+    .map((item, index): SiteAddressSettings => {
       const raw = isRecord(item) ? item : {};
       const fallback = defaults[index] ?? defaults[0];
-      const type = stringValue(raw.type, fallback.type);
+      const rawType = stringValue(raw.type, fallback.type);
+      const type: SiteAddressSettings["type"] =
+        rawType === "pickup" || rawType === "office" || rawType === "showroom"
+          ? rawType
+          : "showroom";
 
       return {
         id: stringValue(raw.id, fallback.id || `address-${index + 1}`),
         title: stringValue(raw.title, fallback.title),
-        type: type === "pickup" || type === "office" ? type : "showroom",
+        type,
         city: stringValue(raw.city, fallback.city),
         address: stringValue(raw.address, fallback.address),
         metro: stringValue(raw.metro, fallback.metro),
@@ -372,7 +376,7 @@ function normalizeAddresses(value: unknown): SiteAddressSettings[] {
     addresses[0] = { ...addresses[0], isMain: true };
   }
 
-  return addresses.map((item, index) => ({
+  return addresses.map((item, index): SiteAddressSettings => ({
     ...item,
     isMain: item.isMain && addresses.findIndex((address) => address.isMain) === index,
   }));
