@@ -73,8 +73,8 @@ export function SystemSettingsForm({ initialSettings }: Props) {
     setSiteAddresses((payload?.site?.contacts?.addresses ?? []).filter((address) => address.active));
   }
 
-  function toggleRole(roles: StaffRole[], role: StaffRole) {
-    const nextRoles = roles.includes(role)
+  function toggleRole(roles: StaffRole[], role: StaffRole): StaffRole[] {
+    const nextRoles: StaffRole[] = roles.includes(role)
       ? roles.filter((item) => item !== role)
       : [...roles, role];
 
