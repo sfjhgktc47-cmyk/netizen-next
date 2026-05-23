@@ -13,6 +13,7 @@ import type {
   SitePageBlock,
 } from "@/lib/page-builder-db";
 import type { SiteEditorSettings } from "@/lib/site-settings-db";
+import type { SiteContentLibrary } from "@/lib/site-content-library-db";
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 type BuilderState = "idle" | "saving" | "saved" | "error";

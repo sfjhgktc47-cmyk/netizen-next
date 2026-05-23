@@ -73,6 +73,39 @@ function saveFavoriteSlugs(slugs: string[]) {
   window.dispatchEvent(new Event("netizen-favorites-updated"));
 }
 
+
+function ProductAmbientImage({ src, alt }: { src: string; alt: string }) {
+  return (
+    <div className="relative mx-auto flex aspect-[3/4] w-full max-w-[520px] items-center justify-center overflow-hidden rounded-[30px] border border-theme bg-card text-muted-soft shadow-[inset_0_1px_0_rgba(255,255,255,0.18)]">
+      {/* Задний слой делает мягкий фон из самой картинки: белый квадрат больше не выглядит отдельной рамкой. */}
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt=""
+        aria-hidden="true"
+        className="absolute inset-0 h-full w-full scale-125 object-cover opacity-45 blur-2xl saturate-150"
+        style={{ transform: "scaleX(-1) scale(1.25)" }}
+      />
+      <div className="absolute inset-0 bg-gradient-to-br from-white/75 via-white/35 to-blue-500/10 dark:from-slate-950/55 dark:via-slate-900/45 dark:to-blue-500/15" />
+      <div className="absolute inset-4 rounded-[24px] bg-white/35 blur-xl dark:bg-white/5" />
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img
+        src={src}
+        alt={alt}
+        className="relative z-10 h-full w-full object-contain p-5 mix-blend-multiply drop-shadow-[0_28px_55px_rgba(15,23,42,0.22)] dark:mix-blend-normal lg:p-7"
+      />
+    </div>
+  );
+}
+
+function ProductImagePlaceholder() {
+  return (
+    <div className="mx-auto flex aspect-[3/4] w-full max-w-[520px] items-center justify-center overflow-hidden rounded-[30px] border border-theme bg-blue-soft text-muted-soft">
+      Фото товара
+    </div>
+  );
+}
+
 export function ProductDetailView({
   product,
   positions,
@@ -294,18 +327,14 @@ export function ProductDetailView({
 
         <section className="mt-8 grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
           <div className="card rounded-[36px] p-6">
-            <div className="mx-auto flex aspect-[3/4] w-full max-w-[520px] items-center justify-center overflow-hidden rounded-[30px] border border-theme bg-white text-muted-soft">
-              {mediaImages[0] ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
-                  src={mediaImages[0]}
-                  alt={previewPosition?.title ?? product.name}
-                  className="h-full w-full object-contain p-4"
-                />
-              ) : (
-                "Фото товара"
-              )}
-            </div>
+            {mediaImages[0] ? (
+              <ProductAmbientImage
+                src={mediaImages[0]}
+                alt={previewPosition?.title ?? product.name}
+              />
+            ) : (
+              <ProductImagePlaceholder />
+            )}
 
             <div className="mx-auto mt-6 grid max-w-[520px] grid-cols-4 gap-4">
               {(mediaImages.length > 0 ? mediaImages.slice(0, 4) : Array.from({ length: 4 })).map(
