@@ -375,7 +375,7 @@ function Categories({
       </div>
 
       {categories.length > 0 ? (
-        <div className="mt-7 flex flex-wrap gap-4">
+        <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {categories.map((category) => {
             const image = category.image?.trim() ?? "";
 
@@ -383,13 +383,13 @@ function Categories({
               <Link
                 key={category.id || category.slug}
                 href={category.href || `/catalog/${category.slug}`}
-                className={`group relative h-[160px] w-full max-w-[270px] overflow-hidden rounded-2xl border p-4 transition-all duration-500 hover:-translate-y-1 sm:w-[270px] ${
+                className={`group relative min-h-[160px] overflow-hidden rounded-2xl border p-4 transition-all duration-500 hover:-translate-y-1 ${
                   dark
                     ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
                     : "border-black/10 bg-white shadow-[0_20px_70px_rgba(15,23,42,0.08)] hover:border-blue-500/35 hover:shadow-[0_28px_90px_rgba(15,23,42,0.12)]"
                 }`}
               >
-                <div className="relative z-10 flex h-full flex-col justify-between pr-[96px]">
+                <div className="relative z-10 flex min-h-[128px] flex-col justify-between pr-[108px]">
                   <div>
                     <h3 className="text-base font-bold leading-tight">
                       {category.name}
@@ -416,7 +416,7 @@ function Categories({
                 </div>
 
                 <div
-                  className={`absolute right-4 top-1/2 flex h-[86px] w-[86px] -translate-y-1/2 items-center justify-center overflow-hidden rounded-2xl ${
+                  className={`absolute right-4 top-1/2 flex h-[96px] w-[96px] -translate-y-1/2 items-center justify-center overflow-hidden rounded-2xl ${
                     dark ? "bg-white/[0.045]" : "bg-slate-100"
                   }`}
                 >
