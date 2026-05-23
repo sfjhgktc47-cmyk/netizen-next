@@ -35,6 +35,64 @@ const categories = [
   { slug: "tv", name: "ТВ и мультимедиа", sortOrder: 120 },
 ];
 
+
+const defaultPageBlocks = {
+  home: [
+    ["hero", "Hero", 10, { title: "", subtitle: "" }],
+    ["benefits", "Преимущества", 20, { title: "Преимущества" }],
+    ["category-grid", "Категории", 30, { title: "Выберите категорию", subtitle: "Выберите направление и найдите свой идеальный гаджет", limit: 12, showButton: true, buttonText: "Смотреть все категории →", buttonHref: "/catalog" }],
+    ["popular-products", "Популярные товары", 40, { title: "Популярные товары", subtitle: "Выберите модель — конфигурацию подберёте на странице товара.", limit: 12, showButton: true, buttonText: "Смотреть все товары →", buttonHref: "/catalog?popular=1", filter: "popular" }],
+    ["new-arrivals", "Новинки", 50, { title: "Новинки", subtitle: "Техника, которая только появилась", limit: 3 }],
+    ["support", "Поддержка", 60, { title: "Сервис и поддержка" }],
+  ],
+  catalog: [
+    ["catalog-header", "Заголовок каталога", 10, { title: "Каталог", subtitle: "Выберите категорию, модель и конфигурацию." }],
+    ["category-grid", "Категории", 20, { title: "Категории", limit: 12 }],
+    ["catalog-filters", "Фильтры каталога", 30, { showFilters: true, showSort: true }],
+    ["catalog-grid", "Сетка товаров", 40, { columns: 4, limit: 24 }],
+    ["catalog-empty", "Пустое состояние", 50, { title: "Ничего не найдено" }],
+  ],
+  product: [
+    ["product-gallery", "Галерея товара", 10, { ratio: "3:4" }],
+    ["product-info", "Информация о товаре", 20, { showBrand: true, showSku: true }],
+    ["product-description", "Описание товара", 30, { showDescriptionBlocks: true }],
+    ["related-products", "Похожие товары", 40, { limit: 8 }],
+  ],
+  cart: [
+    ["cart-items", "Товары в корзине", 10, {}],
+    ["delivery-methods", "Способы получения", 20, {}],
+    ["order-summary", "Итог заказа", 30, {}],
+  ],
+  profile: [
+    ["profile-overview", "Данные клиента", 10, {}],
+    ["profile-orders", "Заказы клиента", 20, {}],
+    ["profile-addresses", "Адреса клиента", 30, {}],
+    ["profile-support", "Обращения клиента", 40, {}],
+  ],
+};
+
+async function seedPageBlocks() {
+  for (const [pageKey, blocks] of Object.entries(defaultPageBlocks)) {
+    const count = await prisma.pageBlock.count({ where: { pageKey } });
+
+    if (count > 0) {
+      continue;
+    }
+
+    await prisma.pageBlock.createMany({
+      data: blocks.map(([type, title, sortOrder, settings]) => ({
+        pageKey,
+        type,
+        title,
+        description: "",
+        enabled: true,
+        sortOrder,
+        settings,
+      })),
+    });
+  }
+}
+
 async function main() {
   for (const category of categories) {
     await prisma.category.upsert({
@@ -69,7 +127,9 @@ async function main() {
     },
   });
 
-  console.log(`Seed complete: categories and admin account are ready. Admin login: ${adminLogin}`);
+  await seedPageBlocks();
+
+  console.log(`Seed complete: categories, admin account and page builder blocks are ready. Admin login: ${adminLogin}`);
 }
 
 main()

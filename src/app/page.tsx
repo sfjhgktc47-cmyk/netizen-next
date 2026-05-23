@@ -39,6 +39,17 @@ type HomeProduct = {
   isPopular?: boolean;
 };
 
+type HomePageBlock = {
+  id: string;
+  pageKey: string;
+  type: string;
+  title: string;
+  description: string;
+  enabled: boolean;
+  sortOrder: number;
+  settings?: Record<string, string | number | boolean | null>;
+};
+
 type HomeBlockSetting = {
   id: string;
   enabled: boolean;
@@ -67,40 +78,18 @@ type HomePayload = {
   products?: HomeProduct[];
   popularProducts?: HomeProduct[];
   newArrivals?: HomeProduct[];
+  pageBlocks?: HomePageBlock[];
   siteSettings?: PublicSiteSettings;
 };
 
-const fallbackCategories: HomeCategory[] = [
-  {
-    id: "smartphones",
-    slug: "smartphones",
-    name: "Смартфоны",
-    description: "iPhone, Samsung, Xiaomi и другие",
-    href: "/catalog/smartphones",
-  },
-  {
-    id: "laptops",
-    slug: "laptops",
-    name: "Ноутбуки",
-    description: "MacBook, Windows и игровые модели",
-    href: "/catalog/laptops",
-  },
-  {
-    id: "watches",
-    slug: "watches",
-    name: "Умные часы",
-    description: "Apple Watch, Samsung Galaxy Watch и другие",
-    href: "/catalog/watches",
-  },
-  {
-    id: "headphones",
-    slug: "headphones",
-    name: "Наушники",
-    description: "AirPods, Sony, JBL и другие",
-    href: "/catalog/headphones",
-  },
+const defaultHomePageBlocks: HomePageBlock[] = [
+  { id: "hero", pageKey: "home", type: "hero", title: "Hero", description: "", enabled: true, sortOrder: 10, settings: {} },
+  { id: "benefits", pageKey: "home", type: "benefits", title: "Преимущества", description: "", enabled: true, sortOrder: 20, settings: {} },
+  { id: "categories", pageKey: "home", type: "category-grid", title: "Категории", description: "", enabled: true, sortOrder: 30, settings: { title: "Выберите категорию", subtitle: "Выберите направление и найдите свой идеальный гаджет", limit: 12, showButton: true, buttonText: "Смотреть все категории →", buttonHref: "/catalog" } },
+  { id: "popular-products", pageKey: "home", type: "popular-products", title: "Популярные товары", description: "", enabled: true, sortOrder: 40, settings: { title: "Популярные товары", subtitle: "Выберите модель — конфигурацию подберёте на странице товара.", limit: 12, showButton: true, buttonText: "Смотреть все товары →", buttonHref: "/catalog?popular=1" } },
+  { id: "new-arrivals", pageKey: "home", type: "new-arrivals", title: "Новинки", description: "", enabled: true, sortOrder: 50, settings: { title: "Новинки", subtitle: "Техника, которая только появилась", limit: 3 } },
+  { id: "support", pageKey: "home", type: "support", title: "Поддержка", description: "", enabled: true, sortOrder: 60, settings: {} },
 ];
-
 
 function getProductImage(product: HomeProduct) {
   const mainImage = typeof product.image === "string" ? product.image.trim() : "";
@@ -120,15 +109,13 @@ function isConfiguredProduct(product: HomeProduct) {
   return product.slug !== "catalog" && Boolean(getProductImage(product));
 }
 
-function hasPromoImage(product: HomeProduct) {
-  return Boolean(product.promoImage?.trim());
-}
 
 export default function Home() {
   const { dark } = useTheme();
   const [categories, setCategories] = useState<HomeCategory[]>([]);
   const [popularProducts, setPopularProducts] = useState<HomeProduct[]>([]);
   const [newArrivals, setNewArrivals] = useState<HomeProduct[]>([]);
+  const [homeBlocks, setHomeBlocks] = useState<HomePageBlock[]>([]);
   const [siteSettings, setSiteSettings] = useState<PublicSiteSettings | null>(null);
 
   useEffect(() => {
@@ -149,6 +136,7 @@ export default function Home() {
 
         setCategories(Array.isArray(payload.categories) ? payload.categories : []);
         setSiteSettings(payload.siteSettings ?? null);
+        setHomeBlocks(Array.isArray(payload.pageBlocks) ? payload.pageBlocks : []);
         setPopularProducts(dbPopularProducts.filter(isConfiguredProduct));
         setNewArrivals(
           dbNewArrivals
@@ -161,6 +149,7 @@ export default function Home() {
 
         setCategories([]);
         setSiteSettings(null);
+        setHomeBlocks([]);
         setPopularProducts([]);
         setNewArrivals([]);
       });
@@ -170,12 +159,10 @@ export default function Home() {
     };
   }, []);
 
-  const visibleCategories = categories.length ? categories : fallbackCategories;
-
-  function isHomeBlockEnabled(blockId: string) {
-    const block = siteSettings?.homeBlocks?.find((item) => item.id === blockId);
-    return block ? block.enabled : true;
-  }
+  const visibleCategories = categories;
+  const visibleHomeBlocks = (homeBlocks.length ? homeBlocks : defaultHomePageBlocks)
+    .filter((block) => block.enabled)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
 
   return (
     <main
@@ -188,22 +175,154 @@ export default function Home() {
       <div className="mx-auto max-w-[1440px] px-6 py-6">
         <SiteHeader />
 
-        {isHomeBlockEnabled("hero") && <Hero dark={dark} />}
-        {isHomeBlockEnabled("benefits") && <Benefits dark={dark} />}
-        {isHomeBlockEnabled("categories") && (
-          <Categories dark={dark} categories={visibleCategories.slice(0, 12)} />
-        )}
-        {isHomeBlockEnabled("popular-products") && (
-          <PopularProducts dark={dark} products={popularProducts.slice(0, 12)} />
-        )}
-        {isHomeBlockEnabled("new-arrivals") && (
-          <NewArrivals dark={dark} products={newArrivals} />
-        )}
-        {isHomeBlockEnabled("support") && <SupportBlock dark={dark} />}
+        {visibleHomeBlocks.map((block) => (
+          <HomeModule
+            key={block.id}
+            block={block}
+            dark={dark}
+            categories={visibleCategories}
+            popularProducts={popularProducts}
+            allProducts={popularProducts.length ? popularProducts : newArrivals}
+            newArrivals={newArrivals}
+          />
+        ))}
         <Footer dark={dark} siteSettings={siteSettings} />
       </div>
     </main>
   );
+}
+
+
+function HomeModule({
+  block,
+  dark,
+  categories,
+  popularProducts,
+  allProducts,
+  newArrivals,
+}: {
+  block: HomePageBlock;
+  dark: boolean;
+  categories: HomeCategory[];
+  popularProducts: HomeProduct[];
+  allProducts: HomeProduct[];
+  newArrivals: HomeProduct[];
+}) {
+  const settings = block.settings ?? {};
+  const type = block.type || block.id;
+  const limit = getBlockNumber(settings, "limit", 12);
+
+  if (type === "hero") {
+    return <Hero dark={dark} />;
+  }
+
+  if (type === "benefits") {
+    return <Benefits dark={dark} />;
+  }
+
+  if (type === "category-grid" || type === "categories") {
+    return (
+      <Categories
+        dark={dark}
+        categories={categories.slice(0, limit)}
+        title={getBlockText(settings, "title", "Выберите категорию")}
+        subtitle={getBlockText(settings, "subtitle", "Выберите направление и найдите свой идеальный гаджет")}
+        buttonText={getBlockText(settings, "buttonText", "Смотреть все категории →")}
+        buttonHref={getBlockText(settings, "buttonHref", "/catalog")}
+        showButton={getBlockBoolean(settings, "showButton", true)}
+      />
+    );
+  }
+
+  if (type === "popular-products") {
+    return (
+      <PopularProducts
+        dark={dark}
+        products={popularProducts.slice(0, limit)}
+        title={getBlockText(settings, "title", "Популярные товары")}
+        subtitle={getBlockText(settings, "subtitle", "Выберите модель — конфигурацию подберёте на странице товара.")}
+        buttonText={getBlockText(settings, "buttonText", "Смотреть все товары →")}
+        buttonHref={getBlockText(settings, "buttonHref", "/catalog?popular=1")}
+        showButton={getBlockBoolean(settings, "showButton", true)}
+      />
+    );
+  }
+
+  if (type === "product-carousel") {
+    const filter = getBlockText(settings, "filter", "all");
+    const source = filter === "popular" ? popularProducts : filter === "new" ? newArrivals : allProducts;
+
+    return (
+      <PopularProducts
+        dark={dark}
+        products={source.slice(0, limit)}
+        title={getBlockText(settings, "title", "Товары")}
+        subtitle={getBlockText(settings, "subtitle", "Подборка из каталога")}
+        buttonText={getBlockText(settings, "buttonText", "Открыть каталог →")}
+        buttonHref={getBlockText(settings, "buttonHref", "/catalog")}
+        showButton={getBlockBoolean(settings, "showButton", true)}
+      />
+    );
+  }
+
+  if (type === "new-arrivals") {
+    return (
+      <NewArrivals
+        dark={dark}
+        products={newArrivals.slice(0, getBlockNumber(settings, "limit", 3))}
+        title={getBlockText(settings, "title", "Новинки")}
+        subtitle={getBlockText(settings, "subtitle", "Техника, которая только появилась")}
+      />
+    );
+  }
+
+  if (type === "promo-banner") {
+    return <PromoBanner dark={dark} settings={settings} />;
+  }
+
+  if (type === "text-image") {
+    return <TextImageModule dark={dark} settings={settings} />;
+  }
+
+  if (type === "support") {
+    return <SupportBlock dark={dark} />;
+  }
+
+  return null;
+}
+
+function getBlockText(settings: Record<string, string | number | boolean | null>, key: string, fallback: string) {
+  const value = settings[key];
+
+  if (typeof value === "string") {
+    return value || fallback;
+  }
+
+  if (typeof value === "number") {
+    return String(value);
+  }
+
+  return fallback;
+}
+
+function getBlockNumber(settings: Record<string, string | number | boolean | null>, key: string, fallback: number) {
+  const value = settings[key];
+
+  if (typeof value === "number" && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === "string") {
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : fallback;
+  }
+
+  return fallback;
+}
+
+function getBlockBoolean(settings: Record<string, string | number | boolean | null>, key: string, fallback: boolean) {
+  const value = settings[key];
+  return typeof value === "boolean" ? value : fallback;
 }
 
 function panelClass(dark: boolean) {
@@ -429,20 +548,30 @@ function Benefits({ dark }: { dark: boolean }) {
 function Categories({
   dark,
   categories,
+  title = "Выберите категорию",
+  subtitle = "Выберите направление и найдите свой идеальный гаджет",
+  buttonText = "Смотреть все категории →",
+  buttonHref = "/catalog",
+  showButton = true,
 }: {
   dark: boolean;
   categories: HomeCategory[];
+  title?: string;
+  subtitle?: string;
+  buttonText?: string;
+  buttonHref?: string;
+  showButton?: boolean;
 }) {
   return (
     <section className="py-20">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <h2 className="text-4xl font-bold tracking-[-0.04em]">
-            Выберите категорию
+            {title}
           </h2>
 
           <p className={`mt-3 ${mutedTextClass(dark)}`}>
-            Выберите направление и найдите свой идеальный гаджет
+            {subtitle}
           </p>
         </div>
       </div>
@@ -516,18 +645,20 @@ function Categories({
         })}
       </div>
 
-      <div className="mt-8 flex justify-center">
-        <Link
-          href="/catalog"
-          className={`min-w-[280px] rounded-xl border px-10 py-4 text-center text-sm font-medium transition-all duration-500 hover:-translate-y-0.5 ${
-            dark
-              ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
-              : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
-          }`}
-        >
-          Смотреть все категории →
-        </Link>
-      </div>
+      {showButton ? (
+        <div className="mt-8 flex justify-center">
+          <Link
+            href={buttonHref}
+            className={`min-w-[280px] rounded-xl border px-10 py-4 text-center text-sm font-medium transition-all duration-500 hover:-translate-y-0.5 ${
+              dark
+                ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
+                : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
+            }`}
+          >
+            {buttonText}
+          </Link>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -535,9 +666,19 @@ function Categories({
 function PopularProducts({
   dark,
   products,
+  title = "Популярные товары",
+  subtitle = "Выберите модель — конфигурацию подберёте на странице товара.",
+  buttonText = "Смотреть все товары →",
+  buttonHref = "/catalog?popular=1",
+  showButton = true,
 }: {
   dark: boolean;
   products: HomeProduct[];
+  title?: string;
+  subtitle?: string;
+  buttonText?: string;
+  buttonHref?: string;
+  showButton?: boolean;
 }) {
   const sliderRef = useRef<HTMLDivElement | null>(null);
   const dragStartXRef = useRef<number | null>(null);
@@ -625,11 +766,11 @@ function PopularProducts({
       <section className="pb-20">
         <div>
           <h2 className="text-[42px] font-bold leading-none tracking-[-0.04em] lg:text-[52px]">
-            Популярные товары
+            {title}
           </h2>
 
           <p className={`mt-3 text-base ${mutedTextClass(dark)}`}>
-            Добавьте реальные товары в БД и загрузите фото, чтобы они появились на главной.
+            {subtitle || "Добавьте реальные товары в БД и загрузите фото, чтобы они появились на главной."}
           </p>
         </div>
 
@@ -651,11 +792,11 @@ function PopularProducts({
       <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div>
           <h2 className="text-[42px] font-bold leading-none tracking-[-0.04em] lg:text-[52px]">
-            Популярные товары
+            {title}
           </h2>
 
           <p className={`mt-3 text-base ${mutedTextClass(dark)}`}>
-            Выберите модель — конфигурацию подберёте на странице товара.
+            {subtitle}
           </p>
         </div>
 
@@ -730,18 +871,20 @@ function PopularProducts({
         </div>
       </div>
 
-      <div className="mt-8 flex justify-center">
-        <Link
-          href="/catalog"
-          className={`min-w-[320px] rounded-xl border px-10 py-4 text-center text-sm font-medium transition-all duration-500 hover:-translate-y-0.5 ${
-            dark
-              ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
-              : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
-          }`}
-        >
-          Смотреть все товары →
-        </Link>
-      </div>
+      {showButton ? (
+        <div className="mt-8 flex justify-center">
+          <Link
+            href={buttonHref}
+            className={`min-w-[320px] rounded-xl border px-10 py-4 text-center text-sm font-medium transition-all duration-500 hover:-translate-y-0.5 ${
+              dark
+                ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
+                : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
+            }`}
+          >
+            {buttonText}
+          </Link>
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -822,9 +965,13 @@ function ProductCard({
 function NewArrivals({
   dark,
   products,
+  title = "Новинки",
+  subtitle = "Техника, которая только появилась",
 }: {
   dark: boolean;
   products: HomeProduct[];
+  title?: string;
+  subtitle?: string;
 }) {
   const items = products
     .filter((product) => product.slug !== "catalog")
@@ -836,10 +983,10 @@ function NewArrivals({
       <section className="pb-20">
         <div className="mb-8">
           <h2 className="text-[42px] font-bold leading-none tracking-[-0.04em] lg:text-[52px]">
-            Новинки
+            {title}
           </h2>
           <p className={`mt-3 text-base ${mutedTextClass(dark)}`}>
-            Техника, которая только появилась
+            {subtitle}
           </p>
         </div>
 
@@ -861,11 +1008,11 @@ function NewArrivals({
     <section className="pb-20">
       <div className="mb-8">
         <h2 className="text-[42px] font-bold leading-none tracking-[-0.04em] lg:text-[52px]">
-          Новинки
+          {title}
         </h2>
 
         <p className={`mt-3 text-base ${mutedTextClass(dark)}`}>
-          Техника, которая только появилась
+          {subtitle}
         </p>
       </div>
 
@@ -970,6 +1117,98 @@ function NewArrivalCard({
         )}
       </div>
     </Link>
+  );
+}
+
+
+function PromoBanner({
+  dark,
+  settings,
+}: {
+  dark: boolean;
+  settings: Record<string, string | number | boolean | null>;
+}) {
+  const title = getBlockText(settings, "title", "Промо-блок");
+  const subtitle = getBlockText(settings, "subtitle", "Добавьте текст и изображение в редакторе сайта.");
+  const image = getBlockText(settings, "image", "");
+  const buttonText = getBlockText(settings, "buttonText", "Подробнее →");
+  const buttonHref = getBlockText(settings, "buttonHref", "/catalog");
+
+  return (
+    <section className="pb-20">
+      <Link
+        href={buttonHref}
+        className={`group grid min-h-[260px] overflow-hidden rounded-[34px] border transition-all duration-500 hover:-translate-y-1 lg:grid-cols-[0.95fr_1.05fr] ${
+          dark
+            ? "border-blue-500/20 bg-blue-600/10 shadow-[0_24px_90px_rgba(0,60,255,0.10)] hover:border-blue-500/40"
+            : "border-blue-100 bg-white shadow-[0_24px_90px_rgba(15,23,42,0.08)] hover:border-blue-400/40"
+        }`}
+      >
+        <div className="flex flex-col items-start justify-center p-8 lg:p-10">
+          <div className="text-xs font-bold uppercase tracking-[0.18em] text-blue-500">Промо</div>
+          <h2 className="mt-4 max-w-[520px] text-4xl font-bold leading-[1.05] tracking-[-0.05em] lg:text-5xl">
+            {title}
+          </h2>
+          <p className={`mt-4 max-w-[430px] text-base leading-relaxed ${mutedTextClass(dark)}`}>
+            {subtitle}
+          </p>
+          <span className="mt-7 inline-flex rounded-xl bg-blue-600 px-6 py-4 text-sm font-medium text-white transition-colors group-hover:bg-blue-500">
+            {buttonText}
+          </span>
+        </div>
+
+        <div className={`flex min-h-[220px] items-center justify-center ${dark ? "bg-white/[0.035]" : "bg-slate-50"}`}>
+          {image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={image} alt={title} className="h-full max-h-[360px] w-full object-contain p-6 transition-transform duration-500 group-hover:scale-105" />
+          ) : (
+            <div className={`mx-6 h-[180px] w-full rounded-3xl border border-dashed ${dark ? "border-white/10 bg-white/[0.03]" : "border-black/10 bg-white"}`} />
+          )}
+        </div>
+      </Link>
+    </section>
+  );
+}
+
+function TextImageModule({
+  dark,
+  settings,
+}: {
+  dark: boolean;
+  settings: Record<string, string | number | boolean | null>;
+}) {
+  const title = getBlockText(settings, "title", "Заголовок секции");
+  const subtitle = getBlockText(settings, "subtitle", "Описание секции можно менять в редакторе сайта.");
+  const image = getBlockText(settings, "image", "");
+  const imageSide = getBlockText(settings, "imageSide", "right");
+
+  return (
+    <section className="pb-20">
+      <div
+        className={`grid overflow-hidden rounded-[34px] border lg:grid-cols-2 ${
+          dark
+            ? "border-white/10 bg-white/[0.035]"
+            : "border-black/10 bg-white shadow-[0_24px_90px_rgba(15,23,42,0.08)]"
+        }`}
+      >
+        <div className={`flex min-h-[300px] items-center justify-center p-8 ${imageSide === "left" ? "lg:order-1" : "lg:order-2"}`}>
+          {image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={image} alt={title} className="max-h-[360px] w-full object-contain" />
+          ) : (
+            <div className={`h-[240px] w-full rounded-3xl border border-dashed ${dark ? "border-white/10 bg-white/[0.03]" : "border-black/10 bg-slate-50"}`} />
+          )}
+        </div>
+        <div className={`flex flex-col justify-center p-8 lg:p-12 ${imageSide === "left" ? "lg:order-2" : "lg:order-1"}`}>
+          <h2 className="max-w-[520px] text-4xl font-bold leading-[1.05] tracking-[-0.05em] lg:text-5xl">
+            {title}
+          </h2>
+          <p className={`mt-5 max-w-[520px] text-base leading-relaxed lg:text-lg ${mutedTextClass(dark)}`}>
+            {subtitle}
+          </p>
+        </div>
+      </div>
+    </section>
   );
 }
 

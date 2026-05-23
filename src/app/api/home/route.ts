@@ -1,15 +1,17 @@
 import { NextResponse } from "next/server";
 
 import { getPublicCatalogData } from "@/lib/public-catalog-db";
+import { getPublicPageBlocks } from "@/lib/page-builder-db";
 import { getSiteEditorSettings } from "@/lib/site-settings-db";
 
 export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
-    const [catalog, siteSettings] = await Promise.all([
+    const [catalog, siteSettings, pageBlocks] = await Promise.all([
       getPublicCatalogData(),
       getSiteEditorSettings(),
+      getPublicPageBlocks("home"),
     ]);
 
     const configuredProducts = catalog.productCards.filter((product) => {
@@ -36,11 +38,12 @@ export async function GET() {
         explicitNewArrivals.length > 0
           ? explicitNewArrivals
           : dbProducts.slice(0, 3),
+      pageBlocks,
       siteSettings,
     });
   } catch (error) {
     console.error("Home data loading failed", error);
 
-    return NextResponse.json({ categories: [], products: [] });
+    return NextResponse.json({ categories: [], products: [], pageBlocks: [] });
   }
 }
