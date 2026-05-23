@@ -320,7 +320,7 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder }: Props) {
           <div className="hidden items-center gap-3 text-sm text-white/55 md:flex">
             <span>Редактор сайта</span>
             <span>·</span>
-            <span>конструктор модулей</span>
+            <span>модули страниц</span>
           </div>
 
           <Link
@@ -340,7 +340,7 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder }: Props) {
           <div className="mt-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <div className="inline-flex rounded-full border border-blue-500/35 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-400">
-                Конструктор сайта
+                Редактор сайта
               </div>
 
               <h1 className="mt-5 text-5xl font-bold tracking-[-0.055em]">
@@ -348,8 +348,7 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder }: Props) {
               </h1>
 
               <p className="mt-4 max-w-[900px] text-sm leading-relaxed text-white/55">
-                Страницы собираются из модулей. Модуль можно включить, выключить,
-                удалить, поменять местами, добавить заново и настроить без кода.
+                Выберите страницу, включайте нужные блоки и меняйте только основные настройки: заголовок, текст, кнопку, фото и лимит.
               </p>
             </div>
 
@@ -374,7 +373,7 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder }: Props) {
 
           {saveState === "saved" && <Alert tone="success">Глобальные настройки сохранены.</Alert>}
           {saveState === "error" && <Alert tone="error">Не удалось сохранить настройки.</Alert>}
-          {builderState === "saved" && <Alert tone="success">Модуль обновлён.</Alert>}
+          {builderState === "saved" && <Alert tone="success">Блок обновлён.</Alert>}
           {builderState === "error" && <Alert tone="error">Не удалось сохранить модуль.</Alert>}
         </section>
 
@@ -614,32 +613,26 @@ function ModuleCard({
                   : "border-red-500/30 bg-red-500/10 text-red-300"
               }`}
             >
-              {block.enabled ? "Включён" : "Скрыт"}
+              {block.enabled ? "Показывается" : "Скрыт"}
             </span>
           </div>
 
           <div className="mt-5 grid gap-4 md:grid-cols-2">
-            <Field label="Название модуля">
-              <input value={block.title} onChange={(event) => onChange({ title: event.target.value })} className="admin-input" />
+            <Field label="Название блока в админке">
+              <input
+                value={block.title}
+                onChange={(event) => onChange({ title: event.target.value })}
+                className="admin-input"
+              />
             </Field>
 
-            <Field label="Тип модуля">
-              <select value={block.type} onChange={(event) => onChange({ type: event.target.value as PageBlockType })} className="admin-input">
-                {modules.map((module) => (
-                  <option key={module.type} value={module.type}>
-                    {module.title}
-                  </option>
-                ))}
-              </select>
-            </Field>
-
-            <Field label="Краткое описание в админке">
-              <input value={block.description} onChange={(event) => onChange({ description: event.target.value })} className="admin-input" />
-            </Field>
-
-            <Field label="Порядок">
-              <input type="number" value={block.sortOrder} onChange={(event) => onChange({ sortOrder: Number(event.target.value) })} className="admin-input" />
-            </Field>
+            <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4 text-sm text-white/55">
+              <div className="text-xs font-medium uppercase tracking-[0.16em] text-white/35">Тип блока</div>
+              <div className="mt-2 font-semibold text-white">{selectedModule?.title ?? block.type}</div>
+              <p className="mt-2 text-xs leading-relaxed text-white/45">
+                Тип выбирается при добавлении блока. Чтобы заменить блок, проще скрыть или удалить текущий и добавить новый.
+              </p>
+            </div>
           </div>
 
           <ModuleSettings block={block} onSettingChange={onSettingChange} />
@@ -667,140 +660,134 @@ function ModuleCard({
   );
 }
 
-function ModuleSettings({ block, onSettingChange }: { block: SitePageBlock; onSettingChange: (key: string, value: PageBlockSettings[string]) => void }) {
+function ModuleSettings({
+  block,
+  onSettingChange,
+}: {
+  block: SitePageBlock;
+  onSettingChange: (key: string, value: PageBlockSettings[string]) => void;
+}) {
   const settings = block.settings;
-  const hasTextFields = ["category-grid", "popular-products", "new-arrivals", "promo-banner", "text-image", "product-carousel", "catalog-header", "catalog-empty", "support"].includes(block.type);
-  const hasButtonFields = ["category-grid", "popular-products", "new-arrivals", "promo-banner", "product-carousel"].includes(block.type);
-  const hasImageField = ["promo-banner", "text-image"].includes(block.type);
-  const hasLimitField = ["category-grid", "popular-products", "new-arrivals", "product-carousel", "related-products", "catalog-grid"].includes(block.type);
-  const hasFilterField = ["popular-products", "product-carousel"].includes(block.type);
+  const textBlocks: PageBlockType[] = [
+    "category-grid",
+    "popular-products",
+    "new-arrivals",
+    "promo-banner",
+    "text-image",
+    "product-carousel",
+    "catalog-header",
+    "catalog-empty",
+    "support",
+  ];
+  const buttonBlocks: PageBlockType[] = [
+    "category-grid",
+    "popular-products",
+    "new-arrivals",
+    "promo-banner",
+    "product-carousel",
+  ];
+  const imageBlocks: PageBlockType[] = ["promo-banner", "text-image"];
+  const limitBlocks: PageBlockType[] = [
+    "category-grid",
+    "popular-products",
+    "new-arrivals",
+    "product-carousel",
+    "related-products",
+    "catalog-grid",
+  ];
+  const filterBlocks: PageBlockType[] = ["popular-products", "product-carousel"];
+
+  const hasTextFields = textBlocks.includes(block.type);
+  const hasButtonFields = buttonBlocks.includes(block.type);
+  const hasImageField = imageBlocks.includes(block.type);
+  const hasLimitField = limitBlocks.includes(block.type);
+  const hasFilterField = filterBlocks.includes(block.type);
   const isNewArrivalsBlock = block.type === "new-arrivals";
+
+  if (!hasTextFields && !hasButtonFields && !hasImageField && !hasLimitField && !hasFilterField) {
+    return (
+      <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.025] p-4 text-sm leading-relaxed text-white/45">
+        У этого блока нет текстовых настроек. Его можно показывать, скрывать и двигать выше/ниже.
+      </div>
+    );
+  }
 
   return (
     <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-      <div className="text-xs font-medium uppercase tracking-[0.16em] text-white/35">Настройки модуля</div>
+      <div className="text-xs font-medium uppercase tracking-[0.16em] text-white/35">Настройки блока</div>
+
+      {isNewArrivalsBlock && (
+        <div className="mt-4 rounded-2xl border border-blue-500/25 bg-blue-500/10 p-4 text-sm leading-relaxed text-blue-100/75">
+          Новинки теперь проще: товары выбираются не здесь, а в карточке товара.
+          Откройте товар в админке, включите “Новинка” и загрузите “Фото для блока Новинки”.
+          Здесь меняются только заголовок, описание, лимит и кнопка блока.
+        </div>
+      )}
 
       <div className="mt-4 grid gap-4 md:grid-cols-2">
         {hasTextFields && (
           <>
             <Field label="Заголовок на сайте">
-              <input value={getSettingText(settings, "title")} onChange={(event) => onSettingChange("title", event.target.value)} className="admin-input" />
+              <input
+                value={getSettingText(settings, "title")}
+                onChange={(event) => onSettingChange("title", event.target.value)}
+                className="admin-input"
+              />
             </Field>
-            <Field label="Подзаголовок / текст">
-              <input value={getSettingText(settings, "subtitle")} onChange={(event) => onSettingChange("subtitle", event.target.value)} className="admin-input" />
-            </Field>
-          </>
-        )}
-
-        {hasButtonFields && (
-          <>
-            <Field label="Текст кнопки">
-              <input value={getSettingText(settings, "buttonText")} onChange={(event) => onSettingChange("buttonText", event.target.value)} className="admin-input" />
-            </Field>
-            <Field label="Ссылка кнопки">
-              <input value={getSettingText(settings, "buttonHref")} onChange={(event) => onSettingChange("buttonHref", event.target.value)} className="admin-input" />
+            <Field label="Описание / подзаголовок">
+              <input
+                value={getSettingText(settings, "subtitle")}
+                onChange={(event) => onSettingChange("subtitle", event.target.value)}
+                className="admin-input"
+              />
             </Field>
           </>
-        )}
-
-        {hasImageField && (
-          <Field label="Изображение / баннер">
-            <input value={getSettingText(settings, "image")} onChange={(event) => onSettingChange("image", event.target.value)} className="admin-input" placeholder="/uploads/banner.png или https://..." />
-          </Field>
         )}
 
         {hasLimitField && (
-          <Field label="Лимит элементов">
-            <input type="number" min={1} value={getSettingNumber(settings, "limit", 12)} onChange={(event) => onSettingChange("limit", Number(event.target.value))} className="admin-input" />
+          <Field label="Сколько элементов показывать">
+            <input
+              type="number"
+              min={1}
+              value={getSettingNumber(settings, "limit", block.type === "new-arrivals" ? 3 : 12)}
+              onChange={(event) => onSettingChange("limit", Number(event.target.value))}
+              className="admin-input"
+            />
           </Field>
         )}
 
         {hasFilterField && (
           <Field label="Фильтр товаров">
-            <select value={getSettingText(settings, "filter") || "all"} onChange={(event) => onSettingChange("filter", event.target.value)} className="admin-input">
+            <select
+              value={getSettingText(settings, "filter") || "all"}
+              onChange={(event) => onSettingChange("filter", event.target.value)}
+              className="admin-input"
+            >
               <option value="all">Все товары</option>
-              <option value="popular">Популярные</option>
-              <option value="new">Новинки</option>
+              <option value="popular">Только популярные</option>
+              <option value="new">Только новинки</option>
             </select>
           </Field>
         )}
 
-        {isNewArrivalsBlock && (
-          <>
-            <Field label="Товары в новинках: slug через запятую или с новой строки">
-              <textarea
-                value={getSettingText(settings, "productSlugs")}
-                onChange={(event) => onSettingChange("productSlugs", event.target.value)}
-                className="admin-textarea min-h-[96px] md:col-span-2"
-                placeholder="iphone-17e\nmacbook-pro-m5\nairpods-pro-3"
-              />
-            </Field>
-
-            <Field label="Метка над карточкой">
-              <input value={getSettingText(settings, "badgeText") || "Новинка"} onChange={(event) => onSettingChange("badgeText", event.target.value)} className="admin-input" />
-            </Field>
-
-            <Field label="Размер заголовка блока">
-              <select value={getSettingText(settings, "sectionTitleSize") || "large"} onChange={(event) => onSettingChange("sectionTitleSize", event.target.value)} className="admin-input">
-                <option value="small">Компактный</option>
-                <option value="medium">Средний</option>
-                <option value="large">Крупный</option>
-              </select>
-            </Field>
-
-            <Field label="Размер названия в карточках">
-              <select value={getSettingText(settings, "cardTitleSize") || "medium"} onChange={(event) => onSettingChange("cardTitleSize", event.target.value)} className="admin-input">
-                <option value="small">Компактный</option>
-                <option value="medium">Средний</option>
-                <option value="large">Крупный</option>
-              </select>
-            </Field>
-
-            <Field label="Размер описания в карточках">
-              <select value={getSettingText(settings, "cardTextSize") || "medium"} onChange={(event) => onSettingChange("cardTextSize", event.target.value)} className="admin-input">
-                <option value="small">Компактный</option>
-                <option value="medium">Средний</option>
-                <option value="large">Крупный</option>
-              </select>
-            </Field>
-
-            <div className="md:col-span-2 rounded-2xl border border-white/10 bg-black/20 p-4">
-              <div className="text-sm font-bold text-white/80">Тексты карточек</div>
-              <p className="mt-1 text-xs leading-relaxed text-white/45">Можно оставить пустым — тогда название берётся из товара, а описание из карточки товара.</p>
-              <div className="mt-4 grid gap-4 md:grid-cols-2">
-                <Field label="Главная карточка — своё название">
-                  <input value={getSettingText(settings, "featuredTitle")} onChange={(event) => onSettingChange("featuredTitle", event.target.value)} className="admin-input" />
-                </Field>
-                <Field label="Главная карточка — своё описание">
-                  <input value={getSettingText(settings, "featuredDescription")} onChange={(event) => onSettingChange("featuredDescription", event.target.value)} className="admin-input" />
-                </Field>
-                <Field label="Вторая карточка — своё название">
-                  <input value={getSettingText(settings, "secondTitle")} onChange={(event) => onSettingChange("secondTitle", event.target.value)} className="admin-input" />
-                </Field>
-                <Field label="Вторая карточка — своё описание">
-                  <input value={getSettingText(settings, "secondDescription")} onChange={(event) => onSettingChange("secondDescription", event.target.value)} className="admin-input" />
-                </Field>
-                <Field label="Третья карточка — своё название">
-                  <input value={getSettingText(settings, "thirdTitle")} onChange={(event) => onSettingChange("thirdTitle", event.target.value)} className="admin-input" />
-                </Field>
-                <Field label="Третья карточка — своё описание">
-                  <input value={getSettingText(settings, "thirdDescription")} onChange={(event) => onSettingChange("thirdDescription", event.target.value)} className="admin-input" />
-                </Field>
-              </div>
-            </div>
-          </>
-        )}
-
-        {hasButtonFields && (
-          <label className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/70">
-            <input type="checkbox" checked={getSettingBoolean(settings, "showButton", true)} onChange={(event) => onSettingChange("showButton", event.target.checked)} />
-            Показывать кнопку
-          </label>
+        {hasImageField && (
+          <Field label="Изображение / баннер">
+            <input
+              value={getSettingText(settings, "image")}
+              onChange={(event) => onSettingChange("image", event.target.value)}
+              className="admin-input"
+              placeholder="/uploads/banner.png или https://..."
+            />
+          </Field>
         )}
 
         {block.type === "text-image" && (
           <Field label="Сторона картинки">
-            <select value={getSettingText(settings, "imageSide") || "right"} onChange={(event) => onSettingChange("imageSide", event.target.value)} className="admin-input">
+            <select
+              value={getSettingText(settings, "imageSide") || "right"}
+              onChange={(event) => onSettingChange("imageSide", event.target.value)}
+              className="admin-input"
+            >
               <option value="right">Справа</option>
               <option value="left">Слева</option>
             </select>
@@ -809,7 +796,11 @@ function ModuleSettings({ block, onSettingChange }: { block: SitePageBlock; onSe
 
         {["promo-banner", "text-image"].includes(block.type) && (
           <Field label="Тон блока">
-            <select value={getSettingText(settings, "tone") || "blue"} onChange={(event) => onSettingChange("tone", event.target.value)} className="admin-input">
+            <select
+              value={getSettingText(settings, "tone") || "blue"}
+              onChange={(event) => onSettingChange("tone", event.target.value)}
+              className="admin-input"
+            >
               <option value="blue">Синий</option>
               <option value="dark">Тёмный</option>
               <option value="light">Светлый</option>
@@ -818,11 +809,38 @@ function ModuleSettings({ block, onSettingChange }: { block: SitePageBlock; onSe
         )}
       </div>
 
-      {!hasTextFields && !hasButtonFields && !hasImageField && !hasLimitField && !hasFilterField && !isNewArrivalsBlock ? (
-        <div className="mt-4 rounded-xl border border-white/10 bg-black/20 p-4 text-sm text-white/45">
-          У этого системного модуля пока нет дополнительных полей. Его можно включать, скрывать и менять порядок.
+      {hasButtonFields && (
+        <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-4">
+          <label className="flex items-center gap-3 text-sm text-white/70">
+            <input
+              type="checkbox"
+              checked={getSettingBoolean(settings, "showButton", true)}
+              onChange={(event) => onSettingChange("showButton", event.target.checked)}
+            />
+            Показывать кнопку
+          </label>
+
+          {getSettingBoolean(settings, "showButton", true) && (
+            <div className="mt-4 grid gap-4 md:grid-cols-2">
+              <Field label="Текст кнопки">
+                <input
+                  value={getSettingText(settings, "buttonText")}
+                  onChange={(event) => onSettingChange("buttonText", event.target.value)}
+                  className="admin-input"
+                />
+              </Field>
+              <Field label="Ссылка кнопки">
+                <input
+                  value={getSettingText(settings, "buttonHref")}
+                  onChange={(event) => onSettingChange("buttonHref", event.target.value)}
+                  className="admin-input"
+                  placeholder="/catalog"
+                />
+              </Field>
+            </div>
+          )}
         </div>
-      ) : null}
+      )}
     </div>
   );
 }
