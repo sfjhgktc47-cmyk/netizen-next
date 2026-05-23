@@ -81,6 +81,8 @@ export type SiteEditorSettings = {
 export type DeliverySettings = {
   key: string;
   title: string;
+  type: "courier" | "pickup";
+  addressId: string;
   crmField: string;
   text: string;
   active: boolean;
@@ -225,23 +227,20 @@ export const defaultSystemSettings: SystemSettings = {
     {
       key: "courier",
       title: "Курьерская доставка",
+      type: "courier",
+      addressId: "",
       crmField: "delivery.type = courier",
-      text: "Клиент указывает адрес, CRM получает технический тип courier и поле delivery.address.",
+      text: "Клиент указывает город и адрес, CRM получает delivery.address.",
       active: true,
     },
     {
-      key: "pickup_point",
-      title: "Пункт выдачи",
-      crmField: "delivery.type = pickup_point",
-      text: "Клиент выбирает ПВЗ, CRM получает pickupPointId и pickupPointLabel.",
+      key: "pickup_main",
+      title: "Самовывоз из магазина",
+      type: "pickup",
+      addressId: "main-showroom",
+      crmField: "delivery.type = pickup; delivery.addressId = main-showroom",
+      text: "Клиент выбирает адрес магазина или ПВЗ из списка адресов редактора сайта.",
       active: true,
-    },
-    {
-      key: "self_pickup",
-      title: "Самовывоз",
-      crmField: "delivery.type = self_pickup",
-      text: "Клиент забирает заказ из точки магазина.",
-      active: false,
     },
   ],
   notifications: [
@@ -487,6 +486,8 @@ function normalizeDeliveries(value: unknown): DeliverySettings[] {
     return {
       key: stringValue(raw.key, fallback.key),
       title: stringValue(raw.title, fallback.title),
+      type: stringValue(raw.type, fallback.type) === "pickup" ? "pickup" : "courier",
+      addressId: stringValue(raw.addressId, fallback.addressId),
       crmField: stringValue(raw.crmField, fallback.crmField),
       text: stringValue(raw.text, fallback.text),
       active: booleanValue(raw.active, fallback.active),

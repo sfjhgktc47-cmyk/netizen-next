@@ -53,6 +53,7 @@ async function main() {
     update: {
       name: adminName,
       role: "owner",
+      roles: ["owner"],
       permissions: ["all"],
       passwordHash: hashPassword(adminPassword),
       isActive: true,
@@ -61,6 +62,7 @@ async function main() {
       login: adminLogin,
       name: adminName,
       role: "owner",
+      roles: ["owner"],
       permissions: ["all"],
       passwordHash: hashPassword(adminPassword),
       isActive: true,

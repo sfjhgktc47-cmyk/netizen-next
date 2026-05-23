@@ -42,6 +42,28 @@ type DeliveryData = {
   city: string;
   address: string;
   savedAddress: string;
+  deliveryKey: string;
+  deliveryTitle: string;
+  pickupPointId: string;
+};
+
+type DeliveryAddress = {
+  id: string;
+  title: string;
+  city: string;
+  address: string;
+  metro?: string;
+  workingHours?: string;
+  phone?: string;
+};
+
+type DeliveryOption = {
+  key: string;
+  title: string;
+  type: "courier" | "pickup";
+  text: string;
+  addressId: string;
+  address: DeliveryAddress | null;
 };
 
 type StoredProfile = Partial<CustomerData> & {
@@ -49,11 +71,32 @@ type StoredProfile = Partial<CustomerData> & {
   deliveryAddresses?: string[];
 };
 
-const PICKUP_POINT = {
+const FALLBACK_PICKUP_POINT = {
+  id: "fallback-pickup",
   title: "ПВЗ Netizen",
+  city: "Москва",
   address: "г. Москва, ул. Тверская, 1",
-  schedule: "Ежедневно с 10:00 до 21:00",
+  workingHours: "Ежедневно с 10:00 до 21:00",
 };
+
+const fallbackDeliveryOptions: DeliveryOption[] = [
+  {
+    key: "courier",
+    title: "Курьерская доставка",
+    type: "courier",
+    text: "Доставим по адресу клиента.",
+    addressId: "",
+    address: null,
+  },
+  {
+    key: "pickup_main",
+    title: "Самовывоз",
+    type: "pickup",
+    text: "Забрать заказ из точки магазина.",
+    addressId: FALLBACK_PICKUP_POINT.id,
+    address: FALLBACK_PICKUP_POINT,
+  },
+];
 
 const recentlyViewed = [...products].slice(0, 5);
 
@@ -182,6 +225,9 @@ function getStoredDelivery(): DeliveryData {
     city: savedDelivery?.city ?? "",
     address: savedDelivery?.address ?? "",
     savedAddress: savedDelivery?.savedAddress ?? "",
+    deliveryKey: savedDelivery?.deliveryKey ?? "",
+    deliveryTitle: savedDelivery?.deliveryTitle ?? "",
+    pickupPointId: savedDelivery?.pickupPointId ?? "",
   };
 }
 
@@ -201,7 +247,11 @@ export default function CartPage() {
     city: "",
     address: "",
     savedAddress: "",
+    deliveryKey: "",
+    deliveryTitle: "",
+    pickupPointId: "",
   });
+  const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOption[]>(fallbackDeliveryOptions);
   const [savedAddresses, setSavedAddresses] = useState<string[]>([]);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [newAddress, setNewAddress] = useState("");
@@ -223,6 +273,28 @@ export default function CartPage() {
     setSavedAddresses(getStoredAddresses(profile));
     setComment(localStorage.getItem("netizen-checkout-comment") ?? "");
     setIsCartLoaded(true);
+  }, []);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    async function loadDeliveryOptions() {
+      const response = await fetch("/api/delivery-options").catch(() => null);
+      const payload = (await response?.json().catch(() => null)) as
+        | { deliveries?: DeliveryOption[] }
+        | null;
+      const nextOptions = payload?.deliveries?.length ? payload.deliveries : fallbackDeliveryOptions;
+
+      if (isMounted) {
+        setDeliveryOptions(nextOptions);
+      }
+    }
+
+    void loadDeliveryOptions();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -288,7 +360,8 @@ export default function CartPage() {
   const hasCourierAddress = isRegistered
     ? delivery.savedAddress.trim().length > 0 || delivery.address.trim().length > 0
     : delivery.city.trim().length > 0 && delivery.address.trim().length > 0;
-  const hasDelivery = delivery.method === "pickup" || (delivery.method === "courier" && hasCourierAddress);
+  const hasPickupAddress = delivery.method === "pickup" && delivery.address.trim().length > 0;
+  const hasDelivery = hasPickupAddress || (delivery.method === "courier" && hasCourierAddress);
   const canPlaceOrder = hasItems && hasDelivery && (isRegistered || hasGuestContacts);
 
   const deliverySummary = getDeliverySummary(delivery, isRegistered);
@@ -374,12 +447,36 @@ export default function CartPage() {
     setItemPendingRemove(null);
   }
 
-  function selectPickupPoint() {
+  function getAddressText(address: DeliveryAddress | null | undefined) {
+    if (!address) {
+      return "";
+    }
+
+    return [address.city, address.address].filter(Boolean).join(", ");
+  }
+
+  function selectCourier(option: DeliveryOption) {
+    setDelivery((current) => ({
+      ...current,
+      method: "courier",
+      deliveryKey: option.key,
+      deliveryTitle: option.title,
+      pickupPointId: "",
+      savedAddress: current.method === "courier" ? current.savedAddress : "",
+    }));
+  }
+
+  function selectPickupPoint(option: DeliveryOption) {
+    const address = getAddressText(option.address);
+
     setDelivery({
       method: "pickup",
-      city: "Москва",
-      address: PICKUP_POINT.address,
-      savedAddress: PICKUP_POINT.address,
+      city: option.address?.city || "",
+      address,
+      savedAddress: address,
+      deliveryKey: option.key,
+      deliveryTitle: option.title,
+      pickupPointId: option.address?.id || option.addressId || option.key,
     });
   }
 
@@ -428,7 +525,7 @@ export default function CartPage() {
             : { ...customer, source: "guest" },
           delivery: {
             ...delivery,
-            title: delivery.method === "pickup" ? "ПВЗ / самовывоз" : "Курьерская доставка",
+            title: delivery.deliveryTitle || (delivery.method === "pickup" ? "ПВЗ / самовывоз" : "Курьерская доставка"),
           },
           comment,
           items,
@@ -453,7 +550,7 @@ export default function CartPage() {
           : { ...customer, source: "guest" },
         delivery: {
           ...delivery,
-          title: delivery.method === "pickup" ? "ПВЗ / самовывоз" : "Курьерская доставка",
+          title: delivery.deliveryTitle || (delivery.method === "pickup" ? "ПВЗ / самовывоз" : "Курьерская доставка"),
         },
         payment: {
           type: "cash",
@@ -826,35 +923,26 @@ export default function CartPage() {
       {activeModal === "delivery" && (
         <Modal title="Получение заказа" onClose={() => setActiveModal(null)}>
           <div className="grid gap-4 md:grid-cols-2">
-            <button
-              type="button"
-              onClick={() => setDelivery((current) => ({ ...current, method: "courier" }))}
-              className={`rounded-2xl border p-5 text-left transition-all ${
-                delivery.method === "courier"
-                  ? "border-blue-500/50 bg-blue-500/10"
-                  : "border-theme bg-blue-soft hover:border-blue-500/30"
-              }`}
-            >
-              <div className="font-semibold">Курьерская доставка</div>
-              <p className="mt-2 text-sm text-muted">
-                Доставим по адресу клиента.
-              </p>
-            </button>
-
-            <button
-              type="button"
-              onClick={selectPickupPoint}
-              className={`rounded-2xl border p-5 text-left transition-all ${
-                delivery.method === "pickup"
-                  ? "border-blue-500/50 bg-blue-500/10"
-                  : "border-theme bg-blue-soft hover:border-blue-500/30"
-              }`}
-            >
-              <div className="font-semibold">ПВЗ / самовывоз</div>
-              <p className="mt-2 text-sm text-muted">
-                Забрать заказ по адресу нашего пункта выдачи.
-              </p>
-            </button>
+            {deliveryOptions.map((option) => (
+              <button
+                key={option.key}
+                type="button"
+                onClick={() => option.type === "courier" ? selectCourier(option) : selectPickupPoint(option)}
+                className={`rounded-2xl border p-5 text-left transition-all ${
+                  delivery.deliveryKey === option.key || (!delivery.deliveryKey && delivery.method === option.type)
+                    ? "border-blue-500/50 bg-blue-500/10"
+                    : "border-theme bg-blue-soft hover:border-blue-500/30"
+                }`}
+              >
+                <div className="font-semibold">{option.title}</div>
+                <p className="mt-2 text-sm text-muted">{option.text}</p>
+                {option.type === "pickup" && option.address && (
+                  <p className="mt-3 text-xs text-muted-soft">
+                    {getAddressText(option.address)}
+                  </p>
+                )}
+              </button>
+            ))}
           </div>
 
           {delivery.method === "pickup" && (
@@ -862,9 +950,9 @@ export default function CartPage() {
               <div className="text-sm uppercase tracking-[0.18em] text-blue-500">
                 Адрес ПВЗ
               </div>
-              <div className="mt-2 text-xl font-bold">{PICKUP_POINT.title}</div>
-              <p className="mt-2 text-muted">{PICKUP_POINT.address}</p>
-              <p className="mt-1 text-sm text-muted-soft">{PICKUP_POINT.schedule}</p>
+              <div className="mt-2 text-xl font-bold">{delivery.deliveryTitle || "Самовывоз"}</div>
+              <p className="mt-2 text-muted">{delivery.address}</p>
+              <p className="mt-1 text-sm text-muted-soft">Адрес берётся из настроек сайта.</p>
             </div>
           )}
 
@@ -1066,7 +1154,7 @@ export default function CartPage() {
 
 function getDeliverySummary(delivery: DeliveryData, isRegistered: boolean) {
   if (delivery.method === "pickup") {
-    return `ПВЗ: ${PICKUP_POINT.address}`;
+    return `${delivery.deliveryTitle || "Самовывоз"}: ${delivery.address || "адрес не выбран"}`;
   }
 
   if (delivery.method === "courier") {
@@ -1078,7 +1166,7 @@ function getDeliverySummary(delivery: DeliveryData, isRegistered: boolean) {
       return `${delivery.city}, ${delivery.address}`;
     }
 
-    return "Курьерская доставка: адрес не указан";
+    return `${delivery.deliveryTitle || "Курьерская доставка"}: адрес не указан`;
   }
 
   return "Выберите курьера или ПВЗ";

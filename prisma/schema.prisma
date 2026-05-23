@@ -139,6 +139,7 @@ model AdminUser {
   login        String   @unique
   name         String   @default("Администратор")
   role         String   @default("owner")
+  roles        String[] @default([])
   permissions  String[] @default([])
   passwordHash String
   isActive     Boolean  @default(true)

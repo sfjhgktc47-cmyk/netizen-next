@@ -4,9 +4,11 @@ import {
   createAuthSessionToken,
   getAuthCookieOptions,
   hashPassword,
+  normalizeAdminRoles,
   normalizeEmail,
   normalizeText,
   verifyPassword,
+  type AdminRole,
 } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 
@@ -25,8 +27,6 @@ function cleanEnvValue(value: string | undefined, fallback: string) {
     return fallback;
   }
 
-  // Railway переменные надо задавать без кавычек, но если они уже добавлены
-  // как "netizen-admin" или 'netizen-admin', убираем эти кавычки автоматически.
   return normalized.replace(/^["'`]+|["'`]+$/g, "").trim() || fallback;
 }
 
@@ -35,19 +35,23 @@ function getConfiguredAdmin() {
     login: cleanEnvValue(process.env.ADMIN_LOGIN, DEFAULT_ADMIN_LOGIN),
     password: cleanEnvValue(process.env.ADMIN_PASSWORD, DEFAULT_ADMIN_PASSWORD),
     name: cleanEnvValue(process.env.ADMIN_NAME, DEFAULT_ADMIN_NAME),
+    roles: ["owner"] as AdminRole[],
   };
 }
 
-function createAdminLoginResponse(admin: { login: string; name: string }) {
+function createAdminLoginResponse(admin: { login: string; name: string; role?: string; roles?: string[] }) {
+  const roles = normalizeAdminRoles(admin.roles, normalizeAdminRoles(admin.role, ["admin"]));
   const token = createAuthSessionToken({
     role: "admin",
     login: admin.login,
     name: admin.name,
+    adminRole: roles[0],
+    roles,
     createdAt: new Date().toISOString(),
   });
   const response = NextResponse.json({
     ok: true,
-    user: { role: "admin" },
+    user: { role: "admin", roles },
     redirectTo: "/nz-console",
   });
 
@@ -55,23 +59,32 @@ function createAdminLoginResponse(admin: { login: string; name: string }) {
   return response;
 }
 
-async function upsertAdminAndLogin(admin: { login: string; password: string; name: string }) {
+async function upsertAdminAndLogin(admin: { login: string; password: string; name: string; roles: AdminRole[] }) {
+  const primaryRole = admin.roles[0] ?? "owner";
   const syncedAdmin = await prisma.adminUser.upsert({
     where: { login: admin.login },
     update: {
       name: admin.name,
+      role: primaryRole,
+      roles: admin.roles,
+      permissions: admin.roles.includes("owner") ? ["all"] : [],
       passwordHash: hashPassword(admin.password),
       isActive: true,
     },
     create: {
       login: admin.login,
       name: admin.name,
+      role: primaryRole,
+      roles: admin.roles,
+      permissions: admin.roles.includes("owner") ? ["all"] : [],
       passwordHash: hashPassword(admin.password),
       isActive: true,
     },
     select: {
       login: true,
       name: true,
+      role: true,
+      roles: true,
     },
   });
 
@@ -99,16 +112,13 @@ export async function POST(request: Request) {
       login: DEFAULT_ADMIN_LOGIN,
       password: DEFAULT_ADMIN_PASSWORD,
       name: configuredAdmin.name,
+      roles: ["owner"] as AdminRole[],
     };
 
-    // Главный вход админа: работает даже если seed на Railway ещё не запускался.
-    // Если логин/пароль совпали с ADMIN_LOGIN / ADMIN_PASSWORD — создаём/обновляем админа в БД.
     if (matchesAdminCredentials(login, password, configuredAdmin)) {
       return upsertAdminAndLogin(configuredAdmin);
     }
 
-    // Запасной дефолтный вход оставляем только когда админские переменные явно не отличаются от дефолта.
-    // Это защищает прод, где ты уже задал свой ADMIN_PASSWORD.
     const envAdminIsDefault =
       configuredAdmin.login === DEFAULT_ADMIN_LOGIN &&
       configuredAdmin.password === DEFAULT_ADMIN_PASSWORD;
@@ -122,6 +132,8 @@ export async function POST(request: Request) {
       select: {
         login: true,
         name: true,
+        role: true,
+        roles: true,
         passwordHash: true,
         isActive: true,
       },

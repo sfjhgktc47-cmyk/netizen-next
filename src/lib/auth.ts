@@ -5,6 +5,9 @@ export const AUTH_COOKIE_NAME = "netizen_session";
 export const AUTH_COOKIE_MAX_AGE = 60 * 60 * 24 * 30;
 
 export type AuthRole = "customer" | "admin";
+export type AdminRole = "owner" | "admin" | "manager" | "content" | "support";
+
+export const adminRoleValues: AdminRole[] = ["owner", "admin", "manager", "content", "support"];
 
 export type AuthSessionPayload = {
   role: AuthRole;
@@ -16,6 +19,8 @@ export type AuthSessionPayload = {
   phone?: string;
   email?: string;
   login?: string;
+  adminRole?: AdminRole;
+  roles?: AdminRole[];
 };
 
 export type PublicAuthUser = {
@@ -41,9 +46,31 @@ function sign(value: string) {
   return crypto.createHmac("sha256", getAuthSecret()).update(value).digest("base64url");
 }
 
+export function normalizeAdminRoles(value: unknown, fallback: AdminRole[] = ["manager"]): AdminRole[] {
+  const source = Array.isArray(value) ? value : typeof value === "string" ? [value] : [];
+  const normalized = source
+    .map((role) => (typeof role === "string" ? role.trim() : ""))
+    .filter((role): role is AdminRole => (adminRoleValues as string[]).includes(role));
+
+  return Array.from(new Set(normalized.length ? normalized : fallback));
+}
+
+export function hasAdminRole(session: AuthSessionPayload | null | undefined, role: AdminRole) {
+  if (!session || session.role !== "admin") {
+    return false;
+  }
+
+  return normalizeAdminRoles(session.roles, session.adminRole ? [session.adminRole] : ["manager"]).includes(role);
+}
+
+export function isOwnerSession(session: AuthSessionPayload | null | undefined) {
+  return hasAdminRole(session, "owner");
+}
+
 export function createAuthSessionToken(payload: Omit<AuthSessionPayload, "expiresAt">) {
   const session: AuthSessionPayload = {
     ...payload,
+    roles: payload.role === "admin" ? normalizeAdminRoles(payload.roles, payload.adminRole ? [payload.adminRole] : ["manager"]) : payload.roles,
     expiresAt: Date.now() + AUTH_COOKIE_MAX_AGE * 1000,
   };
   const encodedPayload = Buffer.from(JSON.stringify(session)).toString("base64url");
@@ -85,6 +112,11 @@ export function parseAuthSessionToken(token: string | undefined | null) {
 
     if (!payload.expiresAt || payload.expiresAt < Date.now()) {
       return null;
+    }
+
+    if (payload.role === "admin") {
+      payload.roles = normalizeAdminRoles(payload.roles, payload.adminRole ? [payload.adminRole] : ["manager"]);
+      payload.adminRole = payload.roles[0];
     }
 
     return payload;

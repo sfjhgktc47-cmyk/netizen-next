@@ -11,11 +11,14 @@ type Props = {
   initialSettings: SystemSettings;
 };
 
+type StaffRole = "owner" | "admin" | "manager" | "content" | "support";
+
 type StaffMember = {
   id: string;
   login: string;
   name: string;
-  role: "owner" | "admin" | "manager" | "content" | "support";
+  role: StaffRole;
+  roles: StaffRole[];
   permissions: string[];
   isActive: boolean;
   createdAt: string;
@@ -25,12 +28,22 @@ type StaffMember = {
 type StaffFormState = {
   login: string;
   name: string;
-  role: StaffMember["role"];
+  roles: StaffRole[];
   password: string;
 };
 
-const staffRoleOptions: { value: StaffMember["role"]; label: string; description: string }[] = [
-  { value: "owner", label: "Владелец", description: "Полный доступ ко всему сайту и настройкам." },
+type SiteAddress = {
+  id: string;
+  title: string;
+  type: "showroom" | "pickup" | "office";
+  city: string;
+  address: string;
+  active: boolean;
+  isMain: boolean;
+};
+
+const staffRoleOptions: { value: StaffRole; label: string; description: string }[] = [
+  { value: "owner", label: "Главный админ", description: "Полный доступ: сотрудники, роли, настройки и весь сайт." },
   { value: "admin", label: "Администратор", description: "Товары, заявки, клиенты, контент и настройки." },
   { value: "manager", label: "Менеджер", description: "Заявки, клиенты, статусы и позиции." },
   { value: "content", label: "Контент", description: "Категории, карточки товаров, фото и описания." },
@@ -41,14 +54,32 @@ export function SystemSettingsForm({ initialSettings }: Props) {
   const [settings, setSettings] = useState(initialSettings);
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [staff, setStaff] = useState<StaffMember[]>([]);
+  const [siteAddresses, setSiteAddresses] = useState<SiteAddress[]>([]);
   const [staffState, setStaffState] = useState<SaveState>("idle");
   const [staffError, setStaffError] = useState("");
   const [newStaff, setNewStaff] = useState<StaffFormState>({
     login: "",
     name: "",
-    role: "manager",
+    roles: ["manager"],
     password: "",
   });
+
+  async function loadSiteAddresses() {
+    const response = await fetch("/api/site-settings").catch(() => null);
+    const payload = (await response?.json().catch(() => null)) as
+      | { site?: { contacts?: { addresses?: SiteAddress[] } } }
+      | null;
+
+    setSiteAddresses((payload?.site?.contacts?.addresses ?? []).filter((address) => address.active));
+  }
+
+  function toggleRole(roles: StaffRole[], role: StaffRole) {
+    const nextRoles = roles.includes(role)
+      ? roles.filter((item) => item !== role)
+      : [...roles, role];
+
+    return nextRoles.length ? nextRoles : ["manager"];
+  }
 
   async function loadStaff() {
     const response = await fetch("/api/admin/staff").catch(() => null);
@@ -61,6 +92,7 @@ export function SystemSettingsForm({ initialSettings }: Props) {
 
   useEffect(() => {
     void loadStaff();
+    void loadSiteAddresses();
   }, []);
 
   async function createStaff() {
@@ -84,7 +116,7 @@ export function SystemSettingsForm({ initialSettings }: Props) {
     }
 
     setStaff(payload.staff);
-    setNewStaff({ login: "", name: "", role: "manager", password: "" });
+    setNewStaff({ login: "", name: "", roles: ["manager"], password: "" });
     setStaffState("saved");
     window.setTimeout(() => setStaffState("idle"), 2200);
   }
@@ -120,6 +152,31 @@ export function SystemSettingsForm({ initialSettings }: Props) {
       deliveries: current.deliveries.map((item, itemIndex) =>
         itemIndex === index ? { ...item, [key]: value } : item
       ),
+    }));
+  }
+
+  function addDelivery() {
+    setSettings((current) => ({
+      ...current,
+      deliveries: [
+        ...current.deliveries,
+        {
+          key: `delivery_${current.deliveries.length + 1}`,
+          title: "Новый способ получения",
+          type: "courier",
+          addressId: "",
+          crmField: "delivery.type",
+          text: "Описание способа получения для клиента.",
+          active: true,
+        },
+      ],
+    }));
+  }
+
+  function removeDelivery(index: number) {
+    setSettings((current) => ({
+      ...current,
+      deliveries: current.deliveries.filter((_, itemIndex) => itemIndex !== index),
     }));
   }
 
@@ -244,7 +301,7 @@ export function SystemSettingsForm({ initialSettings }: Props) {
         </section>
 
         <section className="mt-8 grid gap-5 md:grid-cols-4">
-          <MetricCard label="Доставка" value={String(settings.deliveries.length)} />
+          <MetricCard label="Способы получения" value={String(settings.deliveries.length)} />
           <MetricCard label="Уведомления" value={String(settings.notifications.length)} />
           <MetricCard label="Интеграции" value={String(settings.integrations.length)} />
           <MetricCard label="Лимит остатка" value={String(settings.lowStockLimit)} />
@@ -262,27 +319,82 @@ export function SystemSettingsForm({ initialSettings }: Props) {
               <div className="mt-8 grid gap-4">
                 {settings.deliveries.map((delivery, index) => (
                   <div key={`${delivery.key}-${index}`} className="rounded-2xl border border-white/10 bg-black/20 p-5">
-                    <div className="grid gap-5 md:grid-cols-2">
+                    <div className="flex flex-wrap items-start justify-between gap-4">
+                      <div>
+                        <div className="text-lg font-bold">{delivery.title || "Способ получения"}</div>
+                        <p className="mt-1 text-sm text-white/45">
+                          {delivery.type === "courier" ? "Курьерская доставка с адресом клиента" : "Самовывоз / ПВЗ с привязанным адресом"}
+                        </p>
+                      </div>
+
+                      <div className="flex gap-2">
+                        <ToggleField
+                          title="Активен"
+                          active={delivery.active}
+                          onChange={(value) => updateDelivery(index, "active", value)}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeDelivery(index)}
+                          className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2 text-sm text-red-300 transition-colors hover:bg-red-500/20"
+                        >
+                          Удалить
+                        </button>
+                      </div>
+                    </div>
+
+                    <div className="mt-5 grid gap-5 md:grid-cols-2">
                       <Field label="Название">
                         <input value={delivery.title} onChange={(event) => updateDelivery(index, "title", event.target.value)} className="admin-input" />
                       </Field>
                       <Field label="Ключ для CRM">
                         <input value={delivery.key} onChange={(event) => updateDelivery(index, "key", event.target.value)} className="admin-input" />
                       </Field>
+                      <Field label="Тип получения">
+                        <select
+                          value={delivery.type}
+                          onChange={(event) => {
+                            updateDelivery(index, "type", event.target.value);
+                            if (event.target.value === "courier") updateDelivery(index, "addressId", "");
+                          }}
+                          className="admin-input"
+                        >
+                          <option value="courier">Курьерская доставка</option>
+                          <option value="pickup">Самовывоз / ПВЗ</option>
+                        </select>
+                      </Field>
+                      <Field label="Адрес для самовывоза / ПВЗ">
+                        <select
+                          value={delivery.addressId}
+                          onChange={(event) => updateDelivery(index, "addressId", event.target.value)}
+                          disabled={delivery.type !== "pickup"}
+                          className="admin-input disabled:opacity-45"
+                        >
+                          <option value="">Не выбран</option>
+                          {siteAddresses.map((address) => (
+                            <option key={address.id} value={address.id}>
+                              {address.title} — {address.city}, {address.address}
+                            </option>
+                          ))}
+                        </select>
+                      </Field>
                       <Field label="CRM-поле">
                         <input value={delivery.crmField} onChange={(event) => updateDelivery(index, "crmField", event.target.value)} className="admin-input" />
                       </Field>
-                      <ToggleField
-                        title="Активен"
-                        active={delivery.active}
-                        onChange={(value) => updateDelivery(index, "active", value)}
-                      />
                     </div>
                     <Field label="Описание">
                       <textarea value={delivery.text} onChange={(event) => updateDelivery(index, "text", event.target.value)} className="admin-textarea mt-2 min-h-[90px]" />
                     </Field>
                   </div>
                 ))}
+
+                <button
+                  type="button"
+                  onClick={addDelivery}
+                  className="rounded-2xl border border-blue-500/30 bg-blue-500/10 px-5 py-4 text-sm font-semibold text-blue-200 transition-colors hover:bg-blue-500/20"
+                >
+                  Добавить способ получения →
+                </button>
               </div>
             </section>
 
@@ -348,7 +460,7 @@ export function SystemSettingsForm({ initialSettings }: Props) {
               <SectionTitle
                 label="Сотрудники"
                 title="Команда админки и роли"
-                text="Добавляй сотрудников, выдавай роль и при необходимости отключай доступ. Сотрудники входят через обычное окно “Войти”."
+                text="Один сотрудник может иметь несколько ролей. Создавать сотрудников и менять роли может только главный админ."
               />
 
               {staffError && (
@@ -364,7 +476,7 @@ export function SystemSettingsForm({ initialSettings }: Props) {
               )}
 
               <div className="mt-8 rounded-2xl border border-blue-500/25 bg-blue-500/10 p-5">
-                <div className="grid gap-4 md:grid-cols-4">
+                <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
                   <Field label="Логин">
                     <input
                       value={newStaff.login}
@@ -383,18 +495,23 @@ export function SystemSettingsForm({ initialSettings }: Props) {
                     />
                   </Field>
 
-                  <Field label="Роль">
-                    <select
-                      value={newStaff.role}
-                      onChange={(event) => setNewStaff((current) => ({ ...current, role: event.target.value as StaffMember["role"] }))}
-                      className="admin-input"
-                    >
+                  <Field label="Роли">
+                    <div className="grid gap-2 rounded-2xl border border-white/10 bg-black/20 p-3">
                       {staffRoleOptions.map((role) => (
-                        <option key={role.value} value={role.value}>
-                          {role.label}
-                        </option>
+                        <label key={role.value} className="flex items-start gap-3 rounded-xl px-2 py-2 text-sm text-white/75 hover:bg-white/5">
+                          <input
+                            type="checkbox"
+                            checked={newStaff.roles.includes(role.value)}
+                            onChange={() => setNewStaff((current) => ({ ...current, roles: toggleRole(current.roles, role.value) }))}
+                            className="mt-1"
+                          />
+                          <span>
+                            <span className="block font-semibold text-white">{role.label}</span>
+                            <span className="block text-xs leading-relaxed text-white/45">{role.description}</span>
+                          </span>
+                        </label>
                       ))}
-                    </select>
+                    </div>
                   </Field>
 
                   <Field label="Пароль">
@@ -424,7 +541,7 @@ export function SystemSettingsForm({ initialSettings }: Props) {
 
                   return (
                     <div key={member.id} className="rounded-2xl border border-white/10 bg-black/20 p-5">
-                      <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr_180px_150px] lg:items-end">
+                      <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr_1.4fr_150px] lg:items-start">
                         <Field label="Логин">
                           <input
                             defaultValue={member.login}
@@ -441,18 +558,23 @@ export function SystemSettingsForm({ initialSettings }: Props) {
                           />
                         </Field>
 
-                        <Field label="Роль">
-                          <select
-                            value={member.role}
-                            onChange={(event) => updateStaffMember(member.id, { role: event.target.value as StaffMember["role"] })}
-                            className="admin-input"
-                          >
+                        <Field label="Роли">
+                          <div className="grid gap-2 rounded-2xl border border-white/10 bg-black/20 p-3">
                             {staffRoleOptions.map((role) => (
-                              <option key={role.value} value={role.value}>
-                                {role.label}
-                              </option>
+                              <label key={role.value} className="flex items-start gap-3 rounded-xl px-2 py-2 text-sm text-white/75 hover:bg-white/5">
+                                <input
+                                  type="checkbox"
+                                  checked={(member.roles ?? [member.role]).includes(role.value)}
+                                  onChange={() => updateStaffMember(member.id, { roles: toggleRole(member.roles ?? [member.role], role.value) })}
+                                  className="mt-1"
+                                />
+                                <span>
+                                  <span className="block font-semibold text-white">{role.label}</span>
+                                  <span className="block text-xs leading-relaxed text-white/45">{role.description}</span>
+                                </span>
+                              </label>
                             ))}
-                          </select>
+                          </div>
                         </Field>
 
                         <button
