@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import type { SystemSettings } from "@/lib/site-settings-db";
 
@@ -11,9 +11,108 @@ type Props = {
   initialSettings: SystemSettings;
 };
 
+type StaffMember = {
+  id: string;
+  login: string;
+  name: string;
+  role: "owner" | "admin" | "manager" | "content" | "support";
+  permissions: string[];
+  isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+type StaffFormState = {
+  login: string;
+  name: string;
+  role: StaffMember["role"];
+  password: string;
+};
+
+const staffRoleOptions: { value: StaffMember["role"]; label: string; description: string }[] = [
+  { value: "owner", label: "Владелец", description: "Полный доступ ко всему сайту и настройкам." },
+  { value: "admin", label: "Администратор", description: "Товары, заявки, клиенты, контент и настройки." },
+  { value: "manager", label: "Менеджер", description: "Заявки, клиенты, статусы и позиции." },
+  { value: "content", label: "Контент", description: "Категории, карточки товаров, фото и описания." },
+  { value: "support", label: "Поддержка", description: "Обращения клиентов и сообщения." },
+];
+
 export function SystemSettingsForm({ initialSettings }: Props) {
   const [settings, setSettings] = useState(initialSettings);
   const [saveState, setSaveState] = useState<SaveState>("idle");
+  const [staff, setStaff] = useState<StaffMember[]>([]);
+  const [staffState, setStaffState] = useState<SaveState>("idle");
+  const [staffError, setStaffError] = useState("");
+  const [newStaff, setNewStaff] = useState<StaffFormState>({
+    login: "",
+    name: "",
+    role: "manager",
+    password: "",
+  });
+
+  async function loadStaff() {
+    const response = await fetch("/api/admin/staff").catch(() => null);
+    const payload = (await response?.json().catch(() => null)) as { staff?: StaffMember[] } | null;
+
+    if (payload?.staff) {
+      setStaff(payload.staff);
+    }
+  }
+
+  useEffect(() => {
+    void loadStaff();
+  }, []);
+
+  async function createStaff() {
+    setStaffState("saving");
+    setStaffError("");
+
+    const response = await fetch("/api/admin/staff", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(newStaff),
+    }).catch(() => null);
+
+    const payload = (await response?.json().catch(() => null)) as
+      | { staff?: StaffMember[]; message?: string }
+      | null;
+
+    if (!response?.ok || !payload?.staff) {
+      setStaffState("error");
+      setStaffError(payload?.message || "Не удалось добавить сотрудника.");
+      return;
+    }
+
+    setStaff(payload.staff);
+    setNewStaff({ login: "", name: "", role: "manager", password: "" });
+    setStaffState("saved");
+    window.setTimeout(() => setStaffState("idle"), 2200);
+  }
+
+  async function updateStaffMember(id: string, patch: Partial<StaffFormState> & { isActive?: boolean }) {
+    setStaffState("saving");
+    setStaffError("");
+
+    const response = await fetch(`/api/admin/staff/${id}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(patch),
+    }).catch(() => null);
+
+    const payload = (await response?.json().catch(() => null)) as
+      | { staff?: StaffMember[]; message?: string }
+      | null;
+
+    if (!response?.ok || !payload?.staff) {
+      setStaffState("error");
+      setStaffError(payload?.message || "Не удалось обновить сотрудника.");
+      return;
+    }
+
+    setStaff(payload.staff);
+    setStaffState("saved");
+    window.setTimeout(() => setStaffState("idle"), 2200);
+  }
 
   function updateDelivery(index: number, key: keyof SystemSettings["deliveries"][number], value: string | boolean) {
     setSettings((current) => ({
@@ -242,6 +341,161 @@ export function SystemSettingsForm({ initialSettings }: Props) {
                     </Field>
                   </div>
                 ))}
+              </div>
+            </section>
+
+            <section className="rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
+              <SectionTitle
+                label="Сотрудники"
+                title="Команда админки и роли"
+                text="Добавляй сотрудников, выдавай роль и при необходимости отключай доступ. Сотрудники входят через обычное окно “Войти”."
+              />
+
+              {staffError && (
+                <div className="mt-5 rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-4 text-sm text-red-300">
+                  {staffError}
+                </div>
+              )}
+
+              {staffState === "saved" && (
+                <div className="mt-5 rounded-2xl border border-green-500/30 bg-green-500/10 px-5 py-4 text-sm text-green-300">
+                  Сотрудники обновлены.
+                </div>
+              )}
+
+              <div className="mt-8 rounded-2xl border border-blue-500/25 bg-blue-500/10 p-5">
+                <div className="grid gap-4 md:grid-cols-4">
+                  <Field label="Логин">
+                    <input
+                      value={newStaff.login}
+                      onChange={(event) => setNewStaff((current) => ({ ...current, login: event.target.value }))}
+                      className="admin-input"
+                      placeholder="manager"
+                    />
+                  </Field>
+
+                  <Field label="Имя">
+                    <input
+                      value={newStaff.name}
+                      onChange={(event) => setNewStaff((current) => ({ ...current, name: event.target.value }))}
+                      className="admin-input"
+                      placeholder="Иван"
+                    />
+                  </Field>
+
+                  <Field label="Роль">
+                    <select
+                      value={newStaff.role}
+                      onChange={(event) => setNewStaff((current) => ({ ...current, role: event.target.value as StaffMember["role"] }))}
+                      className="admin-input"
+                    >
+                      {staffRoleOptions.map((role) => (
+                        <option key={role.value} value={role.value}>
+                          {role.label}
+                        </option>
+                      ))}
+                    </select>
+                  </Field>
+
+                  <Field label="Пароль">
+                    <input
+                      type="password"
+                      value={newStaff.password}
+                      onChange={(event) => setNewStaff((current) => ({ ...current, password: event.target.value }))}
+                      className="admin-input"
+                      placeholder="минимум 6 символов"
+                    />
+                  </Field>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={createStaff}
+                  disabled={staffState === "saving"}
+                  className="mt-5 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  Добавить сотрудника →
+                </button>
+              </div>
+
+              <div className="mt-6 grid gap-4">
+                {staff.map((member) => {
+                  const roleInfo = staffRoleOptions.find((role) => role.value === member.role);
+
+                  return (
+                    <div key={member.id} className="rounded-2xl border border-white/10 bg-black/20 p-5">
+                      <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr_180px_150px] lg:items-end">
+                        <Field label="Логин">
+                          <input
+                            defaultValue={member.login}
+                            onBlur={(event) => event.target.value !== member.login && updateStaffMember(member.id, { login: event.target.value })}
+                            className="admin-input"
+                          />
+                        </Field>
+
+                        <Field label="Имя сотрудника">
+                          <input
+                            defaultValue={member.name}
+                            onBlur={(event) => event.target.value !== member.name && updateStaffMember(member.id, { name: event.target.value })}
+                            className="admin-input"
+                          />
+                        </Field>
+
+                        <Field label="Роль">
+                          <select
+                            value={member.role}
+                            onChange={(event) => updateStaffMember(member.id, { role: event.target.value as StaffMember["role"] })}
+                            className="admin-input"
+                          >
+                            {staffRoleOptions.map((role) => (
+                              <option key={role.value} value={role.value}>
+                                {role.label}
+                              </option>
+                            ))}
+                          </select>
+                        </Field>
+
+                        <button
+                          type="button"
+                          onClick={() => updateStaffMember(member.id, { isActive: !member.isActive })}
+                          className={`h-[52px] rounded-xl border px-4 text-sm font-semibold transition-colors ${
+                            member.isActive
+                              ? "border-green-500/30 bg-green-500/10 text-green-300 hover:bg-green-500/15"
+                              : "border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/15"
+                          }`}
+                        >
+                          {member.isActive ? "Активен" : "Отключён"}
+                        </button>
+                      </div>
+
+                      <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_220px] lg:items-end">
+                        <p className="text-sm leading-relaxed text-white/45">
+                          {roleInfo?.description ?? "Роль сотрудника"}
+                        </p>
+
+                        <Field label="Новый пароль">
+                          <input
+                            type="password"
+                            placeholder="оставь пустым, если не менять"
+                            onBlur={(event) => {
+                              if (event.target.value) {
+                                updateStaffMember(member.id, { password: event.target.value });
+                                event.target.value = "";
+                              }
+                            }}
+                            className="admin-input"
+                          />
+                        </Field>
+                      </div>
+                    </div>
+                  );
+                })}
+
+                {!staff.length && (
+                  <div className="rounded-2xl border border-white/10 bg-black/20 p-6 text-sm text-white/50">
+                    Сотрудников пока нет. Добавь первого сотрудника или выполни db:seed для главного админа.
+                  </div>
+                )}
               </div>
             </section>
           </div>

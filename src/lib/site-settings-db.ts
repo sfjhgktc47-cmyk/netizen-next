@@ -11,6 +11,19 @@ export type SiteBrandingSettings = {
   primaryColor: string;
 };
 
+export type SiteAddressSettings = {
+  id: string;
+  title: string;
+  type: "showroom" | "pickup" | "office";
+  city: string;
+  address: string;
+  metro: string;
+  workingHours: string;
+  phone: string;
+  active: boolean;
+  isMain: boolean;
+};
+
 export type SiteContactsSettings = {
   phone: string;
   phoneText: string;
@@ -22,6 +35,7 @@ export type SiteContactsSettings = {
   city: string;
   workingHours: string;
   address: string;
+  addresses: SiteAddressSettings[];
 };
 
 export type HomeBlockSettings = {
@@ -169,6 +183,20 @@ export const defaultSiteEditorSettings: SiteEditorSettings = {
     city: "Москва",
     workingHours: "Ежедневно, 10:00–21:00",
     address: "Москва, адрес будет указан позже",
+    addresses: [
+      {
+        id: "main-showroom",
+        title: "Основной шоурум",
+        type: "showroom",
+        city: "Москва",
+        address: "Москва, адрес будет указан позже",
+        metro: "",
+        workingHours: "Ежедневно, 10:00–21:00",
+        phone: "8 (800) 123-45-67",
+        active: true,
+        isMain: true,
+      },
+    ],
   },
   homeBlocks: defaultHomeBlocks,
   catalog: {
@@ -310,6 +338,46 @@ function normalizeBranding(value: unknown): SiteBrandingSettings {
   };
 }
 
+
+function normalizeAddresses(value: unknown): SiteAddressSettings[] {
+  const defaults = defaultSiteEditorSettings.contacts.addresses;
+  const source = Array.isArray(value) ? value : defaults;
+
+  const addresses = source
+    .map((item, index) => {
+      const raw = isRecord(item) ? item : {};
+      const fallback = defaults[index] ?? defaults[0];
+      const type = stringValue(raw.type, fallback.type);
+
+      return {
+        id: stringValue(raw.id, fallback.id || `address-${index + 1}`),
+        title: stringValue(raw.title, fallback.title),
+        type: type === "pickup" || type === "office" ? type : "showroom",
+        city: stringValue(raw.city, fallback.city),
+        address: stringValue(raw.address, fallback.address),
+        metro: stringValue(raw.metro, fallback.metro),
+        workingHours: stringValue(raw.workingHours, fallback.workingHours),
+        phone: stringValue(raw.phone, fallback.phone),
+        active: booleanValue(raw.active, fallback.active),
+        isMain: booleanValue(raw.isMain, fallback.isMain),
+      };
+    })
+    .filter((item) => item.title || item.address);
+
+  if (!addresses.length) {
+    return defaults;
+  }
+
+  if (!addresses.some((item) => item.isMain)) {
+    addresses[0] = { ...addresses[0], isMain: true };
+  }
+
+  return addresses.map((item, index) => ({
+    ...item,
+    isMain: item.isMain && addresses.findIndex((address) => address.isMain) === index,
+  }));
+}
+
 function normalizeContacts(value: unknown): SiteContactsSettings {
   const raw = isRecord(value) ? value : {};
   const defaults = defaultSiteEditorSettings.contacts;
@@ -325,6 +393,7 @@ function normalizeContacts(value: unknown): SiteContactsSettings {
     city: stringValue(raw.city, defaults.city),
     workingHours: stringValue(raw.workingHours, defaults.workingHours),
     address: stringValue(raw.address, defaults.address),
+    addresses: normalizeAddresses(raw.addresses),
   };
 }
 

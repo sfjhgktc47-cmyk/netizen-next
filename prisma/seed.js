@@ -52,12 +52,16 @@ async function main() {
     where: { login: adminLogin },
     update: {
       name: adminName,
+      role: "owner",
+      permissions: ["all"],
       passwordHash: hashPassword(adminPassword),
       isActive: true,
     },
     create: {
       login: adminLogin,
       name: adminName,
+      role: "owner",
+      permissions: ["all"],
       passwordHash: hashPassword(adminPassword),
       isActive: true,
     },

@@ -48,6 +48,88 @@ export function SiteEditorForm({ initialSettings }: Props) {
     }));
   }
 
+  function updateAddress(
+    id: string,
+    patch: Partial<SiteEditorSettings["contacts"]["addresses"][number]>
+  ) {
+    setSettings((current) => {
+      const nextAddresses = current.contacts.addresses.map((address) => {
+        if (address.id !== id) return address;
+
+        return {
+          ...address,
+          ...patch,
+        };
+      });
+
+      const normalizedAddresses = patch.isMain
+        ? nextAddresses.map((address) => ({ ...address, isMain: address.id === id }))
+        : nextAddresses;
+
+      const mainAddress = normalizedAddresses.find((address) => address.isMain) ?? normalizedAddresses[0];
+
+      return {
+        ...current,
+        contacts: {
+          ...current.contacts,
+          address: mainAddress?.address ?? current.contacts.address,
+          city: mainAddress?.city ?? current.contacts.city,
+          workingHours: mainAddress?.workingHours ?? current.contacts.workingHours,
+          addresses: normalizedAddresses,
+        },
+      };
+    });
+  }
+
+  function addAddress() {
+    const id = `address-${Date.now()}`;
+
+    setSettings((current) => ({
+      ...current,
+      contacts: {
+        ...current.contacts,
+        addresses: [
+          ...current.contacts.addresses,
+          {
+            id,
+            title: "Новая точка",
+            type: "pickup",
+            city: current.contacts.city || "Москва",
+            address: "",
+            metro: "",
+            workingHours: current.contacts.workingHours || "Ежедневно, 10:00–21:00",
+            phone: current.contacts.phone,
+            active: true,
+            isMain: false,
+          },
+        ],
+      },
+    }));
+  }
+
+  function removeAddress(id: string) {
+    setSettings((current) => {
+      const nextAddresses = current.contacts.addresses.filter((address) => address.id !== id);
+      const normalizedAddresses = nextAddresses.length
+        ? nextAddresses.some((address) => address.isMain)
+          ? nextAddresses
+          : nextAddresses.map((address, index) => ({ ...address, isMain: index === 0 }))
+        : current.contacts.addresses;
+      const mainAddress = normalizedAddresses.find((address) => address.isMain) ?? normalizedAddresses[0];
+
+      return {
+        ...current,
+        contacts: {
+          ...current.contacts,
+          address: mainAddress?.address ?? current.contacts.address,
+          city: mainAddress?.city ?? current.contacts.city,
+          workingHours: mainAddress?.workingHours ?? current.contacts.workingHours,
+          addresses: normalizedAddresses,
+        },
+      };
+    });
+  }
+
   function updateSeo<K extends keyof SiteEditorSettings["seo"]>(key: K, value: SiteEditorSettings["seo"][K]) {
     setSettings((current) => ({
       ...current,
@@ -350,9 +432,79 @@ export function SiteEditorForm({ initialSettings }: Props) {
                 <Field label="Режим работы">
                   <input value={settings.contacts.workingHours} onChange={(event) => updateContacts("workingHours", event.target.value)} className="admin-input" />
                 </Field>
-                <Field label="Адрес / шоурум">
+                <Field label="Адрес / шоурум по умолчанию">
                   <input value={settings.contacts.address} onChange={(event) => updateContacts("address", event.target.value)} className="admin-input" />
                 </Field>
+              </div>
+
+              <div className="mt-10 rounded-2xl border border-blue-500/25 bg-blue-500/10 p-5">
+                <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                  <div>
+                    <h3 className="text-xl font-bold tracking-[-0.035em]">Адреса и точки выдачи</h3>
+                    <p className="mt-2 text-sm leading-relaxed text-white/50">
+                      Добавляй шоурумы, офисы и ПВЗ. Главный адрес попадёт в контакты сайта.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={addAddress}
+                    className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+                  >
+                    Добавить адрес →
+                  </button>
+                </div>
+              </div>
+
+              <div className="mt-5 grid gap-4">
+                {settings.contacts.addresses.map((address) => (
+                  <div key={address.id} className="rounded-2xl border border-white/10 bg-black/20 p-5">
+                    <div className="grid gap-4 md:grid-cols-2">
+                      <Field label="Название точки">
+                        <input value={address.title} onChange={(event) => updateAddress(address.id, { title: event.target.value })} className="admin-input" />
+                      </Field>
+
+                      <Field label="Тип">
+                        <select value={address.type} onChange={(event) => updateAddress(address.id, { type: event.target.value as SiteEditorSettings["contacts"]["addresses"][number]["type"] })} className="admin-input">
+                          <option value="showroom">Шоурум</option>
+                          <option value="pickup">Пункт выдачи</option>
+                          <option value="office">Офис</option>
+                        </select>
+                      </Field>
+
+                      <Field label="Город">
+                        <input value={address.city} onChange={(event) => updateAddress(address.id, { city: event.target.value })} className="admin-input" />
+                      </Field>
+
+                      <Field label="Метро / ориентир">
+                        <input value={address.metro} onChange={(event) => updateAddress(address.id, { metro: event.target.value })} className="admin-input" />
+                      </Field>
+
+                      <Field label="Адрес">
+                        <input value={address.address} onChange={(event) => updateAddress(address.id, { address: event.target.value })} className="admin-input" />
+                      </Field>
+
+                      <Field label="Режим работы">
+                        <input value={address.workingHours} onChange={(event) => updateAddress(address.id, { workingHours: event.target.value })} className="admin-input" />
+                      </Field>
+
+                      <Field label="Телефон точки">
+                        <input value={address.phone} onChange={(event) => updateAddress(address.id, { phone: event.target.value })} className="admin-input" />
+                      </Field>
+
+                      <div className="grid gap-3 sm:grid-cols-3 md:pt-7">
+                        <button type="button" onClick={() => updateAddress(address.id, { active: !address.active })} className={`rounded-xl border px-4 py-3 text-sm font-semibold transition-colors ${address.active ? "border-green-500/30 bg-green-500/10 text-green-300" : "border-red-500/30 bg-red-500/10 text-red-300"}`}>
+                          {address.active ? "Активен" : "Скрыт"}
+                        </button>
+                        <button type="button" onClick={() => updateAddress(address.id, { isMain: true })} className={`rounded-xl border px-4 py-3 text-sm font-semibold transition-colors ${address.isMain ? "border-blue-500/40 bg-blue-500/15 text-blue-300" : "border-white/10 bg-white/[0.03] text-white/70 hover:border-blue-500/40"}`}>
+                          Главный
+                        </button>
+                        <button type="button" onClick={() => removeAddress(address.id)} className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-300 transition-colors hover:bg-red-500/15">
+                          Удалить
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
               </div>
             </section>
 
