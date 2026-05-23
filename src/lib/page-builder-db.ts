@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
 
-export type PageKey = "home" | "catalog" | "product" | "cart" | "profile";
+export type PageKey = "home" | "catalog" | "new" | "product" | "cart" | "profile";
 
 export type PageBlockType =
   | "hero"
@@ -77,6 +77,11 @@ export const builderPages: BuilderPage[] = [
     description: "Заголовок, фильтры, сетка товаров, пустые состояния и баннеры.",
   },
   {
+    key: "new",
+    title: "Новинки",
+    description: "Отдельная страница новинок и её баннерные модули.",
+  },
+  {
     key: "product",
     title: "Карточка товара",
     description: "Галерея, информация, описание, похожие товары и дополнительные блоки.",
@@ -147,7 +152,7 @@ export const moduleLibrary: ModuleDefinition[] = [
     type: "new-arrivals",
     title: "Новинки",
     description: "Баннерный блок новинок с отдельным promo-фото.",
-    pageKeys: ["home", "catalog"],
+    pageKeys: ["home", "catalog", "new"],
     defaultSettings: {
       title: "Новинки",
       subtitle: "Техника, которая только появилась",
@@ -161,14 +166,14 @@ export const moduleLibrary: ModuleDefinition[] = [
     type: "support",
     title: "Поддержка",
     description: "Блок помощи и сервиса.",
-    pageKeys: ["home", "product", "cart", "profile"],
+    pageKeys: ["home", "new", "product", "cart", "profile"]
     defaultSettings: { title: "Сервис и поддержка", subtitle: "Поможем с выбором и заказом." },
   },
   {
     type: "promo-banner",
     title: "Баннер",
     description: "Редактируемый баннер с текстом, кнопкой, изображением и стилем.",
-    pageKeys: ["home", "catalog", "product", "cart", "profile"],
+    pageKeys: ["home", "catalog", "new", "product", "cart", "profile"]
     defaultSettings: {
       bannerId: "",
       label: "Промо",
@@ -188,7 +193,7 @@ export const moduleLibrary: ModuleDefinition[] = [
     type: "text-image",
     title: "Текст + картинка",
     description: "Apple-style секция с крупным текстом и изображением.",
-    pageKeys: ["home", "catalog", "product"],
+    pageKeys: ["home", "catalog", "new", "product"]
     defaultSettings: {
       title: "Заголовок секции",
       subtitle: "Описание секции можно менять без кода.",
@@ -201,7 +206,7 @@ export const moduleLibrary: ModuleDefinition[] = [
     type: "product-carousel",
     title: "Карусель товаров",
     description: "Гибкая карусель товаров: популярные, новинки или все товары.",
-    pageKeys: ["home", "catalog", "product"],
+    pageKeys: ["home", "catalog", "new", "product"]
     defaultSettings: {
       title: "Товары",
       subtitle: "Подборка из каталога",
@@ -334,6 +339,11 @@ export const defaultPageBlocks: Record<PageKey, Array<Omit<SitePageBlock, "id" |
     makeDefaultBlock("catalog", "catalog-filters", 30),
     makeDefaultBlock("catalog", "catalog-grid", 40),
     makeDefaultBlock("catalog", "catalog-empty", 50),
+  ],
+  new: [
+    makeDefaultBlock("new", "new-arrivals", 10),
+    makeDefaultBlock("new", "promo-banner", 20),
+    makeDefaultBlock("new", "support", 30),
   ],
   product: [
     makeDefaultBlock("product", "product-gallery", 10),
