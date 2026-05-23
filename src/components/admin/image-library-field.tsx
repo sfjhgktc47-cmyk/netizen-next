@@ -34,7 +34,7 @@ export function ImageLibraryField({
     onChange(uniqueImages(nextImages).slice(0, maxImages));
   }
 
-  function readFiles(files: FileList | File[]) {
+  async function readFiles(files: FileList | File[]) {
     setError("");
 
     const selectedFiles = Array.from(files).slice(0, Math.max(0, maxImages - value.length));
@@ -46,31 +46,50 @@ export function ImageLibraryField({
       return;
     }
 
-    selectedFiles.forEach((file) => {
+    const validFiles = selectedFiles.filter((file) => {
       if (!file.type.startsWith("image/")) {
         setError("Можно загружать только изображения.");
-        return;
+        return false;
       }
 
       if (file.size > MAX_IMAGE_SIZE_BYTES) {
         setError(`Одно фото должно быть до ${MAX_IMAGE_SIZE_MB} МБ.`);
-        return;
+        return false;
       }
 
-      const reader = new FileReader();
-
-      reader.onload = () => {
-        if (typeof reader.result === "string") {
-          applyImages([...value, reader.result]);
-        }
-      };
-
-      reader.onerror = () => {
-        setError("Не удалось прочитать одно из фото.");
-      };
-
-      reader.readAsDataURL(file);
+      return true;
     });
+
+    if (validFiles.length === 0) {
+      return;
+    }
+
+    try {
+      const images = await Promise.all(
+        validFiles.map(
+          (file) =>
+            new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+
+              reader.onload = () => {
+                if (typeof reader.result === "string") {
+                  resolve(reader.result);
+                  return;
+                }
+
+                reject(new Error("Не удалось прочитать фото."));
+              };
+
+              reader.onerror = () => reject(new Error("Не удалось прочитать фото."));
+              reader.readAsDataURL(file);
+            })
+        )
+      );
+
+      applyImages([...value, ...images]);
+    } catch {
+      setError("Не удалось прочитать одно из фото.");
+    }
   }
 
   function handleDrop(event: DragEvent<HTMLButtonElement>) {
@@ -112,7 +131,7 @@ export function ImageLibraryField({
       <div>
         <div className="text-sm font-medium text-white/70">{label}</div>
         <p className="mt-1 text-xs leading-relaxed text-white/40">
-          Первое фото будет главным. Остальные будут библиотекой/галереей позиции.
+          Первое фото будет главным. Остальные будут библиотекой/галереей. Фото можно удалить или сделать главным.
         </p>
       </div>
 
@@ -176,36 +195,47 @@ export function ImageLibraryField({
           {value.map((image, index) => (
             <div key={`${image}-${index}`} className="overflow-hidden rounded-2xl border border-white/10 bg-black/20">
               <div
-                className="h-36 bg-white/[0.04] bg-cover bg-center bg-no-repeat"
+                className="h-36 bg-white bg-contain bg-center bg-no-repeat"
                 style={{ backgroundImage: `url(${image})` }}
-                aria-label={`Фото позиции ${index + 1}`}
+                aria-label={`Фото ${index + 1}`}
               />
-              <div className="flex items-center justify-between gap-2 p-3">
-                <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-white/50">
+              <div className="grid gap-2 p-3">
+                <span className="w-fit rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-white/50">
                   {index === 0 ? "Главное" : `Фото ${index + 1}`}
                 </span>
-                <div className="flex gap-2">
+
+                <div className="grid gap-2">
                   {index > 0 ? (
                     <button
                       type="button"
                       onClick={() => makeMain(index)}
-                      className="text-xs text-blue-300 transition-colors hover:text-blue-200"
+                      className="rounded-lg border border-blue-500/25 bg-blue-500/10 px-3 py-2 text-xs font-semibold text-blue-200 transition-colors hover:bg-blue-500/20"
                     >
-                      Главным
+                      Сделать главным
                     </button>
                   ) : null}
                   <button
                     type="button"
                     onClick={() => removeImage(index)}
-                    className="text-xs text-white/40 transition-colors hover:text-red-300"
+                    className="rounded-lg border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-200 transition-colors hover:bg-red-500/20"
                   >
-                    Удалить
+                    Удалить фото
                   </button>
                 </div>
               </div>
             </div>
           ))}
         </div>
+      ) : null}
+
+      {value.length > 1 ? (
+        <button
+          type="button"
+          onClick={() => applyImages([])}
+          className="w-fit rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-2.5 text-sm font-semibold text-red-200 transition-colors hover:bg-red-500/20"
+        >
+          Удалить все фото
+        </button>
       ) : null}
 
       {error ? <div className="text-sm text-red-300">{error}</div> : null}

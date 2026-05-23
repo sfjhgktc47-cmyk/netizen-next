@@ -5,6 +5,10 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { ImageLibraryField } from "@/components/admin/image-library-field";
+import {
+  ProductDescriptionBlocksEditor,
+  type ProductDescriptionBlock,
+} from "@/components/admin/product-description-blocks-editor";
 
 type AdminCategoryOption = {
   id: string;
@@ -49,6 +53,7 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
   const [categorySlug, setCategorySlug] = useState(() => getInitialCategorySlug(categories, initialCategorySlug));
   const [shortDescription, setShortDescription] = useState("");
   const [description, setDescription] = useState("");
+  const [descriptionBlocks, setDescriptionBlocks] = useState<ProductDescriptionBlock[]>([]);
   const [status, setStatus] = useState("active");
   const [isNew, setIsNew] = useState(true);
   const [isPopular, setIsPopular] = useState(false);
@@ -82,6 +87,7 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
           categorySlug,
           shortDescription,
           description,
+          descriptionBlocks,
           image: images[0] ?? "",
           promoImage: promoImages[0] ?? "",
           images,
@@ -228,14 +234,19 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
               />
             </Field>
 
-            <Field label="Полное описание">
+            <Field label="Полное текстовое описание">
               <textarea
                 value={description}
                 onChange={(event) => setDescription(event.target.value)}
-                placeholder="Более подробное описание модели."
+                placeholder="Текстовый fallback. Основное красивое описание собирается блоками ниже."
                 className={textareaClass}
               />
             </Field>
+
+            <ProductDescriptionBlocksEditor
+              value={descriptionBlocks}
+              onChange={setDescriptionBlocks}
+            />
           </div>
         </section>
       </div>

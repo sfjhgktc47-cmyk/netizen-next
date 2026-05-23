@@ -30,6 +30,41 @@ function toStringArrayValue(value: unknown) {
   return [];
 }
 
+
+function normalizeDescriptionBlocks(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((item, index) => {
+      if (!item || typeof item !== "object") {
+        return null;
+      }
+
+      const record = item as Record<string, unknown>;
+      const title = toStringValue(record.title).trim();
+      const text = toStringValue(record.text).trim();
+      const image = toStringValue(record.image).trim();
+
+      if (!title && !text && !image) {
+        return null;
+      }
+
+      return {
+        id: toStringValue(record.id).trim() || `block-${index}`,
+        eyebrow: toStringValue(record.eyebrow).trim(),
+        title,
+        text,
+        image,
+        imageAlt: toStringValue(record.imageAlt).trim(),
+        imageSide: record.imageSide === "left" ? "left" : "right",
+        tone: record.tone === "dark" ? "dark" : "light",
+      };
+    })
+    .filter(Boolean);
+}
+
 function toBooleanValue(value: unknown) {
   return value === true || value === "true";
 }
@@ -116,6 +151,7 @@ export async function PATCH(
         categoryId: category?.id ?? null,
         shortDescription: toStringValue(body?.shortDescription),
         description: toStringValue(body?.description),
+        descriptionBlocks: normalizeDescriptionBlocks(body?.descriptionBlocks),
         image: mainImage,
         promoImage: toStringValue(body?.promoImage).trim(),
         images,

@@ -6,6 +6,17 @@ import { prisma } from "@/lib/db";
 
 export type AdminProductStatus = "active" | "draft" | "hidden" | "out_of_stock";
 
+export type ProductDescriptionBlock = {
+  id: string;
+  eyebrow: string;
+  title: string;
+  text: string;
+  image: string;
+  imageAlt: string;
+  imageSide: "left" | "right";
+  tone: "light" | "dark";
+};
+
 export type AdminCategoryOption = {
   id: string;
   slug: string;
@@ -21,6 +32,7 @@ export type AdminProductListItem = {
   categoryName: string;
   shortDescription: string;
   description: string;
+  descriptionBlocks: ProductDescriptionBlock[];
   status: AdminProductStatus;
   image: string;
   promoImage: string;
@@ -80,6 +92,41 @@ export function getAdminStatusClass(status: string) {
   return "border-white/10 bg-white/[0.03] text-white/45";
 }
 
+
+function normalizeDescriptionBlocks(value: unknown): ProductDescriptionBlock[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((item, index) => {
+      if (!item || typeof item !== "object") {
+        return null;
+      }
+
+      const record = item as Record<string, unknown>;
+      const title = typeof record.title === "string" ? record.title : "";
+      const text = typeof record.text === "string" ? record.text : "";
+      const image = typeof record.image === "string" ? record.image : "";
+
+      if (!title.trim() && !text.trim() && !image.trim()) {
+        return null;
+      }
+
+      return {
+        id: typeof record.id === "string" && record.id ? record.id : `block-${index}`,
+        eyebrow: typeof record.eyebrow === "string" ? record.eyebrow : "",
+        title,
+        text,
+        image,
+        imageAlt: typeof record.imageAlt === "string" ? record.imageAlt : "",
+        imageSide: record.imageSide === "left" ? "left" : "right",
+        tone: record.tone === "dark" ? "dark" : "light",
+      } satisfies ProductDescriptionBlock;
+    })
+    .filter((item): item is ProductDescriptionBlock => Boolean(item));
+}
+
 function normalizeProductImages(product: any) {
   const images = Array.isArray(product.images) ? product.images.map(String).filter(Boolean) : [];
   const mainImage = String(product.image ?? "");
@@ -102,6 +149,7 @@ function toAdminProduct(product: any): AdminProductListItem {
     categoryName: product.category?.name ?? product.categorySlug,
     shortDescription: String(product.shortDescription ?? ""),
     description: String(product.description ?? ""),
+    descriptionBlocks: normalizeDescriptionBlocks(product.descriptionBlocks),
     status: product.status,
     image: normalizeProductImages(product)[0] ?? "",
     promoImage: String(product.promoImage ?? ""),

@@ -4,6 +4,17 @@ import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/product-pricing";
 import { getPublicCategoriesFromDb, type PublicCategory } from "@/lib/public-categories-db";
 
+export type ProductDescriptionBlock = {
+  id: string;
+  eyebrow: string;
+  title: string;
+  text: string;
+  image: string;
+  imageAlt: string;
+  imageSide: "left" | "right";
+  tone: "light" | "dark";
+};
+
 export type PublicProductModel = {
   slug: string;
   name: string;
@@ -13,6 +24,7 @@ export type PublicProductModel = {
   price: string;
   description: string;
   shortDescription: string;
+  descriptionBlocks: ProductDescriptionBlock[];
   image: string;
   promoImage: string;
   images: string[];
@@ -48,6 +60,41 @@ export type PublicCatalogData = {
 };
 
 type ProductWithVariants = Awaited<ReturnType<typeof getDbProductsForPublicCatalog>>[number];
+
+
+function normalizeDescriptionBlocks(value: unknown): ProductDescriptionBlock[] {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((item, index) => {
+      if (!item || typeof item !== "object") {
+        return null;
+      }
+
+      const record = item as Record<string, unknown>;
+      const title = typeof record.title === "string" ? record.title : "";
+      const text = typeof record.text === "string" ? record.text : "";
+      const image = typeof record.image === "string" ? record.image : "";
+
+      if (!title.trim() && !text.trim() && !image.trim()) {
+        return null;
+      }
+
+      return {
+        id: typeof record.id === "string" && record.id ? record.id : `block-${index}`,
+        eyebrow: typeof record.eyebrow === "string" ? record.eyebrow : "",
+        title,
+        text,
+        image,
+        imageAlt: typeof record.imageAlt === "string" ? record.imageAlt : "",
+        imageSide: record.imageSide === "left" ? "left" : "right",
+        tone: record.tone === "dark" ? "dark" : "light",
+      } satisfies ProductDescriptionBlock;
+    })
+    .filter((item): item is ProductDescriptionBlock => Boolean(item));
+}
 
 function getVariantStatus(status: string, stock: number) {
   if (status === "out_of_stock" || stock <= 0) {
@@ -117,6 +164,7 @@ function toPublicProduct(product: ProductWithVariants): PublicProductModel {
     price: getPriceRange(product.variants),
     description: product.description,
     shortDescription: product.shortDescription || product.description,
+    descriptionBlocks: normalizeDescriptionBlocks(product.descriptionBlocks),
     image: getProductImages(product)[0] ?? "",
     promoImage: String(product.promoImage ?? ""),
     images: getProductImages(product),

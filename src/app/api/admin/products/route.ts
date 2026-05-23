@@ -2,6 +2,45 @@ import { NextRequest, NextResponse } from "next/server";
 
 import { prisma } from "@/lib/db";
 
+
+function toStringValue(value: unknown) {
+  return typeof value === "string" ? value : "";
+}
+
+function normalizeDescriptionBlocks(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return value
+    .map((item, index) => {
+      if (!item || typeof item !== "object") {
+        return null;
+      }
+
+      const record = item as Record<string, unknown>;
+      const title = toStringValue(record.title).trim();
+      const text = toStringValue(record.text).trim();
+      const image = toStringValue(record.image).trim();
+
+      if (!title && !text && !image) {
+        return null;
+      }
+
+      return {
+        id: toStringValue(record.id).trim() || `block-${index}`,
+        eyebrow: toStringValue(record.eyebrow).trim(),
+        title,
+        text,
+        image,
+        imageAlt: toStringValue(record.imageAlt).trim(),
+        imageSide: record.imageSide === "left" ? "left" : "right",
+        tone: record.tone === "dark" ? "dark" : "light",
+      };
+    })
+    .filter(Boolean);
+}
+
 function normalizeImages(value: unknown) {
   if (Array.isArray(value)) {
     return value.map(String).map((item) => item.trim()).filter(Boolean);
@@ -73,6 +112,7 @@ export async function POST(request: NextRequest) {
       categoryId: category?.id ?? null,
       description: String(body.description ?? ""),
       shortDescription: String(body.shortDescription ?? ""),
+      descriptionBlocks: normalizeDescriptionBlocks(body.descriptionBlocks),
       image: mainImage,
       promoImage: String(body.promoImage ?? "").trim(),
       images,

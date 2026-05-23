@@ -43,6 +43,14 @@ function getStatusName(status: string) {
   return statuses[status] ?? status;
 }
 
+function getProductStoryBlocks(product: ProductCard) {
+  return Array.isArray(product.descriptionBlocks) ? product.descriptionBlocks : [];
+}
+
+function hasProductStory(product: ProductCard) {
+  return getProductStoryBlocks(product).length > 0 || Boolean(product.description?.trim());
+}
+
 
 function getFavoriteSlugs() {
   try {
@@ -685,6 +693,10 @@ export function ProductDetailView({
           </div>
         </section>
 
+        {hasProductStory(product) ? (
+          <ProductStory product={product} />
+        ) : null}
+
         <section className="mt-10">
           {previewPosition && (
             <ProductTabs
@@ -708,6 +720,78 @@ export function ProductDetailView({
         </section>
       </div>
     </main>
+  );
+}
+
+function ProductStory({ product }: { product: ProductCard }) {
+  const blocks = getProductStoryBlocks(product);
+
+  if (blocks.length === 0 && product.description.trim()) {
+    return (
+      <section className="mt-10 rounded-[38px] border border-theme bg-card p-8 text-main shadow-soft lg:p-12">
+        <div className="text-sm font-semibold uppercase tracking-[0.24em] text-blue-500">Описание</div>
+        <h2 className="mt-3 text-4xl font-bold tracking-[-0.05em] lg:text-5xl">{product.name}</h2>
+        <p className="mt-5 max-w-[860px] whitespace-pre-line text-base leading-relaxed text-muted lg:text-lg">
+          {product.description}
+        </p>
+      </section>
+    );
+  }
+
+  return (
+    <section className="mt-10 space-y-5">
+      {blocks.map((block, index) => {
+        const hasImage = Boolean(block.image);
+        const imageFirst = block.imageSide === "left";
+        const isDark = block.tone === "dark";
+
+        return (
+          <article
+            key={block.id || `${block.title}-${index}`}
+            className={`overflow-hidden rounded-[38px] border shadow-soft ${
+              isDark
+                ? "border-white/10 bg-[#050914] text-white"
+                : "border-theme bg-card text-main"
+            }`}
+          >
+            <div className="grid min-h-[360px] lg:grid-cols-2">
+              <div className={`flex flex-col justify-center p-8 lg:p-12 ${imageFirst ? "lg:order-2" : ""}`}>
+                {block.eyebrow ? (
+                  <div className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-500">
+                    {block.eyebrow}
+                  </div>
+                ) : null}
+
+                {block.title ? (
+                  <h2 className="mt-4 text-4xl font-bold tracking-[-0.055em] lg:text-6xl">
+                    {block.title}
+                  </h2>
+                ) : null}
+
+                {block.text ? (
+                  <p className={`mt-5 whitespace-pre-line text-base leading-relaxed lg:text-lg ${isDark ? "text-white/65" : "text-muted"}`}>
+                    {block.text}
+                  </p>
+                ) : null}
+              </div>
+
+              <div className={`flex min-h-[320px] items-center justify-center ${imageFirst ? "lg:order-1" : ""} ${isDark ? "bg-white/[0.03]" : "bg-blue-soft"}`}>
+                {hasImage ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={block.image}
+                    alt={block.imageAlt || block.title || product.name}
+                    className="h-full max-h-[520px] w-full object-contain p-6 lg:p-10"
+                  />
+                ) : (
+                  <div className="text-sm text-muted-soft">Фото блока</div>
+                )}
+              </div>
+            </div>
+          </article>
+        );
+      })}
+    </section>
   );
 }
 

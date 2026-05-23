@@ -5,6 +5,11 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import { ImageLibraryField } from "@/components/admin/image-library-field";
+import {
+  ProductDescriptionBlocksEditor,
+  normalizeDescriptionBlocks,
+  type ProductDescriptionBlock,
+} from "@/components/admin/product-description-blocks-editor";
 
 type AdminCategoryOption = {
   id: string;
@@ -20,6 +25,7 @@ type ProductForEdit = {
   categorySlug: string;
   shortDescription: string;
   description: string;
+  descriptionBlocks?: ProductDescriptionBlock[];
   status: string;
   image: string;
   promoImage?: string;
@@ -58,6 +64,9 @@ export function ProductEditForm({ product, categories }: Props) {
   const [categorySlug, setCategorySlug] = useState(product.categorySlug);
   const [shortDescription, setShortDescription] = useState(product.shortDescription);
   const [description, setDescription] = useState(product.description);
+  const [descriptionBlocks, setDescriptionBlocks] = useState<ProductDescriptionBlock[]>(
+    normalizeDescriptionBlocks(product.descriptionBlocks)
+  );
   const [status, setStatus] = useState(product.status);
   const [images, setImages] = useState<string[]>(
     Array.isArray(product.images) && product.images.length > 0
@@ -76,8 +85,7 @@ export function ProductEditForm({ product, categories }: Props) {
 
   const finalSlug = useMemo(() => slugify(slug || name), [name, slug]);
 
-  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
+  async function saveProduct(statusOverride?: string) {
     setError("");
     setSuccess("");
     setLoading(true);
@@ -99,10 +107,11 @@ export function ProductEditForm({ product, categories }: Props) {
           categorySlug,
           shortDescription,
           description,
+          descriptionBlocks,
           image: images[0] ?? "",
           promoImage: promoImages[0] ?? "",
           images,
-          status,
+          status: statusOverride ?? status,
           isNew,
           isPopular,
         }),
@@ -114,7 +123,11 @@ export function ProductEditForm({ product, categories }: Props) {
         throw new Error(payload?.error ?? "Не удалось сохранить карточку.");
       }
 
-      setSuccess("Карточка сохранена.");
+      if (statusOverride) {
+        setStatus(statusOverride);
+      }
+
+      setSuccess(statusOverride === "draft" ? "Карточка отправлена в черновик." : statusOverride === "hidden" ? "Карточка скрыта." : "Карточка сохранена.");
       router.replace(`/nz-console/products/${finalSlug}`);
       router.refresh();
     } catch (caughtError) {
@@ -122,6 +135,11 @@ export function ProductEditForm({ product, categories }: Props) {
     } finally {
       setLoading(false);
     }
+  }
+
+  async function handleSubmit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    await saveProduct();
   }
 
   return (
@@ -212,9 +230,16 @@ export function ProductEditForm({ product, categories }: Props) {
           <textarea value={shortDescription} onChange={(event) => setShortDescription(event.target.value)} className={textareaClass} />
         </Field>
 
-        <Field label="Полное описание">
+        <Field label="Полное текстовое описание">
           <textarea value={description} onChange={(event) => setDescription(event.target.value)} className={textareaClass} />
         </Field>
+      </div>
+
+      <div className="mt-4">
+        <ProductDescriptionBlocksEditor
+          value={descriptionBlocks}
+          onChange={setDescriptionBlocks}
+        />
       </div>
 
       {error ? (
@@ -237,6 +262,35 @@ export function ProductEditForm({ product, categories }: Props) {
         >
           {loading ? "Сохраняю..." : "Сохранить карточку"}
         </button>
+
+        <button
+          type="button"
+          disabled={loading}
+          onClick={() => saveProduct("draft")}
+          className="rounded-xl border border-orange-500/30 bg-orange-500/10 px-5 py-3 text-sm font-semibold text-orange-100 transition-colors hover:bg-orange-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          В черновик
+        </button>
+
+        <button
+          type="button"
+          disabled={loading}
+          onClick={() => saveProduct("hidden")}
+          className="rounded-xl border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-semibold text-white/70 transition-colors hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-100 disabled:cursor-not-allowed disabled:opacity-60"
+        >
+          Скрыть
+        </button>
+
+        {status !== "active" ? (
+          <button
+            type="button"
+            disabled={loading}
+            onClick={() => saveProduct("active")}
+            className="rounded-xl border border-green-500/30 bg-green-500/10 px-5 py-3 text-sm font-semibold text-green-100 transition-colors hover:bg-green-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            Опубликовать
+          </button>
+        ) : null}
 
         <span className="text-sm text-white/40">
           Если поменять slug, страница товара автоматически откроется по новому адресу.

@@ -62,6 +62,7 @@ model Product {
   categorySlug     String
   description      String           @default("")
   shortDescription String           @default("")
+  descriptionBlocks Json            @default("[]")
   image            String           @default("")
   promoImage       String           @default("")
   images           String[]         @default([])
