@@ -96,6 +96,7 @@ export async function PATCH(
         shortDescription: toStringValue(body?.shortDescription),
         description: toStringValue(body?.description),
         image: mainImage,
+        promoImage: toStringValue(body?.promoImage).trim(),
         images,
         status: normalizeStatus(body?.status),
         isNew: toBooleanValue(body?.isNew),

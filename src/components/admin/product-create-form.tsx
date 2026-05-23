@@ -53,6 +53,7 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
   const [isNew, setIsNew] = useState(true);
   const [isPopular, setIsPopular] = useState(false);
   const [images, setImages] = useState<string[]>([]);
+  const [promoImages, setPromoImages] = useState<string[]>([]);
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
@@ -82,6 +83,7 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
           shortDescription,
           description,
           image: images[0] ?? "",
+          promoImage: promoImages[0] ?? "",
           images,
           status,
           isNew,
@@ -198,13 +200,21 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
             </div>
           </div>
 
-          <div className="mt-5">
+          <div className="mt-5 grid gap-5 lg:grid-cols-2">
             <ImageLibraryField
               value={images}
               onChange={setImages}
               label="Фотографии карточки"
               hint="Перетащите несколько общих фото модели. Первое фото будет главным до выбора конкретной позиции/SKU."
               maxImages={10}
+            />
+
+            <ImageLibraryField
+              value={promoImages}
+              onChange={setPromoImages}
+              label="Фото для блока «Новинки»"
+              hint="Отдельное широкое промо-фото для главной. Лучше загружать баннер 16:9 или широкий PNG/WebP."
+              maxImages={1}
             />
           </div>
 

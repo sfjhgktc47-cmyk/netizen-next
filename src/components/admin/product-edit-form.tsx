@@ -22,6 +22,7 @@ type ProductForEdit = {
   description: string;
   status: string;
   image: string;
+  promoImage?: string;
   images?: string[];
   isNew: boolean;
   isPopular: boolean;
@@ -65,6 +66,7 @@ export function ProductEditForm({ product, categories }: Props) {
         ? [product.image]
         : []
   );
+  const [promoImages, setPromoImages] = useState<string[]>(product.promoImage ? [product.promoImage] : []);
   const [isNew, setIsNew] = useState(product.isNew);
   const [isPopular, setIsPopular] = useState(product.isPopular);
 
@@ -98,6 +100,7 @@ export function ProductEditForm({ product, categories }: Props) {
           shortDescription,
           description,
           image: images[0] ?? "",
+          promoImage: promoImages[0] ?? "",
           images,
           status,
           isNew,
@@ -180,6 +183,16 @@ export function ProductEditForm({ product, categories }: Props) {
             label="Фотографии карточки"
             hint="Перетащите несколько общих фото модели. Эти фото показываются до выбора конкретной позиции/SKU."
             maxImages={10}
+          />
+        </div>
+
+        <div className="md:col-span-2 xl:col-span-2">
+          <ImageLibraryField
+            value={promoImages}
+            onChange={setPromoImages}
+            label="Фото для блока «Новинки»"
+            hint="Отдельное широкое промо-фото для главной. Используется только в промо-блоке новинок."
+            maxImages={1}
           />
         </div>
 

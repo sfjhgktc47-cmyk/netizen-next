@@ -74,6 +74,7 @@ export async function POST(request: NextRequest) {
       description: String(body.description ?? ""),
       shortDescription: String(body.shortDescription ?? ""),
       image: mainImage,
+      promoImage: String(body.promoImage ?? "").trim(),
       images,
       colors: Array.isArray(body.colors) ? body.colors.map(String) : [],
       status: normalizeStatus(body.status),

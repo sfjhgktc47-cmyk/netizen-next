@@ -25,6 +25,7 @@ export type AdminProductListItem = {
   description: string;
   status: AdminProductStatus;
   image: string;
+  promoImage: string;
   images: string[];
   isNew: boolean;
   isPopular: boolean;
@@ -123,6 +124,7 @@ function toAdminProduct(product: any): AdminProductListItem {
     description: String(product.description ?? ""),
     status: product.status,
     image: normalizeProductImages(product)[0] ?? "",
+    promoImage: String(product.promoImage ?? ""),
     images: normalizeProductImages(product),
     isNew: Boolean(product.isNew),
     isPopular: Boolean(product.isPopular),
@@ -167,6 +169,7 @@ function getDemoProducts(): AdminProductListItem[] {
       description: product.shortDescription,
       status: product.status === "active" ? "active" : "draft",
       image: "",
+      promoImage: "",
       images: [],
       isNew: false,
       isPopular: true,

@@ -32,8 +32,11 @@ type HomeProduct = {
   price: string;
   shortDescription?: string;
   image?: string;
+  promoImage?: string;
   images?: string[];
   colors: string[];
+  isNew?: boolean;
+  isPopular?: boolean;
 };
 
 type HomePayload = {
@@ -153,7 +156,7 @@ export default function Home() {
         <Benefits dark={dark} />
         <Categories dark={dark} categories={visibleCategories.slice(0, 12)} />
         <PopularProducts dark={dark} products={visibleProducts.slice(0, 12)} />
-        <NewArrivals dark={dark} />
+        <NewArrivals dark={dark} products={visibleProducts} />
         <SupportBlock dark={dark} />
         <Footer dark={dark} />
       </div>
@@ -748,59 +751,165 @@ function ProductCard({
   );
 }
 
-function NewArrivals({ dark }: { dark: boolean }) {
+function NewArrivals({
+  dark,
+  products,
+}: {
+  dark: boolean;
+  products: HomeProduct[];
+}) {
+  const fallbackNewArrivals: HomeProduct[] = [
+    {
+      slug: "catalog",
+      name: "iPhone 17e",
+      price: "от 89 990 ₽",
+      shortDescription:
+        "Мощь. Красота. Доступнее. A19. Великолепный OLED-дисплей. До 26 часов работы без подзарядки.",
+      colors: [],
+      promoImage: "",
+      isNew: true,
+    },
+    {
+      slug: "catalog",
+      name: "AirPods Max",
+      price: "от 59 990 ₽",
+      shortDescription: "Звук, в который хочется погружаться.",
+      colors: [],
+      promoImage: "",
+      isNew: true,
+    },
+    {
+      slug: "catalog",
+      name: "Samsung Galaxy S25 Ultra",
+      price: "от 129 990 ₽",
+      shortDescription: "AI-камера. Профессиональная мощность. Невероятная мощность.",
+      colors: [],
+      promoImage: "",
+      isNew: true,
+    },
+  ];
+
+  const newArrivals = products.filter((product) => product.isNew).slice(0, 3);
+  const items = newArrivals.length > 0 ? newArrivals : fallbackNewArrivals;
+  const [mainItem, ...secondaryItems] = items;
+
+  if (!mainItem) {
+    return null;
+  }
+
   return (
     <section className="pb-20">
-      <h2 className="text-5xl font-bold">Новинки</h2>
+      <div className="mb-8">
+        <h2 className="text-[42px] font-bold leading-none tracking-[-0.04em] lg:text-[52px]">
+          Новинки
+        </h2>
 
-      <p className={`mt-3 ${mutedTextClass(dark)}`}>
-        Техника, которая только появилась
-      </p>
+        <p className={`mt-3 text-base ${mutedTextClass(dark)}`}>
+          Техника, которая только появилась
+        </p>
+      </div>
 
-      <div className="mt-8 grid gap-5 lg:grid-cols-2">
-        <div
-          className={`min-h-[360px] rounded-3xl border p-10 transition-all duration-700 ${panelClass(
-            dark
-          )}`}
-        >
-          <div className="text-sm font-bold uppercase text-blue-500">
-            Новинка
+      <div className="grid gap-4">
+        <NewArrivalCard item={mainItem} dark={dark} featured />
+
+        {secondaryItems.length > 0 ? (
+          <div className="grid gap-4 lg:grid-cols-2">
+            {secondaryItems.map((item) => (
+              <NewArrivalCard key={`${item.slug}-${item.name}`} item={item} dark={dark} />
+            ))}
           </div>
-
-          <h3 className="mt-6 text-5xl font-bold">iPhone 17e</h3>
-
-          <p className={`mt-4 text-xl ${mutedTextClass(dark)}`}>
-            Мощь. Красота. Доступнее.
-          </p>
-
-          <Link
-            href="/catalog"
-            className="mt-10 inline-flex rounded-xl bg-blue-600 px-8 py-4 font-medium text-white transition-all duration-300 hover:bg-blue-500"
-          >
-            Подробнее →
-          </Link>
-        </div>
-
-        <div className="grid gap-5">
-          {["AirPods Max", "Samsung Galaxy S25 Ultra"].map((item) => (
-            <div
-              key={item}
-              className={`rounded-3xl border p-8 transition-all duration-700 ${panelClass(
-                dark
-              )}`}
-            >
-              <div className="text-sm font-bold uppercase text-blue-500">
-                Новинка
-              </div>
-
-              <h3 className="mt-4 text-3xl font-bold">{item}</h3>
-
-              <p className={`mt-3 ${mutedTextClass(dark)}`}>от 59 990 ₽</p>
-            </div>
-          ))}
-        </div>
+        ) : null}
       </div>
     </section>
+  );
+}
+
+function NewArrivalCard({
+  item,
+  dark,
+  featured = false,
+}: {
+  item: HomeProduct;
+  dark: boolean;
+  featured?: boolean;
+}) {
+  const promoImage = item.promoImage?.trim() ?? "";
+  const href = item.slug === "catalog" ? "/catalog" : `/product/${item.slug}`;
+  const description =
+    item.shortDescription ||
+    "Новая модель в каталоге. Откройте карточку, чтобы выбрать конфигурацию.";
+
+  return (
+    <Link
+      href={href}
+      className={`group relative grid min-h-[250px] overflow-hidden rounded-3xl border transition-all duration-500 hover:-translate-y-1 ${
+        featured
+          ? "lg:min-h-[340px] lg:grid-cols-[minmax(0,0.95fr)_minmax(340px,1.1fr)]"
+          : "lg:min-h-[240px] lg:grid-cols-[minmax(0,0.95fr)_minmax(260px,1fr)]"
+      } ${
+        dark
+          ? "border-white/10 bg-white/[0.035] shadow-[0_24px_90px_rgba(0,60,255,0.09)] hover:border-blue-500/35"
+          : "border-black/10 bg-white shadow-[0_24px_90px_rgba(15,23,42,0.08)] hover:border-blue-500/35"
+      }`}
+    >
+      <div className={`${featured ? "p-8 lg:p-10" : "p-7 lg:p-8"} relative z-10 flex flex-col items-start justify-center`}>
+        <div className="text-xs font-bold uppercase tracking-[0.18em] text-blue-500">
+          Новинка
+        </div>
+
+        <h3
+          className={`mt-4 max-w-[420px] font-bold leading-[1.05] tracking-[-0.045em] ${
+            featured ? "text-4xl lg:text-5xl" : "text-2xl lg:text-3xl"
+          }`}
+        >
+          {item.name}
+        </h3>
+
+        <p
+          className={`mt-4 max-w-[360px] leading-relaxed ${
+            featured ? "text-base" : "text-sm"
+          } ${mutedTextClass(dark)}`}
+        >
+          {description}
+        </p>
+
+        <div className="mt-6 flex flex-wrap items-center gap-4">
+          <span
+            className={`inline-flex h-11 items-center justify-center rounded-xl bg-blue-600 px-5 text-sm font-medium text-white transition-colors group-hover:bg-blue-500 ${
+              featured ? "min-w-[118px]" : "w-11 px-0"
+            }`}
+          >
+            {featured ? "Подробнее →" : "→"}
+          </span>
+
+          <span className={`text-sm ${mutedTextClass(dark)}`}>{item.price}</span>
+        </div>
+      </div>
+
+      <div
+        className={`relative min-h-[210px] overflow-hidden ${
+          dark
+            ? "bg-[radial-gradient(circle_at_50%_50%,rgba(59,130,246,0.16),rgba(2,8,20,0.03)_58%,transparent_72%)]"
+            : "bg-[radial-gradient(circle_at_50%_50%,rgba(37,99,235,0.12),rgba(248,250,252,0.78)_60%,transparent_74%)]"
+        } ${featured ? "lg:min-h-full" : "lg:min-h-full"}`}
+      >
+        {promoImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={promoImage}
+            alt={item.name}
+            draggable={false}
+            className="h-full w-full object-contain object-right transition-transform duration-700 group-hover:scale-[1.03]"
+          />
+        ) : (
+          <div
+            className={`absolute inset-6 rounded-[28px] border border-dashed ${
+              dark ? "border-white/10 bg-white/[0.025]" : "border-black/10 bg-slate-50/80"
+            }`}
+          />
+        )}
+      </div>
+    </Link>
   );
 }
 

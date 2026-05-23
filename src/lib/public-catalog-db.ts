@@ -14,9 +14,12 @@ export type PublicProductModel = {
   description: string;
   shortDescription: string;
   image: string;
+  promoImage: string;
   images: string[];
   colors: string[];
   status: string;
+  isNew: boolean;
+  isPopular: boolean;
 };
 
 export type PublicProductPosition = {
@@ -59,8 +62,22 @@ function getVariantStatus(status: string, stock: number) {
 }
 
 function getProductImages(product: ProductWithVariants) {
-  const images = Array.isArray(product.images) ? product.images.map(String).filter(Boolean) : [];
-  return images.length > 0 ? images : product.image ? [product.image] : [];
+  const productImages = Array.isArray(product.images)
+    ? product.images.map(String).filter(Boolean)
+    : [];
+
+  if (productImages.length > 0) {
+    return productImages;
+  }
+
+  if (product.image) {
+    return [product.image];
+  }
+
+  return product.variants
+    .flatMap((variant) => (Array.isArray(variant.images) ? variant.images : []))
+    .map(String)
+    .filter(Boolean);
 }
 
 function getProductColors(product: ProductWithVariants) {
@@ -101,9 +118,12 @@ function toPublicProduct(product: ProductWithVariants): PublicProductModel {
     description: product.description,
     shortDescription: product.shortDescription || product.description,
     image: getProductImages(product)[0] ?? "",
+    promoImage: String(product.promoImage ?? ""),
     images: getProductImages(product),
     colors: getProductColors(product),
     status: product.status,
+    isNew: Boolean(product.isNew),
+    isPopular: Boolean(product.isPopular),
   };
 }
 
