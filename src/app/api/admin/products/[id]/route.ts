@@ -54,6 +54,27 @@ export async function PATCH(
   const { id } = await params;
   const body = await request.json();
 
+  if (body?.action === "set-status") {
+    try {
+      const product = await prisma.product.update({
+        where: { id },
+        data: {
+          status: normalizeStatus(body?.status),
+        },
+      });
+
+      return NextResponse.json({ product });
+    } catch (error) {
+      return NextResponse.json(
+        {
+          error: "Не удалось обновить статус карточки.",
+          details: getErrorMessage(error),
+        },
+        { status: 500 },
+      );
+    }
+  }
+
   const name = toStringValue(body?.name).trim();
   const slug = toStringValue(body?.slug).trim();
   const brand = toStringValue(body?.brand).trim();

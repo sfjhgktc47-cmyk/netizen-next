@@ -3,8 +3,6 @@
 import "server-only";
 
 import { prisma } from "@/lib/db";
-import { productCards } from "@/data/product-cards";
-import { productPositions } from "@/data/product-positions";
 
 export type AdminProductStatus = "active" | "draft" | "hidden" | "out_of_stock";
 
@@ -32,7 +30,7 @@ export type AdminProductListItem = {
   variantsCount: number;
   minPrice: number | null;
   stockTotal: number;
-  source: "db" | "demo";
+  source: "db";
 };
 
 export type AdminVariantItem = {
@@ -80,24 +78,6 @@ export function getAdminStatusClass(status: string) {
   }
 
   return "border-white/10 bg-white/[0.03] text-white/45";
-}
-
-
-function moneyToNumber(value: unknown) {
-  if (typeof value === "number") {
-    return value;
-  }
-
-  if (typeof value !== "string") {
-    return 0;
-  }
-
-  const normalized = value.replace(/[^0-9]/g, "");
-  return normalized ? Number(normalized) : 0;
-}
-
-function getDemoCategoryName(categorySlug: string) {
-  return categorySlug;
 }
 
 function normalizeProductImages(product: any) {
@@ -153,65 +133,6 @@ function toAdminVariant(variant: any): AdminVariantItem {
   };
 }
 
-function getDemoProducts(): AdminProductListItem[] {
-  return productCards.map((product) => {
-    const variants = productPositions.filter((position) => position.modelSlug === product.slug);
-    const prices = variants.map((variant) => moneyToNumber(variant.price)).filter((price) => price > 0);
-
-    return {
-      id: product.slug,
-      slug: product.slug,
-      name: product.name,
-      brand: product.brand,
-      categorySlug: product.category,
-      categoryName: getDemoCategoryName(product.category),
-      shortDescription: product.shortDescription,
-      description: product.shortDescription,
-      status: product.status === "active" ? "active" : "draft",
-      image: "",
-      promoImage: "",
-      images: [],
-      isNew: false,
-      isPopular: true,
-      variantsCount: variants.length,
-      minPrice: prices.length > 0 ? Math.min(...prices) : null,
-      stockTotal: variants.reduce((sum, variant) => sum + variant.stock, 0),
-      source: "demo",
-    };
-  });
-}
-
-function getDemoProductBySlug(slug: string): AdminProductDetail | null {
-  const product = getDemoProducts().find((item) => item.slug === slug);
-
-  if (!product) {
-    return null;
-  }
-
-  const variants = productPositions
-    .filter((position) => position.modelSlug === slug)
-    .map((position) => ({
-      id: position.sku,
-      sku: position.sku,
-      slug: position.sku.toLowerCase(),
-      title: position.title,
-      memory: position.memory,
-      color: position.color,
-      colorHex: position.colorHex,
-      sim: position.sim,
-      images: [],
-      price: moneyToNumber(position.price),
-      oldPrice: position.oldPrice ? moneyToNumber(position.oldPrice) : null,
-      stock: position.stock,
-      status: position.stock > 0 ? "active" : "out_of_stock",
-    } satisfies AdminVariantItem));
-
-  return {
-    ...product,
-    variants,
-  };
-}
-
 export async function getAdminCategories(): Promise<AdminCategoryOption[]> {
   const dbCategories = await prisma.category.findMany({
     where: {
@@ -239,14 +160,11 @@ export async function getAdminProducts(): Promise<AdminProductListItem[]> {
       orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
     });
 
-    if (dbProducts.length > 0) {
-      return dbProducts.map(toAdminProduct);
-    }
+    return dbProducts.map(toAdminProduct);
   } catch (error) {
     console.error("Failed to load products from database", error);
+    return [];
   }
-
-  return getDemoProducts();
 }
 
 export async function getAdminProductBySlug(slug: string): Promise<AdminProductDetail | null> {
@@ -271,5 +189,5 @@ export async function getAdminProductBySlug(slug: string): Promise<AdminProductD
     console.error("Failed to load product from database", error);
   }
 
-  return getDemoProductBySlug(slug);
+  return null;
 }
