@@ -166,14 +166,14 @@ export const moduleLibrary: ModuleDefinition[] = [
     type: "support",
     title: "Поддержка",
     description: "Блок помощи и сервиса.",
-    pageKeys: ["home", "new", "product", "cart", "profile"]
+    pageKeys: ["home", "new", "product", "cart", "profile"],
     defaultSettings: { title: "Сервис и поддержка", subtitle: "Поможем с выбором и заказом." },
   },
   {
     type: "promo-banner",
     title: "Баннер",
     description: "Редактируемый баннер с текстом, кнопкой, изображением и стилем.",
-    pageKeys: ["home", "catalog", "new", "product", "cart", "profile"]
+    pageKeys: ["home", "catalog", "new", "product", "cart", "profile"],
     defaultSettings: {
       bannerId: "",
       label: "Промо",
@@ -193,7 +193,7 @@ export const moduleLibrary: ModuleDefinition[] = [
     type: "text-image",
     title: "Текст + картинка",
     description: "Apple-style секция с крупным текстом и изображением.",
-    pageKeys: ["home", "catalog", "new", "product"]
+    pageKeys: ["home", "catalog", "new", "product"],
     defaultSettings: {
       title: "Заголовок секции",
       subtitle: "Описание секции можно менять без кода.",
@@ -206,7 +206,7 @@ export const moduleLibrary: ModuleDefinition[] = [
     type: "product-carousel",
     title: "Карусель товаров",
     description: "Гибкая карусель товаров: популярные, новинки или все товары.",
-    pageKeys: ["home", "catalog", "new", "product"]
+    pageKeys: ["home", "catalog", "new", "product"],
     defaultSettings: {
       title: "Товары",
       subtitle: "Подборка из каталога",
