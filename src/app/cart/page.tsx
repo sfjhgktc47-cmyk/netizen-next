@@ -481,12 +481,13 @@ export default function CartPage() {
   }
 
   function selectSavedAddress(address: string) {
-    setDelivery({
+    setDelivery((current) => ({
+      ...current,
       method: "courier",
-      city: delivery.city,
       address,
       savedAddress: address,
-    });
+      pickupPointId: "",
+    }));
   }
 
   function addSavedAddress() {
