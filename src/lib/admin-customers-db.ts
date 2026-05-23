@@ -15,10 +15,10 @@ const openSupportStatuses = ["NEW", "IN_PROGRESS", "WAITING_CLIENT"];
 type CustomerWithRelations = Awaited<ReturnType<typeof getCustomerRecords>>[number];
 
 async function getCustomerRecords() {
+  // Важно: основа раздела "Клиенты" — таблица Customer.
+  // Поэтому сюда попадают и зарегистрированные пользователи без заказов.
   return prisma.customer.findMany({
-    orderBy: {
-      updatedAt: "desc",
-    },
+    orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
     include: {
       addresses: {
         orderBy: {
@@ -44,6 +44,14 @@ function normalize(value: string | null | undefined) {
 function isRealContact(value: string | null | undefined) {
   const normalized = normalize(value);
   return Boolean(normalized && normalized !== "не указан" && normalized !== "не указано");
+}
+
+function getCustomerFullName(customer: Pick<CustomerWithRelations, "name" | "lastName" | "phone" | "email">) {
+  return [customer.name, customer.lastName].filter(Boolean).join(" ").trim() || customer.phone || customer.email || "Клиент";
+}
+
+function getCustomerInitial(customer: Pick<CustomerWithRelations, "name" | "lastName" | "phone" | "email">) {
+  return getCustomerFullName(customer).slice(0, 1).toUpperCase() || "К";
 }
 
 function matchesCustomer(request: SupportRequest, customer: Pick<CustomerWithRelations, "phone" | "email" | "name">) {
@@ -84,6 +92,10 @@ function getCustomerLastActivity(customer: CustomerWithRelations, requests: Supp
   return dates.sort((first, second) => second.getTime() - first.getTime())[0] ?? customer.updatedAt;
 }
 
+function isRegisteredCustomer(customer: Pick<CustomerWithRelations, "passwordHash">) {
+  return Boolean(customer.passwordHash.trim());
+}
+
 function getCustomerStatus(customer: CustomerWithRelations, supportRequests: SupportRequest[]) {
   const total = getCustomerTotal(customer);
   const ordersCount = customer.orders.length;
@@ -99,6 +111,10 @@ function getCustomerStatus(customer: CustomerWithRelations, supportRequests: Sup
 
   if (ordersCount >= 2) {
     return "Постоянный";
+  }
+
+  if (isRegisteredCustomer(customer)) {
+    return "Зарегистрирован";
   }
 
   return "Новый";
@@ -130,6 +146,10 @@ export function getClientStatusClass(status: string) {
     return "border-blue-500/35 bg-blue-500/10 text-blue-400";
   }
 
+  if (status === "Зарегистрирован") {
+    return "border-cyan-500/35 bg-cyan-500/10 text-cyan-300";
+  }
+
   if (status === "Новый") {
     return "border-green-500/35 bg-green-500/10 text-green-300";
   }
@@ -148,14 +168,23 @@ export async function getAdminCustomers() {
     const totalSpent = getCustomerTotal(customer);
     const lastActivity = getCustomerLastActivity(customer, tickets);
     const status = getCustomerStatus(customer, tickets);
+    const fullName = getCustomerFullName(customer);
+    const isRegistered = isRegisteredCustomer(customer);
 
     return {
       id: customer.id,
       name: customer.name,
+      lastName: customer.lastName,
+      fullName,
+      initial: getCustomerInitial(customer),
       phone: customer.phone,
       email: customer.email,
       city: customer.city,
       crmId: customer.crmId,
+      isRegistered,
+      authLabel: isRegistered ? "Аккаунт создан" : "Без аккаунта",
+      registeredAt: customer.createdAt,
+      registeredAtLabel: formatAdminDate(customer.createdAt),
       ordersCount: customer.orders.length,
       ticketsCount: tickets.length,
       totalSpent,
@@ -172,6 +201,7 @@ export async function getCustomerMetrics() {
 
   return {
     total: customers.length,
+    registered: customers.filter((customer) => customer.isRegistered).length,
     new: customers.filter((customer) => customer.status === "Новый").length,
     regular: customers.filter((customer) => customer.status === "Постоянный").length,
     vip: customers.filter((customer) => customer.status === "VIP").length,
@@ -211,14 +241,22 @@ export async function getAdminCustomer(id: string) {
   const totalSpent = getCustomerTotal(customer);
   const lastActivity = getCustomerLastActivity(customer, tickets);
   const status = getCustomerStatus(customer, tickets);
+  const isRegistered = isRegisteredCustomer(customer);
 
   return {
     id: customer.id,
     name: customer.name,
+    lastName: customer.lastName,
+    fullName: getCustomerFullName(customer),
+    initial: getCustomerInitial(customer),
     phone: customer.phone,
     email: customer.email,
     city: customer.city,
     crmId: customer.crmId,
+    isRegistered,
+    authLabel: isRegistered ? "Аккаунт создан" : "Без аккаунта",
+    registeredAt: customer.createdAt,
+    registeredAtLabel: formatAdminDate(customer.createdAt),
     status,
     totalSpent,
     totalSpentLabel: formatAdminPrice(totalSpent),

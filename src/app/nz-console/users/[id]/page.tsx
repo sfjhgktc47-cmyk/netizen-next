@@ -72,7 +72,7 @@ export default async function AdminCustomerDetailPage({
               <div className="flex flex-col gap-6 md:flex-row md:items-start md:justify-between">
                 <div className="flex items-start gap-5">
                   <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-3xl bg-blue-600 text-3xl font-bold">
-                    {customer.name.slice(0, 1).toUpperCase() || "К"}
+                    {customer.initial}
                   </div>
 
                   <div>
@@ -81,11 +81,11 @@ export default async function AdminCustomerDetailPage({
                     </div>
 
                     <h1 className="mt-3 text-5xl font-bold tracking-[-0.055em]">
-                      {customer.name}
+                      {customer.fullName}
                     </h1>
 
                     <p className="mt-4 max-w-[720px] text-sm leading-relaxed text-white/55">
-                      Карточка клиента собирается из реальных заказов, адресов доставки и обращений в поддержку.
+                      Карточка клиента собирается из реальной регистрации, заказов, адресов доставки и обращений в поддержку.
                     </p>
                   </div>
                 </div>
@@ -99,7 +99,7 @@ export default async function AdminCustomerDetailPage({
                 <InfoCard label="Заявки" value={String(customer.ordersCount)} />
                 <InfoCard label="Обращения" value={String(customer.ticketsCount)} />
                 <InfoCard label="Покупки" value={customer.totalSpentLabel} />
-                <InfoCard label="Активность" value={customer.lastActivityLabel} />
+                <InfoCard label="Регистрация" value={customer.registeredAtLabel} />
               </div>
             </div>
 
@@ -259,6 +259,8 @@ export default async function AdminCustomerDetailPage({
 
               <div className="mt-6 grid gap-3">
                 <InfoLine label="ID" value={customer.id} />
+                <InfoLine label="Имя" value={customer.name || "Не указано"} />
+                <InfoLine label="Фамилия" value={customer.lastName || "Не указана"} />
                 <InfoLine label="Телефон" value={customer.phone} />
                 <InfoLine label="E-mail" value={customer.email || "Не указан"} />
                 <InfoLine label="Город" value={customer.city || "Не указан"} />
@@ -274,6 +276,8 @@ export default async function AdminCustomerDetailPage({
 
               <div className="mt-6 grid gap-3">
                 <InfoLine label="CRM ID" value={customer.crmId || "Не создан"} />
+                <InfoLine label="Аккаунт" value={customer.authLabel} />
+                <InfoLine label="Дата регистрации" value={customer.registeredAtLabel} />
                 <InfoLine label="Статус" value={customer.status} />
                 <InfoLine label="Сумма покупок" value={customer.totalSpentLabel} />
                 <InfoLine label="Последняя активность" value={customer.lastActivityLabel} />
@@ -290,7 +294,7 @@ export default async function AdminCustomerDetailPage({
               </h2>
 
               <p className="mt-4 text-sm leading-relaxed text-white/55">
-                Менеджер сразу видит, кто перед ним: новый клиент, постоянный или VIP, какие заявки были раньше,
+                Менеджер сразу видит, зарегистрирован ли клиент, какие заявки были раньше,
                 какие обращения открыты и какие адреса использовались.
               </p>
             </section>

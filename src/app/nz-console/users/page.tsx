@@ -10,6 +10,7 @@ export const dynamic = "force-dynamic";
 
 const statusTabs = [
   { label: "Все", value: "all" },
+  { label: "Зарегистрированные", value: "registered" },
   { label: "Новые", value: "new" },
   { label: "Постоянные", value: "regular" },
   { label: "VIP", value: "vip" },
@@ -21,6 +22,7 @@ function normalize(value: string | undefined) {
 }
 
 function matchesStatus(status: string, filter: string) {
+  if (filter === "registered") return status === "Зарегистрирован";
   if (filter === "new") return status === "Новый";
   if (filter === "regular") return status === "Постоянный";
   if (filter === "vip") return status === "VIP";
@@ -41,7 +43,7 @@ export default async function AdminUsersPage({
 
   const filteredCustomers = customers.filter((customer) => {
     const queryMatch = normalizedQuery
-      ? [customer.name, customer.phone, customer.email, customer.city, customer.crmId]
+      ? [customer.fullName, customer.name, customer.lastName, customer.phone, customer.email, customer.city, customer.crmId]
           .some((value) => normalize(value).includes(normalizedQuery))
       : true;
 
@@ -95,8 +97,8 @@ export default async function AdminUsersPage({
               </h1>
 
               <p className="mt-4 max-w-[820px] text-sm leading-relaxed text-white/55">
-                Клиенты больше не макет: они создаются из заказов и обращений, а админка показывает реальные контакты,
-                историю покупок, сумму заказов и обращения в поддержку.
+                Клиенты больше не макет: они создаются при регистрации, заказе или обращении. Админка показывает реальные контакты,
+                историю покупок, сумму заказов, обращения и дату создания аккаунта.
               </p>
             </div>
 
@@ -120,7 +122,7 @@ export default async function AdminUsersPage({
 
         <section className="mt-8 grid gap-5 md:grid-cols-4">
           <MetricCard label="Всего клиентов" value={String(metrics.total)} />
-          <MetricCard label="Постоянные" value={String(metrics.regular)} />
+          <MetricCard label="С аккаунтом" value={String(metrics.registered)} />
           <MetricCard label="VIP" value={String(metrics.vip)} />
           <MetricCard label="Сумма покупок" value={formatAdminPrice(metrics.totalSpent)} />
         </section>
@@ -163,7 +165,7 @@ export default async function AdminUsersPage({
               <input
                 name="q"
                 defaultValue={query}
-                placeholder="Поиск по имени / телефону / e-mail / городу"
+                placeholder="Поиск по имени / фамилии / телефону / e-mail / городу"
                 className="h-12 flex-1 rounded-xl border border-white/10 bg-black/20 px-5 text-sm text-white outline-none placeholder:text-white/35 focus:border-blue-500/50"
               />
 
@@ -197,7 +199,7 @@ export default async function AdminUsersPage({
           <div className="grid gap-4">
             {filteredCustomers.length === 0 ? (
               <div className="rounded-[30px] border border-white/10 bg-white/[0.035] p-10 text-center text-sm text-white/45">
-                Клиентов пока нет. Оформите тестовый заказ или создайте обращение с телефоном клиента.
+                Клиентов пока нет. Зарегистрируйте клиента, оформите заказ или создайте обращение с телефоном.
               </div>
             ) : (
               filteredCustomers.map((customer) => (
@@ -209,13 +211,13 @@ export default async function AdminUsersPage({
                   <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
                     <div className="flex items-start gap-4">
                       <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-xl font-bold text-white">
-                        {customer.name.slice(0, 1).toUpperCase() || "К"}
+                        {customer.initial}
                       </div>
 
                       <div>
                         <div className="flex flex-wrap items-center gap-3">
                           <h2 className="text-2xl font-bold tracking-[-0.035em]">
-                            {customer.name}
+                            {customer.fullName}
                           </h2>
 
                           <span className={`rounded-full border px-3 py-1 text-sm ${getClientStatusClass(customer.status)}`}>
@@ -224,7 +226,7 @@ export default async function AdminUsersPage({
                         </div>
 
                         <div className="mt-2 text-sm text-white/45">
-                          {customer.id} · {customer.city || "Город не указан"}
+                          {customer.authLabel} · {customer.city || "Город не указан"}
                         </div>
 
                         <div className="mt-3 flex flex-wrap gap-3 text-sm text-white/55">
@@ -243,7 +245,7 @@ export default async function AdminUsersPage({
                       <MiniStat label="Заявок" value={String(customer.ordersCount)} />
                       <MiniStat label="Обращений" value={String(customer.ticketsCount)} />
                       <MiniStat label="Покупки" value={customer.totalSpentLabel} />
-                      <MiniStat label="Активность" value={customer.lastActivityLabel} />
+                      <MiniStat label="Регистрация" value={customer.registeredAtLabel} />
                     </div>
                   </div>
                 </Link>
@@ -276,8 +278,8 @@ export default async function AdminUsersPage({
               </div>
 
               <p className="mt-3 text-sm leading-relaxed text-white/55">
-                Клиент создаётся автоматически при оформлении заказа. Обращения в поддержку тоже обновляют карточку клиента,
-                если указан телефон.
+                Клиент появляется сразу после регистрации на сайте. Заказы, адреса и обращения потом подтягиваются
+                в эту же карточку по привязке к Customer в базе.
               </p>
             </section>
           </aside>
