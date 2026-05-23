@@ -46,6 +46,37 @@ type HomePayload = {
   newArrivals?: HomeProduct[];
 };
 
+const fallbackCategories: HomeCategory[] = [
+  {
+    id: "smartphones",
+    slug: "smartphones",
+    name: "Смартфоны",
+    description: "iPhone, Samsung, Xiaomi и другие",
+    href: "/catalog/smartphones",
+  },
+  {
+    id: "laptops",
+    slug: "laptops",
+    name: "Ноутбуки",
+    description: "MacBook, Windows и игровые модели",
+    href: "/catalog/laptops",
+  },
+  {
+    id: "watches",
+    slug: "watches",
+    name: "Умные часы",
+    description: "Apple Watch, Samsung Galaxy Watch и другие",
+    href: "/catalog/watches",
+  },
+  {
+    id: "headphones",
+    slug: "headphones",
+    name: "Наушники",
+    description: "AirPods, Sony, JBL и другие",
+    href: "/catalog/headphones",
+  },
+];
+
 
 function getProductImage(product: HomeProduct) {
   const mainImage = typeof product.image === "string" ? product.image.trim() : "";
@@ -93,7 +124,11 @@ export default function Home() {
 
         setCategories(Array.isArray(payload.categories) ? payload.categories : []);
         setPopularProducts(dbPopularProducts.filter(isConfiguredProduct));
-        setNewArrivals(dbNewArrivals.filter(hasPromoImage));
+        setNewArrivals(
+          dbNewArrivals
+            .filter((product) => product.slug !== "catalog")
+            .slice(0, 3)
+        );
       })
       .catch(() => {
         if (!mounted) return;
@@ -108,7 +143,7 @@ export default function Home() {
     };
   }, []);
 
-  const visibleCategories = categories;
+  const visibleCategories = categories.length ? categories : fallbackCategories;
 
   return (
     <main
@@ -174,7 +209,7 @@ function Hero({ dark }: { dark: boolean }) {
       primaryLabel: "Написать в поддержку",
       primaryHref: "/help",
       secondaryLabel: "Популярное",
-      secondaryHref: "/catalog?popular=1",
+      secondaryHref: "/catalog",
       imageDark: "/hero/main-dark.png",
       imageLight: "/hero/main-light.png",
     },
@@ -361,7 +396,7 @@ function Categories({
   categories: HomeCategory[];
 }) {
   return (
-    <section className="py-16">
+    <section className="py-20">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <h2 className="text-4xl font-bold tracking-[-0.04em]">
@@ -374,81 +409,79 @@ function Categories({
         </div>
       </div>
 
-      {categories.length > 0 ? (
-        <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          {categories.map((category) => {
-            const image = category.image?.trim() ?? "";
+      <div className="mt-8 grid grid-cols-1 auto-rows-fr gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        {categories.map((category) => {
+          const image = category.image?.trim() ?? "";
 
-            return (
-              <Link
-                key={category.id || category.slug}
-                href={category.href || `/catalog/${category.slug}`}
-                className={`group relative min-h-[160px] overflow-hidden rounded-2xl border p-4 transition-all duration-500 hover:-translate-y-1 ${
-                  dark
-                    ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
-                    : "border-black/10 bg-white shadow-[0_20px_70px_rgba(15,23,42,0.08)] hover:border-blue-500/35 hover:shadow-[0_28px_90px_rgba(15,23,42,0.12)]"
-                }`}
-              >
-                <div className="relative z-10 flex min-h-[128px] flex-col justify-between pr-[108px]">
-                  <div>
-                    <h3 className="text-base font-bold leading-tight">
-                      {category.name}
-                    </h3>
+          return (
+            <Link
+              key={category.id || category.slug}
+              href={category.href || `/catalog/${category.slug}`}
+              className={`group relative h-[160px] overflow-hidden rounded-2xl border p-5 transition-all duration-500 hover:-translate-y-1 ${
+                dark
+                  ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
+                  : "border-black/10 bg-white shadow-[0_20px_70px_rgba(15,23,42,0.08)] hover:border-blue-500/35 hover:shadow-[0_28px_90px_rgba(15,23,42,0.12)]"
+              }`}
+            >
+              <div className="relative z-10 flex h-full min-h-0 flex-col justify-between">
+                <div className="max-w-[58%]">
+                  <h3 className="text-lg font-bold leading-tight">
+                    {category.name}
+                  </h3>
 
-                    <p
-                      className={`mt-2 line-clamp-2 text-xs leading-relaxed ${mutedTextClass(
-                        dark
-                      )}`}
-                    >
-                      {category.description}
-                    </p>
-                  </div>
-
-                  <div
-                    className={`flex h-9 w-9 items-center justify-center rounded-xl border text-base font-bold transition-all duration-300 group-hover:translate-x-1 ${
+                  <p
+                    className={`mt-2 line-clamp-2 text-xs leading-relaxed ${mutedTextClass(
                       dark
-                        ? "border-blue-500/35 bg-blue-500/10 text-blue-400 group-hover:bg-blue-600 group-hover:text-white"
-                        : "border-black/10 bg-white text-black shadow-sm group-hover:border-blue-500 group-hover:bg-blue-600 group-hover:text-white"
-                    }`}
+                    )}`}
                   >
-                    →
-                  </div>
+                    {category.description}
+                  </p>
                 </div>
 
                 <div
-                  className={`absolute right-4 top-1/2 flex h-[96px] w-[96px] -translate-y-1/2 items-center justify-center overflow-hidden rounded-2xl ${
-                    dark ? "bg-white/[0.045]" : "bg-slate-100"
+                  className={`mt-5 flex h-10 w-10 items-center justify-center rounded-xl border text-base font-bold transition-all duration-300 group-hover:translate-x-1 ${
+                    dark
+                      ? "border-blue-500/35 bg-blue-500/10 text-blue-400 group-hover:bg-blue-600 group-hover:text-white"
+                      : "border-black/10 bg-white text-black shadow-sm group-hover:border-blue-500 group-hover:bg-blue-600 group-hover:text-white"
                   }`}
                 >
-                  {image ? (
-                    <div
-                      className="h-full w-full bg-contain bg-center bg-no-repeat transition-transform duration-500 group-hover:scale-105"
-                      style={{
-                        backgroundImage: `url(${image})`,
-                      }}
-                    />
-                  ) : null}
+                  →
                 </div>
-              </Link>
-            );
-          })}
-        </div>
-      ) : (
-        <div
-          className={`mt-7 max-w-[420px] rounded-2xl border p-5 text-sm ${
-            dark
-              ? "border-white/10 bg-white/[0.035] text-white/55"
-              : "border-black/10 bg-white text-black/55"
-          }`}
-        >
-          Категории пока не настроены. Добавьте их в админке, чтобы они появились на главной.
-        </div>
-      )}
+              </div>
+
+              <div className="absolute right-5 top-1/2 flex h-[92px] w-[92px] -translate-y-1/2 items-center justify-center overflow-hidden rounded-2xl">
+                {image ? (
+                  <div
+                    className="h-full w-full bg-contain bg-center bg-no-repeat opacity-95 transition-transform duration-500 group-hover:scale-105"
+                    style={{
+                      backgroundImage: `url(${image})`,
+                    }}
+                  />
+                ) : (
+                  <div
+                    className={`h-full w-full rounded-2xl ${
+                      dark ? "bg-white/[0.04]" : "bg-slate-100"
+                    }`}
+                  />
+                )}
+              </div>
+
+              <div
+                className={`pointer-events-none absolute inset-y-0 right-0 w-[45%] ${
+                  dark
+                    ? "bg-gradient-to-l from-blue-500/5 to-transparent"
+                    : "bg-gradient-to-l from-slate-50/80 to-transparent"
+                }`}
+              />
+            </Link>
+          );
+        })}
+      </div>
 
       <div className="mt-8 flex justify-center">
         <Link
           href="/catalog"
-          className={`min-w-[250px] rounded-xl border px-8 py-3.5 text-center text-sm font-medium transition-all duration-500 hover:-translate-y-0.5 ${
+          className={`min-w-[280px] rounded-xl border px-10 py-4 text-center text-sm font-medium transition-all duration-500 hover:-translate-y-0.5 ${
             dark
               ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
               : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
@@ -474,7 +507,6 @@ function PopularProducts({
   const didDragRef = useRef(false);
 
   const [scrollProgress, setScrollProgress] = useState(0);
-  const visibleProducts = products.filter(isConfiguredProduct);
 
   function updateProgress() {
     const slider = sliderRef.current;
@@ -550,7 +582,7 @@ function PopularProducts({
     }, 120);
   }
 
-  if (visibleProducts.length === 0) {
+  if (products.length === 0) {
     return (
       <section className="pb-20">
         <div>
@@ -634,7 +666,7 @@ function PopularProducts({
         }}
       >
         <div className="flex gap-6">
-          {visibleProducts.map((product) => (
+          {products.map((product) => (
             <div
               key={product.slug}
               className="w-[280px] shrink-0 sm:w-[300px] lg:w-[310px]"
@@ -662,7 +694,7 @@ function PopularProducts({
 
       <div className="mt-8 flex justify-center">
         <Link
-          href="/catalog?popular=1"
+          href="/catalog"
           className={`min-w-[320px] rounded-xl border px-10 py-4 text-center text-sm font-medium transition-all duration-500 hover:-translate-y-0.5 ${
             dark
               ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
@@ -757,12 +789,34 @@ function NewArrivals({
   products: HomeProduct[];
 }) {
   const items = products
-    .filter((product) => product.isNew && hasPromoImage(product))
+    .filter((product) => product.slug !== "catalog")
     .slice(0, 3);
   const [mainItem, ...secondaryItems] = items;
 
   if (!mainItem) {
-    return null;
+    return (
+      <section className="pb-20">
+        <div className="mb-8">
+          <h2 className="text-[42px] font-bold leading-none tracking-[-0.04em] lg:text-[52px]">
+            Новинки
+          </h2>
+          <p className={`mt-3 text-base ${mutedTextClass(dark)}`}>
+            Техника, которая только появилась
+          </p>
+        </div>
+
+        <div
+          className={`rounded-3xl border p-8 text-sm ${
+            dark
+              ? "border-white/10 bg-white/[0.035] text-white/55"
+              : "border-black/10 bg-white text-black/55"
+          }`}
+        >
+          Новинки пока не выбраны. Добавьте товар в админке, включите галочку
+          “Новинка” и загрузите фото для блока “Новинки”.
+        </div>
+      </section>
+    );
   }
 
   return (
