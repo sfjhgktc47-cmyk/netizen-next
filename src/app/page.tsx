@@ -482,49 +482,59 @@ function Categories({ dark, categories }: { dark: boolean; categories: HomeCateg
       />
 
       <div className="mt-7 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {categories.map((category, index) => (
-          <Link
-            key={category.slug || category.id || category.name}
-            href={category.href || `/catalog/${category.slug}`}
-            className={`group relative min-h-[190px] overflow-hidden rounded-2xl border p-5 transition duration-500 hover:-translate-y-1 sm:min-h-[180px] ${softPanelClass(dark)} ${
-              dark ? "hover:border-blue-500/40 hover:bg-blue-500/[0.045]" : "hover:border-blue-500/40 hover:shadow-[0_18px_70px_rgba(15,23,42,0.1)]"
-            }`}
-          >
-            <div className="relative z-10 flex h-full flex-col justify-between">
-              <div className="max-w-[58%]">
-                <h3 className="text-base font-black leading-tight">{category.name}</h3>
-                <p className={`mt-2 line-clamp-2 text-xs leading-relaxed ${textMuted(dark)}`}>{category.description}</p>
+        {categories.map((category) => {
+          const hasImage = Boolean(category.image);
+
+          return (
+            <Link
+              key={category.slug || category.id || category.name}
+              href={category.href || `/catalog/${category.slug}`}
+              className={`group relative min-h-[170px] overflow-hidden rounded-2xl border p-5 transition duration-500 hover:-translate-y-1 sm:min-h-[160px] ${softPanelClass(dark)} ${
+                dark
+                  ? "hover:border-blue-500/40 hover:bg-blue-500/[0.045]"
+                  : "hover:border-blue-500/40 hover:shadow-[0_18px_70px_rgba(15,23,42,0.1)]"
+              }`}
+            >
+              <div className="relative z-10 flex h-full flex-col justify-between">
+                <div className={hasImage ? "max-w-[58%]" : "max-w-full pr-16"}>
+                  <h3 className="text-base font-black leading-tight">{category.name}</h3>
+                  <p className={`mt-2 line-clamp-2 text-xs leading-relaxed ${textMuted(dark)}`}>{category.description}</p>
+                </div>
+
+                <span
+                  className={`flex h-9 w-9 items-center justify-center rounded-xl border text-sm transition group-hover:translate-x-1 ${
+                    dark
+                      ? "border-blue-500/30 bg-blue-500/10 text-blue-400 group-hover:bg-blue-600 group-hover:text-white"
+                      : "border-black/10 bg-white text-slate-900 group-hover:border-blue-500 group-hover:bg-blue-600 group-hover:text-white"
+                  }`}
+                >
+                  →
+                </span>
               </div>
 
-              <span
-                className={`flex h-9 w-9 items-center justify-center rounded-xl border text-sm transition group-hover:translate-x-1 ${
-                  dark
-                    ? "border-blue-500/30 bg-blue-500/10 text-blue-400 group-hover:bg-blue-600 group-hover:text-white"
-                    : "border-black/10 bg-white text-slate-900 group-hover:border-blue-500 group-hover:bg-blue-600 group-hover:text-white"
-                }`}
-              >
-                →
-              </span>
-            </div>
-
-            <div className="absolute bottom-0 right-0 top-0 flex w-[48%] items-center justify-center overflow-hidden">
-              {category.image ? (
-                <Image
-                  src={category.image}
-                  alt={category.name}
-                  width={220}
-                  height={220}
-                  className="h-full w-full object-contain p-2 transition duration-500 group-hover:scale-105"
-                  unoptimized
-                />
-              ) : (
-                <div className={`flex h-24 w-24 items-center justify-center rounded-3xl text-3xl font-black ${dark ? "bg-blue-500/10 text-blue-400/70" : "bg-blue-50 text-blue-500/60"}`}>
-                  {index + 1}
+              {hasImage ? (
+                <div className="absolute bottom-0 right-0 top-0 flex w-[48%] items-center justify-center overflow-hidden">
+                  <Image
+                    src={category.image || ""}
+                    alt={category.name}
+                    width={260}
+                    height={200}
+                    className="h-full w-full object-contain p-2 transition duration-500 group-hover:scale-105"
+                    unoptimized
+                  />
                 </div>
+              ) : (
+                <div
+                  className={`pointer-events-none absolute right-5 top-1/2 h-16 w-16 -translate-y-1/2 rounded-2xl border ${
+                    dark
+                      ? "border-blue-500/10 bg-blue-500/[0.055] shadow-[0_0_34px_rgba(37,99,235,0.12)]"
+                      : "border-blue-500/10 bg-blue-50/80"
+                  }`}
+                />
               )}
-            </div>
-          </Link>
-        ))}
+            </Link>
+          );
+        })}
       </div>
 
       <div className="mt-7 flex justify-center">

@@ -7,18 +7,11 @@ export const dynamic = "force-dynamic";
 export async function GET() {
   try {
     const catalog = await getPublicCatalogData();
-    const categoryImages = new Map<string, string>();
-
-    for (const product of catalog.productCards) {
-      if (!categoryImages.has(product.category) && product.image) {
-        categoryImages.set(product.category, product.image);
-      }
-    }
 
     return NextResponse.json({
       categories: catalog.categories.map((category) => ({
         ...category,
-        image: category.image || categoryImages.get(category.slug) || "",
+        image: category.image || "",
       })),
       products: catalog.productCards,
     });
