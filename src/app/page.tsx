@@ -42,78 +42,38 @@ type HomeProduct = {
 type HomePayload = {
   categories?: HomeCategory[];
   products?: HomeProduct[];
+  popularProducts?: HomeProduct[];
+  newArrivals?: HomeProduct[];
 };
 
-const fallbackCategories: HomeCategory[] = [
-  {
-    id: "smartphones",
-    slug: "smartphones",
-    name: "Смартфоны",
-    description: "iPhone, Samsung, Xiaomi и другие",
-    href: "/catalog/smartphones",
-  },
-  {
-    id: "laptops",
-    slug: "laptops",
-    name: "Ноутбуки",
-    description: "MacBook, Windows и игровые модели",
-    href: "/catalog/laptops",
-  },
-  {
-    id: "watches",
-    slug: "watches",
-    name: "Умные часы",
-    description: "Apple Watch, Samsung Galaxy Watch и другие",
-    href: "/catalog/watches",
-  },
-  {
-    id: "headphones",
-    slug: "headphones",
-    name: "Наушники",
-    description: "AirPods, Sony, JBL и другие",
-    href: "/catalog/headphones",
-  },
-];
 
-const fallbackProducts: HomeProduct[] = [
-  {
-    slug: "catalog",
-    name: "iPhone 17 Pro",
-    brand: "Apple",
-    price: "от 109 990 ₽",
-    image: "",
-    colors: ["#d9d9d9", "#4b5563", "#f97316"],
-  },
-  {
-    slug: "catalog",
-    name: "MacBook Pro 14",
-    brand: "Apple",
-    price: "от 189 990 ₽",
-    image: "",
-    colors: ["#d1d5db", "#374151", "#111827"],
-  },
-  {
-    slug: "catalog",
-    name: "AirPods Pro",
-    brand: "Apple",
-    price: "от 24 990 ₽",
-    image: "",
-    colors: ["#ffffff", "#1f2937"],
-  },
-  {
-    slug: "catalog",
-    name: "Apple Watch Ultra",
-    brand: "Apple",
-    price: "от 79 990 ₽",
-    image: "",
-    colors: ["#2f2f2f", "#f97316", "#f3f4f6"],
-  },
-];
+function getProductImage(product: HomeProduct) {
+  const mainImage = typeof product.image === "string" ? product.image.trim() : "";
+
+  if (mainImage) {
+    return mainImage;
+  }
+
+  const galleryImage = Array.isArray(product.images)
+    ? product.images.find((image) => typeof image === "string" && image.trim())
+    : "";
+
+  return typeof galleryImage === "string" ? galleryImage.trim() : "";
+}
+
+function isConfiguredProduct(product: HomeProduct) {
+  return product.slug !== "catalog" && Boolean(getProductImage(product));
+}
+
+function hasPromoImage(product: HomeProduct) {
+  return Boolean(product.promoImage?.trim());
+}
 
 export default function Home() {
   const { dark } = useTheme();
   const [categories, setCategories] = useState<HomeCategory[]>([]);
-  const [products, setProducts] = useState<HomeProduct[]>([]);
+  const [popularProducts, setPopularProducts] = useState<HomeProduct[]>([]);
+  const [newArrivals, setNewArrivals] = useState<HomeProduct[]>([]);
 
   useEffect(() => {
     let mounted = true;
@@ -123,14 +83,24 @@ export default function Home() {
       .then((payload: HomePayload) => {
         if (!mounted) return;
 
+        const allProducts = Array.isArray(payload.products) ? payload.products : [];
+        const dbPopularProducts = Array.isArray(payload.popularProducts)
+          ? payload.popularProducts
+          : allProducts;
+        const dbNewArrivals = Array.isArray(payload.newArrivals)
+          ? payload.newArrivals
+          : allProducts.filter((product) => product.isNew);
+
         setCategories(Array.isArray(payload.categories) ? payload.categories : []);
-        setProducts(Array.isArray(payload.products) ? payload.products : []);
+        setPopularProducts(dbPopularProducts.filter(isConfiguredProduct));
+        setNewArrivals(dbNewArrivals.filter(hasPromoImage));
       })
       .catch(() => {
         if (!mounted) return;
 
         setCategories([]);
-        setProducts([]);
+        setPopularProducts([]);
+        setNewArrivals([]);
       });
 
     return () => {
@@ -138,8 +108,7 @@ export default function Home() {
     };
   }, []);
 
-  const visibleCategories = categories.length ? categories : fallbackCategories;
-  const visibleProducts = products.length ? products : fallbackProducts;
+  const visibleCategories = categories;
 
   return (
     <main
@@ -155,8 +124,8 @@ export default function Home() {
         <Hero dark={dark} />
         <Benefits dark={dark} />
         <Categories dark={dark} categories={visibleCategories.slice(0, 12)} />
-        <PopularProducts dark={dark} products={visibleProducts.slice(0, 12)} />
-        <NewArrivals dark={dark} products={visibleProducts} />
+        <PopularProducts dark={dark} products={popularProducts.slice(0, 12)} />
+        <NewArrivals dark={dark} products={newArrivals} />
         <SupportBlock dark={dark} />
         <Footer dark={dark} />
       </div>
@@ -392,7 +361,7 @@ function Categories({
   categories: HomeCategory[];
 }) {
   return (
-    <section className="py-20">
+    <section className="py-16">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <h2 className="text-4xl font-bold tracking-[-0.04em]">
@@ -405,79 +374,81 @@ function Categories({
         </div>
       </div>
 
-      <div className="mt-8 grid grid-cols-1 auto-rows-fr gap-5 sm:grid-cols-2 lg:grid-cols-4">
-        {categories.map((category) => {
-          const image = category.image?.trim() ?? "";
+      {categories.length > 0 ? (
+        <div className="mt-7 flex flex-wrap gap-4">
+          {categories.map((category) => {
+            const image = category.image?.trim() ?? "";
 
-          return (
-            <Link
-              key={category.id || category.slug}
-              href={category.href || `/catalog/${category.slug}`}
-              className={`group relative h-[190px] overflow-hidden rounded-2xl border p-5 transition-all duration-500 hover:-translate-y-1 ${
-                dark
-                  ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
-                  : "border-black/10 bg-white shadow-[0_20px_70px_rgba(15,23,42,0.08)] hover:border-blue-500/35 hover:shadow-[0_28px_90px_rgba(15,23,42,0.12)]"
-              }`}
-            >
-              <div className="relative z-10 flex h-full min-h-0 flex-col justify-between">
-                <div className="max-w-[58%]">
-                  <h3 className="text-lg font-bold leading-tight">
-                    {category.name}
-                  </h3>
+            return (
+              <Link
+                key={category.id || category.slug}
+                href={category.href || `/catalog/${category.slug}`}
+                className={`group relative h-[160px] w-full max-w-[270px] overflow-hidden rounded-2xl border p-4 transition-all duration-500 hover:-translate-y-1 sm:w-[270px] ${
+                  dark
+                    ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
+                    : "border-black/10 bg-white shadow-[0_20px_70px_rgba(15,23,42,0.08)] hover:border-blue-500/35 hover:shadow-[0_28px_90px_rgba(15,23,42,0.12)]"
+                }`}
+              >
+                <div className="relative z-10 flex h-full flex-col justify-between pr-[96px]">
+                  <div>
+                    <h3 className="text-base font-bold leading-tight">
+                      {category.name}
+                    </h3>
 
-                  <p
-                    className={`mt-2 line-clamp-2 text-sm leading-relaxed ${mutedTextClass(
+                    <p
+                      className={`mt-2 line-clamp-2 text-xs leading-relaxed ${mutedTextClass(
+                        dark
+                      )}`}
+                    >
+                      {category.description}
+                    </p>
+                  </div>
+
+                  <div
+                    className={`flex h-9 w-9 items-center justify-center rounded-xl border text-base font-bold transition-all duration-300 group-hover:translate-x-1 ${
                       dark
-                    )}`}
+                        ? "border-blue-500/35 bg-blue-500/10 text-blue-400 group-hover:bg-blue-600 group-hover:text-white"
+                        : "border-black/10 bg-white text-black shadow-sm group-hover:border-blue-500 group-hover:bg-blue-600 group-hover:text-white"
+                    }`}
                   >
-                    {category.description}
-                  </p>
+                    →
+                  </div>
                 </div>
 
                 <div
-                  className={`mt-5 flex h-10 w-10 items-center justify-center rounded-xl border text-base font-bold transition-all duration-300 group-hover:translate-x-1 ${
-                    dark
-                      ? "border-blue-500/35 bg-blue-500/10 text-blue-400 group-hover:bg-blue-600 group-hover:text-white"
-                      : "border-black/10 bg-white text-black shadow-sm group-hover:border-blue-500 group-hover:bg-blue-600 group-hover:text-white"
+                  className={`absolute right-4 top-1/2 flex h-[86px] w-[86px] -translate-y-1/2 items-center justify-center overflow-hidden rounded-2xl ${
+                    dark ? "bg-white/[0.045]" : "bg-slate-100"
                   }`}
                 >
-                  →
+                  {image ? (
+                    <div
+                      className="h-full w-full bg-contain bg-center bg-no-repeat transition-transform duration-500 group-hover:scale-105"
+                      style={{
+                        backgroundImage: `url(${image})`,
+                      }}
+                    />
+                  ) : null}
                 </div>
-              </div>
-
-              <div className="absolute bottom-0 right-0 top-0 flex w-[48%] items-center justify-center overflow-hidden">
-                {image ? (
-                  <div
-                    className="h-full w-full bg-contain bg-center bg-no-repeat opacity-95 transition-transform duration-500 group-hover:scale-105"
-                    style={{
-                      backgroundImage: `url(${image})`,
-                    }}
-                  />
-                ) : (
-                  <div
-                    className={`h-24 w-24 rounded-2xl ${
-                      dark ? "bg-white/[0.04]" : "bg-slate-100"
-                    }`}
-                  />
-                )}
-              </div>
-
-              <div
-                className={`pointer-events-none absolute inset-y-0 right-0 w-[55%] ${
-                  dark
-                    ? "bg-gradient-to-l from-blue-500/5 to-transparent"
-                    : "bg-gradient-to-l from-slate-50/80 to-transparent"
-                }`}
-              />
-            </Link>
-          );
-        })}
-      </div>
+              </Link>
+            );
+          })}
+        </div>
+      ) : (
+        <div
+          className={`mt-7 max-w-[420px] rounded-2xl border p-5 text-sm ${
+            dark
+              ? "border-white/10 bg-white/[0.035] text-white/55"
+              : "border-black/10 bg-white text-black/55"
+          }`}
+        >
+          Категории пока не настроены. Добавьте их в админке, чтобы они появились на главной.
+        </div>
+      )}
 
       <div className="mt-8 flex justify-center">
         <Link
           href="/catalog"
-          className={`min-w-[280px] rounded-xl border px-10 py-4 text-center text-sm font-medium transition-all duration-500 hover:-translate-y-0.5 ${
+          className={`min-w-[250px] rounded-xl border px-8 py-3.5 text-center text-sm font-medium transition-all duration-500 hover:-translate-y-0.5 ${
             dark
               ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
               : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
@@ -503,6 +474,7 @@ function PopularProducts({
   const didDragRef = useRef(false);
 
   const [scrollProgress, setScrollProgress] = useState(0);
+  const visibleProducts = products.filter(isConfiguredProduct);
 
   function updateProgress() {
     const slider = sliderRef.current;
@@ -578,6 +550,32 @@ function PopularProducts({
     }, 120);
   }
 
+  if (visibleProducts.length === 0) {
+    return (
+      <section className="pb-20">
+        <div>
+          <h2 className="text-[42px] font-bold leading-none tracking-[-0.04em] lg:text-[52px]">
+            Популярные товары
+          </h2>
+
+          <p className={`mt-3 text-base ${mutedTextClass(dark)}`}>
+            Добавьте реальные товары в БД и загрузите фото, чтобы они появились на главной.
+          </p>
+        </div>
+
+        <div
+          className={`mt-8 rounded-3xl border p-8 text-center text-sm ${
+            dark
+              ? "border-white/10 bg-white/[0.035] text-white/55"
+              : "border-black/10 bg-white text-black/55"
+          }`}
+        >
+          Популярные товары пока не настроены.
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="pb-20">
       <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
@@ -636,7 +634,7 @@ function PopularProducts({
         }}
       >
         <div className="flex gap-6">
-          {products.map((product) => (
+          {visibleProducts.map((product) => (
             <div
               key={product.slug}
               className="w-[280px] shrink-0 sm:w-[300px] lg:w-[310px]"
@@ -685,7 +683,7 @@ function ProductCard({
   product: HomeProduct;
   dark: boolean;
 }) {
-  const image = product.image || product.images?.find(Boolean) || "";
+  const image = getProductImage(product);
   const href = product.slug === "catalog" ? "/catalog" : `/product/${product.slug}`;
 
   return (
@@ -758,39 +756,9 @@ function NewArrivals({
   dark: boolean;
   products: HomeProduct[];
 }) {
-  const fallbackNewArrivals: HomeProduct[] = [
-    {
-      slug: "catalog",
-      name: "iPhone 17e",
-      price: "от 89 990 ₽",
-      shortDescription:
-        "Мощь. Красота. Доступнее. A19. Великолепный OLED-дисплей. До 26 часов работы без подзарядки.",
-      colors: [],
-      promoImage: "",
-      isNew: true,
-    },
-    {
-      slug: "catalog",
-      name: "AirPods Max",
-      price: "от 59 990 ₽",
-      shortDescription: "Звук, в который хочется погружаться.",
-      colors: [],
-      promoImage: "",
-      isNew: true,
-    },
-    {
-      slug: "catalog",
-      name: "Samsung Galaxy S25 Ultra",
-      price: "от 129 990 ₽",
-      shortDescription: "AI-камера. Профессиональная мощность. Невероятная мощность.",
-      colors: [],
-      promoImage: "",
-      isNew: true,
-    },
-  ];
-
-  const newArrivals = products.filter((product) => product.isNew).slice(0, 3);
-  const items = newArrivals.length > 0 ? newArrivals : fallbackNewArrivals;
+  const items = products
+    .filter((product) => product.isNew && hasPromoImage(product))
+    .slice(0, 3);
   const [mainItem, ...secondaryItems] = items;
 
   if (!mainItem) {
