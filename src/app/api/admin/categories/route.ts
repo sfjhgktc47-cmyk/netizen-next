@@ -65,6 +65,7 @@ export async function POST(request: NextRequest) {
         name,
         slug,
         description: toStringValue(body?.description),
+        image: toStringValue(body?.image),
         status: normalizeStatus(body?.status),
         sortOrder: toSortOrder(body?.sortOrder),
         seoTitle: toStringValue(body?.seoTitle),

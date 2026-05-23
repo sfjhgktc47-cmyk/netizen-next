@@ -6,6 +6,7 @@ import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 
 import type { AdminCategoryItem } from "@/lib/admin-categories-db";
+import { ImageDropZone } from "@/components/admin/image-drop-zone";
 
 const inputClass =
   "h-12 w-full rounded-xl border border-white/10 bg-black/25 px-4 text-sm text-white outline-none transition-colors placeholder:text-white/30 focus:border-blue-500/60";
@@ -34,6 +35,7 @@ export function CategoryForm({ category }: Props) {
   const [name, setName] = useState(category?.name ?? "");
   const [slug, setSlug] = useState(category?.slug ?? "");
   const [description, setDescription] = useState(category?.description ?? "");
+  const [image, setImage] = useState(category?.image ?? "");
   const [status, setStatus] = useState<string>(category?.status ?? "active");
   const [sortOrder, setSortOrder] = useState(String(category?.sortOrder ?? 100));
   const [seoTitle, setSeoTitle] = useState(category?.seoTitle ?? "");
@@ -69,6 +71,7 @@ export function CategoryForm({ category }: Props) {
             name,
             slug: finalSlug,
             description,
+            image,
             status,
             sortOrder,
             seoTitle,
@@ -189,6 +192,15 @@ export function CategoryForm({ category }: Props) {
               />
             </Field>
           </div>
+
+          <div className="mt-6">
+            <ImageDropZone
+              value={image}
+              onChange={setImage}
+              label="Фото категории"
+              hint="Загрузите отдельное изображение для плитки категории на главной. Лучше горизонтальное или предмет на прозрачном/светлом фоне."
+            />
+          </div>
         </section>
 
         <section className="rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
@@ -247,6 +259,7 @@ export function CategoryForm({ category }: Props) {
           <div className="mt-6 grid gap-3">
             <InfoLine label="URL" value={categoryUrl} />
             <InfoLine label="Название" value={name || "—"} />
+            <InfoLine label="Фото" value={image ? "Загружено" : "Не задано"} />
             <InfoLine label="Slug" value={finalSlug || "—"} />
             <InfoLine label="Товаров" value={String(category?.productsCount ?? 0)} />
           </div>

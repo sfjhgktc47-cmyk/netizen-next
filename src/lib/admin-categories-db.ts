@@ -20,6 +20,7 @@ export type AdminCategoryItem = {
   slug: string;
   name: string;
   description: string;
+  image: string;
   status: AdminCategoryStatus;
   sortOrder: number;
   seoTitle: string;
@@ -59,6 +60,7 @@ function toAdminCategory(category: {
   slug: string;
   name: string;
   description: string;
+  image: string;
   status: string;
   sortOrder: number;
   seoTitle: string;
@@ -70,6 +72,7 @@ function toAdminCategory(category: {
     slug: category.slug,
     name: category.name,
     description: category.description,
+    image: category.image ?? "",
     status: category.status as AdminCategoryStatus,
     sortOrder: category.sortOrder,
     seoTitle: category.seoTitle,

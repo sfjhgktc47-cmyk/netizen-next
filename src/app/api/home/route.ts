@@ -18,7 +18,7 @@ export async function GET() {
     return NextResponse.json({
       categories: catalog.categories.map((category) => ({
         ...category,
-        image: categoryImages.get(category.slug) ?? "",
+        image: category.image || categoryImages.get(category.slug) || "",
       })),
       products: catalog.productCards,
     });

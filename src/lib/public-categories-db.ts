@@ -7,6 +7,7 @@ export type PublicCategory = {
   slug: string;
   name: string;
   description: string;
+  image: string;
   href: string;
   seoTitle: string;
   seoDescription: string;
@@ -25,6 +26,7 @@ export async function getPublicCategoriesFromDb(): Promise<PublicCategory[]> {
     slug: category.slug,
     name: category.name,
     description: category.description,
+    image: category.image ?? "",
     href: `/catalog/${category.slug}`,
     seoTitle: category.seoTitle,
     seoDescription: category.seoDescription,
@@ -48,6 +50,7 @@ export async function getPublicCategoryBySlug(slug: string): Promise<PublicCateg
     slug: category.slug,
     name: category.name,
     description: category.description,
+    image: category.image ?? "",
     href: `/catalog/${category.slug}`,
     seoTitle: category.seoTitle,
     seoDescription: category.seoDescription,

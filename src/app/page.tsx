@@ -486,7 +486,7 @@ function Categories({ dark, categories }: { dark: boolean; categories: HomeCateg
           <Link
             key={category.slug || category.id || category.name}
             href={category.href || `/catalog/${category.slug}`}
-            className={`group relative h-[150px] overflow-hidden rounded-2xl border p-5 transition duration-500 hover:-translate-y-1 ${softPanelClass(dark)} ${
+            className={`group relative min-h-[190px] overflow-hidden rounded-2xl border p-5 transition duration-500 hover:-translate-y-1 sm:min-h-[180px] ${softPanelClass(dark)} ${
               dark ? "hover:border-blue-500/40 hover:bg-blue-500/[0.045]" : "hover:border-blue-500/40 hover:shadow-[0_18px_70px_rgba(15,23,42,0.1)]"
             }`}
           >
@@ -497,7 +497,7 @@ function Categories({ dark, categories }: { dark: boolean; categories: HomeCateg
               </div>
 
               <span
-                className={`flex h-8 w-8 items-center justify-center rounded-full border text-sm transition group-hover:translate-x-1 ${
+                className={`flex h-9 w-9 items-center justify-center rounded-xl border text-sm transition group-hover:translate-x-1 ${
                   dark
                     ? "border-blue-500/30 bg-blue-500/10 text-blue-400 group-hover:bg-blue-600 group-hover:text-white"
                     : "border-black/10 bg-white text-slate-900 group-hover:border-blue-500 group-hover:bg-blue-600 group-hover:text-white"
@@ -507,14 +507,14 @@ function Categories({ dark, categories }: { dark: boolean; categories: HomeCateg
               </span>
             </div>
 
-            <div className="absolute bottom-0 right-0 top-0 flex w-[45%] items-center justify-center overflow-hidden">
+            <div className="absolute bottom-0 right-0 top-0 flex w-[48%] items-center justify-center overflow-hidden">
               {category.image ? (
                 <Image
                   src={category.image}
                   alt={category.name}
                   width={220}
                   height={220}
-                  className="h-full w-full object-contain p-3 transition duration-500 group-hover:scale-105"
+                  className="h-full w-full object-contain p-2 transition duration-500 group-hover:scale-105"
                   unoptimized
                 />
               ) : (
