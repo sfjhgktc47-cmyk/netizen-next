@@ -23,9 +23,9 @@ type Props = {
 };
 
 const settingTabs: Array<{ key: SettingsTab; title: string; text: string }> = [
-  { key: "branding", title: "Шапка", text: "Логотипы, название и цвета." },
-  { key: "contacts", title: "Футер и адреса", text: "Контакты, адреса, ПВЗ и шоурумы." },
-  { key: "seo", title: "SEO", text: "Мета-теги главной страницы." },
+  { key: "branding", title: "Бренд", text: "Логотип, название и тема сайта." },
+  { key: "contacts", title: "Контакты", text: "Телефон, адреса, ПВЗ и соцсети." },
+  { key: "seo", title: "SEO", text: "Title, description и ключевые слова." },
 ];
 
 export function SiteEditorForm({ initialSettings, initialPageBuilder }: Props) {
@@ -33,6 +33,7 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder }: Props) {
   const [pageBuilder, setPageBuilder] = useState(initialPageBuilder);
   const [activePage, setActivePage] = useState<PageKey>("home");
   const [activeSettingsTab, setActiveSettingsTab] = useState<SettingsTab>("branding");
+  const [selectedBlockId, setSelectedBlockId] = useState<string>("");
   const [saveState, setSaveState] = useState<SaveState>("idle");
   const [builderState, setBuilderState] = useState<BuilderState>("idle");
   const [moduleToAdd, setModuleToAdd] = useState<PageBlockType>(
@@ -44,6 +45,7 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder }: Props) {
     () => [...(pageBuilder.blocks[activePage] ?? [])].sort((a, b) => a.sortOrder - b.sortOrder),
     [activePage, pageBuilder.blocks]
   );
+  const selectedBlock = activeBlocks.find((block) => block.id === selectedBlockId) ?? activeBlocks[0] ?? null;
   const availableModules = pageBuilder.modules.filter((module) => module.pageKeys.includes(activePage));
   const enabledBlocks = activeBlocks.filter((block) => block.enabled).length;
 
@@ -281,6 +283,7 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder }: Props) {
     }
 
     await refreshBuilder().catch(() => null);
+    setSelectedBlockId("");
     setBuilderState("saved");
     window.setTimeout(() => setBuilderState("idle"), 1800);
   }
@@ -320,7 +323,7 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder }: Props) {
           <div className="hidden items-center gap-3 text-sm text-white/55 md:flex">
             <span>Редактор сайта</span>
             <span>·</span>
-            <span>модули страниц</span>
+            <span>простая настройка блоков</span>
           </div>
 
           <Link
@@ -332,23 +335,19 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder }: Props) {
           </Link>
         </header>
 
-        <section className="mt-10">
+        <section className="mt-8 rounded-[34px] border border-white/10 bg-white/[0.035] p-5 sm:p-8">
           <Link href="/nz-console" className="text-sm text-blue-400 transition-colors hover:text-blue-300">
             ← В админку
           </Link>
 
-          <div className="mt-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="mt-5 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
             <div>
               <div className="inline-flex rounded-full border border-blue-500/35 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-400">
-                Редактор сайта
+                Конструктор сайта
               </div>
-
-              <h1 className="mt-5 text-5xl font-bold tracking-[-0.055em]">
-                Редактор сайта
-              </h1>
-
-              <p className="mt-4 max-w-[900px] text-sm leading-relaxed text-white/55">
-                Выберите страницу, включайте нужные блоки и меняйте только основные настройки: заголовок, текст, кнопку, фото и лимит.
+              <h1 className="mt-5 text-4xl font-bold tracking-[-0.055em] sm:text-5xl">Редактор сайта</h1>
+              <p className="mt-4 max-w-[820px] text-sm leading-relaxed text-white/55">
+                Проще: выбери страницу, выбери блок, измени пару понятных полей и сохрани. Все сложные настройки спрятаны ниже в “Глобальные настройки”.
               </p>
             </div>
 
@@ -356,7 +355,7 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder }: Props) {
               <Link
                 href="/"
                 target="_blank"
-                className="rounded-xl border border-white/10 bg-white/[0.03] px-7 py-4 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
+                className="rounded-xl border border-white/10 bg-white/[0.03] px-6 py-4 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
               >
                 Открыть сайт
               </Link>
@@ -364,203 +363,180 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder }: Props) {
                 type="button"
                 onClick={saveSettings}
                 disabled={saveState === "saving"}
-                className="rounded-xl bg-blue-600 px-7 py-4 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+                className="rounded-xl bg-blue-600 px-6 py-4 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {saveState === "saving" ? "Сохраняю..." : "Сохранить глобальные настройки"}
+                {saveState === "saving" ? "Сохраняю..." : "Сохранить настройки"}
               </button>
             </div>
           </div>
 
           {saveState === "saved" && <Alert tone="success">Глобальные настройки сохранены.</Alert>}
           {saveState === "error" && <Alert tone="error">Не удалось сохранить настройки.</Alert>}
-          {builderState === "saved" && <Alert tone="success">Блок обновлён.</Alert>}
+          {builderState === "saved" && <Alert tone="success">Модуль обновлён.</Alert>}
           {builderState === "error" && <Alert tone="error">Не удалось сохранить модуль.</Alert>}
         </section>
 
-        <section className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1fr)_380px]">
-          <div className="space-y-8">
-            <section className="rounded-[34px] border border-white/10 bg-white/[0.035] p-5 sm:p-8">
-              <SectionTitle
-                label="Страницы"
-                title="Выберите страницу"
-                text="Каждая вкладка — отдельная страница сайта со своим набором модулей."
-              />
-
-              <div className="mt-6 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
-                {pageBuilder.pages.map((page) => (
-                  <button
-                    type="button"
-                    key={page.key}
-                    onClick={() => {
-                      setActivePage(page.key);
-                      const firstModule = pageBuilder.modules.find((module) => module.pageKeys.includes(page.key));
-                      if (firstModule) setModuleToAdd(firstModule.type);
-                    }}
-                    className={`rounded-2xl border p-4 text-left transition-all ${
-                      activePage === page.key
-                        ? "border-blue-500/50 bg-blue-500/15 text-white"
-                        : "border-white/10 bg-black/20 text-white/60 hover:border-blue-500/35 hover:bg-blue-500/10 hover:text-white"
-                    }`}
-                  >
-                    <div className="text-base font-bold tracking-[-0.03em]">{page.title}</div>
-                    <div className="mt-2 line-clamp-2 text-xs leading-relaxed text-white/45">{page.description}</div>
-                  </button>
-                ))}
-              </div>
-            </section>
-
-            <section className="rounded-[34px] border border-white/10 bg-white/[0.035] p-5 sm:p-8">
-              <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
-                <SectionTitle
-                  label="Модули"
-                  title={activePageMeta?.title ?? "Страница"}
-                  text={activePageMeta?.description ?? "Настройте модули страницы."}
-                />
-
-                <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <div className="text-xs font-medium uppercase tracking-[0.16em] text-white/35">Добавить модуль</div>
-                  <div className="mt-3 flex flex-col gap-3 sm:flex-row lg:flex-col">
-                    <select
-                      value={moduleToAdd}
-                      onChange={(event) => setModuleToAdd(event.target.value as PageBlockType)}
-                      className="admin-input min-w-[220px]"
-                    >
-                      {availableModules.map((module) => (
-                        <option key={module.type} value={module.type}>
-                          {module.title}
-                        </option>
-                      ))}
-                    </select>
-                    <button
-                      type="button"
-                      onClick={addBlock}
-                      disabled={builderState === "saving"}
-                      className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
-                    >
-                      + Добавить
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              <div className="mt-8 grid gap-5">
-                {activeBlocks.map((block, index) => (
-                  <ModuleCard
-                    key={block.id}
-                    block={block}
-                    modules={availableModules}
-                    first={index === 0}
-                    last={index === activeBlocks.length - 1}
-                    onChange={(patch) => updateLocalBlock(block.id, patch)}
-                    onSettingChange={(key, value) => updateBlockSetting(block.id, key, value)}
-                    onSave={() => saveBlock(block)}
-                    onToggle={() => toggleBlock(block)}
-                    onMove={(direction) => moveBlock(block, direction)}
-                    onDelete={() => removeBlock(block)}
-                    disabled={builderState === "saving"}
-                  />
-                ))}
-
-                {activeBlocks.length === 0 && (
-                  <div className="rounded-3xl border border-dashed border-white/15 bg-black/20 p-8 text-sm text-white/45">
-                    На этой странице пока нет модулей. Добавьте первый модуль справа сверху.
-                  </div>
-                )}
-              </div>
-            </section>
-
-            <section className="rounded-[34px] border border-white/10 bg-white/[0.035] p-5 sm:p-8">
-              <SectionTitle
-                label="Глобальные настройки"
-                title="Шапка, футер, контакты и SEO"
-                text="Эти данные используются на разных страницах сайта и хранятся отдельно от модулей."
-              />
-
-              <div className="mt-6 grid gap-3 sm:grid-cols-3">
-                {settingTabs.map((tab) => (
-                  <button
-                    type="button"
-                    key={tab.key}
-                    onClick={() => setActiveSettingsTab(tab.key)}
-                    className={`rounded-2xl border p-4 text-left transition-all ${
-                      activeSettingsTab === tab.key
-                        ? "border-blue-500/50 bg-blue-500/15"
-                        : "border-white/10 bg-black/20 hover:border-blue-500/35 hover:bg-blue-500/10"
-                    }`}
-                  >
-                    <div className="text-sm font-bold">{tab.title}</div>
-                    <div className="mt-2 text-xs leading-relaxed text-white/45">{tab.text}</div>
-                  </button>
-                ))}
-              </div>
-
-              <div className="mt-8">
-                {activeSettingsTab === "branding" && (
-                  <BrandingEditor settings={settings} updateBranding={updateBranding} />
-                )}
-                {activeSettingsTab === "contacts" && (
-                  <ContactsEditor
-                    settings={settings}
-                    updateContacts={updateContacts}
-                    updateAddress={updateAddress}
-                    addAddress={addAddress}
-                    removeAddress={removeAddress}
-                  />
-                )}
-                {activeSettingsTab === "seo" && (
-                  <SeoEditor settings={settings} updateSeo={updateSeo} />
-                )}
-              </div>
-
+        <section className="mt-6 rounded-[34px] border border-white/10 bg-white/[0.035] p-4 sm:p-5">
+          <div className="flex flex-wrap gap-2">
+            {pageBuilder.pages.map((page) => (
               <button
                 type="button"
-                onClick={saveSettings}
-                disabled={saveState === "saving"}
-                className="mt-8 w-full rounded-2xl bg-blue-600 px-7 py-5 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+                key={page.key}
+                onClick={() => {
+                  setActivePage(page.key);
+                  setSelectedBlockId("");
+                  const firstModule = pageBuilder.modules.find((module) => module.pageKeys.includes(page.key));
+                  if (firstModule) setModuleToAdd(firstModule.type);
+                }}
+                className={`rounded-2xl border px-5 py-3 text-sm font-semibold transition-all ${
+                  activePage === page.key
+                    ? "border-blue-500/50 bg-blue-500/15 text-white"
+                    : "border-white/10 bg-black/20 text-white/60 hover:border-blue-500/35 hover:bg-blue-500/10 hover:text-white"
+                }`}
               >
-                {saveState === "saving" ? "Сохраняю..." : "Сохранить глобальные настройки"}
+                {page.title}
               </button>
-            </section>
+            ))}
+          </div>
+        </section>
+
+        <section className="mt-6 grid gap-6 xl:grid-cols-[390px_minmax(0,1fr)]">
+          <aside className="rounded-[34px] border border-white/10 bg-white/[0.035] p-5 sm:p-6">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <div className="text-xs font-medium uppercase tracking-[0.18em] text-blue-400">Страница</div>
+                <h2 className="mt-2 text-2xl font-bold tracking-[-0.04em]">{activePageMeta?.title ?? "Страница"}</h2>
+                <p className="mt-2 text-sm leading-relaxed text-white/45">{activePageMeta?.description}</p>
+              </div>
+              <div className="rounded-2xl border border-white/10 bg-black/20 px-3 py-2 text-xs text-white/50">
+                {enabledBlocks}/{activeBlocks.length} вкл
+              </div>
+            </div>
+
+            <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 p-4">
+              <div className="text-xs font-medium uppercase tracking-[0.16em] text-white/35">Добавить блок</div>
+              <div className="mt-3 grid gap-3">
+                <select
+                  value={moduleToAdd}
+                  onChange={(event) => setModuleToAdd(event.target.value as PageBlockType)}
+                  className="admin-input"
+                >
+                  {availableModules.map((module) => (
+                    <option key={module.type} value={module.type}>
+                      {module.title}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  type="button"
+                  onClick={addBlock}
+                  disabled={builderState === "saving"}
+                  className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+                >
+                  + Добавить блок
+                </button>
+              </div>
+            </div>
+
+            <div className="mt-5 grid gap-3">
+              {activeBlocks.map((block) => (
+                <BlockListItem
+                  key={block.id}
+                  block={block}
+                  module={availableModules.find((module) => module.type === block.type)}
+                  active={selectedBlock?.id === block.id}
+                  onSelect={() => setSelectedBlockId(block.id)}
+                  onToggle={() => toggleBlock(block)}
+                  disabled={builderState === "saving"}
+                />
+              ))}
+
+              {activeBlocks.length === 0 && (
+                <div className="rounded-2xl border border-dashed border-white/15 bg-black/20 p-5 text-sm text-white/45">
+                  На этой странице нет блоков. Добавь первый блок выше.
+                </div>
+              )}
+            </div>
+          </aside>
+
+          <section className="rounded-[34px] border border-white/10 bg-white/[0.035] p-5 sm:p-8">
+            {selectedBlock ? (
+              <ModuleInspector
+                block={selectedBlock}
+                module={availableModules.find((module) => module.type === selectedBlock.type)}
+                first={activeBlocks[0]?.id === selectedBlock.id}
+                last={activeBlocks[activeBlocks.length - 1]?.id === selectedBlock.id}
+                onChange={(patch) => updateLocalBlock(selectedBlock.id, patch)}
+                onSettingChange={(key, value) => updateBlockSetting(selectedBlock.id, key, value)}
+                onSave={() => saveBlock(selectedBlock)}
+                onToggle={() => toggleBlock(selectedBlock)}
+                onMove={(direction) => moveBlock(selectedBlock, direction)}
+                onDelete={() => removeBlock(selectedBlock)}
+                disabled={builderState === "saving"}
+              />
+            ) : (
+              <div className="rounded-3xl border border-dashed border-white/15 bg-black/20 p-8 text-sm text-white/45">
+                Выбери блок слева или добавь новый.
+              </div>
+            )}
+          </section>
+        </section>
+
+        <details className="mt-6 rounded-[34px] border border-white/10 bg-white/[0.035] p-5 sm:p-8">
+          <summary className="cursor-pointer list-none">
+            <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+              <div>
+                <div className="text-xs font-medium uppercase tracking-[0.18em] text-blue-400">Дополнительно</div>
+                <h2 className="mt-2 text-2xl font-bold tracking-[-0.04em]">Глобальные настройки сайта</h2>
+                <p className="mt-2 text-sm text-white/45">Логотипы, контакты, адреса и SEO. Обычно сюда заходят реже.</p>
+              </div>
+              <span className="rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white/60">Открыть настройки</span>
+            </div>
+          </summary>
+
+          <div className="mt-7 grid gap-3 sm:grid-cols-3">
+            {settingTabs.map((tab) => (
+              <button
+                type="button"
+                key={tab.key}
+                onClick={() => setActiveSettingsTab(tab.key)}
+                className={`rounded-2xl border p-4 text-left transition-all ${
+                  activeSettingsTab === tab.key
+                    ? "border-blue-500/50 bg-blue-500/15"
+                    : "border-white/10 bg-black/20 hover:border-blue-500/35 hover:bg-blue-500/10"
+                }`}
+              >
+                <div className="text-sm font-bold">{tab.title}</div>
+                <div className="mt-2 text-xs leading-relaxed text-white/45">{tab.text}</div>
+              </button>
+            ))}
           </div>
 
-          <aside className="space-y-8">
-            <section className="rounded-[34px] border border-blue-500/25 bg-blue-500/10 p-6 sm:p-8">
-              <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-400">Статус</div>
-              <h2 className="mt-3 text-3xl font-bold tracking-[-0.04em]">Конструктор включён</h2>
-              <p className="mt-4 text-sm leading-relaxed text-white/55">
-                Главная уже рендерится по активным модулям из БД. Остальные вкладки подготовлены как структура, чтобы дальше подключать их к витрине без переписывания админки.
-              </p>
-              <div className="mt-6 grid gap-3 text-sm text-white/60">
-                <InfoLine label="Страница" value={activePageMeta?.title ?? activePage} />
-                <InfoLine label="Модулей" value={`${enabledBlocks}/${activeBlocks.length}`} />
-                <InfoLine label="Сохранение" value="PostgreSQL" />
-                <InfoLine label="Формат" value="PageBlock + JSON" />
-              </div>
-            </section>
+          <div className="mt-8">
+            {activeSettingsTab === "branding" && (
+              <BrandingEditor settings={settings} updateBranding={updateBranding} />
+            )}
+            {activeSettingsTab === "contacts" && (
+              <ContactsEditor
+                settings={settings}
+                updateContacts={updateContacts}
+                updateAddress={updateAddress}
+                addAddress={addAddress}
+                removeAddress={removeAddress}
+              />
+            )}
+            {activeSettingsTab === "seo" && <SeoEditor settings={settings} updateSeo={updateSeo} />}
+          </div>
 
-            <section className="rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
-              <SectionTitle label="Как работать" title="Без кода" text="Собирайте страницу как набор готовых модулей." />
-              <div className="mt-6 space-y-3 text-sm text-white/55">
-                <p>1. Выберите вкладку страницы: Главная, Каталог, Карточка товара.</p>
-                <p>2. Добавьте модуль из библиотеки.</p>
-                <p>3. Настройте заголовок, кнопку, фото, лимит или фильтр.</p>
-                <p>4. Включайте, скрывайте и двигайте модули вверх/вниз.</p>
-              </div>
-            </section>
-
-            <section className="rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
-              <SectionTitle label="Библиотека" title="Доступные модули" text="Модули зависят от выбранной страницы." />
-              <div className="mt-6 grid gap-3">
-                {availableModules.map((module) => (
-                  <div key={module.type} className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                    <div className="text-sm font-semibold">{module.title}</div>
-                    <div className="mt-1 text-xs leading-relaxed text-white/45">{module.description}</div>
-                  </div>
-                ))}
-              </div>
-            </section>
-          </aside>
-        </section>
+          <button
+            type="button"
+            onClick={saveSettings}
+            disabled={saveState === "saving"}
+            className="mt-8 w-full rounded-2xl bg-blue-600 px-7 py-5 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {saveState === "saving" ? "Сохраняю..." : "Сохранить глобальные настройки"}
+          </button>
+        </details>
 
         <AdminStyle />
       </div>
@@ -568,9 +544,59 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder }: Props) {
   );
 }
 
-function ModuleCard({
+function BlockListItem({
   block,
-  modules,
+  module,
+  active,
+  onSelect,
+  onToggle,
+  disabled,
+}: {
+  block: SitePageBlock;
+  module?: ModuleDefinition;
+  active: boolean;
+  onSelect: () => void;
+  onToggle: () => void;
+  disabled: boolean;
+}) {
+  return (
+    <div
+      className={`rounded-2xl border p-4 transition-all ${
+        active ? "border-blue-500/55 bg-blue-500/15" : "border-white/10 bg-black/20 hover:border-blue-500/35"
+      }`}
+    >
+      <button type="button" onClick={onSelect} className="block w-full text-left">
+        <div className="flex items-center justify-between gap-3">
+          <div className="min-w-0">
+            <div className="truncate text-sm font-bold">{block.title}</div>
+            <div className="mt-1 text-xs text-white/40">{module?.title ?? block.type}</div>
+          </div>
+          <span
+            className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] ${
+              block.enabled
+                ? "border-green-500/30 bg-green-500/10 text-green-300"
+                : "border-red-500/30 bg-red-500/10 text-red-300"
+            }`}
+          >
+            {block.enabled ? "Вкл" : "Скрыт"}
+          </span>
+        </div>
+      </button>
+      <div className="mt-3 flex gap-2">
+        <button type="button" onClick={onSelect} className="admin-mini-button flex-1">
+          Настроить
+        </button>
+        <button type="button" onClick={onToggle} disabled={disabled} className="admin-mini-button">
+          {block.enabled ? "Скрыть" : "Показать"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
+function ModuleInspector({
+  block,
+  module,
   first,
   last,
   onChange,
@@ -582,7 +608,7 @@ function ModuleCard({
   disabled,
 }: {
   block: SitePageBlock;
-  modules: ModuleDefinition[];
+  module?: ModuleDefinition;
   first: boolean;
   last: boolean;
   onChange: (patch: Partial<SitePageBlock>) => void;
@@ -593,18 +619,16 @@ function ModuleCard({
   onDelete: () => void;
   disabled: boolean;
 }) {
-  const selectedModule = modules.find((module) => module.type === block.type);
-
   return (
-    <div className="rounded-3xl border border-white/10 bg-black/20 p-5">
-      <div className="flex flex-col gap-5 xl:flex-row xl:items-start xl:justify-between">
-        <div className="min-w-0 flex-1">
+    <div>
+      <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+        <div>
           <div className="flex flex-wrap items-center gap-3">
             <span className="rounded-full border border-white/10 bg-white/[0.03] px-3 py-1 text-xs text-white/45">
               #{block.sortOrder}
             </span>
             <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs text-blue-300">
-              {selectedModule?.title ?? block.type}
+              {module?.title ?? block.type}
             </span>
             <span
               className={`rounded-full border px-3 py-1 text-xs ${
@@ -613,194 +637,132 @@ function ModuleCard({
                   : "border-red-500/30 bg-red-500/10 text-red-300"
               }`}
             >
-              {block.enabled ? "Показывается" : "Скрыт"}
+              {block.enabled ? "Включён" : "Скрыт"}
             </span>
           </div>
-
-          <div className="mt-5 grid gap-4 md:grid-cols-2">
-            <Field label="Название блока в админке">
-              <input
-                value={block.title}
-                onChange={(event) => onChange({ title: event.target.value })}
-                className="admin-input"
-              />
-            </Field>
-
-            <div className="rounded-2xl border border-white/10 bg-white/[0.025] p-4 text-sm text-white/55">
-              <div className="text-xs font-medium uppercase tracking-[0.16em] text-white/35">Тип блока</div>
-              <div className="mt-2 font-semibold text-white">{selectedModule?.title ?? block.type}</div>
-              <p className="mt-2 text-xs leading-relaxed text-white/45">
-                Тип выбирается при добавлении блока. Чтобы заменить блок, проще скрыть или удалить текущий и добавить новый.
-              </p>
-            </div>
-          </div>
-
-          <ModuleSettings block={block} onSettingChange={onSettingChange} />
+          <h2 className="mt-4 text-3xl font-bold tracking-[-0.04em]">Настройки блока</h2>
+          <p className="mt-3 max-w-[720px] text-sm leading-relaxed text-white/50">
+            Тип блока выбирается только при добавлении. Так проще не запутаться и случайно не сломать структуру страницы.
+          </p>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:w-[250px] xl:grid-cols-1">
+        <div className="grid gap-2 sm:grid-cols-2 lg:w-[260px] lg:grid-cols-1">
           <button type="button" onClick={onToggle} disabled={disabled} className="admin-action-button">
-            {block.enabled ? "Скрыть" : "Показать"}
+            {block.enabled ? "Скрыть блок" : "Показать блок"}
           </button>
-          <button type="button" onClick={() => onMove("up")} disabled={disabled || first} className="admin-action-button disabled:opacity-35">
-            ↑ Выше
-          </button>
-          <button type="button" onClick={() => onMove("down")} disabled={disabled || last} className="admin-action-button disabled:opacity-35">
-            ↓ Ниже
-          </button>
+          <div className="grid grid-cols-2 gap-2">
+            <button type="button" onClick={() => onMove("up")} disabled={disabled || first} className="admin-action-button disabled:opacity-35">
+              ↑ Выше
+            </button>
+            <button type="button" onClick={() => onMove("down")} disabled={disabled || last} className="admin-action-button disabled:opacity-35">
+              ↓ Ниже
+            </button>
+          </div>
           <button type="button" onClick={onSave} disabled={disabled} className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:opacity-50">
-            Сохранить
+            Сохранить блок
           </button>
           <button type="button" onClick={onDelete} disabled={disabled} className="rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-3 text-sm font-semibold text-red-300 transition-colors hover:bg-red-500/15 disabled:opacity-50">
-            Удалить
+            Удалить блок
           </button>
         </div>
       </div>
+
+      <div className="mt-7 grid gap-5 md:grid-cols-2">
+        <Field label="Название в админке">
+          <input value={block.title} onChange={(event) => onChange({ title: event.target.value })} className="admin-input" />
+        </Field>
+        <Field label="Комментарий для себя">
+          <input value={block.description} onChange={(event) => onChange({ description: event.target.value })} className="admin-input" />
+        </Field>
+      </div>
+
+      <ModuleSettings block={block} onSettingChange={onSettingChange} />
     </div>
   );
 }
 
-function ModuleSettings({
-  block,
-  onSettingChange,
-}: {
-  block: SitePageBlock;
-  onSettingChange: (key: string, value: PageBlockSettings[string]) => void;
-}) {
+function ModuleSettings({ block, onSettingChange }: { block: SitePageBlock; onSettingChange: (key: string, value: PageBlockSettings[string]) => void }) {
   const settings = block.settings;
-  const textBlocks: PageBlockType[] = [
-    "category-grid",
-    "popular-products",
-    "new-arrivals",
-    "promo-banner",
-    "text-image",
-    "product-carousel",
-    "catalog-header",
-    "catalog-empty",
-    "support",
-  ];
-  const buttonBlocks: PageBlockType[] = [
-    "category-grid",
-    "popular-products",
-    "new-arrivals",
-    "promo-banner",
-    "product-carousel",
-  ];
-  const imageBlocks: PageBlockType[] = ["promo-banner", "text-image"];
-  const limitBlocks: PageBlockType[] = [
-    "category-grid",
-    "popular-products",
-    "new-arrivals",
-    "product-carousel",
-    "related-products",
-    "catalog-grid",
-  ];
-  const filterBlocks: PageBlockType[] = ["popular-products", "product-carousel"];
-
-  const hasTextFields = textBlocks.includes(block.type);
-  const hasButtonFields = buttonBlocks.includes(block.type);
-  const hasImageField = imageBlocks.includes(block.type);
-  const hasLimitField = limitBlocks.includes(block.type);
-  const hasFilterField = filterBlocks.includes(block.type);
-  const isNewArrivalsBlock = block.type === "new-arrivals";
-
-  if (!hasTextFields && !hasButtonFields && !hasImageField && !hasLimitField && !hasFilterField) {
-    return (
-      <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.025] p-4 text-sm leading-relaxed text-white/45">
-        У этого блока нет текстовых настроек. Его можно показывать, скрывать и двигать выше/ниже.
-      </div>
-    );
-  }
+  const hasTextFields = ["category-grid", "popular-products", "new-arrivals", "promo-banner", "text-image", "product-carousel", "catalog-header", "catalog-empty", "support"].includes(block.type);
+  const hasButtonFields = ["category-grid", "popular-products", "new-arrivals", "promo-banner", "product-carousel"].includes(block.type);
+  const hasImageField = ["promo-banner", "text-image"].includes(block.type);
+  const hasLimitField = ["category-grid", "popular-products", "new-arrivals", "product-carousel", "related-products", "catalog-grid"].includes(block.type);
+  const hasFilterField = block.type === "product-carousel";
+  const hasToneField = ["promo-banner", "text-image"].includes(block.type);
 
   return (
-    <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.025] p-4">
-      <div className="text-xs font-medium uppercase tracking-[0.16em] text-white/35">Настройки блока</div>
-
-      {isNewArrivalsBlock && (
-        <div className="mt-4 rounded-2xl border border-blue-500/25 bg-blue-500/10 p-4 text-sm leading-relaxed text-blue-100/75">
-          Новинки теперь проще: товары выбираются не здесь, а в карточке товара.
-          Откройте товар в админке, включите “Новинка” и загрузите “Фото для блока Новинки”.
-          Здесь меняются только заголовок, описание, лимит и кнопка блока.
+    <div className="mt-7 rounded-3xl border border-white/10 bg-black/20 p-5 sm:p-6">
+      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <div className="text-xs font-medium uppercase tracking-[0.16em] text-white/35">Основные поля</div>
+          <h3 className="mt-2 text-xl font-bold tracking-[-0.035em]">Что видно на сайте</h3>
         </div>
-      )}
+      </div>
 
-      <div className="mt-4 grid gap-4 md:grid-cols-2">
+      <div className="mt-5 grid gap-4 md:grid-cols-2">
         {hasTextFields && (
           <>
-            <Field label="Заголовок на сайте">
-              <input
-                value={getSettingText(settings, "title")}
-                onChange={(event) => onSettingChange("title", event.target.value)}
-                className="admin-input"
-              />
+            <Field label="Заголовок">
+              <input value={getSettingText(settings, "title")} onChange={(event) => onSettingChange("title", event.target.value)} className="admin-input" />
             </Field>
-            <Field label="Описание / подзаголовок">
-              <input
-                value={getSettingText(settings, "subtitle")}
-                onChange={(event) => onSettingChange("subtitle", event.target.value)}
-                className="admin-input"
-              />
+            <Field label="Описание">
+              <input value={getSettingText(settings, "subtitle")} onChange={(event) => onSettingChange("subtitle", event.target.value)} className="admin-input" />
             </Field>
           </>
         )}
 
+        {hasButtonFields && (
+          <>
+            <Field label="Текст кнопки">
+              <input value={getSettingText(settings, "buttonText")} onChange={(event) => onSettingChange("buttonText", event.target.value)} className="admin-input" />
+            </Field>
+            <Field label="Куда ведёт кнопка">
+              <input value={getSettingText(settings, "buttonHref")} onChange={(event) => onSettingChange("buttonHref", event.target.value)} className="admin-input" />
+            </Field>
+          </>
+        )}
+
+        {hasImageField && (
+          <Field label="Картинка / баннер">
+            <input value={getSettingText(settings, "image")} onChange={(event) => onSettingChange("image", event.target.value)} className="admin-input" placeholder="/uploads/banner.png или https://..." />
+          </Field>
+        )}
+
         {hasLimitField && (
-          <Field label="Сколько элементов показывать">
-            <input
-              type="number"
-              min={1}
-              value={getSettingNumber(settings, "limit", block.type === "new-arrivals" ? 3 : 12)}
-              onChange={(event) => onSettingChange("limit", Number(event.target.value))}
-              className="admin-input"
-            />
+          <Field label="Сколько показывать">
+            <input type="number" min={1} value={getSettingNumber(settings, "limit", 12)} onChange={(event) => onSettingChange("limit", Number(event.target.value))} className="admin-input" />
           </Field>
         )}
 
         {hasFilterField && (
-          <Field label="Фильтр товаров">
-            <select
-              value={getSettingText(settings, "filter") || "all"}
-              onChange={(event) => onSettingChange("filter", event.target.value)}
-              className="admin-input"
-            >
+          <Field label="Какие товары брать">
+            <select value={getSettingText(settings, "filter") || "all"} onChange={(event) => onSettingChange("filter", event.target.value)} className="admin-input">
               <option value="all">Все товары</option>
-              <option value="popular">Только популярные</option>
-              <option value="new">Только новинки</option>
+              <option value="popular">Популярные</option>
+              <option value="new">Новинки</option>
             </select>
           </Field>
         )}
 
-        {hasImageField && (
-          <Field label="Изображение / баннер">
-            <input
-              value={getSettingText(settings, "image")}
-              onChange={(event) => onSettingChange("image", event.target.value)}
-              className="admin-input"
-              placeholder="/uploads/banner.png или https://..."
-            />
-          </Field>
+        {hasButtonFields && (
+          <label className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 text-sm text-white/70">
+            <input type="checkbox" checked={getSettingBoolean(settings, "showButton", true)} onChange={(event) => onSettingChange("showButton", event.target.checked)} />
+            Показывать кнопку
+          </label>
         )}
 
         {block.type === "text-image" && (
-          <Field label="Сторона картинки">
-            <select
-              value={getSettingText(settings, "imageSide") || "right"}
-              onChange={(event) => onSettingChange("imageSide", event.target.value)}
-              className="admin-input"
-            >
+          <Field label="Где картинка">
+            <select value={getSettingText(settings, "imageSide") || "right"} onChange={(event) => onSettingChange("imageSide", event.target.value)} className="admin-input">
               <option value="right">Справа</option>
               <option value="left">Слева</option>
             </select>
           </Field>
         )}
 
-        {["promo-banner", "text-image"].includes(block.type) && (
-          <Field label="Тон блока">
-            <select
-              value={getSettingText(settings, "tone") || "blue"}
-              onChange={(event) => onSettingChange("tone", event.target.value)}
-              className="admin-input"
-            >
+        {hasToneField && (
+          <Field label="Стиль блока">
+            <select value={getSettingText(settings, "tone") || "blue"} onChange={(event) => onSettingChange("tone", event.target.value)} className="admin-input">
               <option value="blue">Синий</option>
               <option value="dark">Тёмный</option>
               <option value="light">Светлый</option>
@@ -809,38 +771,11 @@ function ModuleSettings({
         )}
       </div>
 
-      {hasButtonFields && (
-        <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-4">
-          <label className="flex items-center gap-3 text-sm text-white/70">
-            <input
-              type="checkbox"
-              checked={getSettingBoolean(settings, "showButton", true)}
-              onChange={(event) => onSettingChange("showButton", event.target.checked)}
-            />
-            Показывать кнопку
-          </label>
-
-          {getSettingBoolean(settings, "showButton", true) && (
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
-              <Field label="Текст кнопки">
-                <input
-                  value={getSettingText(settings, "buttonText")}
-                  onChange={(event) => onSettingChange("buttonText", event.target.value)}
-                  className="admin-input"
-                />
-              </Field>
-              <Field label="Ссылка кнопки">
-                <input
-                  value={getSettingText(settings, "buttonHref")}
-                  onChange={(event) => onSettingChange("buttonHref", event.target.value)}
-                  className="admin-input"
-                  placeholder="/catalog"
-                />
-              </Field>
-            </div>
-          )}
+      {!hasTextFields && !hasButtonFields && !hasImageField && !hasLimitField && !hasFilterField ? (
+        <div className="mt-5 rounded-xl border border-white/10 bg-white/[0.025] p-4 text-sm text-white/45">
+          У этого системного блока пока нет полей. Его можно включить, скрыть или поменять порядок.
         </div>
-      )}
+      ) : null}
     </div>
   );
 }
@@ -849,7 +784,7 @@ function BrandingEditor({ settings, updateBranding }: { settings: SiteEditorSett
   return (
     <div className="grid gap-5 md:grid-cols-2">
       <Field label="Название магазина"><input value={settings.branding.storeName} onChange={(event) => updateBranding("storeName", event.target.value)} className="admin-input" /></Field>
-      <Field label="Тема по умолчанию">
+      <Field label="Тема сайта по умолчанию">
         <select className="admin-input" value={settings.branding.defaultTheme} onChange={(event) => updateBranding("defaultTheme", event.target.value as SiteEditorSettings["branding"]["defaultTheme"])}>
           <option value="system">Системная</option>
           <option value="light">Светлая</option>
@@ -894,7 +829,7 @@ function ContactsEditor({
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <h3 className="text-xl font-bold tracking-[-0.035em]">Адреса и точки выдачи</h3>
-            <p className="mt-2 text-sm leading-relaxed text-white/50">Добавляйте шоурумы, офисы и ПВЗ. Эти адреса используются в способах получения.</p>
+            <p className="mt-2 text-sm leading-relaxed text-white/50">Эти адреса потом выбираются в способах получения.</p>
           </div>
           <button type="button" onClick={addAddress} className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500">Добавить адрес →</button>
         </div>
@@ -940,31 +875,12 @@ function SeoEditor({ settings, updateSeo }: { settings: SiteEditorSettings; upda
   );
 }
 
-function SectionTitle({ label, title, text }: { label: string; title: string; text: string }) {
-  return (
-    <div>
-      <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-400">{label}</div>
-      <h2 className="mt-3 text-3xl font-bold tracking-[-0.04em]">{title}</h2>
-      <p className="mt-3 max-w-[720px] text-sm leading-relaxed text-white/50">{text}</p>
-    </div>
-  );
-}
-
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
     <label className="block">
       <div className="mb-2 text-sm font-medium text-white/70">{label}</div>
       {children}
     </label>
-  );
-}
-
-function InfoLine({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between gap-4 rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-      <span>{label}</span>
-      <span className="font-semibold text-white">{value}</span>
-    </div>
   );
 }
 
@@ -1024,7 +940,8 @@ function AdminStyle() {
         color: white;
       }
 
-      .admin-action-button {
+      .admin-action-button,
+      .admin-mini-button {
         border-radius: 0.75rem;
         border: 1px solid rgba(255, 255, 255, 0.1);
         background: rgba(255, 255, 255, 0.03);
@@ -1035,7 +952,13 @@ function AdminStyle() {
         transition: border-color 0.2s ease, background-color 0.2s ease;
       }
 
-      .admin-action-button:hover:not(:disabled) {
+      .admin-mini-button {
+        padding: 0.55rem 0.8rem;
+        font-size: 0.75rem;
+      }
+
+      .admin-action-button:hover:not(:disabled),
+      .admin-mini-button:hover:not(:disabled) {
         border-color: rgba(59, 130, 246, 0.45);
         background: rgba(59, 130, 246, 0.1);
       }
