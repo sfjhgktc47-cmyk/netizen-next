@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import type { KeyboardEvent, PointerEvent, WheelEvent } from "react";
+import type { KeyboardEvent, PointerEvent } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { ProductTabs } from "@/components/product-tabs";
 import type { PublicProductModel, PublicProductPosition } from "@/lib/public-catalog-db";
@@ -119,7 +119,6 @@ export function ProductDetailView({
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const dragStartXRef = useRef<number | null>(null);
   const dragStartYRef = useRef<number | null>(null);
-  const wheelLockRef = useRef(0);
 
   const categoryName = product.categoryName || product.category;
 
@@ -183,27 +182,6 @@ export function ProductDetailView({
     setActiveImageIndex((current) =>
       current >= mediaImages.length - 1 ? 0 : current + 1
     );
-  }
-
-  function handleGalleryWheel(event: WheelEvent<HTMLDivElement>) {
-    if (mediaImages.length <= 1) return;
-
-    const now = Date.now();
-    const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
-
-    if (Math.abs(delta) < 18) return;
-
-    event.preventDefault();
-
-    if (now - wheelLockRef.current < 320) return;
-
-    wheelLockRef.current = now;
-
-    if (delta > 0) {
-      showNextImage();
-    } else {
-      showPreviousImage();
-    }
   }
 
   function handleGalleryPointerDown(event: PointerEvent<HTMLDivElement>) {
@@ -426,8 +404,7 @@ export function ProductDetailView({
               className="relative cursor-grab touch-pan-y select-none active:cursor-grabbing"
               role="region"
               tabIndex={0}
-              aria-label="Галерея товара. Используйте стрелки, колесо мыши или перетаскивание для смены фото."
-              onWheel={handleGalleryWheel}
+              aria-label="Галерея товара. Перетащите фото мышкой или пальцем, либо используйте стрелки."
               onPointerDown={handleGalleryPointerDown}
               onPointerUp={handleGalleryPointerUp}
               onPointerCancel={handleGalleryPointerCancel}
