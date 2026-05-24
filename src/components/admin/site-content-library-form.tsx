@@ -2,6 +2,7 @@
 
 import { useState, type ReactNode } from "react";
 
+import { ImageDropZone } from "@/components/admin/image-drop-zone";
 import type { SiteBanner, SiteBenefit, SiteContentLibrary } from "@/lib/site-content-library-db";
 
 type LibraryTab = "banners" | "benefits";
@@ -26,6 +27,8 @@ const emptyBanner: Omit<SiteBanner, "id" | "createdAt" | "updatedAt"> = {
   placement: "manual",
   tone: "blue",
   layout: "split",
+  titleSize: "lg",
+  textSize: "md",
   enabled: true,
   sortOrder: 100,
 };
@@ -283,12 +286,31 @@ function BannerEditor({ banner, disabled, updateBanner, saveBanner, deleteBanner
         <LibraryField label="Текст кнопки"><input value={banner.buttonText} onChange={(event) => updateBanner(banner.id, { buttonText: event.target.value })} className="admin-input" /></LibraryField>
         <LibraryField label="Ссылка кнопки"><input value={banner.buttonHref} onChange={(event) => updateBanner(banner.id, { buttonHref: event.target.value })} className="admin-input" /></LibraryField>
         <LibraryField label="Где использовать"><input value={banner.placement} onChange={(event) => updateBanner(banner.id, { placement: event.target.value })} className="admin-input" placeholder="home / catalog / product / manual" /></LibraryField>
-        <LibraryField label="Фото светлая тема"><input value={banner.imageLight} onChange={(event) => updateBanner(banner.id, { imageLight: event.target.value })} className="admin-input" /></LibraryField>
-        <LibraryField label="Фото тёмная тема"><input value={banner.imageDark} onChange={(event) => updateBanner(banner.id, { imageDark: event.target.value })} className="admin-input" /></LibraryField>
-        <LibraryField label="Фото для телефона"><input value={banner.imageMobile} onChange={(event) => updateBanner(banner.id, { imageMobile: event.target.value })} className="admin-input" /></LibraryField>
         <LibraryField label="Порядок"><input type="number" value={banner.sortOrder} onChange={(event) => updateBanner(banner.id, { sortOrder: Number(event.target.value) })} className="admin-input" /></LibraryField>
+        <LibraryField label="Размер заголовка"><select value={banner.titleSize || "lg"} onChange={(event) => updateBanner(banner.id, { titleSize: event.target.value })} className="admin-input"><option value="md">Средний</option><option value="lg">Большой</option><option value="xl">Очень большой</option></select></LibraryField>
+        <LibraryField label="Размер описания"><select value={banner.textSize || "md"} onChange={(event) => updateBanner(banner.id, { textSize: event.target.value })} className="admin-input"><option value="sm">Компактный</option><option value="md">Обычный</option><option value="lg">Крупный</option></select></LibraryField>
         <LibraryField label="Тон"><select value={banner.tone} onChange={(event) => updateBanner(banner.id, { tone: event.target.value })} className="admin-input"><option value="blue">Синий</option><option value="dark">Тёмный</option><option value="light">Светлый</option></select></LibraryField>
         <LibraryField label="Макет"><select value={banner.layout} onChange={(event) => updateBanner(banner.id, { layout: event.target.value })} className="admin-input"><option value="split">Текст + фото</option><option value="image-bg">Фото фоном</option><option value="compact">Компактный</option></select></LibraryField>
+        <div className="md:col-span-2 grid gap-4 lg:grid-cols-3">
+          <ImageDropZone
+            label="Фото светлая тема"
+            hint="Загрузите фото баннера для светлой темы или вставьте ссылку ниже."
+            value={banner.imageLight}
+            onChange={(value) => updateBanner(banner.id, { imageLight: value })}
+          />
+          <ImageDropZone
+            label="Фото тёмная тема"
+            hint="Можно загрузить отдельную картинку для тёмной темы."
+            value={banner.imageDark}
+            onChange={(value) => updateBanner(banner.id, { imageDark: value })}
+          />
+          <ImageDropZone
+            label="Фото для телефона"
+            hint="Вертикальная или компактная версия для мобильного экрана."
+            value={banner.imageMobile}
+            onChange={(value) => updateBanner(banner.id, { imageMobile: value })}
+          />
+        </div>
       </div>
       <div className="mt-5 flex flex-wrap gap-3">
         <button type="button" onClick={() => updateBanner(banner.id, { enabled: !banner.enabled })} className={`rounded-xl border px-5 py-3 text-sm font-semibold ${banner.enabled ? "border-green-500/30 bg-green-500/10 text-green-300" : "border-red-500/30 bg-red-500/10 text-red-300"}`}>{banner.enabled ? "Активен" : "Скрыт"}</button>
@@ -304,9 +326,16 @@ function BenefitEditor({ benefit, disabled, updateBenefit, saveBenefit, deleteBe
     <div className="rounded-3xl border border-white/10 bg-black/20 p-5 sm:p-6">
       <div className="grid gap-4 md:grid-cols-2">
         <LibraryField label="Название"><input value={benefit.title} onChange={(event) => updateBenefit(benefit.id, { title: event.target.value })} className="admin-input" /></LibraryField>
-        <LibraryField label="Иконка"><input value={benefit.icon} onChange={(event) => updateBenefit(benefit.id, { icon: event.target.value })} className="admin-input" /></LibraryField>
+        <LibraryField label="Иконка"><input value={benefit.icon} onChange={(event) => updateBenefit(benefit.id, { icon: event.target.value })} className="admin-input" placeholder="✓ / 🚚 / 🛡️" /></LibraryField>
         <LibraryField label="Описание"><textarea value={benefit.description} onChange={(event) => updateBenefit(benefit.id, { description: event.target.value })} className="admin-textarea min-h-[110px]" /></LibraryField>
-        <LibraryField label="Картинка, если нужна"><input value={benefit.image} onChange={(event) => updateBenefit(benefit.id, { image: event.target.value })} className="admin-input" /></LibraryField>
+        <div className="md:col-span-2">
+          <ImageDropZone
+            label="Фото / иконка преимущества"
+            hint="Можно загрузить PNG/JPG/WebP. Если фото пустое, покажется текстовая иконка."
+            value={benefit.image}
+            onChange={(value) => updateBenefit(benefit.id, { image: value })}
+          />
+        </div>
         <LibraryField label="Ссылка, если нужна"><input value={benefit.href} onChange={(event) => updateBenefit(benefit.id, { href: event.target.value })} className="admin-input" /></LibraryField>
         <LibraryField label="Порядок"><input type="number" value={benefit.sortOrder} onChange={(event) => updateBenefit(benefit.id, { sortOrder: Number(event.target.value) })} className="admin-input" /></LibraryField>
       </div>

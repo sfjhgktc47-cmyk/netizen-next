@@ -15,6 +15,8 @@ export type SiteBanner = {
   placement: string;
   tone: string;
   layout: string;
+  titleSize: string;
+  textSize: string;
   enabled: boolean;
   sortOrder: number;
   createdAt: string;
@@ -70,6 +72,8 @@ function toBanner(item: {
   placement: string;
   tone: string;
   layout: string;
+  titleSize: string;
+  textSize: string;
   enabled: boolean;
   sortOrder: number;
   createdAt: Date;
@@ -144,6 +148,8 @@ export async function createSiteBanner(input?: BannerInput) {
       placement: cleanText(input?.placement, "manual") || "manual",
       tone: cleanText(input?.tone, "blue") || "blue",
       layout: cleanText(input?.layout, "split") || "split",
+      titleSize: cleanText(input?.titleSize, "lg") || "lg",
+      textSize: cleanText(input?.textSize, "md") || "md",
       enabled: cleanBoolean(input?.enabled, true),
       sortOrder: cleanNumber(input?.sortOrder, 100),
     },
@@ -169,6 +175,8 @@ export async function updateSiteBanner(id: string, input: BannerInput) {
       ...(input.placement !== undefined ? { placement: cleanText(input.placement, "manual") || "manual" } : {}),
       ...(input.tone !== undefined ? { tone: cleanText(input.tone, "blue") || "blue" } : {}),
       ...(input.layout !== undefined ? { layout: cleanText(input.layout, "split") || "split" } : {}),
+      ...(input.titleSize !== undefined ? { titleSize: cleanText(input.titleSize, "lg") || "lg" } : {}),
+      ...(input.textSize !== undefined ? { textSize: cleanText(input.textSize, "md") || "md" } : {}),
       ...(input.enabled !== undefined ? { enabled: cleanBoolean(input.enabled) } : {}),
       ...(input.sortOrder !== undefined ? { sortOrder: cleanNumber(input.sortOrder) } : {}),
     },

@@ -76,40 +76,31 @@ function saveFavoriteSlugs(slugs: string[]) {
 
 function ProductAmbientImage({ src, alt }: { src: string; alt: string }) {
   return (
-    <div className="relative mx-auto flex aspect-[3/4] w-full max-w-[520px] items-center justify-center overflow-hidden rounded-[30px] border border-theme bg-white text-muted-soft shadow-[0_18px_55px_rgba(15,23,42,0.08)] dark:bg-slate-950">
+    <div className="relative mx-auto flex aspect-[3/4] w-full max-w-[520px] items-center justify-center overflow-hidden rounded-[30px] bg-white text-muted-soft shadow-[0_18px_55px_rgba(15,23,42,0.08)]">
       {/*
-        Edge-fill: пустые белые поля исходной 3:4 картинки визуально
-        заполняются увеличенными краями этой же фотографии. Передний слой
-        остаётся object-contain, поэтому сам товар не режется.
+        Edge-fill без видимой внутренней рамки: сама фотография остаётся
+        как есть, а боковые пустые зоны большого холста получают мягкий
+        цвет из этой же фотографии. Центральный белый фон картинки
+        сливается с белым холстом.
       */}
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 h-full w-full scale-[1.18] object-cover opacity-70 blur-xl saturate-125"
-      />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-y-0 left-0 h-full w-1/2 scale-110 object-cover object-left opacity-45 blur-md saturate-125"
-      />
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-y-0 right-0 h-full w-1/2 scale-110 object-cover object-right opacity-45 blur-md saturate-125"
-      />
-      <div className="absolute inset-0 bg-white/15 dark:bg-slate-950/30" />
-      <div className="absolute inset-0 bg-gradient-to-br from-white/25 via-transparent to-white/10 dark:from-white/5 dark:via-transparent dark:to-blue-500/10" />
+      <div className="pointer-events-none absolute inset-y-0 left-0 w-[18%] overflow-hidden opacity-45">
+        <div
+          className="h-full w-[360%] bg-cover bg-center blur-md saturate-125"
+          style={{ backgroundImage: `url(${src})` }}
+        />
+      </div>
+      <div className="pointer-events-none absolute inset-y-0 right-0 w-[18%] overflow-hidden opacity-45">
+        <div
+          className="h-full w-[360%] -translate-x-[72%] bg-cover bg-center blur-md saturate-125"
+          style={{ backgroundImage: `url(${src})` }}
+        />
+      </div>
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white/40 via-white to-white/40" />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}
         alt={alt}
-        className="relative z-10 h-full w-full object-contain p-5 mix-blend-multiply drop-shadow-[0_28px_55px_rgba(15,23,42,0.24)] dark:mix-blend-normal lg:p-7"
+        className="relative z-10 h-full w-full object-contain p-0"
       />
     </div>
   );

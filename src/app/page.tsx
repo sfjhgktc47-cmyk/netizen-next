@@ -65,6 +65,8 @@ type HomeBanner = {
   placement: string;
   tone: string;
   layout: string;
+  titleSize?: string;
+  textSize?: string;
   enabled: boolean;
   sortOrder: number;
 };
@@ -329,7 +331,10 @@ function HomeModule({
 
   if (type === "promo-banner") {
     const bannerId = getBlockText(settings, "bannerId", "");
-    const selectedBanner = banners.find((banner) => banner.id === bannerId);
+    const placement = getBlockText(settings, "placement", "home");
+    const selectedBanner = bannerId
+      ? banners.find((banner) => banner.id === bannerId)
+      : banners.find((banner) => banner.placement === placement || banner.placement === "home") ?? banners[0];
 
     return <PromoBanner dark={dark} settings={settings} banner={selectedBanner} />;
   }
@@ -1206,6 +1211,18 @@ function NewArrivalCard({
 }
 
 
+function bannerTitleSizeClass(size?: string) {
+  if (size === "md") return "text-3xl lg:text-4xl";
+  if (size === "xl") return "text-5xl lg:text-6xl";
+  return "text-4xl lg:text-5xl";
+}
+
+function bannerTextSizeClass(size?: string) {
+  if (size === "sm") return "text-sm";
+  if (size === "lg") return "text-lg";
+  return "text-base";
+}
+
 function PromoBanner({
   dark,
   settings,
@@ -1225,6 +1242,8 @@ function PromoBanner({
   const label = banner?.label || getBlockText(settings, "label", "Промо");
   const buttonText = banner?.buttonText || getBlockText(settings, "buttonText", "Подробнее →");
   const buttonHref = banner?.buttonHref || getBlockText(settings, "buttonHref", "/catalog");
+  const titleSize = banner?.titleSize || getBlockText(settings, "titleSize", "lg");
+  const textSize = banner?.textSize || getBlockText(settings, "textSize", "md");
 
   return (
     <section className="pb-20">
@@ -1238,10 +1257,10 @@ function PromoBanner({
       >
         <div className="flex flex-col items-start justify-center p-8 lg:p-10">
           <div className="text-xs font-bold uppercase tracking-[0.18em] text-blue-500">{label}</div>
-          <h2 className="mt-4 max-w-[520px] text-4xl font-bold leading-[1.05] tracking-[-0.05em] lg:text-5xl">
+          <h2 className={`mt-4 max-w-[520px] font-bold leading-[1.05] tracking-[-0.05em] ${bannerTitleSizeClass(titleSize)}`}>
             {title}
           </h2>
-          <p className={`mt-4 max-w-[430px] text-base leading-relaxed ${mutedTextClass(dark)}`}>
+          <p className={`mt-4 max-w-[430px] leading-relaxed ${bannerTextSizeClass(textSize)} ${mutedTextClass(dark)}`}>
             {subtitle}
           </p>
           <span className="mt-7 inline-flex rounded-xl bg-blue-600 px-6 py-4 text-sm font-medium text-white transition-colors group-hover:bg-blue-500">

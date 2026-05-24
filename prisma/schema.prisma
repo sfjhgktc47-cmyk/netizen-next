@@ -276,6 +276,8 @@ model SiteBanner {
   placement   String   @default("manual")
   tone        String   @default("blue")
   layout      String   @default("split")
+  titleSize   String   @default("lg")
+  textSize    String   @default("md")
   enabled     Boolean  @default(true)
   sortOrder   Int      @default(100)
   createdAt   DateTime @default(now())

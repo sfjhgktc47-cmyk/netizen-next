@@ -112,6 +112,43 @@ function AdminThemeStyle() {
         color: inherit;
       }
 
+
+      [data-admin-theme="light"] .admin-theme-scope,
+      [data-admin-theme="light"] .admin-theme-scope * {
+        color-scheme: light;
+      }
+
+      [data-admin-theme="light"] .admin-theme-scope h1,
+      [data-admin-theme="light"] .admin-theme-scope h2,
+      [data-admin-theme="light"] .admin-theme-scope h3,
+      [data-admin-theme="light"] .admin-theme-scope h4,
+      [data-admin-theme="light"] .admin-theme-scope label,
+      [data-admin-theme="light"] .admin-theme-scope p,
+      [data-admin-theme="light"] .admin-theme-scope span,
+      [data-admin-theme="light"] .admin-theme-scope div {
+        border-color: inherit;
+      }
+
+      [data-admin-theme="light"] .admin-theme-scope a:not([class*="bg-blue-"]),
+      [data-admin-theme="light"] .admin-theme-scope button:not([class*="bg-blue-"]):not([class*="bg-red-"]):not([class*="bg-green-"]):not([class*="bg-amber-"]) {
+        color: #101828 !important;
+      }
+
+      [data-admin-theme="light"] .admin-theme-scope [class*="bg-blue-"] *,
+      [data-admin-theme="light"] .admin-theme-scope button[class*="bg-blue-"] {
+        color: #ffffff !important;
+      }
+
+      [data-admin-theme="light"] .admin-theme-scope input::placeholder,
+      [data-admin-theme="light"] .admin-theme-scope textarea::placeholder {
+        color: rgba(16, 24, 40, 0.42) !important;
+      }
+
+      [data-admin-theme="light"] .admin-theme-scope [class*="border-blue-500/50"],
+      [data-admin-theme="light"] .admin-theme-scope [class*="border-blue-500/35"] {
+        border-color: rgba(37, 99, 235, 0.35) !important;
+      }
+
       [data-admin-theme="light"] .admin-theme-widget {
         background: rgba(255, 255, 255, 0.94) !important;
         border-color: rgba(15, 23, 42, 0.12) !important;
