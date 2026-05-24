@@ -10,10 +10,20 @@ import { formatPrice, getPriceNumber } from "@/lib/product-pricing";
 type ProductCard = PublicProductModel;
 type ProductPosition = PublicProductPosition;
 
+type ProductBenefit = {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  image: string;
+  href: string;
+};
+
 type ProductDetailViewProps = {
   product: ProductCard;
   positions: ProductPosition[];
   selectedPosition?: ProductPosition;
+  benefits?: ProductBenefit[];
 };
 
 function uniqueBy<T>(items: T[], getKey: (item: T) => string) {
@@ -74,20 +84,11 @@ function saveFavoriteSlugs(slugs: string[]) {
 }
 
 
-function ProductAmbientImage({ src, alt }: { src: string; alt: string }) {
+function ProductMainImage({ src, alt }: { src: string; alt: string }) {
   return (
-    <div className="relative mx-auto flex aspect-[3/4] w-full max-w-[520px] items-center justify-center overflow-hidden rounded-[30px] bg-white text-muted-soft shadow-[0_18px_55px_rgba(15,23,42,0.08)]">
-      {/*
-        Чистый белый фото-холст без внутренней рамки: саму картинку не
-        меняем, не блюрим и не обрезаем. Если у исходной фотографии белый
-        фон, он визуально сливается с белым холстом вокруг неё.
-      */}
+    <div className="relative mx-auto flex aspect-[3/4] w-full max-w-[520px] items-center justify-center overflow-hidden rounded-[30px] bg-white text-muted-soft">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
-        alt={alt}
-        className="h-full w-full object-contain p-0"
-      />
+      <img src={src} alt={alt} className="h-full w-full object-contain" />
     </div>
   );
 }
@@ -104,6 +105,7 @@ export function ProductDetailView({
   product,
   positions,
   selectedPosition,
+  benefits = [],
 }: ProductDetailViewProps) {
 
   const [selectedColor, setSelectedColor] = useState(selectedPosition?.color ?? "");
@@ -113,6 +115,7 @@ export function ProductDetailView({
   const [quantity, setQuantity] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [activeImageIndex, setActiveImageIndex] = useState(0);
 
   const categoryName = product.categoryName || product.category;
 
@@ -157,6 +160,26 @@ export function ProductDetailView({
         : product.image
           ? [product.image]
           : [];
+
+  const activeImage = mediaImages[activeImageIndex] ?? mediaImages[0] ?? "";
+
+  useEffect(() => {
+    setActiveImageIndex(0);
+  }, [previewPosition?.sku, product.slug]);
+
+  function showPreviousImage() {
+    if (mediaImages.length <= 1) return;
+    setActiveImageIndex((current) =>
+      current <= 0 ? mediaImages.length - 1 : current - 1
+    );
+  }
+
+  function showNextImage() {
+    if (mediaImages.length <= 1) return;
+    setActiveImageIndex((current) =>
+      current >= mediaImages.length - 1 ? 0 : current + 1
+    );
+  }
 
   const priceRange = useMemo(() => {
     const prices = positions
@@ -321,21 +344,51 @@ export function ProductDetailView({
 
         <section className="mt-8 grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
           <div className="card rounded-[36px] p-6">
-            {mediaImages[0] ? (
-              <ProductAmbientImage
-                src={mediaImages[0]}
-                alt={previewPosition?.title ?? product.name}
-              />
-            ) : (
-              <ProductImagePlaceholder />
-            )}
+            <div className="relative">
+              {activeImage ? (
+                <ProductMainImage
+                  src={activeImage}
+                  alt={previewPosition?.title ?? product.name}
+                />
+              ) : (
+                <ProductImagePlaceholder />
+              )}
+
+              {mediaImages.length > 1 && (
+                <>
+                  <button
+                    type="button"
+                    onClick={showPreviousImage}
+                    className="absolute left-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-2xl border border-theme bg-card/90 text-main shadow-soft backdrop-blur transition-colors hover:border-blue-500/50 hover:bg-blue-soft"
+                    aria-label="Предыдущее фото"
+                  >
+                    ←
+                  </button>
+                  <button
+                    type="button"
+                    onClick={showNextImage}
+                    className="absolute right-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-2xl border border-theme bg-card/90 text-main shadow-soft backdrop-blur transition-colors hover:border-blue-500/50 hover:bg-blue-soft"
+                    aria-label="Следующее фото"
+                  >
+                    →
+                  </button>
+                </>
+              )}
+            </div>
 
             <div className="mx-auto mt-6 grid max-w-[520px] grid-cols-4 gap-4">
-              {(mediaImages.length > 0 ? mediaImages.slice(0, 4) : Array.from({ length: 4 })).map(
+              {(mediaImages.length > 0 ? mediaImages.slice(0, 8) : Array.from({ length: 4 })).map(
                 (image, index) => (
-                  <div
+                  <button
                     key={typeof image === "string" ? `${image}-${index}` : index}
-                    className="flex aspect-[3/4] items-center justify-center overflow-hidden rounded-2xl border border-theme bg-white text-xs text-muted-soft"
+                    type="button"
+                    onClick={() => typeof image === "string" && setActiveImageIndex(index)}
+                    className={`flex aspect-[3/4] items-center justify-center overflow-hidden rounded-2xl border bg-white text-xs text-muted-soft transition-all ${
+                      activeImageIndex === index && typeof image === "string"
+                        ? "border-blue-500 ring-2 ring-blue-500/20"
+                        : "border-theme hover:border-blue-500/50"
+                    }`}
+                    aria-label={`Показать фото ${index + 1}`}
                   >
                     {typeof image === "string" ? (
                       // eslint-disable-next-line @next/next/no-img-element
@@ -347,7 +400,7 @@ export function ProductDetailView({
                     ) : (
                       "Фото"
                     )}
-                  </div>
+                  </button>
                 )
               )}
             </div>

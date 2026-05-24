@@ -2,6 +2,15 @@
 
 import { useState, type ReactNode } from "react";
 
+type ProductBenefit = {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  image: string;
+  href: string;
+};
+
 type ProductTabsProps = {
   productName: string;
   brand: string;
@@ -10,36 +19,35 @@ type ProductTabsProps = {
   color: string;
   sim: string;
   sku: string;
+  description: string;
+  shortDescription: string;
+  benefits: ProductBenefit[];
 };
 
-const advantages = [
+const fallbackBenefits: ProductBenefit[] = [
   {
+    id: "delivery",
     title: "Бесплатная доставка",
-    text: "В день заказа в пределах МКАД.",
+    description: "В день заказа в пределах МКАД.",
+    icon: "✦",
+    image: "",
+    href: "",
   },
   {
+    id: "order",
     title: "Под заказ",
-    text: "Привозим редкие модели и конфигурации.",
+    description: "Привозим редкие модели и конфигурации.",
+    icon: "✦",
+    image: "",
+    href: "",
   },
   {
-    title: "Для юр. лиц",
-    text: "Работаем с компаниями и документами.",
-  },
-  {
+    id: "original",
     title: "Оригинальные товары",
-    text: "Проверяем устройство перед передачей клиенту.",
-  },
-  {
-    title: "Гарантия",
-    text: "Поддержка после покупки и помощь с обращениями.",
-  },
-  {
-    title: "Самовывоз",
-    text: "Можно забрать рядом с м. Багратионовская.",
-  },
-  {
-    title: "Trade-In",
-    text: "Поможем выгодно обновить устройство.",
+    description: "Проверяем устройство перед передачей клиенту.",
+    icon: "✦",
+    image: "",
+    href: "",
   },
 ];
 
@@ -51,10 +59,18 @@ export function ProductTabs({
   color,
   sim,
   sku,
+  description,
+  shortDescription,
+  benefits,
 }: ProductTabsProps) {
   const [activeTab, setActiveTab] = useState<
     "description" | "characteristics" | "advantages"
   >("description");
+  const [descriptionOpen, setDescriptionOpen] = useState(false);
+
+  const visibleBenefits = benefits.length > 0 ? benefits : fallbackBenefits;
+  const cleanDescription = description?.trim();
+  const cleanShortDescription = shortDescription?.trim();
 
   return (
     <section className="card rounded-[32px] p-7">
@@ -92,17 +108,33 @@ export function ProductTabs({
               {productName}
             </h2>
 
-            <p className="mt-4 max-w-[850px] text-base leading-7 text-muted">
-              {productName} — премиальное устройство для работы, общения,
-              контента и повседневного использования. Карточка показывает общую
-              модель, а выбранная конфигурация определяет память, цвет, SIM,
-              цену, наличие и SKU.
-            </p>
+            <div
+              className={`mt-4 max-w-[900px] overflow-hidden text-base leading-7 text-muted transition-all duration-300 ${
+                descriptionOpen ? "max-h-[900px]" : "max-h-[120px]"
+              }`}
+            >
+              <p>
+                {cleanShortDescription ||
+                  `${productName} — карточка общей модели. Выбранная конфигурация определяет память, цвет, SIM, цену, наличие и SKU.`}
+              </p>
 
-            <p className="mt-4 max-w-[850px] text-base leading-7 text-muted">
-              Перед оформлением менеджер подтвердит наличие, комплектацию,
-              способ получения и итоговую стоимость заказа.
-            </p>
+              {cleanDescription && cleanDescription !== cleanShortDescription && (
+                <p className="mt-4">{cleanDescription}</p>
+              )}
+
+              <p className="mt-4">
+                Перед оформлением менеджер подтвердит наличие, комплектацию,
+                способ получения и итоговую стоимость заказа.
+              </p>
+            </div>
+
+            <button
+              type="button"
+              onClick={() => setDescriptionOpen((current) => !current)}
+              className="mt-5 rounded-2xl border border-theme px-5 py-3 text-sm font-semibold text-main transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
+            >
+              {descriptionOpen ? "Свернуть описание" : "Показать описание полностью"}
+            </button>
           </div>
         )}
 
@@ -140,30 +172,46 @@ export function ProductTabs({
             </h2>
 
             <div className="mt-6 grid gap-4 md:grid-cols-2">
-              {advantages.map((item) => (
-                <div
-                  key={item.title}
-                  className="rounded-2xl border border-theme bg-blue-soft p-5"
-                >
-                  <div className="flex gap-4">
-                    <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border border-theme bg-card text-lg text-blue-500">
-                      ✦
-                    </div>
-
-                    <div>
-                      <div className="font-bold text-main">{item.title}</div>
-                      <p className="mt-1 text-sm leading-6 text-muted">
-                        {item.text}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+              {visibleBenefits.map((item) => (
+                <BenefitCard key={item.id || item.title} item={item} />
               ))}
             </div>
           </div>
         )}
       </div>
     </section>
+  );
+}
+
+function BenefitCard({ item }: { item: ProductBenefit }) {
+  const content = (
+    <div className="rounded-2xl border border-theme bg-blue-soft p-5 transition-colors hover:border-blue-500/40">
+      <div className="flex gap-4">
+        <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-theme bg-card text-lg text-blue-500">
+          {item.image ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
+          ) : (
+            item.icon || "✦"
+          )}
+        </div>
+
+        <div>
+          <div className="font-bold text-main">{item.title}</div>
+          <p className="mt-1 text-sm leading-6 text-muted">{item.description}</p>
+        </div>
+      </div>
+    </div>
+  );
+
+  if (!item.href) {
+    return content;
+  }
+
+  return (
+    <a href={item.href} className="block">
+      {content}
+    </a>
   );
 }
 

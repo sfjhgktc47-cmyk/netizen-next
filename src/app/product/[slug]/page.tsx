@@ -4,6 +4,7 @@ import {
   getPublicProductSlugs,
 } from "@/lib/public-catalog-db";
 import { ProductDetailView } from "@/components/product-detail-view";
+import { getSiteBenefits } from "@/lib/site-content-library-db";
 
 export const dynamic = "force-dynamic";
 
@@ -56,12 +57,14 @@ export default async function ProductPage({
   const selectedPosition = sku
     ? data.positions.find((position) => position.sku === sku)
     : undefined;
+  const benefits = await getSiteBenefits({ activeOnly: true });
 
   return (
     <ProductDetailView
       product={data.product}
       positions={data.positions}
       selectedPosition={selectedPosition}
+      benefits={benefits}
     />
   );
 }
