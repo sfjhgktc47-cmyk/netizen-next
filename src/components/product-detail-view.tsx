@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
+import type { KeyboardEvent, PointerEvent, WheelEvent } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { ProductTabs } from "@/components/product-tabs";
 import type { PublicProductModel, PublicProductPosition } from "@/lib/public-catalog-db";
@@ -116,6 +117,9 @@ export function ProductDetailView({
   const [addedToCart, setAddedToCart] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const dragStartXRef = useRef<number | null>(null);
+  const dragStartYRef = useRef<number | null>(null);
+  const wheelLockRef = useRef(0);
 
   const categoryName = product.categoryName || product.category;
 
@@ -179,6 +183,80 @@ export function ProductDetailView({
     setActiveImageIndex((current) =>
       current >= mediaImages.length - 1 ? 0 : current + 1
     );
+  }
+
+  function handleGalleryWheel(event: WheelEvent<HTMLDivElement>) {
+    if (mediaImages.length <= 1) return;
+
+    const now = Date.now();
+    const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY;
+
+    if (Math.abs(delta) < 18) return;
+
+    event.preventDefault();
+
+    if (now - wheelLockRef.current < 320) return;
+
+    wheelLockRef.current = now;
+
+    if (delta > 0) {
+      showNextImage();
+    } else {
+      showPreviousImage();
+    }
+  }
+
+  function handleGalleryPointerDown(event: PointerEvent<HTMLDivElement>) {
+    if (mediaImages.length <= 1) return;
+
+    const target = event.target;
+
+    if (target instanceof Element && target.closest("button")) return;
+
+    dragStartXRef.current = event.clientX;
+    dragStartYRef.current = event.clientY;
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function handleGalleryPointerUp(event: PointerEvent<HTMLDivElement>) {
+    if (mediaImages.length <= 1 || dragStartXRef.current === null || dragStartYRef.current === null) {
+      dragStartXRef.current = null;
+      dragStartYRef.current = null;
+      return;
+    }
+
+    const diffX = event.clientX - dragStartXRef.current;
+    const diffY = event.clientY - dragStartYRef.current;
+
+    dragStartXRef.current = null;
+    dragStartYRef.current = null;
+
+    if (Math.abs(diffX) < 45 || Math.abs(diffX) < Math.abs(diffY)) return;
+
+    if (diffX < 0) {
+      showNextImage();
+    } else {
+      showPreviousImage();
+    }
+  }
+
+  function handleGalleryPointerCancel() {
+    dragStartXRef.current = null;
+    dragStartYRef.current = null;
+  }
+
+  function handleGalleryKeyDown(event: KeyboardEvent<HTMLDivElement>) {
+    if (mediaImages.length <= 1) return;
+
+    if (event.key === "ArrowLeft") {
+      event.preventDefault();
+      showPreviousImage();
+    }
+
+    if (event.key === "ArrowRight") {
+      event.preventDefault();
+      showNextImage();
+    }
   }
 
   const priceRange = useMemo(() => {
@@ -344,7 +422,17 @@ export function ProductDetailView({
 
         <section className="mt-8 grid gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
           <div className="card rounded-[36px] p-6">
-            <div className="relative">
+            <div
+              className="relative cursor-grab touch-pan-y select-none active:cursor-grabbing"
+              role="region"
+              tabIndex={0}
+              aria-label="Галерея товара. Используйте стрелки, колесо мыши или перетаскивание для смены фото."
+              onWheel={handleGalleryWheel}
+              onPointerDown={handleGalleryPointerDown}
+              onPointerUp={handleGalleryPointerUp}
+              onPointerCancel={handleGalleryPointerCancel}
+              onKeyDown={handleGalleryKeyDown}
+            >
               {activeImage ? (
                 <ProductMainImage
                   src={activeImage}
