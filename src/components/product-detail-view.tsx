@@ -78,29 +78,15 @@ function ProductAmbientImage({ src, alt }: { src: string; alt: string }) {
   return (
     <div className="relative mx-auto flex aspect-[3/4] w-full max-w-[520px] items-center justify-center overflow-hidden rounded-[30px] bg-white text-muted-soft shadow-[0_18px_55px_rgba(15,23,42,0.08)]">
       {/*
-        Edge-fill без видимой внутренней рамки: сама фотография остаётся
-        как есть, а боковые пустые зоны большого холста получают мягкий
-        цвет из этой же фотографии. Центральный белый фон картинки
-        сливается с белым холстом.
+        Чистый белый фото-холст без внутренней рамки: саму картинку не
+        меняем, не блюрим и не обрезаем. Если у исходной фотографии белый
+        фон, он визуально сливается с белым холстом вокруг неё.
       */}
-      <div className="pointer-events-none absolute inset-y-0 left-0 w-[18%] overflow-hidden opacity-45">
-        <div
-          className="h-full w-[360%] bg-cover bg-center blur-md saturate-125"
-          style={{ backgroundImage: `url(${src})` }}
-        />
-      </div>
-      <div className="pointer-events-none absolute inset-y-0 right-0 w-[18%] overflow-hidden opacity-45">
-        <div
-          className="h-full w-[360%] -translate-x-[72%] bg-cover bg-center blur-md saturate-125"
-          style={{ backgroundImage: `url(${src})` }}
-        />
-      </div>
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-r from-white/40 via-white to-white/40" />
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}
         alt={alt}
-        className="relative z-10 h-full w-full object-contain p-0"
+        className="h-full w-full object-contain p-0"
       />
     </div>
   );
