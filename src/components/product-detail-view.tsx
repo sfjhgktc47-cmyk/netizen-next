@@ -783,6 +783,9 @@ export function ProductDetailView({
               color={previewPosition.color}
               sim={previewPosition.sim}
               sku={previewPosition.sku}
+              description={product.description}
+              shortDescription={product.shortDescription}
+              benefits={benefits}
             />
           )}
         </section>
