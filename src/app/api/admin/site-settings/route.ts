@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { canAccessAdminSection } from "@/lib/admin-access";
 import { getAuthSession } from "@/lib/auth";
 import {
   getSiteEditorSettings,
@@ -10,17 +11,25 @@ import {
 
 export const dynamic = "force-dynamic";
 
-async function requireAdmin() {
+function denied(status = 403) {
+  return NextResponse.json({ ok: false, error: "Недостаточно прав для сохранения настроек." }, { status });
+}
+
+async function requireSection(section: "settings" | "site-editor") {
   const session = await getAuthSession();
-  return session?.role === "admin";
+
+  if (session?.role !== "admin") return false;
+
+  return canAccessAdminSection(session, section);
 }
 
 export async function GET(request: NextRequest) {
-  if (!(await requireAdmin())) {
-    return NextResponse.json({ error: "Доступ запрещён" }, { status: 401 });
-  }
-
   const scope = request.nextUrl.searchParams.get("scope") ?? "all";
+  const section = scope === "system" ? "settings" : "site-editor";
+
+  if (!(await requireSection(section))) {
+    return denied();
+  }
 
   if (scope === "site") {
     return NextResponse.json({ site: await getSiteEditorSettings() });
@@ -39,12 +48,13 @@ export async function GET(request: NextRequest) {
 }
 
 export async function PATCH(request: NextRequest) {
-  if (!(await requireAdmin())) {
-    return NextResponse.json({ error: "Доступ запрещён" }, { status: 401 });
-  }
-
   const body = await request.json().catch(() => null);
   const scope = body?.scope;
+  const section = scope === "system" ? "settings" : "site-editor";
+
+  if (!(await requireSection(section))) {
+    return denied();
+  }
 
   if (scope === "site") {
     const site = await saveSiteEditorSettings(body.value);

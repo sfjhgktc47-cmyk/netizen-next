@@ -276,6 +276,7 @@ export async function getAdminCustomer(id: string) {
       product: order.items.map((item) => `${item.title} × ${item.quantity}`).join(", ") || "Без товаров",
       total: formatAdminPrice(order.total),
       status: order.status,
+      deliveryType: order.deliveryType,
       date: formatAdminDate(order.createdAt),
     })),
     tickets: tickets.map((ticket) => ({

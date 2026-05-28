@@ -170,7 +170,7 @@ export default async function AdminCustomerDetailPage({
                           <span className="font-bold">{order.total}</span>
 
                           <span className={`rounded-full border px-3 py-1 text-sm ${getOrderStatusClass(order.status)}`}>
-                            {getOrderStatusLabel(order.status)}
+                            {getOrderStatusLabel(order.status, order.deliveryType)}
                           </span>
                         </div>
                       </div>

@@ -2,24 +2,27 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { orderStatusOptions } from "@/lib/order-status";
+import { getOrderStatusOptions } from "@/lib/order-status";
 
 type OrderStatusFormProps = {
   orderId: string;
   initialStatus: string;
   initialComment: string;
+  deliveryType: string;
 };
 
 export function OrderStatusForm({
   orderId,
   initialStatus,
   initialComment,
+  deliveryType,
 }: OrderStatusFormProps) {
   const router = useRouter();
   const [status, setStatus] = useState(initialStatus);
   const [comment, setComment] = useState(initialComment);
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
+  const statusOptions = getOrderStatusOptions(deliveryType);
 
   async function saveOrder() {
     setIsSaving(true);
@@ -69,7 +72,7 @@ export function OrderStatusForm({
             onChange={(event) => setStatus(event.target.value)}
             className="mt-2 h-12 w-full rounded-xl border border-white/10 bg-black/20 px-4 text-sm text-white outline-none focus:border-blue-500/50"
           >
-            {orderStatusOptions.map((option) => (
+            {statusOptions.map((option) => (
               <option key={option.value} value={option.value} className="bg-[#020814]">
                 {option.label}
               </option>

@@ -72,7 +72,7 @@ export default async function AdminOrderDetailPage({
                 </div>
 
                 <span className={`inline-flex rounded-full border px-4 py-2 text-sm ${getOrderStatusClass(order.status)}`}>
-                  {getOrderStatusLabel(order.status)}
+                  {getOrderStatusLabel(order.status, order.deliveryType)}
                 </span>
               </div>
 
@@ -101,6 +101,7 @@ export default async function AdminOrderDetailPage({
               orderId={order.publicId}
               initialStatus={order.status}
               initialComment={order.comment}
+              deliveryType={order.deliveryType}
             />
           </div>
         </section>

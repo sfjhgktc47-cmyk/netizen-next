@@ -117,7 +117,7 @@ function orderMatchesBaseFilters(
       order.address,
       order.pickupPoint,
       getDeliveryLabel(order.deliveryType),
-      getOrderStatusLabel(order.status),
+      getOrderStatusLabel(order.status, order.deliveryType),
       itemsText,
     ]
       .join(" ")
@@ -389,7 +389,7 @@ export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageP
 
                   <div>
                     <span className={`inline-flex rounded-full border px-3 py-1 text-xs ${getOrderStatusClass(order.status)}`}>
-                      {getOrderStatusLabel(order.status)}
+                      {getOrderStatusLabel(order.status, order.deliveryType)}
                     </span>
                   </div>
 
