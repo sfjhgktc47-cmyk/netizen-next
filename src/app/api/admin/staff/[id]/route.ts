@@ -107,7 +107,7 @@ export async function PATCH(request: Request, context: RouteContext) {
 
   if (typeof body?.isActive === "boolean") {
     if (current.isActive && body.isActive === false && normalizeAdminRoles(current.roles, normalizeAdminRoles(current.role, ["manager"])).includes("owner") && (await countActiveOwners(id)) === 0) {
-      return jsonError("Нельзя отключить последнего главного админа.", 409);
+      return jsonError("Нельзя удалить последнего главного админа.", 409);
     }
 
     data.isActive = body.isActive;
@@ -120,21 +120,21 @@ export async function PATCH(request: Request, context: RouteContext) {
 
 export async function DELETE(_request: Request, context: RouteContext) {
   if (!(await requireOwner())) {
-    return jsonError("Только главный админ может отключать сотрудников.", 403);
+    return jsonError("Только главный админ может удалять сотрудников.", 403);
   }
 
   const { id } = await context.params;
-  const current = await prisma.adminUser.findUnique({ where: { id }, select: { id: true, role: true, roles: true } });
+  const current = await prisma.adminUser.findUnique({ where: { id }, select: { id: true, role: true, roles: true, isActive: true } });
 
   if (!current) {
     return jsonError("Сотрудник не найден.", 404);
   }
 
   if (normalizeAdminRoles(current.roles, normalizeAdminRoles(current.role, ["manager"])).includes("owner") && (await countActiveOwners(id)) === 0) {
-    return jsonError("Нельзя отключить последнего главного админа.", 409);
+    return jsonError("Нельзя удалить последнего главного админа.", 409);
   }
 
-  await prisma.adminUser.update({ where: { id }, data: { isActive: false } });
+  await prisma.adminUser.delete({ where: { id } });
 
   return NextResponse.json({ ok: true, staff: await getAdminStaff() });
 }

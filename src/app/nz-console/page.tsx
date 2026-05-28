@@ -1,12 +1,46 @@
 import Link from "next/link";
 
 import { AdminLogoutButton } from "@/components/admin/admin-logout-button";
+import { adminSectionAccess, getCurrentAdminRoles, type AdminSection } from "@/lib/admin-access";
 import { getAdminDashboardData } from "@/lib/admin-dashboard-db";
 
 export const dynamic = "force-dynamic";
 
-export default async function AdminDashboardPage() {
-  const dashboard = await getAdminDashboardData();
+function sectionFromHref(href: string): AdminSection {
+  if (href.startsWith("/nz-console/orders")) return "orders";
+  if (href.startsWith("/nz-console/users")) return "customers";
+  if (href.startsWith("/nz-console/products")) return "products";
+  if (href.startsWith("/nz-console/positions")) return "positions";
+  if (href.startsWith("/nz-console/categories")) return "categories";
+  if (href.startsWith("/nz-console/support")) return "support";
+  if (href.startsWith("/nz-console/site-editor")) return "site-editor";
+  if (href.startsWith("/nz-console/settings")) return "settings";
+  return "dashboard";
+}
+
+function canSeeSection(roles: Awaited<ReturnType<typeof getCurrentAdminRoles>>, section: AdminSection) {
+  if (roles.includes("owner")) return true;
+  return roles.some((role) => adminSectionAccess[section].includes(role));
+}
+
+export default async function AdminDashboardPage({
+  searchParams,
+}: {
+  searchParams?: Promise<{ access?: string }>;
+}) {
+  const [dashboard, roles, params] = await Promise.all([
+    getAdminDashboardData(),
+    getCurrentAdminRoles(),
+    searchParams,
+  ]);
+  const visibleSections = dashboard.sections.filter((section) => canSeeSection(roles, sectionFromHref(section.href)));
+  const visibleRecentActions = dashboard.recentActions.filter((action) => canSeeSection(roles, sectionFromHref(action.href)));
+  const quickActions = [
+    { href: "/nz-console/products/new", label: "Создать карточку →", primary: true },
+    { href: "/nz-console/positions/new", label: "Добавить позицию" },
+    { href: "/nz-console/categories/new", label: "Создать категорию" },
+    { href: "/nz-console/orders", label: "Смотреть заявки" },
+  ].filter((action) => canSeeSection(roles, sectionFromHref(action.href)));
 
   return (
     <main className="min-h-screen bg-[#020814] px-4 py-4 text-white sm:px-6 sm:py-6">
@@ -35,6 +69,12 @@ export default async function AdminDashboardPage() {
             <AdminLogoutButton />
           </div>
         </header>
+
+        {params?.access === "denied" ? (
+          <div className="mt-6 rounded-2xl border border-red-500/30 bg-red-500/10 px-5 py-4 text-sm text-red-200">
+            Недостаточно прав для этого раздела. Показаны только доступные блоки.
+          </div>
+        ) : null}
 
         <section className="mt-10 grid gap-8 lg:grid-cols-[1fr_360px]">
           <div className="rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
@@ -73,33 +113,25 @@ export default async function AdminDashboardPage() {
             </h2>
 
             <div className="mt-6 grid gap-3">
-              <Link
-                href="/nz-console/products/new"
-                className="rounded-xl bg-blue-600 px-5 py-4 text-center text-sm font-medium text-white transition-colors hover:bg-blue-500"
-              >
-                Создать карточку →
-              </Link>
-
-              <Link
-                href="/nz-console/positions/new"
-                className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4 text-center text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
-              >
-                Добавить позицию
-              </Link>
-
-              <Link
-                href="/nz-console/categories/new"
-                className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4 text-center text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
-              >
-                Создать категорию
-              </Link>
-
-              <Link
-                href="/nz-console/orders"
-                className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4 text-center text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
-              >
-                Смотреть заявки
-              </Link>
+              {quickActions.length > 0 ? (
+                quickActions.map((action) => (
+                  <Link
+                    key={action.href}
+                    href={action.href}
+                    className={
+                      action.primary
+                        ? "rounded-xl bg-blue-600 px-5 py-4 text-center text-sm font-medium text-white transition-colors hover:bg-blue-500"
+                        : "rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4 text-center text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
+                    }
+                  >
+                    {action.label}
+                  </Link>
+                ))
+              ) : (
+                <div className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4 text-sm leading-relaxed text-white/45">
+                  Для твоей роли быстрых действий нет.
+                </div>
+              )}
             </div>
 
             <div className="mt-8 rounded-2xl border border-blue-500/25 bg-blue-500/10 p-5">
@@ -115,7 +147,7 @@ export default async function AdminDashboardPage() {
         </section>
 
         <section className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-4">
-          {dashboard.sections.map((section) => (
+          {visibleSections.map((section) => (
             <Link
               key={section.href}
               href={section.href}
@@ -162,17 +194,19 @@ export default async function AdminDashboardPage() {
               </h2>
             </div>
 
-            <Link
-              href="/nz-console/orders"
-              className="w-fit rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
-            >
-              Смотреть заявки
-            </Link>
+            {canSeeSection(roles, "orders") ? (
+              <Link
+                href="/nz-console/orders"
+                className="w-fit rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
+              >
+                Смотреть заявки
+              </Link>
+            ) : null}
           </div>
 
-          {dashboard.recentActions.length > 0 ? (
+          {visibleRecentActions.length > 0 ? (
             <div className="mt-8 grid gap-4">
-              {dashboard.recentActions.map((action) => (
+              {visibleRecentActions.map((action) => (
                 <Link
                   key={`${action.title}-${action.href}-${action.createdAt.toISOString()}`}
                   href={action.href}
