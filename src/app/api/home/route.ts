@@ -24,10 +24,7 @@ export async function GET() {
       return product.slug !== "catalog" && images.length > 0;
     });
 
-    const dbProducts = catalog.productCards.filter(
-      (product) => product.slug !== "catalog"
-    );
-    const explicitNewArrivals = dbProducts.filter((product) => product.isNew);
+    const explicitNewArrivals = configuredProducts.filter((product) => product.isNew);
 
     return NextResponse.json({
       categories: catalog.categories.map((category) => ({
@@ -39,7 +36,7 @@ export async function GET() {
       newArrivals:
         explicitNewArrivals.length > 0
           ? explicitNewArrivals
-          : dbProducts.slice(0, 3),
+          : configuredProducts.slice(0, 3),
       pageBlocks,
       siteSettings,
       banners: contentLibrary.banners,

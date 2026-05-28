@@ -259,7 +259,7 @@ function HomeModule({
   const limit = getBlockNumber(settings, "limit", 12);
 
   if (type === "hero") {
-    return <Hero dark={dark} />;
+    return <Hero dark={dark} banners={banners} settings={settings} />;
   }
 
   if (type === "benefits") {
@@ -394,49 +394,68 @@ function mutedTextClass(dark: boolean) {
   return dark ? "text-white/55" : "text-black/55";
 }
 
-function Hero({ dark }: { dark: boolean }) {
-  const slides = [
-    {
-      badge: "Оригинальная техника. Премиальный сервис.",
-      title: "Техника премиум-класса для тех, кто создаёт будущее.",
-      text: "Лучшие устройства от мировых брендов. Официальная гарантия, быстрая доставка и поддержка 24/7.",
-      primaryLabel: "Перейти в каталог",
-      primaryHref: "/catalog",
-      secondaryLabel: "Новинки",
-      secondaryHref: "/new",
-      imageDark: "/hero/main-dark.png",
-      imageLight: "/hero/main-light.png",
-    },
-    {
-      badge: "Новинки уже в каталоге.",
-      title: "Подберите технику под свои задачи.",
-      text: "Смартфоны, ноутбуки, наушники и аксессуары с понятной конфигурацией перед покупкой.",
-      primaryLabel: "Смотреть новинки",
-      primaryHref: "/new",
-      secondaryLabel: "Каталог",
-      secondaryHref: "/catalog",
-      imageDark: "/hero/main-dark.png",
-      imageLight: "/hero/main-light.png",
-    },
-    {
-      badge: "Поможем с выбором.",
-      title: "Не уверены в модели? Подскажем.",
-      text: "Расскажем, чем отличаются конфигурации, и поможем оформить заявку без лишних действий.",
-      primaryLabel: "Написать в поддержку",
-      primaryHref: "/help",
-      secondaryLabel: "Популярное",
-      secondaryHref: "/catalog",
-      imageDark: "/hero/main-dark.png",
-      imageLight: "/hero/main-light.png",
-    },
-  ];
+function Hero({
+  dark,
+  banners,
+  settings,
+}: {
+  dark: boolean;
+  banners: HomeBanner[];
+  settings: Record<string, string | number | boolean | null>;
+}) {
+  const configuredBannerId = getBlockText(settings, "bannerId", "");
+  const placement = getBlockText(settings, "placement", "home");
+  const matchingBanners = configuredBannerId
+    ? banners.filter((banner) => banner.id === configuredBannerId)
+    : banners.filter((banner) => {
+        const bannerPlacement = (banner.placement || "").trim().toLowerCase();
+
+        return (
+          bannerPlacement === placement ||
+          bannerPlacement === "home" ||
+          bannerPlacement === "hero" ||
+          bannerPlacement === "main"
+        );
+      });
+
+  const slides = matchingBanners
+    .map((banner) => ({
+      id: banner.id,
+      badge: banner.label,
+      title: banner.title,
+      text: banner.subtitle || banner.description,
+      primaryLabel: banner.buttonText || "Подробнее →",
+      primaryHref: banner.buttonHref || "/catalog",
+      imageDark: banner.imageDark,
+      imageLight: banner.imageLight,
+      imageMobile: banner.imageMobile,
+    }))
+    .filter((slide) => {
+      return Boolean(
+        slide.title.trim() ||
+          slide.text.trim() ||
+          slide.imageDark.trim() ||
+          slide.imageLight.trim() ||
+          slide.imageMobile.trim()
+      );
+    });
 
   const [activeSlide, setActiveSlide] = useState(0);
   const [dragStartX, setDragStartX] = useState<number | null>(null);
   const [isHeroHovered, setIsHeroHovered] = useState(false);
 
-  const slide = slides[activeSlide];
-  const image = dark ? slide.imageDark : slide.imageLight;
+  useEffect(() => {
+    if (slides.length > 0 && activeSlide >= slides.length) {
+      setActiveSlide(0);
+    }
+  }, [activeSlide, slides.length]);
+
+  const slide = slides[activeSlide] ?? slides[0] ?? null;
+  const image = slide
+    ? dark
+      ? slide.imageDark || slide.imageLight || slide.imageMobile
+      : slide.imageLight || slide.imageDark || slide.imageMobile
+    : "";
 
   function goToNextSlide() {
     setActiveSlide((current) => (current + 1) % slides.length);
@@ -450,6 +469,7 @@ function Hero({ dark }: { dark: boolean }) {
 
   function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
     setDragStartX(event.clientX);
+    event.currentTarget.setPointerCapture?.(event.pointerId);
   }
 
   function handlePointerUp(event: PointerEvent<HTMLDivElement>) {
@@ -479,6 +499,10 @@ function Hero({ dark }: { dark: boolean }) {
     return () => window.clearInterval(interval);
   }, [slides.length, isHeroHovered]);
 
+  if (!slide) {
+    return null;
+  }
+
   return (
     <section className="relative mt-6 overflow-hidden rounded-[34px]">
       <div
@@ -494,12 +518,14 @@ function Hero({ dark }: { dark: boolean }) {
           dark ? "bg-[#020814]" : "bg-white"
         }`}
       >
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-700"
-          style={{
-            backgroundImage: `url(${image})`,
-          }}
-        />
+        {image ? (
+          <div
+            className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-700"
+            style={{
+              backgroundImage: `url(${image})`,
+            }}
+          />
+        ) : null}
 
         <div
           className={`absolute inset-0 transition-all duration-700 ${
@@ -511,39 +537,34 @@ function Hero({ dark }: { dark: boolean }) {
 
         <div className="relative z-10 flex h-full items-center px-8 py-12 sm:px-12 lg:px-16">
           <div className="max-w-[650px]">
-            <div className="mb-7 inline-flex rounded-full border border-blue-500/50 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-500">
-              {slide.badge}
-            </div>
+            {slide.badge ? (
+              <div className="mb-7 inline-flex rounded-full border border-blue-500/50 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-500">
+                {slide.badge}
+              </div>
+            ) : null}
 
-            <h1 className="max-w-[620px] min-h-[220px] text-[42px] font-bold leading-[1.12] tracking-[-0.055em] sm:text-[54px] lg:text-[64px]">
-              {slide.title}
-            </h1>
+            {slide.title ? (
+              <h1 className="max-w-[620px] min-h-[220px] text-[42px] font-bold leading-[1.12] tracking-[-0.055em] sm:text-[54px] lg:text-[64px]">
+                {slide.title}
+              </h1>
+            ) : null}
 
-            <p
-              className={`mt-6 max-w-[470px] text-base leading-relaxed lg:text-lg ${mutedTextClass(
-                dark
-              )}`}
-            >
-              {slide.text}
-            </p>
+            {slide.text ? (
+              <p
+                className={`mt-6 max-w-[470px] text-base leading-relaxed lg:text-lg ${mutedTextClass(
+                  dark
+                )}`}
+              >
+                {slide.text}
+              </p>
+            ) : null}
 
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
                 href={slide.primaryHref}
                 className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-7 py-4 text-sm font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500"
               >
-                {slide.primaryLabel} →
-              </Link>
-
-              <Link
-                href={slide.secondaryHref}
-                className={`inline-flex items-center justify-center rounded-xl border px-7 py-4 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 ${
-                  dark
-                    ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
-                    : "border-black/10 bg-white text-black hover:border-blue-500/40 hover:bg-blue-50"
-                }`}
-              >
-                {slide.secondaryLabel} →
+                {slide.primaryLabel}
               </Link>
             </div>
 
@@ -553,7 +574,7 @@ function Hero({ dark }: { dark: boolean }) {
 
                 return (
                   <button
-                    key={item.title}
+                    key={item.id}
                     type="button"
                     onClick={() => setActiveSlide(index)}
                     aria-label={`Открыть слайд ${index + 1}`}
@@ -582,14 +603,11 @@ function Benefits({
   title?: string;
   subtitle?: string;
 }) {
-  const fallbackItems: HomeBenefit[] = [
-    { id: "original", title: "Только оригинал", description: "Работаем с проверенными поставщиками.", icon: "✓", image: "", href: "", enabled: true, sortOrder: 10 },
-    { id: "warranty", title: "Гарантия и сервис", description: "Поможем после покупки и решим вопросы.", icon: "✓", image: "", href: "", enabled: true, sortOrder: 20 },
-    { id: "delivery", title: "Быстрая доставка", description: "По Москве — быстро, по России — надёжно.", icon: "✓", image: "", href: "", enabled: true, sortOrder: 30 },
-    { id: "payment", title: "Безопасная оплата", description: "Удобные способы оплаты и подтверждение заказа.", icon: "✓", image: "", href: "", enabled: true, sortOrder: 40 },
-    { id: "support", title: "Поддержка 24/7", description: "Подскажем с выбором и конфигурацией.", icon: "✓", image: "", href: "", enabled: true, sortOrder: 50 },
-  ];
-  const items = benefits.length ? benefits : fallbackItems;
+  const items = benefits.filter((item) => item.title.trim() || item.description.trim() || item.image.trim());
+
+  if (items.length === 0) {
+    return null;
+  }
 
   return (
     <section className={`mt-10 rounded-2xl border p-6 transition-all duration-700 ${panelClass(dark)}`}>
@@ -652,6 +670,10 @@ function Categories({
   buttonHref?: string;
   showButton?: boolean;
 }) {
+  if (categories.length === 0) {
+    return null;
+  }
+
   return (
     <section className="py-20">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
@@ -852,29 +874,7 @@ function PopularProducts({
   }
 
   if (products.length === 0) {
-    return (
-      <section className="pb-20">
-        <div>
-          <h2 className="text-[42px] font-bold leading-none tracking-[-0.04em] lg:text-[52px]">
-            {title}
-          </h2>
-
-          <p className={`mt-3 text-base ${mutedTextClass(dark)}`}>
-            {subtitle || "Добавьте реальные товары в БД и загрузите фото, чтобы они появились на главной."}
-          </p>
-        </div>
-
-        <div
-          className={`mt-8 rounded-3xl border p-8 text-center text-sm ${
-            dark
-              ? "border-white/10 bg-white/[0.035] text-white/55"
-              : "border-black/10 bg-white text-black/55"
-          }`}
-        >
-          Популярные товары пока не настроены.
-        </div>
-      </section>
-    );
+    return null;
   }
 
   return (
@@ -1069,29 +1069,7 @@ function NewArrivals({
   const [mainItem, ...secondaryItems] = items;
 
   if (!mainItem) {
-    return (
-      <section className="pb-20">
-        <div className="mb-8">
-          <h2 className="text-[42px] font-bold leading-none tracking-[-0.04em] lg:text-[52px]">
-            {title}
-          </h2>
-          <p className={`mt-3 text-base ${mutedTextClass(dark)}`}>
-            {subtitle}
-          </p>
-        </div>
-
-        <div
-          className={`rounded-3xl border p-8 text-sm ${
-            dark
-              ? "border-white/10 bg-white/[0.035] text-white/55"
-              : "border-black/10 bg-white text-black/55"
-          }`}
-        >
-          Новинки пока не выбраны. Добавьте товар в админке, включите галочку
-          “Новинка” и загрузите фото для блока “Новинки”.
-        </div>
-      </section>
-    );
+    return null;
   }
 
   return (
