@@ -200,7 +200,7 @@ export default function Home() {
   }, []);
 
   const visibleCategories = categories;
-  const visibleHomeBlocks = (homeBlocks.length ? homeBlocks : defaultHomePageBlocks)
+  const visibleHomeBlocks = homeBlocks
     .filter((block) => block.enabled)
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
@@ -259,14 +259,24 @@ function HomeModule({
   const limit = getBlockNumber(settings, "limit", 12);
 
   if (type === "hero") {
-    return <Hero dark={dark} banners={banners} />;
+    const bannerId = getBlockText(settings, "bannerId", "");
+    const placement = getBlockText(settings, "placement", "");
+    const selectedBanner = selectHomeBanner(banners, bannerId, placement);
+
+    if (!selectedBanner) return null;
+
+    return <Hero dark={dark} banner={selectedBanner} />;
   }
 
   if (type === "benefits") {
+    const visibleBenefits = benefits.slice(0, getBlockNumber(settings, "limit", 6));
+
+    if (visibleBenefits.length === 0) return null;
+
     return (
       <Benefits
         dark={dark}
-        benefits={benefits.slice(0, getBlockNumber(settings, "limit", 6))}
+        benefits={visibleBenefits}
         title={getBlockText(settings, "title", "Преимущества")}
         subtitle={getBlockText(settings, "subtitle", "Почему выбирают Netizen")}
       />
@@ -384,6 +394,30 @@ function getBlockBoolean(settings: Record<string, string | number | boolean | nu
   return typeof value === "boolean" ? value : fallback;
 }
 
+
+function selectHomeBanner(banners: HomeBanner[], bannerId = "", placement = "") {
+  const activeBanners = banners.filter((banner) => banner.enabled);
+
+  if (bannerId) {
+    const byId = activeBanners.find((banner) => banner.id === bannerId);
+    if (byId) return byId;
+  }
+
+  const placements = [placement, "home", "hero", "main", "manual"]
+    .map((item) => item.trim())
+    .filter(Boolean);
+
+  for (const currentPlacement of placements) {
+    const byPlacement = activeBanners.find(
+      (banner) => banner.placement === currentPlacement
+    );
+
+    if (byPlacement) return byPlacement;
+  }
+
+  return activeBanners[0] ?? null;
+}
+
 function panelClass(dark: boolean) {
   return dark
     ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)]"
@@ -394,118 +428,19 @@ function mutedTextClass(dark: boolean) {
   return dark ? "text-white/55" : "text-black/55";
 }
 
-function getBannerImage(banner: HomeBanner, dark: boolean) {
-  const mobile = typeof banner.imageMobile === "string" ? banner.imageMobile.trim() : "";
-  const themeImage = dark
-    ? typeof banner.imageDark === "string" ? banner.imageDark.trim() : ""
-    : typeof banner.imageLight === "string" ? banner.imageLight.trim() : "";
-  const fallbackThemeImage = dark
-    ? typeof banner.imageLight === "string" ? banner.imageLight.trim() : ""
-    : typeof banner.imageDark === "string" ? banner.imageDark.trim() : "";
-
-  return mobile || themeImage || fallbackThemeImage;
-}
-
-function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
-  const dbSlides = banners
-    .filter((banner) => banner.enabled)
-    .sort((a, b) => a.sortOrder - b.sortOrder)
-    .map((banner) => ({
-      id: banner.id,
-      badge: banner.label || banner.adminTitle || "Промо",
-      title: banner.title || banner.adminTitle || "Новый баннер",
-      text: banner.description || banner.subtitle || "",
-      primaryLabel: banner.buttonText || "Подробнее",
-      primaryHref: banner.buttonHref || "/catalog",
-      secondaryLabel: "Каталог",
-      secondaryHref: "/catalog",
-      image: getBannerImage(banner, dark),
-      tone: banner.tone || "blue",
-    }));
-
-  const slides = dbSlides.length
-    ? dbSlides
-    : [
-        {
-          id: "default-hero",
-          badge: "Оригинальная техника. Премиальный сервис.",
-          title: "Техника премиум-класса для тех, кто создаёт будущее.",
-          text: "Лучшие устройства от мировых брендов. Официальная гарантия, быстрая доставка и поддержка 24/7.",
-          primaryLabel: "Перейти в каталог",
-          primaryHref: "/catalog",
-          secondaryLabel: "Новинки",
-          secondaryHref: "/new",
-          image: "",
-          tone: "blue",
-        },
-      ];
-
-  const [activeSlide, setActiveSlide] = useState(0);
-  const [dragStartX, setDragStartX] = useState<number | null>(null);
-  const [isHeroHovered, setIsHeroHovered] = useState(false);
-
-  useEffect(() => {
-    if (activeSlide > slides.length - 1) {
-      setActiveSlide(0);
-    }
-  }, [activeSlide, slides.length]);
-
-  const slide = slides[activeSlide] ?? slides[0];
-  const image = slide.image;
-
-  function goToNextSlide() {
-    setActiveSlide((current) => (current + 1) % slides.length);
-  }
-
-  function goToPrevSlide() {
-    setActiveSlide((current) =>
-      current === 0 ? slides.length - 1 : current - 1
-    );
-  }
-
-  function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
-    setDragStartX(event.clientX);
-  }
-
-  function handlePointerUp(event: PointerEvent<HTMLDivElement>) {
-    if (dragStartX === null) return;
-
-    const distance = dragStartX - event.clientX;
-    const swipeThreshold = 50;
-
-    if (Math.abs(distance) > swipeThreshold && slides.length > 1) {
-      if (distance > 0) {
-        goToNextSlide();
-      } else {
-        goToPrevSlide();
-      }
-    }
-
-    setDragStartX(null);
-  }
-
-  useEffect(() => {
-    if (slides.length <= 1 || isHeroHovered) return;
-
-    const interval = window.setInterval(() => {
-      setActiveSlide((current) => (current + 1) % slides.length);
-    }, 5000);
-
-    return () => window.clearInterval(interval);
-  }, [slides.length, isHeroHovered]);
+function Hero({ dark, banner }: { dark: boolean; banner: HomeBanner }) {
+  const image = dark
+    ? banner.imageDark || banner.imageLight || banner.imageMobile
+    : banner.imageLight || banner.imageDark || banner.imageMobile;
+  const title = banner.title || banner.adminTitle;
+  const text = banner.subtitle || banner.description;
+  const buttonText = banner.buttonText || "Подробнее";
+  const buttonHref = banner.buttonHref || "/catalog";
 
   return (
     <section className="relative mt-6 overflow-hidden rounded-[34px]">
       <div
-        onPointerDown={handlePointerDown}
-        onPointerUp={handlePointerUp}
-        onPointerLeave={() => {
-          setDragStartX(null);
-          setIsHeroHovered(false);
-        }}
-        onMouseEnter={() => setIsHeroHovered(true)}
-        onMouseLeave={() => setIsHeroHovered(false)}
-        className={`relative h-[560px] cursor-grab select-none overflow-hidden rounded-[34px] transition-all duration-700 active:cursor-grabbing ${
+        className={`relative min-h-[560px] overflow-hidden rounded-[34px] transition-all duration-700 ${
           dark ? "bg-[#020814]" : "bg-white"
         }`}
       >
@@ -526,65 +461,36 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
           }`}
         />
 
-        <div className="relative z-10 flex h-full items-center px-8 py-12 sm:px-12 lg:px-16">
+        <div className="relative z-10 flex min-h-[560px] items-center px-8 py-12 sm:px-12 lg:px-16">
           <div className="max-w-[650px]">
-            <div className="mb-7 inline-flex rounded-full border border-blue-500/50 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-500">
-              {slide.badge}
-            </div>
+            {banner.label ? (
+              <div className="mb-7 inline-flex rounded-full border border-blue-500/50 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-500">
+                {banner.label}
+              </div>
+            ) : null}
 
-            <h1 className="max-w-[620px] min-h-[220px] text-[42px] font-bold leading-[1.12] tracking-[-0.055em] sm:text-[54px] lg:text-[64px]">
-              {slide.title}
+            <h1 className="max-w-[620px] text-[42px] font-bold leading-[1.12] tracking-[-0.055em] sm:text-[54px] lg:text-[64px]">
+              {title}
             </h1>
 
-            {slide.text ? (
+            {text ? (
               <p
                 className={`mt-6 max-w-[470px] text-base leading-relaxed lg:text-lg ${mutedTextClass(
                   dark
                 )}`}
               >
-                {slide.text}
+                {text}
               </p>
             ) : null}
 
             <div className="mt-8 flex flex-wrap gap-4">
               <Link
-                href={slide.primaryHref}
+                href={buttonHref}
                 className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-7 py-4 text-sm font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500"
               >
-                {slide.primaryLabel} →
-              </Link>
-
-              <Link
-                href={slide.secondaryHref}
-                className={`inline-flex items-center justify-center rounded-xl border px-7 py-4 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 ${
-                  dark
-                    ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
-                    : "border-black/10 bg-white text-black hover:border-blue-500/40 hover:bg-blue-50"
-                }`}
-              >
-                {slide.secondaryLabel} →
+                {buttonText} →
               </Link>
             </div>
-
-            {slides.length > 1 ? (
-              <div className="mt-8 flex items-center gap-2">
-                {slides.map((item, index) => {
-                  const isActive = activeSlide === index;
-
-                  return (
-                    <button
-                      key={item.id}
-                      type="button"
-                      onClick={() => setActiveSlide(index)}
-                      aria-label={`Открыть слайд ${index + 1}`}
-                      className={`rounded-full bg-blue-600 transition-all duration-300 ${
-                        isActive ? "h-1.5 w-10" : "h-1.5 w-1.5"
-                      }`}
-                    />
-                  );
-                })}
-              </div>
-            ) : null}
           </div>
         </div>
       </div>
@@ -603,14 +509,9 @@ function Benefits({
   title?: string;
   subtitle?: string;
 }) {
-  const fallbackItems: HomeBenefit[] = [
-    { id: "original", title: "Только оригинал", description: "Работаем с проверенными поставщиками.", icon: "✓", image: "", href: "", enabled: true, sortOrder: 10 },
-    { id: "warranty", title: "Гарантия и сервис", description: "Поможем после покупки и решим вопросы.", icon: "✓", image: "", href: "", enabled: true, sortOrder: 20 },
-    { id: "delivery", title: "Быстрая доставка", description: "По Москве — быстро, по России — надёжно.", icon: "✓", image: "", href: "", enabled: true, sortOrder: 30 },
-    { id: "payment", title: "Безопасная оплата", description: "Удобные способы оплаты и подтверждение заказа.", icon: "✓", image: "", href: "", enabled: true, sortOrder: 40 },
-    { id: "support", title: "Поддержка 24/7", description: "Подскажем с выбором и конфигурацией.", icon: "✓", image: "", href: "", enabled: true, sortOrder: 50 },
-  ];
-  const items = benefits.length ? benefits : fallbackItems;
+  const items = benefits;
+
+  if (items.length === 0) return null;
 
   return (
     <section className={`mt-10 rounded-2xl border p-6 transition-all duration-700 ${panelClass(dark)}`}>
