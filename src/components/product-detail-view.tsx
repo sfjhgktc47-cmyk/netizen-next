@@ -5,7 +5,10 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, PointerEvent } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { ProductTabs } from "@/components/product-tabs";
-import type { PublicProductModel, PublicProductPosition } from "@/lib/public-catalog-db";
+import type {
+  PublicProductModel,
+  PublicProductPosition,
+} from "@/lib/public-catalog-db";
 import { formatPrice, getPriceNumber } from "@/lib/product-pricing";
 
 type ProductCard = PublicProductModel;
@@ -41,7 +44,6 @@ function uniqueBy<T>(items: T[], getKey: (item: T) => string) {
   return Array.from(map.values());
 }
 
-
 function getStatusName(status: string) {
   const statuses: Record<string, string> = {
     active: "В наличии",
@@ -55,13 +57,17 @@ function getStatusName(status: string) {
 }
 
 function getProductStoryBlocks(product: ProductCard) {
-  return Array.isArray(product.descriptionBlocks) ? product.descriptionBlocks : [];
+  return Array.isArray(product.descriptionBlocks)
+    ? product.descriptionBlocks
+    : [];
 }
 
 function hasProductStory(product: ProductCard) {
-  return getProductStoryBlocks(product).length > 0 || Boolean(product.description?.trim());
+  return (
+    getProductStoryBlocks(product).length > 0 ||
+    Boolean(product.description?.trim())
+  );
 }
-
 
 function getFavoriteSlugs() {
   try {
@@ -79,17 +85,27 @@ function getFavoriteSlugs() {
 function saveFavoriteSlugs(slugs: string[]) {
   const normalizedSlugs = Array.from(new Set(slugs));
 
-  localStorage.setItem("netizen-favorite-slugs", JSON.stringify(normalizedSlugs));
-  localStorage.setItem("netizen-favorites-count", String(normalizedSlugs.length));
+  localStorage.setItem(
+    "netizen-favorite-slugs",
+    JSON.stringify(normalizedSlugs),
+  );
+  localStorage.setItem(
+    "netizen-favorites-count",
+    String(normalizedSlugs.length),
+  );
   window.dispatchEvent(new Event("netizen-favorites-updated"));
 }
-
 
 function ProductMainImage({ src, alt }: { src: string; alt: string }) {
   return (
     <div className="relative mx-auto flex aspect-[3/4] w-full max-w-[520px] items-center justify-center overflow-hidden rounded-[30px] bg-white text-muted-soft">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={src} alt={alt} className="h-full w-full object-contain" />
+      <img
+        src={src}
+        alt={alt}
+        draggable={false}
+        className="pointer-events-none h-full w-full select-none object-contain"
+      />
     </div>
   );
 }
@@ -108,17 +124,23 @@ export function ProductDetailView({
   selectedPosition,
   benefits = [],
 }: ProductDetailViewProps) {
-
-  const [selectedColor, setSelectedColor] = useState(selectedPosition?.color ?? "");
-  const [selectedMemory, setSelectedMemory] = useState(selectedPosition?.memory ?? "");
+  const [selectedColor, setSelectedColor] = useState(
+    selectedPosition?.color ?? "",
+  );
+  const [selectedMemory, setSelectedMemory] = useState(
+    selectedPosition?.memory ?? "",
+  );
   const [selectedSim, setSelectedSim] = useState(selectedPosition?.sim ?? "");
 
   const [quantity, setQuantity] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
-  const dragStartXRef = useRef<number | null>(null);
-  const dragStartYRef = useRef<number | null>(null);
+  const galleryDragStartRef = useRef<{
+    x: number;
+    y: number;
+    pointerId: number;
+  } | null>(null);
 
   const categoryName = product.categoryName || product.category;
 
@@ -138,7 +160,7 @@ export function ProductDetailView({
       (position) =>
         position.color === selectedColor &&
         position.memory === selectedMemory &&
-        position.sim === selectedSim
+        position.sim === selectedSim,
     );
   }, [
     isConfigurationComplete,
@@ -148,7 +170,8 @@ export function ProductDetailView({
     selectedSim,
   ]);
 
-  const hasInvalidCompleteConfiguration = isConfigurationComplete && !activePosition;
+  const hasInvalidCompleteConfiguration =
+    isConfigurationComplete && !activePosition;
 
   // Фото позиции показываем только тогда, когда клиент реально выбрал
   // конкретную конфигурацию или пришёл по ссылке на конкретный SKU.
@@ -173,43 +196,55 @@ export function ProductDetailView({
   function showPreviousImage() {
     if (mediaImages.length <= 1) return;
     setActiveImageIndex((current) =>
-      current <= 0 ? mediaImages.length - 1 : current - 1
+      current <= 0 ? mediaImages.length - 1 : current - 1,
     );
   }
 
   function showNextImage() {
     if (mediaImages.length <= 1) return;
     setActiveImageIndex((current) =>
-      current >= mediaImages.length - 1 ? 0 : current + 1
+      current >= mediaImages.length - 1 ? 0 : current + 1,
     );
   }
 
   function handleGalleryPointerDown(event: PointerEvent<HTMLDivElement>) {
     if (mediaImages.length <= 1) return;
+    if (event.pointerType === "mouse" && event.button !== 0) return;
 
     const target = event.target;
 
     if (target instanceof Element && target.closest("button")) return;
 
-    dragStartXRef.current = event.clientX;
-    dragStartYRef.current = event.clientY;
-    event.currentTarget.setPointerCapture(event.pointerId);
+    galleryDragStartRef.current = {
+      x: event.clientX,
+      y: event.clientY,
+      pointerId: event.pointerId,
+    };
+
+    try {
+      event.currentTarget.setPointerCapture(event.pointerId);
+    } catch {
+      // pointer capture может быть недоступен в отдельных браузерах.
+    }
   }
 
   function handleGalleryPointerUp(event: PointerEvent<HTMLDivElement>) {
-    if (mediaImages.length <= 1 || dragStartXRef.current === null || dragStartYRef.current === null) {
-      dragStartXRef.current = null;
-      dragStartYRef.current = null;
-      return;
+    const dragStart = galleryDragStartRef.current;
+    galleryDragStartRef.current = null;
+
+    if (!dragStart || mediaImages.length <= 1) return;
+
+    try {
+      event.currentTarget.releasePointerCapture(dragStart.pointerId);
+    } catch {
+      // Если браузер уже сам отпустил pointer capture — это нормально.
     }
 
-    const diffX = event.clientX - dragStartXRef.current;
-    const diffY = event.clientY - dragStartYRef.current;
+    const diffX = event.clientX - dragStart.x;
+    const diffY = event.clientY - dragStart.y;
 
-    dragStartXRef.current = null;
-    dragStartYRef.current = null;
-
-    if (Math.abs(diffX) < 45 || Math.abs(diffX) < Math.abs(diffY)) return;
+    if (Math.abs(diffX) < 28 || Math.abs(diffX) < Math.abs(diffY) * 1.15)
+      return;
 
     if (diffX < 0) {
       showNextImage();
@@ -219,8 +254,7 @@ export function ProductDetailView({
   }
 
   function handleGalleryPointerCancel() {
-    dragStartXRef.current = null;
-    dragStartYRef.current = null;
+    galleryDragStartRef.current = null;
   }
 
   function handleGalleryKeyDown(event: KeyboardEvent<HTMLDivElement>) {
@@ -255,7 +289,6 @@ export function ProductDetailView({
 
     return `от ${formatPrice(minPrice)} до ${formatPrice(maxPrice)}`;
   }, [positions]);
-
 
   useEffect(() => {
     setIsFavorite(getFavoriteSlugs().includes(product.slug));
@@ -314,7 +347,7 @@ export function ProductDetailView({
       const parsedItems = savedItems ? JSON.parse(savedItems) : [];
       const currentItems = Array.isArray(parsedItems) ? parsedItems : [];
       const existingItem = currentItems.find(
-        (item: { sku?: string }) => item.sku === activePosition.sku
+        (item: { sku?: string }) => item.sku === activePosition.sku,
       );
 
       const nextItems = existingItem
@@ -325,17 +358,17 @@ export function ProductDetailView({
                   ...cartItem,
                   quantity: Math.min(
                     activePosition.stock,
-                    Number(item.quantity || 0) + quantity
+                    Number(item.quantity || 0) + quantity,
                   ),
                 }
-              : item
+              : item,
           )
         : [...currentItems, cartItem];
 
       const cartCount = nextItems.reduce(
         (sum: number, item: { quantity?: number }) =>
           sum + Number(item.quantity || 0),
-        0
+        0,
       );
 
       localStorage.setItem("netizen-cart-items", JSON.stringify(nextItems));
@@ -404,7 +437,7 @@ export function ProductDetailView({
               className="relative cursor-grab touch-pan-y select-none active:cursor-grabbing"
               role="region"
               tabIndex={0}
-              aria-label="Галерея товара. Перетащите фото мышкой или пальцем, либо используйте стрелки."
+              aria-label="Галерея товара. Проведите мышкой или пальцем влево или вправо, чтобы сменить фото."
               onPointerDown={handleGalleryPointerDown}
               onPointerUp={handleGalleryPointerUp}
               onPointerCancel={handleGalleryPointerCancel}
@@ -442,32 +475,36 @@ export function ProductDetailView({
             </div>
 
             <div className="mx-auto mt-6 grid max-w-[520px] grid-cols-4 gap-4">
-              {(mediaImages.length > 0 ? mediaImages.slice(0, 8) : Array.from({ length: 4 })).map(
-                (image, index) => (
-                  <button
-                    key={typeof image === "string" ? `${image}-${index}` : index}
-                    type="button"
-                    onClick={() => typeof image === "string" && setActiveImageIndex(index)}
-                    className={`flex aspect-[3/4] items-center justify-center overflow-hidden rounded-2xl border bg-white text-xs text-muted-soft transition-all ${
-                      activeImageIndex === index && typeof image === "string"
-                        ? "border-blue-500 ring-2 ring-blue-500/20"
-                        : "border-theme hover:border-blue-500/50"
-                    }`}
-                    aria-label={`Показать фото ${index + 1}`}
-                  >
-                    {typeof image === "string" ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={image}
-                        alt={`${product.name} фото ${index + 1}`}
-                        className="h-full w-full object-contain p-1"
-                      />
-                    ) : (
-                      "Фото"
-                    )}
-                  </button>
-                )
-              )}
+              {(mediaImages.length > 0
+                ? mediaImages.slice(0, 8)
+                : Array.from({ length: 4 })
+              ).map((image, index) => (
+                <button
+                  key={typeof image === "string" ? `${image}-${index}` : index}
+                  type="button"
+                  onClick={() =>
+                    typeof image === "string" && setActiveImageIndex(index)
+                  }
+                  className={`flex aspect-[3/4] items-center justify-center overflow-hidden rounded-2xl border bg-white text-xs text-muted-soft transition-all ${
+                    activeImageIndex === index && typeof image === "string"
+                      ? "border-blue-500 ring-2 ring-blue-500/20"
+                      : "border-theme hover:border-blue-500/50"
+                  }`}
+                  aria-label={`Показать фото ${index + 1}`}
+                >
+                  {typeof image === "string" ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img
+                      src={image}
+                      alt={`${product.name} фото ${index + 1}`}
+                      draggable={false}
+                      className="pointer-events-none h-full w-full select-none object-contain p-1"
+                    />
+                  ) : (
+                    "Фото"
+                  )}
+                </button>
+              ))}
             </div>
           </div>
 
@@ -586,7 +623,8 @@ export function ProductDetailView({
                   {colorOptions.map((position) => {
                     const isActive = selectedColor === position.color;
                     const isDisabled =
-                      !isActive && !canSelectConfiguration({ color: position.color });
+                      !isActive &&
+                      !canSelectConfiguration({ color: position.color });
 
                     return (
                       <button
@@ -621,7 +659,8 @@ export function ProductDetailView({
                   {memoryOptions.map((position) => {
                     const isActive = selectedMemory === position.memory;
                     const isDisabled =
-                      !isActive && !canSelectConfiguration({ memory: position.memory });
+                      !isActive &&
+                      !canSelectConfiguration({ memory: position.memory });
 
                     return (
                       <button
@@ -651,7 +690,8 @@ export function ProductDetailView({
                   {simOptions.map((position) => {
                     const isActive = selectedSim === position.sim;
                     const isDisabled =
-                      !isActive && !canSelectConfiguration({ sim: position.sim });
+                      !isActive &&
+                      !canSelectConfiguration({ sim: position.sim });
 
                     return (
                       <button
@@ -834,9 +874,7 @@ export function ProductDetailView({
           </div>
         </section>
 
-        {hasProductStory(product) ? (
-          <ProductStory product={product} />
-        ) : null}
+        {hasProductStory(product) ? <ProductStory product={product} /> : null}
 
         <section className="mt-10">
           {previewPosition && (
@@ -873,8 +911,12 @@ function ProductStory({ product }: { product: ProductCard }) {
   if (blocks.length === 0 && product.description.trim()) {
     return (
       <section className="mt-10 rounded-[38px] border border-theme bg-card p-8 text-main shadow-soft lg:p-12">
-        <div className="text-sm font-semibold uppercase tracking-[0.24em] text-blue-500">Описание</div>
-        <h2 className="mt-3 text-4xl font-bold tracking-[-0.05em] lg:text-5xl">{product.name}</h2>
+        <div className="text-sm font-semibold uppercase tracking-[0.24em] text-blue-500">
+          Описание
+        </div>
+        <h2 className="mt-3 text-4xl font-bold tracking-[-0.05em] lg:text-5xl">
+          {product.name}
+        </h2>
         <p className="mt-5 max-w-[860px] whitespace-pre-line text-base leading-relaxed text-muted lg:text-lg">
           {product.description}
         </p>
@@ -899,7 +941,9 @@ function ProductStory({ product }: { product: ProductCard }) {
             }`}
           >
             <div className="grid min-h-[360px] lg:grid-cols-2">
-              <div className={`flex flex-col justify-center p-8 lg:p-12 ${imageFirst ? "lg:order-2" : ""}`}>
+              <div
+                className={`flex flex-col justify-center p-8 lg:p-12 ${imageFirst ? "lg:order-2" : ""}`}
+              >
                 {block.eyebrow ? (
                   <div className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-500">
                     {block.eyebrow}
@@ -913,13 +957,17 @@ function ProductStory({ product }: { product: ProductCard }) {
                 ) : null}
 
                 {block.text ? (
-                  <p className={`mt-5 whitespace-pre-line text-base leading-relaxed lg:text-lg ${isDark ? "text-white/65" : "text-muted"}`}>
+                  <p
+                    className={`mt-5 whitespace-pre-line text-base leading-relaxed lg:text-lg ${isDark ? "text-white/65" : "text-muted"}`}
+                  >
                     {block.text}
                   </p>
                 ) : null}
               </div>
 
-              <div className={`flex min-h-[320px] items-center justify-center ${imageFirst ? "lg:order-1" : ""} ${isDark ? "bg-white/[0.03]" : "bg-blue-soft"}`}>
+              <div
+                className={`flex min-h-[320px] items-center justify-center ${imageFirst ? "lg:order-1" : ""} ${isDark ? "bg-white/[0.03]" : "bg-blue-soft"}`}
+              >
                 {hasImage ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
