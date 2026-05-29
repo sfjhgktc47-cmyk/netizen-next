@@ -943,7 +943,7 @@ export function CatalogView({
             ← На главную
           </Link>
 
-          <div className="mt-4 flex flex-col gap-5 rounded-[28px] border border-theme bg-blue-soft p-5 lg:flex-row lg:items-end lg:justify-between lg:bg-transparent lg:p-0 lg:border-0">
+          <div className="mt-4 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <div className="flex flex-wrap items-center gap-3">
                 <span className="inline-flex rounded-full border border-blue-500/40 bg-blue-500/10 px-4 py-2 text-xs font-medium text-blue-500">
