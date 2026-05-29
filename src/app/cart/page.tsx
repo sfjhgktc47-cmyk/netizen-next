@@ -820,18 +820,18 @@ export default function CartPage() {
               </div>
             </section>
 
-            <section className={`grid gap-2.5 sm:gap-4 ${!isRegistered ? "md:grid-cols-2" : ""}`}>
+            <section className="grid grid-cols-2 gap-2 sm:gap-3">
               {!isRegistered && (
                 <CheckoutCard
                   title="Данные клиента"
                   text={
                     hasGuestContacts
                       ? contactSummary
-                      : "Можно оформить заказ без регистрации. Укажите имя и телефон, чтобы менеджер подтвердил наличие, доставку и итоговую стоимость."
+                      : "Оформление без регистрации. Укажите имя и телефон, чтобы менеджер подтвердил заказ."
                   }
-                  status={hasGuestContacts ? "Заполнено" : "Нужно заполнить"}
+                  status={hasGuestContacts ? "Заполнено" : "Заполнить"}
                   isComplete={hasGuestContacts}
-                  action={hasGuestContacts ? "Изменить контакты →" : "Заполнить контакты →"}
+                  action={hasGuestContacts ? "Изменить →" : "Контакты →"}
                   onClick={() => setActiveModal("contacts")}
                 />
               )}
@@ -839,10 +839,11 @@ export default function CartPage() {
               <CheckoutCard
                 title="Доставка"
                 text={deliverySummary}
-                status={hasDelivery ? "Заполнено" : "Нужно выбрать"}
+                status={hasDelivery ? "Заполнено" : "Выбрать"}
                 isComplete={hasDelivery}
-                action={hasDelivery ? "Изменить доставку →" : "Выбрать доставку →"}
+                action={hasDelivery ? "Изменить →" : "Доставка →"}
                 onClick={() => setActiveModal("delivery")}
+                className={isRegistered ? "col-span-2" : ""}
               />
             </section>
           </div>
@@ -1204,6 +1205,7 @@ function CheckoutCard({
   isComplete,
   action,
   onClick,
+  className = "",
 }: {
   title: string;
   text: string;
@@ -1211,29 +1213,32 @@ function CheckoutCard({
   isComplete: boolean;
   action: string;
   onClick: () => void;
+  className?: string;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className="card rounded-[18px] p-3 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500/35 hover:bg-blue-soft sm:rounded-[28px] sm:p-6"
+      className={`card flex min-h-[116px] flex-col justify-between rounded-[18px] p-3 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500/35 hover:bg-blue-soft sm:min-h-[132px] sm:rounded-[24px] sm:p-4 ${className}`}
     >
-      <div className="flex items-start justify-between gap-3">
-        <div className="text-base font-bold sm:text-2xl">{title}</div>
-        <span
-          className={`shrink-0 rounded-full border px-3 py-1 text-xs ${
-            isComplete
-              ? "border-green-500/30 bg-green-500/10 text-green-500"
-              : "border-orange-500/30 bg-orange-500/10 text-orange-500"
-          }`}
-        >
-          {status}
-        </span>
+      <div>
+        <div className="flex items-start justify-between gap-2">
+          <div className="text-sm font-bold leading-tight sm:text-lg">{title}</div>
+          <span
+            className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] sm:px-2.5 sm:py-1 sm:text-[11px] ${
+              isComplete
+                ? "border-green-500/30 bg-green-500/10 text-green-500"
+                : "border-orange-500/30 bg-orange-500/10 text-orange-500"
+            }`}
+          >
+            {status}
+          </span>
+        </div>
+
+        <p className="mt-2 line-clamp-3 text-[11px] leading-relaxed text-muted sm:text-xs">{text}</p>
       </div>
 
-      <p className="mt-1.5 line-clamp-3 text-xs leading-relaxed text-muted sm:mt-3 sm:min-h-[40px] sm:text-sm">{text}</p>
-
-      <div className="mt-2.5 text-xs font-medium text-blue-500 sm:mt-6 sm:text-sm">{action}</div>
+      <div className="mt-2 text-[11px] font-medium text-blue-500 sm:text-xs">{action}</div>
     </button>
   );
 }
