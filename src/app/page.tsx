@@ -421,6 +421,16 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
     }
   }, [activeSlide, slides.length]);
 
+  useEffect(() => {
+    if (slides.length <= 1 || isHeroHovered) return;
+
+    const interval = window.setInterval(() => {
+      setActiveSlide((current) => (current + 1) % slides.length);
+    }, 5000);
+
+    return () => window.clearInterval(interval);
+  }, [slides.length, isHeroHovered]);
+
   const slide = slides[activeSlide] ?? slides[0];
 
   if (!slide) {
@@ -459,16 +469,6 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
 
     setDragStartX(null);
   }
-
-  useEffect(() => {
-    if (slides.length <= 1 || isHeroHovered) return;
-
-    const interval = window.setInterval(() => {
-      setActiveSlide((current) => (current + 1) % slides.length);
-    }, 5000);
-
-    return () => window.clearInterval(interval);
-  }, [slides.length, isHeroHovered]);
 
   return (
     <section className="relative mt-4 overflow-hidden rounded-[26px] sm:mt-6 sm:rounded-[34px]">

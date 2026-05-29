@@ -95,8 +95,38 @@ async function seedPageBlocks() {
 
 
 async function seedSiteContent() {
-  // Витрина должна наполняться из админки. Не создаём демо-баннеры и демо-преимущества,
-  // чтобы тестовый контент не появлялся на публичной главной после деплоя/seed.
+  const benefitsCount = await prisma.siteBenefit.count();
+
+  if (benefitsCount === 0) {
+    await prisma.siteBenefit.createMany({
+      data: [
+        { title: "Только оригинал", description: "Работаем с проверенными поставщиками.", icon: "✓", sortOrder: 10 },
+        { title: "Гарантия и сервис", description: "Поможем после покупки и решим вопросы.", icon: "✓", sortOrder: 20 },
+        { title: "Быстрая доставка", description: "По Москве — быстро, по России — надёжно.", icon: "✓", sortOrder: 30 },
+        { title: "Безопасная оплата", description: "Удобные способы оплаты и подтверждение заказа.", icon: "✓", sortOrder: 40 },
+        { title: "Поддержка 24/7", description: "Подскажем с выбором и конфигурацией.", icon: "✓", sortOrder: 50 },
+      ],
+    });
+  }
+
+  const bannersCount = await prisma.siteBanner.count();
+
+  if (bannersCount === 0) {
+    await prisma.siteBanner.create({
+      data: {
+        adminTitle: "Основной промо-баннер",
+        label: "Промо",
+        title: "Соберите витрину без кода",
+        subtitle: "Создавайте баннеры в редакторе и подключайте их к модулям главной.",
+        buttonText: "В каталог →",
+        buttonHref: "/catalog",
+        placement: "home",
+        tone: "blue",
+        layout: "split",
+        sortOrder: 10,
+      },
+    });
+  }
 }
 
 async function main() {

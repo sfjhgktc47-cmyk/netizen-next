@@ -236,6 +236,7 @@ export function SiteHeader() {
 
   const accountHref = authUser?.role === "admin" ? "/nz-console" : "/profile";
   const accountLabel = authUser?.role === "admin" ? "Админ-панель" : "Личный кабинет";
+  const isSearchVisible = pathname === "/" || pathname === "/catalog" || pathname.startsWith("/catalog/");
   const logoLight = siteSettings?.branding?.logoLight?.trim() || "/logo-light.png";
   const logoDark = siteSettings?.branding?.logoDark?.trim() || "/logo-dark.png";
   const mobileLogo = siteSettings?.branding?.mobileLogo?.trim();
@@ -300,24 +301,26 @@ export function SiteHeader() {
         </nav>
 
         <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
-          <form
-            onSubmit={submitSearch}
-            className={`hidden h-11 w-[300px] items-center rounded-xl border px-4 text-sm transition-all duration-700 lg:flex ${
-              dark
-                ? "border-white/10 bg-black/20 text-white/70 focus-within:border-blue-500/55"
-                : "border-black/10 bg-[#f6f8fb] text-black/70 focus-within:border-blue-500/55"
-            }`}
-          >
-            <input
-              value={searchQuery}
-              onChange={(event) => setSearchQuery(event.target.value)}
-              placeholder="Поиск по каталогу"
-              className="h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-current/50"
-            />
-            <button type="submit" className="ml-2 text-blue-500" aria-label="Найти">
-              ⌕
-            </button>
-          </form>
+          {isSearchVisible && (
+            <form
+              onSubmit={submitSearch}
+              className={`hidden h-11 w-[300px] items-center rounded-xl border px-4 text-sm transition-all duration-700 lg:flex ${
+                dark
+                  ? "border-white/10 bg-black/20 text-white/70 focus-within:border-blue-500/55"
+                  : "border-black/10 bg-[#f6f8fb] text-black/70 focus-within:border-blue-500/55"
+              }`}
+            >
+              <input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Поиск по каталогу"
+                className="h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-current/50"
+              />
+              <button type="submit" className="ml-2 text-blue-500" aria-label="Найти">
+                ⌕
+              </button>
+            </form>
+          )}
 
           <button
             type="button"
@@ -399,25 +402,27 @@ export function SiteHeader() {
         </div>
       </header>
 
-      <form
-        onSubmit={submitSearch}
-        className={`mt-2 flex h-10 items-center rounded-xl border px-3 text-sm transition-all duration-700 lg:hidden ${
-          dark
-            ? "border-white/10 bg-white/[0.035] text-white/70 focus-within:border-blue-500/55"
-            : "border-black/10 bg-white text-black/65 shadow-[0_14px_50px_rgba(15,23,42,0.06)] focus-within:border-blue-500/55"
-        }`}
-      >
-        <span className="mr-3 text-blue-500">⌕</span>
-        <input
-          value={searchQuery}
-          onChange={(event) => setSearchQuery(event.target.value)}
-          placeholder="Поиск по каталогу"
-          className="h-full min-w-0 flex-1 bg-transparent outline-none placeholder:text-current/50"
-        />
-        <button type="submit" className="ml-2 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white">
-          Найти
-        </button>
-      </form>
+      {isSearchVisible && (
+        <form
+          onSubmit={submitSearch}
+          className={`mt-2 flex h-10 items-center rounded-xl border px-3 text-sm transition-all duration-700 lg:hidden ${
+            dark
+              ? "border-white/10 bg-white/[0.035] text-white/70 focus-within:border-blue-500/55"
+              : "border-black/10 bg-white text-black/65 shadow-[0_14px_50px_rgba(15,23,42,0.06)] focus-within:border-blue-500/55"
+          }`}
+        >
+          <span className="mr-3 text-blue-500">⌕</span>
+          <input
+            value={searchQuery}
+            onChange={(event) => setSearchQuery(event.target.value)}
+            placeholder="Поиск по каталогу"
+            className="h-full min-w-0 flex-1 bg-transparent outline-none placeholder:text-current/50"
+          />
+          <button type="submit" className="ml-2 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white">
+            Найти
+          </button>
+        </form>
+      )}
 
       <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-3 pb-[calc(env(safe-area-inset-bottom)+8px)] lg:hidden">
         <div

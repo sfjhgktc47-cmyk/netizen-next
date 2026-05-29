@@ -57,7 +57,6 @@ export function SystemSettingsForm({ initialSettings }: Props) {
   const [siteAddresses, setSiteAddresses] = useState<SiteAddress[]>([]);
   const [staffState, setStaffState] = useState<SaveState>("idle");
   const [staffError, setStaffError] = useState("");
-  const [memberPasswordDrafts, setMemberPasswordDrafts] = useState<Record<string, string>>({});
   const [newStaff, setNewStaff] = useState<StaffFormState>({
     login: "",
     name: "",
@@ -143,41 +142,6 @@ export function SystemSettingsForm({ initialSettings }: Props) {
     }
 
     setStaff(payload.staff);
-    if (patch.password !== undefined) {
-      setMemberPasswordDrafts((current) => ({ ...current, [id]: "" }));
-    }
-    setStaffState("saved");
-    window.setTimeout(() => setStaffState("idle"), 2200);
-  }
-
-  async function deleteStaffMember(id: string) {
-    if (!window.confirm("Удалить профиль сотрудника? Это действие нельзя отменить.")) {
-      return;
-    }
-
-    setStaffState("saving");
-    setStaffError("");
-
-    const response = await fetch(`/api/admin/staff/${id}`, {
-      method: "DELETE",
-    }).catch(() => null);
-
-    const payload = (await response?.json().catch(() => null)) as
-      | { staff?: StaffMember[]; message?: string }
-      | null;
-
-    if (!response?.ok || !payload?.staff) {
-      setStaffState("error");
-      setStaffError(payload?.message || "Не удалось удалить сотрудника.");
-      return;
-    }
-
-    setStaff(payload.staff);
-    setMemberPasswordDrafts((current) => {
-      const next = { ...current };
-      delete next[id];
-      return next;
-    });
     setStaffState("saved");
     window.setTimeout(() => setStaffState("idle"), 2200);
   }
@@ -626,7 +590,7 @@ export function SystemSettingsForm({ initialSettings }: Props) {
                         </button>
                       </div>
 
-                      <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_360px_140px] lg:items-end">
+                      <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_220px] lg:items-end">
                         <p className="text-sm leading-relaxed text-white/45">
                           {roleInfo?.description ?? "Роль сотрудника"}
                         </p>
@@ -634,37 +598,16 @@ export function SystemSettingsForm({ initialSettings }: Props) {
                         <Field label="Новый пароль">
                           <input
                             type="password"
-                            value={memberPasswordDrafts[member.id] ?? ""}
                             placeholder="оставь пустым, если не менять"
-                            onChange={(event) =>
-                              setMemberPasswordDrafts((current) => ({
-                                ...current,
-                                [member.id]: event.target.value,
-                              }))
-                            }
+                            onBlur={(event) => {
+                              if (event.target.value) {
+                                updateStaffMember(member.id, { password: event.target.value });
+                                event.target.value = "";
+                              }
+                            }}
                             className="admin-input"
                           />
                         </Field>
-
-                        <button
-                          type="button"
-                          onClick={() => updateStaffMember(member.id, { password: memberPasswordDrafts[member.id] ?? "" })}
-                          disabled={staffState === "saving" || !(memberPasswordDrafts[member.id] ?? "").trim()}
-                          className="h-[52px] rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-50"
-                        >
-                          Сохранить
-                        </button>
-                      </div>
-
-                      <div className="mt-4 flex justify-end">
-                        <button
-                          type="button"
-                          onClick={() => deleteStaffMember(member.id)}
-                          disabled={staffState === "saving"}
-                          className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm font-semibold text-red-300 transition-colors hover:bg-red-500/15 disabled:cursor-not-allowed disabled:opacity-60"
-                        >
-                          Удалить профиль
-                        </button>
                       </div>
                     </div>
                   );

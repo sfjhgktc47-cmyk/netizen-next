@@ -524,9 +524,9 @@ export function CatalogView({
     });
   }, [
     onlyPopular,
+    normalizedSearchQuery,
     priceFrom,
     priceTo,
-    searchQuery,
     selectedBrand,
     selectedColor,
     selectedMemory,
@@ -816,9 +816,9 @@ export function CatalogView({
     categoryId,
     enrichedPositions,
     onlyPopular,
+    normalizedSearchQuery,
     priceFrom,
     priceTo,
-    searchQuery,
     selectedBrand,
     selectedColor,
     selectedMemory,
