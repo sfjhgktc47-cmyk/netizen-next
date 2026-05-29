@@ -582,7 +582,7 @@ export default function CartPage() {
 
   if (isOrderSent) {
     return (
-      <main className="min-h-screen bg-page px-3 py-4 text-main transition-colors duration-700 sm:px-5 sm:py-6">
+      <main className="min-h-screen bg-page px-2 py-2.5 text-main transition-colors duration-700 sm:px-5 sm:py-6">
         <div className="mx-auto max-w-[1440px]">
           <SiteHeader />
 
@@ -623,7 +623,7 @@ export default function CartPage() {
 
   if (!hasItems) {
     return (
-      <main className="min-h-screen bg-page px-3 py-4 text-main transition-colors duration-700 sm:px-5 sm:py-6">
+      <main className="min-h-screen bg-page px-2 py-2.5 text-main transition-colors duration-700 sm:px-5 sm:py-6">
         <div className="mx-auto max-w-[1440px]">
           <SiteHeader />
 
@@ -663,11 +663,11 @@ export default function CartPage() {
   }
 
   return (
-    <main className="min-h-screen bg-page px-3 py-4 text-main transition-colors duration-700 sm:px-5 sm:py-6">
+    <main className="min-h-screen bg-page px-2 py-2.5 text-main transition-colors duration-700 sm:px-5 sm:py-6">
       <div className="mx-auto max-w-[1440px]">
         <SiteHeader />
 
-        <div className="mt-4 sm:mt-6">
+        <div className="mt-3 sm:mt-6">
           <Link
             href="/catalog"
             className="text-sm text-blue-500 transition-colors hover:text-blue-400"
@@ -676,24 +676,24 @@ export default function CartPage() {
           </Link>
         </div>
 
-        <div className="mt-4 grid items-start gap-5 lg:mt-6 lg:grid-cols-[1fr_420px] lg:gap-8">
-          <div className="space-y-4 sm:space-y-6">
-            <section className="card rounded-[24px] p-4 sm:rounded-[32px] sm:p-6 md:p-8">
-              <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+        <div className="mt-3 grid items-start gap-3 lg:mt-6 lg:grid-cols-[1fr_420px] lg:gap-8">
+          <div className="space-y-3 sm:space-y-6">
+            <section className="card rounded-[20px] p-3 sm:rounded-[32px] sm:p-6 md:p-8">
+              <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                 <div>
-                  <h1 className="text-[28px] font-bold leading-none tracking-[-0.04em] sm:text-5xl">
+                  <h1 className="text-[24px] font-bold leading-none tracking-[-0.04em] sm:text-5xl">
                     Корзина
                   </h1>
 
-                  <p className="mt-1 text-sm text-muted sm:mt-2 sm:text-base">
+                  <p className="mt-1 text-xs text-muted sm:mt-2 sm:text-base">
                     {totalQuantity} {totalQuantity === 1 ? "товар" : "товара"} в заказе
                   </p>
                 </div>
 
-                <div className="flex flex-wrap gap-2 sm:gap-3">
+                <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:gap-3">
                   <Link
                     href="/catalog"
-                    className="rounded-xl border border-theme bg-transparent px-4 py-2.5 text-sm transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-5 sm:py-3"
+                    className="rounded-xl border border-theme bg-transparent px-3 py-2 text-center text-xs transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-5 sm:py-3 sm:text-sm"
                   >
                     Продолжить покупки
                   </Link>
@@ -701,14 +701,14 @@ export default function CartPage() {
                   <button
                     type="button"
                     onClick={clearCart}
-                    className="rounded-xl border border-theme bg-transparent px-4 py-2.5 text-sm text-muted transition-colors hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-500 sm:px-5 sm:py-3"
+                    className="rounded-xl border border-theme bg-transparent px-3 py-2 text-xs text-muted transition-colors hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-500 sm:px-5 sm:py-3 sm:text-sm"
                   >
                     Очистить корзину
                   </button>
                 </div>
               </div>
 
-              <div className="mt-4 space-y-3 sm:mt-8 sm:space-y-4">
+              <div className="mt-3 space-y-2.5 sm:mt-8 sm:space-y-4">
                 {items.map((item) => {
                   const stock = getItemStock(item);
                   const status = getItemStatus(item);
@@ -718,27 +718,27 @@ export default function CartPage() {
                   return (
                     <article
                       key={item.sku}
-                      className="rounded-[20px] border border-theme bg-blue-soft p-3 sm:rounded-3xl sm:p-5"
+                      className="rounded-[18px] border border-theme bg-blue-soft p-2.5 sm:rounded-3xl sm:p-5"
                     >
-                      <div className="grid grid-cols-[72px_minmax(0,1fr)] gap-2.5 sm:grid-cols-[110px_minmax(0,1fr)] sm:gap-4 md:grid-cols-[140px_1fr_auto] md:items-center md:gap-5">
+                      <div className="grid grid-cols-[62px_minmax(0,1fr)] gap-2 sm:grid-cols-[110px_minmax(0,1fr)] sm:gap-4 md:grid-cols-[140px_1fr_auto] md:items-center md:gap-5">
                         <Link
                           href={productHref}
-                          className="soft-box flex h-[72px] items-center justify-center rounded-2xl text-[11px] text-muted-soft sm:h-[110px] md:h-[140px] md:text-sm"
+                          className="soft-box flex h-[62px] items-center justify-center rounded-2xl text-[10px] text-muted-soft sm:h-[110px] md:h-[140px] md:text-sm"
                         >
                           Фото
                         </Link>
 
                         <div>
-                          <div className="truncate text-xs text-muted-soft sm:text-sm">{item.brand}</div>
+                          <div className="truncate text-[10px] text-muted-soft sm:text-sm">{item.brand}</div>
 
                           <Link
                             href={productHref}
-                            className="mt-0.5 line-clamp-2 block text-[13px] font-bold leading-tight transition-colors hover:text-blue-500 sm:mt-1 sm:text-xl"
+                            className="mt-0.5 line-clamp-2 block text-[12px] font-bold leading-tight transition-colors hover:text-blue-500 sm:mt-1 sm:text-xl"
                           >
                             {item.title || item.productName}
                           </Link>
 
-                          <p className="mt-0.5 line-clamp-1 text-[11px] text-muted sm:mt-2 sm:text-sm">
+                          <p className="mt-0.5 line-clamp-1 text-[10px] text-muted sm:mt-2 sm:text-sm">
                             {item.memory} · {item.color} · {item.sim}
                           </p>
 
@@ -758,7 +758,7 @@ export default function CartPage() {
                             </span>
                           </div>
 
-                          <div className="mt-1.5 flex flex-wrap gap-2 text-[11px] text-muted-soft sm:mt-5 sm:gap-3 sm:text-sm">
+                          <div className="mt-1 flex flex-wrap gap-1.5 text-[10px] text-muted-soft sm:mt-5 sm:gap-3 sm:text-sm">
                             <button className="transition-colors hover:text-blue-500">
                               В избранное
                             </button>
@@ -773,17 +773,17 @@ export default function CartPage() {
                           </div>
                         </div>
 
-                        <div className="col-span-2 flex items-center justify-between gap-3 pt-1 md:col-span-1 md:flex-col md:items-end md:gap-6 md:pt-0">
-                          <div className="flex items-center gap-2 sm:gap-3">
+                        <div className="col-span-2 flex items-center justify-between gap-2 pt-1 md:col-span-1 md:flex-col md:items-end md:gap-6 md:pt-0">
+                          <div className="flex items-center gap-1.5 sm:gap-3">
                             <button
                               type="button"
                               onClick={() => updateQuantity(item.sku, item.quantity - 1)}
-                              className="flex h-8 w-8 items-center justify-center rounded-xl border border-theme bg-transparent text-base transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:h-9 sm:w-9 sm:text-lg"
+                              className="flex h-7 w-7 items-center justify-center rounded-xl border border-theme bg-transparent text-sm transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:h-9 sm:w-9 sm:text-lg"
                             >
                               −
                             </button>
 
-                            <span className="w-7 text-center font-semibold">
+                            <span className="w-6 text-center text-sm font-semibold sm:w-7 sm:text-base">
                               {item.quantity}
                             </span>
 
@@ -791,7 +791,7 @@ export default function CartPage() {
                               type="button"
                               disabled={!canIncrease}
                               onClick={() => updateQuantity(item.sku, item.quantity + 1)}
-                              className="flex h-8 w-8 items-center justify-center rounded-xl border border-theme bg-transparent text-base transition-colors hover:border-blue-500/40 hover:bg-blue-soft disabled:cursor-not-allowed disabled:opacity-40 sm:h-9 sm:w-9 sm:text-lg"
+                              className="flex h-7 w-7 items-center justify-center rounded-xl border border-theme bg-transparent text-sm transition-colors hover:border-blue-500/40 hover:bg-blue-soft disabled:cursor-not-allowed disabled:opacity-40 sm:h-9 sm:w-9 sm:text-lg"
                             >
                               +
                             </button>
@@ -799,16 +799,16 @@ export default function CartPage() {
 
                           <div className="text-right">
                             {item.oldPrice && (
-                              <div className="text-xs text-muted-soft line-through sm:text-sm">
+                              <div className="text-[10px] text-muted-soft line-through sm:text-sm">
                                 {item.oldPrice}
                               </div>
                             )}
 
-                            <div className="text-lg font-bold sm:text-xl">
+                            <div className="text-base font-bold sm:text-xl">
                               {formatPrice(getItemLineTotal(item))}
                             </div>
 
-                            <div className="mt-1 text-xs text-muted-soft sm:text-sm">
+                            <div className="mt-0.5 text-[10px] text-muted-soft sm:mt-1 sm:text-sm">
                               {item.price} за 1 шт.
                             </div>
                           </div>
@@ -820,40 +820,22 @@ export default function CartPage() {
               </div>
             </section>
 
-            {!isRegistered && (
-              <section className="card rounded-[22px] p-4 sm:rounded-[28px] sm:p-6">
-                <div className="flex items-start justify-between gap-3">
-                  <div>
-                    <h2 className="text-xl font-bold sm:text-2xl">Данные клиента</h2>
-                    <p className="mt-2 text-sm leading-relaxed text-muted">
-                      Можно оформить заказ без регистрации. Укажите имя и телефон, чтобы менеджер подтвердил наличие, доставку и итоговую стоимость.
-                    </p>
-                  </div>
-                  <span
-                    className={`shrink-0 rounded-full border px-3 py-1 text-xs ${
-                      hasGuestContacts
-                        ? "border-green-500/30 bg-green-500/10 text-green-500"
-                        : "border-orange-500/30 bg-orange-500/10 text-orange-500"
-                    }`}
-                  >
-                    {hasGuestContacts ? "Заполнено" : "Нужно заполнить"}
-                  </span>
-                </div>
+            <section className={`grid gap-2.5 sm:gap-4 ${!isRegistered ? "md:grid-cols-2" : ""}`}>
+              {!isRegistered && (
+                <CheckoutCard
+                  title="Данные клиента"
+                  text={
+                    hasGuestContacts
+                      ? contactSummary
+                      : "Можно оформить заказ без регистрации. Укажите имя и телефон, чтобы менеджер подтвердил наличие, доставку и итоговую стоимость."
+                  }
+                  status={hasGuestContacts ? "Заполнено" : "Нужно заполнить"}
+                  isComplete={hasGuestContacts}
+                  action={hasGuestContacts ? "Изменить контакты →" : "Заполнить контакты →"}
+                  onClick={() => setActiveModal("contacts")}
+                />
+              )}
 
-                <div className="mt-3 flex flex-col gap-2 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
-                  <span>{hasGuestContacts ? contactSummary : "Имя и телефон пока не указаны"}</span>
-                  <button
-                    type="button"
-                    onClick={() => setActiveModal("contacts")}
-                    className="w-fit text-sm font-medium text-blue-500 transition-colors hover:text-blue-400"
-                  >
-                    {hasGuestContacts ? "Изменить контакты →" : "Заполнить контакты →"}
-                  </button>
-                </div>
-              </section>
-            )}
-
-            <section className="grid gap-3 sm:gap-5">
               <CheckoutCard
                 title="Доставка"
                 text={deliverySummary}
@@ -865,10 +847,10 @@ export default function CartPage() {
             </section>
           </div>
 
-          <aside className="card h-fit rounded-[24px] p-4 sm:rounded-[32px] sm:p-8 lg:sticky lg:top-6">
-            <h2 className="text-xl font-bold sm:text-2xl">Итого</h2>
+          <aside className="card h-fit rounded-[22px] p-3.5 sm:rounded-[32px] sm:p-8 lg:sticky lg:top-6">
+            <h2 className="text-lg font-bold sm:text-2xl">Итого</h2>
 
-            <div className="mt-4 space-y-2.5 text-sm text-muted sm:mt-6 sm:space-y-4 sm:text-base">
+            <div className="mt-3 space-y-2 text-xs text-muted sm:mt-6 sm:space-y-4 sm:text-base">
               <div className="flex justify-between gap-4">
                 <span>Товары</span>
                 <span className="text-main">{formatPrice(subtotal)}</span>
@@ -897,15 +879,15 @@ export default function CartPage() {
               </div>
             </div>
 
-            <div className="mt-5 border-t border-theme pt-5 sm:mt-6 sm:pt-6">
-              <div className="flex justify-between gap-4 text-lg font-bold sm:text-xl">
+            <div className="mt-4 border-t border-theme pt-4 sm:mt-6 sm:pt-6">
+              <div className="flex justify-between gap-4 text-base font-bold sm:text-xl">
                 <span>К оплате</span>
                 <span>{formatPrice(subtotal)}</span>
               </div>
             </div>
 
             {!canPlaceOrder && (
-              <div className="mt-5 rounded-2xl border border-orange-500/30 bg-orange-500/10 p-4 text-sm text-orange-500">
+              <div className="mt-4 rounded-2xl border border-orange-500/30 bg-orange-500/10 p-3 text-xs text-orange-500 sm:p-4 sm:text-sm">
                 {getMissingText(hasDelivery, isRegistered, hasGuestContacts)}
               </div>
             )}
@@ -920,19 +902,19 @@ export default function CartPage() {
               type="button"
               disabled={!canPlaceOrder || isOrderSubmitting}
               onClick={placeOrder}
-              className="mt-5 flex w-full justify-center rounded-xl bg-blue-600 px-5 py-3.5 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-600/40 disabled:text-white/60 sm:mt-6 sm:px-7 sm:py-4"
+              className="mt-4 flex w-full justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-600/40 disabled:text-white/60 sm:mt-6 sm:px-7 sm:py-4"
             >
               {isOrderSubmitting ? "Отправляем заявку..." : "Оформить заказ →"}
             </button>
 
-            <p className="mt-4 text-xs leading-relaxed text-muted-soft">
+            <p className="mt-3 text-[11px] leading-relaxed text-muted-soft sm:mt-4 sm:text-xs">
               Оплата только наличными при получении. Менеджер подтвердит наличие,
               доставку и итоговую стоимость заказа.
             </p>
           </aside>
         </div>
 
-        <div className="mt-7 space-y-8 sm:mt-10 sm:space-y-12">
+        <div className="mt-5 space-y-6 sm:mt-10 sm:space-y-12">
           <RecommendationStrip
             title="С этим товаром покупают"
             items={recommendationPositions}
@@ -1033,7 +1015,7 @@ export default function CartPage() {
                             setIsAddingAddress(false);
                             setNewAddress("");
                           }}
-                          className="rounded-xl border border-theme bg-transparent px-4 py-2.5 text-sm transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-5 sm:py-3"
+                          className="rounded-xl border border-theme bg-transparent px-3 py-2 text-center text-xs transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-5 sm:py-3 sm:text-sm"
                         >
                           Отмена
                         </button>
@@ -1234,10 +1216,10 @@ function CheckoutCard({
     <button
       type="button"
       onClick={onClick}
-      className="card rounded-[22px] p-4 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500/35 hover:bg-blue-soft sm:rounded-[28px] sm:p-8"
+      className="card rounded-[18px] p-3 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500/35 hover:bg-blue-soft sm:rounded-[28px] sm:p-6"
     >
-      <div className="flex items-start justify-between gap-4">
-        <div className="text-xl font-bold sm:text-2xl">{title}</div>
+      <div className="flex items-start justify-between gap-3">
+        <div className="text-base font-bold sm:text-2xl">{title}</div>
         <span
           className={`shrink-0 rounded-full border px-3 py-1 text-xs ${
             isComplete
@@ -1249,9 +1231,9 @@ function CheckoutCard({
         </span>
       </div>
 
-      <p className="mt-2 text-sm leading-relaxed text-muted sm:mt-3 sm:min-h-[40px]">{text}</p>
+      <p className="mt-1.5 line-clamp-3 text-xs leading-relaxed text-muted sm:mt-3 sm:min-h-[40px] sm:text-sm">{text}</p>
 
-      <div className="mt-4 text-sm font-medium text-blue-500 sm:mt-6">{action}</div>
+      <div className="mt-2.5 text-xs font-medium text-blue-500 sm:mt-6 sm:text-sm">{action}</div>
     </button>
   );
 }
@@ -1281,7 +1263,7 @@ function Modal({
           </button>
         </div>
 
-        <div className="mt-4 sm:mt-6">{children}</div>
+        <div className="mt-3 sm:mt-6">{children}</div>
       </div>
     </div>
   );

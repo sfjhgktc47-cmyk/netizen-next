@@ -212,7 +212,7 @@ export default function Home() {
           : "min-h-screen bg-[#f6f8fb] text-[#0b1220] transition-colors duration-700 ease-in-out"
       }
     >
-      <div className="mx-auto max-w-[1440px] px-3 py-4 sm:px-5 sm:py-6 lg:px-6">
+      <div className="mx-auto max-w-[1440px] px-2 py-2.5 sm:px-5 sm:py-6 lg:px-6">
         <SiteHeader />
 
         {visibleHomeBlocks.map((block) => (
@@ -471,7 +471,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
   }
 
   return (
-    <section className="relative mt-4 overflow-hidden rounded-[26px] sm:mt-6 sm:rounded-[34px]">
+    <section className="relative mt-3 overflow-hidden rounded-[22px] sm:mt-6 sm:rounded-[34px]">
       <div
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
@@ -481,7 +481,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
         }}
         onMouseEnter={() => setIsHeroHovered(true)}
         onMouseLeave={() => setIsHeroHovered(false)}
-        className={`relative h-[248px] cursor-grab select-none overflow-hidden rounded-[24px] transition-all duration-700 active:cursor-grabbing sm:h-[360px] sm:rounded-[30px] lg:h-[560px] ${
+        className={`relative h-[190px] cursor-grab select-none overflow-hidden rounded-[20px] transition-all duration-700 active:cursor-grabbing sm:h-[360px] sm:rounded-[30px] lg:h-[560px] ${
           dark ? "bg-[#020814]" : "bg-white"
         }`}
       >
@@ -500,35 +500,35 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
           }`}
         />
 
-        <div className="relative z-10 flex h-full items-center px-4 py-4 sm:px-8 sm:py-8 lg:px-16 lg:py-12">
+        <div className="relative z-10 flex h-full items-center px-3 py-3 sm:px-8 sm:py-8 lg:px-16 lg:py-12">
           <div className="max-w-[650px]">
             {slide.badge ? (
-              <div className="mb-3 inline-flex rounded-full border border-blue-500/50 bg-blue-500/10 px-2.5 py-1 text-[11px] font-medium text-blue-500 sm:mb-5 sm:px-4 sm:py-2 sm:text-sm">
+              <div className="mb-2 inline-flex rounded-full border border-blue-500/50 bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium text-blue-500 sm:mb-5 sm:px-4 sm:py-2 sm:text-sm">
                 {slide.badge}
               </div>
             ) : null}
 
-            <h1 className="max-w-[620px] text-[25px] font-bold leading-[1.03] tracking-[-0.055em] sm:text-[38px] lg:text-[64px]">
+            <h1 className="max-w-[620px] text-[20px] font-bold leading-[1.02] tracking-[-0.055em] sm:text-[38px] lg:text-[64px]">
               {slide.title}
             </h1>
 
             {slide.text ? (
-              <p className={`mt-2 max-w-[430px] text-xs leading-relaxed sm:mt-4 sm:text-base lg:text-lg ${mutedTextClass(dark)}`}>
+              <p className={`mt-1.5 line-clamp-2 max-w-[360px] text-[11px] leading-snug sm:mt-4 sm:text-base lg:text-lg ${mutedTextClass(dark)}`}>
                 {slide.text}
               </p>
             ) : null}
 
-            <div className="mt-4 flex flex-wrap gap-2 sm:mt-8 sm:gap-4">
+            <div className="mt-3 flex flex-wrap gap-2 sm:mt-8 sm:gap-4">
               <Link
                 href={slide.primaryHref}
-                className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-xs font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500 sm:px-7 sm:py-4 sm:text-sm"
+                className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-3 py-2 text-[11px] font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500 sm:px-7 sm:py-4 sm:text-sm"
               >
                 {slide.primaryLabel} →
               </Link>
 
               <Link
                 href={slide.secondaryHref}
-                className={`inline-flex items-center justify-center rounded-xl border px-4 py-2.5 text-xs font-medium transition-all duration-300 hover:-translate-y-0.5 sm:px-7 sm:py-4 sm:text-sm ${
+                className={`inline-flex items-center justify-center rounded-xl border px-3 py-2 text-[11px] font-medium transition-all duration-300 hover:-translate-y-0.5 sm:px-7 sm:py-4 sm:text-sm ${
                   dark
                     ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
                     : "border-black/10 bg-white text-black hover:border-blue-500/40 hover:bg-blue-50"
@@ -539,7 +539,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
             </div>
 
             {slides.length > 1 ? (
-              <div className="mt-3 flex items-center gap-2 sm:mt-8">
+              <div className="mt-2 flex items-center gap-1.5 sm:mt-8 sm:gap-2">
                 {slides.map((item, index) => {
                   const isActive = activeSlide === index;
 
@@ -550,7 +550,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
                       onClick={() => setActiveSlide(index)}
                       aria-label={`Открыть слайд ${index + 1}`}
                       className={`rounded-full bg-blue-600 transition-all duration-300 ${
-                        isActive ? "h-1.5 w-9" : "h-1.5 w-1.5"
+                        isActive ? "h-1 w-7 sm:h-1.5 sm:w-9" : "h-1 w-1 sm:h-1.5 sm:w-1.5"
                       }`}
                     />
                   );
@@ -582,19 +582,19 @@ function Benefits({
   const items = benefits;
 
   return (
-    <section className={`mt-4 rounded-2xl border p-3 transition-all duration-700 sm:mt-10 sm:p-6 ${panelClass(dark)}`}>
+    <section className={`mt-3 rounded-2xl border p-2.5 transition-all duration-700 sm:mt-10 sm:p-6 ${panelClass(dark)}`}>
       <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <h2 className="text-xl font-bold tracking-[-0.04em] sm:text-3xl">{title}</h2>
-          <p className={`mt-1 text-xs sm:mt-2 sm:text-sm ${mutedTextClass(dark)}`}>{subtitle}</p>
+          <h2 className="text-lg font-bold tracking-[-0.04em] sm:text-3xl">{title}</h2>
+          <p className={`mt-0.5 text-[11px] sm:mt-2 sm:text-sm ${mutedTextClass(dark)}`}>{subtitle}</p>
         </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-1 gap-2 sm:mt-6 sm:grid-cols-2 md:grid-cols-5 md:gap-4">
+      <div className="mt-2 grid grid-cols-1 gap-1.5 sm:mt-6 sm:grid-cols-2 md:grid-cols-5 md:gap-4">
         {items.map((item) => {
           const card = (
-            <div className="flex gap-2.5 sm:gap-4">
-              <div className="flex h-8 w-8 shrink-0 items-center justify-center overflow-hidden rounded-full border border-blue-500/30 text-sm text-blue-500 sm:h-12 sm:w-12 sm:text-base">
+            <div className="flex gap-2 sm:gap-4">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-blue-500/30 text-xs text-blue-500 sm:h-12 sm:w-12 sm:text-base">
                 {item.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={item.image} alt="" className="h-full w-full object-cover" />
@@ -604,8 +604,8 @@ function Benefits({
               </div>
 
               <div>
-                <div className="text-sm font-semibold leading-tight sm:text-base">{item.title}</div>
-                <div className={`mt-0.5 text-xs leading-snug sm:mt-1 sm:text-sm ${mutedTextClass(dark)}`}>
+                <div className="text-[13px] font-semibold leading-tight sm:text-base">{item.title}</div>
+                <div className={`mt-0.5 line-clamp-2 text-[11px] leading-snug sm:mt-1 sm:text-sm ${mutedTextClass(dark)}`}>
                   {item.description}
                 </div>
               </div>
@@ -643,20 +643,20 @@ function Categories({
   showButton?: boolean;
 }) {
   return (
-    <section className="py-6 sm:py-14 lg:py-20">
+    <section className="py-4 sm:py-14 lg:py-20">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <h2 className="text-[26px] font-bold leading-tight tracking-[-0.04em] sm:text-3xl lg:text-4xl">
+          <h2 className="text-[22px] font-bold leading-tight tracking-[-0.04em] sm:text-3xl lg:text-4xl">
             {title}
           </h2>
 
-          <p className={`mt-1.5 text-sm sm:mt-3 sm:text-base ${mutedTextClass(dark)}`}>
+          <p className={`mt-1 text-xs sm:mt-3 sm:text-base ${mutedTextClass(dark)}`}>
             {subtitle}
           </p>
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 auto-rows-fr gap-2.5 sm:mt-8 sm:gap-5 lg:grid-cols-4">
+      <div className="mt-3 grid grid-cols-2 auto-rows-fr gap-2 sm:mt-8 sm:gap-5 lg:grid-cols-4">
         {categories.map((category) => {
           const image = category.image?.trim() ?? "";
 
@@ -664,7 +664,7 @@ function Categories({
             <Link
               key={category.id || category.slug}
               href={category.href || `/catalog/${category.slug}`}
-              className={`group relative h-[112px] overflow-hidden rounded-2xl border p-3 transition-all duration-500 hover:-translate-y-1 sm:h-[160px] sm:p-5 ${
+              className={`group relative h-[92px] overflow-hidden rounded-2xl border p-2.5 transition-all duration-500 hover:-translate-y-1 sm:h-[160px] sm:p-5 ${
                 dark
                   ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
                   : "border-black/10 bg-white shadow-[0_20px_70px_rgba(15,23,42,0.08)] hover:border-blue-500/35 hover:shadow-[0_28px_90px_rgba(15,23,42,0.12)]"
@@ -672,12 +672,12 @@ function Categories({
             >
               <div className="relative z-10 flex h-full min-h-0 flex-col justify-between">
                 <div className="max-w-[62%]">
-                  <h3 className="text-[13px] font-bold leading-tight sm:text-lg">
+                  <h3 className="text-[12px] font-bold leading-tight sm:text-lg">
                     {category.name}
                   </h3>
 
                   <p
-                    className={`mt-1 line-clamp-1 text-[10px] leading-relaxed sm:line-clamp-2 sm:mt-2 sm:text-xs ${mutedTextClass(
+                    className={`mt-0.5 line-clamp-1 text-[9px] leading-relaxed sm:line-clamp-2 sm:mt-2 sm:text-xs ${mutedTextClass(
                       dark
                     )}`}
                   >
@@ -686,7 +686,7 @@ function Categories({
                 </div>
 
                 <div
-                  className={`mt-2 flex h-7 w-7 items-center justify-center rounded-xl border text-xs font-bold transition-all duration-300 group-hover:translate-x-1 sm:mt-5 sm:h-10 sm:w-10 sm:text-base ${
+                  className={`mt-1.5 flex h-6 w-6 items-center justify-center rounded-xl border text-[11px] font-bold transition-all duration-300 group-hover:translate-x-1 sm:mt-5 sm:h-10 sm:w-10 sm:text-base ${
                     dark
                       ? "border-blue-500/35 bg-blue-500/10 text-blue-400 group-hover:bg-blue-600 group-hover:text-white"
                       : "border-black/10 bg-white text-black shadow-sm group-hover:border-blue-500 group-hover:bg-blue-600 group-hover:text-white"
@@ -696,7 +696,7 @@ function Categories({
                 </div>
               </div>
 
-              <div className="absolute right-2 top-1/2 flex h-[54px] w-[54px] -translate-y-1/2 items-center justify-center overflow-hidden rounded-2xl sm:right-5 sm:h-[92px] sm:w-[92px]">
+              <div className="absolute right-2 top-1/2 flex h-[44px] w-[44px] -translate-y-1/2 items-center justify-center overflow-hidden rounded-2xl sm:right-5 sm:h-[92px] sm:w-[92px]">
                 {image ? (
                   <div
                     className="h-full w-full bg-contain bg-center bg-no-repeat opacity-95 transition-transform duration-500 group-hover:scale-105"
@@ -843,13 +843,13 @@ function PopularProducts({
 
   if (products.length === 0) {
     return (
-      <section className="pb-7 sm:pb-16 lg:pb-20">
+      <section className="pb-5 sm:pb-16 lg:pb-20">
         <div>
-          <h2 className="text-[28px] font-bold leading-none tracking-[-0.04em] sm:text-[36px] lg:text-[52px]">
+          <h2 className="text-[23px] font-bold leading-none tracking-[-0.04em] sm:text-[36px] lg:text-[52px]">
             {title}
           </h2>
 
-          <p className={`mt-1.5 text-sm sm:mt-3 sm:text-base ${mutedTextClass(dark)}`}>
+          <p className={`mt-1 text-xs sm:mt-3 sm:text-base ${mutedTextClass(dark)}`}>
             {subtitle || "Добавьте реальные товары в БД и загрузите фото, чтобы они появились на главной."}
           </p>
         </div>
@@ -868,14 +868,14 @@ function PopularProducts({
   }
 
   return (
-    <section className="pb-7 sm:pb-16 lg:pb-20">
+    <section className="pb-5 sm:pb-16 lg:pb-20">
       <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div>
-          <h2 className="text-[28px] font-bold leading-none tracking-[-0.04em] sm:text-[36px] lg:text-[52px]">
+          <h2 className="text-[23px] font-bold leading-none tracking-[-0.04em] sm:text-[36px] lg:text-[52px]">
             {title}
           </h2>
 
-          <p className={`mt-1.5 text-sm sm:mt-3 sm:text-base ${mutedTextClass(dark)}`}>
+          <p className={`mt-1 text-xs sm:mt-3 sm:text-base ${mutedTextClass(dark)}`}>
             {subtitle}
           </p>
         </div>
@@ -918,7 +918,7 @@ function PopularProducts({
         onPointerCancel={handleProductsPointerUp}
         onPointerLeave={handleProductsPointerUp}
         onClickCapture={handleProductsClickCapture}
-        className="mt-4 cursor-grab select-none overflow-x-auto px-0.5 py-1.5 active:cursor-grabbing sm:mt-8 sm:px-1 sm:py-2 [&::-webkit-scrollbar]:hidden"
+        className="mt-3 cursor-grab select-none overflow-x-auto px-0.5 py-1 active:cursor-grabbing sm:mt-8 sm:px-1 sm:py-2 [&::-webkit-scrollbar]:hidden"
         style={{
           scrollbarWidth: "none",
           msOverflowStyle: "none",
@@ -928,7 +928,7 @@ function PopularProducts({
           {products.map((product) => (
             <div
               key={product.slug}
-              className="w-[148px] shrink-0 sm:w-[250px] md:w-[300px] lg:w-[310px]"
+              className="w-[136px] shrink-0 sm:w-[250px] md:w-[300px] lg:w-[310px]"
             >
               <ProductCard product={product} dark={dark} />
             </div>
@@ -1060,12 +1060,12 @@ function NewArrivals({
 
   if (!mainItem) {
     return (
-      <section className="pb-7 sm:pb-16 lg:pb-20">
+      <section className="pb-5 sm:pb-16 lg:pb-20">
         <div className="mb-8">
-          <h2 className="text-[28px] font-bold leading-none tracking-[-0.04em] sm:text-[36px] lg:text-[52px]">
+          <h2 className="text-[23px] font-bold leading-none tracking-[-0.04em] sm:text-[36px] lg:text-[52px]">
             {title}
           </h2>
-          <p className={`mt-1.5 text-sm sm:mt-3 sm:text-base ${mutedTextClass(dark)}`}>
+          <p className={`mt-1 text-xs sm:mt-3 sm:text-base ${mutedTextClass(dark)}`}>
             {subtitle}
           </p>
         </div>
@@ -1085,7 +1085,7 @@ function NewArrivals({
   }
 
   return (
-    <section className="pb-7 sm:pb-16 lg:pb-20">
+    <section className="pb-5 sm:pb-16 lg:pb-20">
       <div className="mb-8">
         <h2 className="text-[28px] font-bold leading-none tracking-[-0.04em] sm:text-[36px] lg:text-[52px]">
           {title}
@@ -1236,7 +1236,7 @@ function PromoBanner({
   const textSize = banner?.textSize || getBlockText(settings, "textSize", "md");
 
   return (
-    <section className="pb-7 sm:pb-16 lg:pb-20">
+    <section className="pb-5 sm:pb-16 lg:pb-20">
       <Link
         href={buttonHref}
         className={`group grid min-h-[260px] overflow-hidden rounded-[34px] border transition-all duration-500 hover:-translate-y-1 lg:grid-cols-[0.95fr_1.05fr] ${
@@ -1284,7 +1284,7 @@ function TextImageModule({
   const imageSide = getBlockText(settings, "imageSide", "right");
 
   return (
-    <section className="pb-7 sm:pb-16 lg:pb-20">
+    <section className="pb-5 sm:pb-16 lg:pb-20">
       <div
         className={`grid overflow-hidden rounded-[34px] border lg:grid-cols-2 ${
           dark
