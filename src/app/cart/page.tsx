@@ -681,7 +681,7 @@ export default function CartPage() {
             <section className="card rounded-[24px] p-4 sm:rounded-[32px] sm:p-6 md:p-8">
               <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
-                  <h1 className="text-3xl font-bold tracking-[-0.04em] sm:text-5xl">
+                  <h1 className="text-[28px] font-bold leading-none tracking-[-0.04em] sm:text-5xl">
                     Корзина
                   </h1>
 
@@ -708,7 +708,7 @@ export default function CartPage() {
                 </div>
               </div>
 
-              <div className="mt-5 space-y-3 sm:mt-8 sm:space-y-4">
+              <div className="mt-4 space-y-3 sm:mt-8 sm:space-y-4">
                 {items.map((item) => {
                   const stock = getItemStock(item);
                   const status = getItemStatus(item);
@@ -718,12 +718,12 @@ export default function CartPage() {
                   return (
                     <article
                       key={item.sku}
-                      className="rounded-[22px] border border-theme bg-blue-soft p-3 sm:rounded-3xl sm:p-5"
+                      className="rounded-[20px] border border-theme bg-blue-soft p-3 sm:rounded-3xl sm:p-5"
                     >
-                      <div className="grid grid-cols-[82px_minmax(0,1fr)] gap-3 sm:grid-cols-[110px_minmax(0,1fr)] sm:gap-4 md:grid-cols-[140px_1fr_auto] md:items-center md:gap-5">
+                      <div className="grid grid-cols-[72px_minmax(0,1fr)] gap-2.5 sm:grid-cols-[110px_minmax(0,1fr)] sm:gap-4 md:grid-cols-[140px_1fr_auto] md:items-center md:gap-5">
                         <Link
                           href={productHref}
-                          className="soft-box flex h-[82px] items-center justify-center rounded-2xl text-xs text-muted-soft sm:h-[110px] md:h-[140px] md:text-sm"
+                          className="soft-box flex h-[72px] items-center justify-center rounded-2xl text-[11px] text-muted-soft sm:h-[110px] md:h-[140px] md:text-sm"
                         >
                           Фото
                         </Link>
@@ -733,12 +733,12 @@ export default function CartPage() {
 
                           <Link
                             href={productHref}
-                            className="mt-1 line-clamp-2 block text-sm font-bold leading-tight transition-colors hover:text-blue-500 sm:text-xl"
+                            className="mt-0.5 line-clamp-2 block text-[13px] font-bold leading-tight transition-colors hover:text-blue-500 sm:mt-1 sm:text-xl"
                           >
                             {item.title || item.productName}
                           </Link>
 
-                          <p className="mt-1 line-clamp-1 text-xs text-muted sm:mt-2 sm:text-sm">
+                          <p className="mt-0.5 line-clamp-1 text-[11px] text-muted sm:mt-2 sm:text-sm">
                             {item.memory} · {item.color} · {item.sim}
                           </p>
 
@@ -758,7 +758,7 @@ export default function CartPage() {
                             </span>
                           </div>
 
-                          <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-soft sm:mt-5 sm:gap-3 sm:text-sm">
+                          <div className="mt-1.5 flex flex-wrap gap-2 text-[11px] text-muted-soft sm:mt-5 sm:gap-3 sm:text-sm">
                             <button className="transition-colors hover:text-blue-500">
                               В избранное
                             </button>
@@ -773,7 +773,7 @@ export default function CartPage() {
                           </div>
                         </div>
 
-                        <div className="col-span-2 flex items-center justify-between gap-3 md:col-span-1 md:flex-col md:items-end md:gap-6">
+                        <div className="col-span-2 flex items-center justify-between gap-3 pt-1 md:col-span-1 md:flex-col md:items-end md:gap-6 md:pt-0">
                           <div className="flex items-center gap-2 sm:gap-3">
                             <button
                               type="button"
@@ -820,7 +820,40 @@ export default function CartPage() {
               </div>
             </section>
 
-            <section className={`grid gap-3 sm:gap-5 ${isRegistered ? "md:grid-cols-1" : "md:grid-cols-2"}`}>
+            {!isRegistered && (
+              <section className="card rounded-[22px] p-4 sm:rounded-[28px] sm:p-6">
+                <div className="flex items-start justify-between gap-3">
+                  <div>
+                    <h2 className="text-xl font-bold sm:text-2xl">Данные клиента</h2>
+                    <p className="mt-2 text-sm leading-relaxed text-muted">
+                      Можно оформить заказ без регистрации. Укажите имя и телефон, чтобы менеджер подтвердил наличие, доставку и итоговую стоимость.
+                    </p>
+                  </div>
+                  <span
+                    className={`shrink-0 rounded-full border px-3 py-1 text-xs ${
+                      hasGuestContacts
+                        ? "border-green-500/30 bg-green-500/10 text-green-500"
+                        : "border-orange-500/30 bg-orange-500/10 text-orange-500"
+                    }`}
+                  >
+                    {hasGuestContacts ? "Заполнено" : "Нужно заполнить"}
+                  </span>
+                </div>
+
+                <div className="mt-3 flex flex-col gap-2 text-sm text-muted sm:flex-row sm:items-center sm:justify-between">
+                  <span>{hasGuestContacts ? contactSummary : "Имя и телефон пока не указаны"}</span>
+                  <button
+                    type="button"
+                    onClick={() => setActiveModal("contacts")}
+                    className="w-fit text-sm font-medium text-blue-500 transition-colors hover:text-blue-400"
+                  >
+                    {hasGuestContacts ? "Изменить контакты →" : "Заполнить контакты →"}
+                  </button>
+                </div>
+              </section>
+            )}
+
+            <section className="grid gap-3 sm:gap-5">
               <CheckoutCard
                 title="Доставка"
                 text={deliverySummary}
@@ -829,24 +862,13 @@ export default function CartPage() {
                 action={hasDelivery ? "Изменить доставку →" : "Выбрать доставку →"}
                 onClick={() => setActiveModal("delivery")}
               />
-
-              {!isRegistered && (
-                <CheckoutCard
-                  title="Контакты"
-                  text={contactSummary}
-                  status={hasGuestContacts ? "Заполнено" : "Нужно заполнить"}
-                  isComplete={hasGuestContacts}
-                  action={hasGuestContacts ? "Изменить контакты →" : "Заполнить контакты →"}
-                  onClick={() => setActiveModal("contacts")}
-                />
-              )}
             </section>
           </div>
 
-          <aside className="card h-fit rounded-[24px] p-5 sm:rounded-[32px] sm:p-8 lg:sticky lg:top-6">
+          <aside className="card h-fit rounded-[24px] p-4 sm:rounded-[32px] sm:p-8 lg:sticky lg:top-6">
             <h2 className="text-xl font-bold sm:text-2xl">Итого</h2>
 
-            <div className="mt-4 space-y-3 text-sm text-muted sm:mt-6 sm:space-y-4 sm:text-base">
+            <div className="mt-4 space-y-2.5 text-sm text-muted sm:mt-6 sm:space-y-4 sm:text-base">
               <div className="flex justify-between gap-4">
                 <span>Товары</span>
                 <span className="text-main">{formatPrice(subtotal)}</span>
@@ -875,7 +897,7 @@ export default function CartPage() {
               </div>
             </div>
 
-            <div className="mt-6 border-t border-theme pt-6">
+            <div className="mt-5 border-t border-theme pt-5 sm:mt-6 sm:pt-6">
               <div className="flex justify-between gap-4 text-lg font-bold sm:text-xl">
                 <span>К оплате</span>
                 <span>{formatPrice(subtotal)}</span>
@@ -1212,10 +1234,10 @@ function CheckoutCard({
     <button
       type="button"
       onClick={onClick}
-      className="card rounded-[28px] p-8 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500/35 hover:bg-blue-soft"
+      className="card rounded-[22px] p-4 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500/35 hover:bg-blue-soft sm:rounded-[28px] sm:p-8"
     >
       <div className="flex items-start justify-between gap-4">
-        <div className="text-2xl font-bold">{title}</div>
+        <div className="text-xl font-bold sm:text-2xl">{title}</div>
         <span
           className={`shrink-0 rounded-full border px-3 py-1 text-xs ${
             isComplete
@@ -1227,9 +1249,9 @@ function CheckoutCard({
         </span>
       </div>
 
-      <p className="mt-3 min-h-[40px] text-sm leading-relaxed text-muted">{text}</p>
+      <p className="mt-2 text-sm leading-relaxed text-muted sm:mt-3 sm:min-h-[40px]">{text}</p>
 
-      <div className="mt-6 text-sm font-medium text-blue-500">{action}</div>
+      <div className="mt-4 text-sm font-medium text-blue-500 sm:mt-6">{action}</div>
     </button>
   );
 }
@@ -1245,9 +1267,9 @@ function Modal({
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 px-4 py-4 backdrop-blur-sm md:items-center md:px-6">
-      <div className="card max-h-[92vh] w-full max-w-[720px] overflow-y-auto rounded-[28px] p-6 shadow-[0_30px_120px_rgba(0,102,255,0.25)] md:p-8">
+      <div className="card max-h-[92vh] w-full max-w-[720px] overflow-y-auto rounded-[24px] p-5 shadow-[0_30px_120px_rgba(0,102,255,0.25)] sm:rounded-[28px] sm:p-6 md:p-8">
         <div className="flex items-start justify-between gap-4">
-          <h2 className="text-3xl font-bold tracking-[-0.04em]">{title}</h2>
+          <h2 className="text-2xl font-bold tracking-[-0.04em] sm:text-3xl">{title}</h2>
 
           <button
             type="button"
@@ -1284,7 +1306,7 @@ function RecommendationStrip({
     <section>
       <h2 className="text-2xl font-bold">{title}</h2>
 
-      <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-3 xl:grid-cols-5">
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-5 sm:grid-cols-2 sm:gap-5 md:grid-cols-3 xl:grid-cols-5">
         {items.map((position) => {
           const product = getProductBySlug(position.modelSlug);
           const isAdded = addedSku === position.sku;
@@ -1296,16 +1318,16 @@ function RecommendationStrip({
           return (
             <article
               key={position.sku}
-              className="card rounded-3xl p-4 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/35 hover:bg-blue-soft"
+              className="card rounded-[20px] p-3 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/35 hover:bg-blue-soft sm:rounded-3xl sm:p-4"
             >
-              <div className="soft-box flex h-[150px] items-center justify-center rounded-2xl text-sm text-muted-soft">
+              <div className="soft-box flex h-[108px] items-center justify-center rounded-2xl text-xs text-muted-soft sm:h-[150px] sm:text-sm">
                 Фото
               </div>
 
               <div className="pt-4">
                 <div className="text-sm text-muted-soft">{product.brand}</div>
 
-                <h3 className="mt-1 line-clamp-2 min-h-[40px] font-bold leading-tight">
+                <h3 className="mt-1 line-clamp-2 text-sm font-bold leading-tight sm:min-h-[40px] sm:text-base">
                   {position.title}
                 </h3>
 
@@ -1354,14 +1376,14 @@ function ProductStrip({
     <section>
       <h2 className="text-2xl font-bold">{title}</h2>
 
-      <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-3 xl:grid-cols-5">
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-5 sm:grid-cols-2 sm:gap-5 md:grid-cols-3 xl:grid-cols-5">
         {items.map((product, index) => (
           <Link
             key={`${product.slug}-${index}`}
             href={`/product/${product.slug}`}
-            className="card group rounded-3xl p-4 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/35 hover:bg-blue-soft"
+            className="card group rounded-[20px] p-3 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/35 hover:bg-blue-soft sm:rounded-3xl sm:p-4"
           >
-            <div className="soft-box flex h-[150px] items-center justify-center rounded-2xl text-sm text-muted-soft">
+            <div className="soft-box flex h-[108px] items-center justify-center rounded-2xl text-xs text-muted-soft sm:h-[150px] sm:text-sm">
               Фото
             </div>
 
@@ -1374,7 +1396,7 @@ function ProductStrip({
 
               <p className="mt-1 text-sm text-muted">{product.price}</p>
 
-              <div className="mt-4 flex items-center justify-center rounded-xl bg-blue-600 py-3 text-sm font-medium text-white transition-colors group-hover:bg-blue-500">
+              <div className="mt-3 flex items-center justify-center rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white transition-colors group-hover:bg-blue-500 sm:mt-4 sm:py-3">
                 Смотреть →
               </div>
             </div>

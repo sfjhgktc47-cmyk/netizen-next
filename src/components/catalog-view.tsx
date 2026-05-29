@@ -949,7 +949,7 @@ export function CatalogView({
           <SiteHeader />
         </div>
 
-        <section className="mt-6 sm:mt-8 lg:mt-10">
+        <section className="mt-4 sm:mt-8 lg:mt-10">
           <Link
             href="/"
             className="text-sm text-blue-500 transition-colors hover:text-blue-400"
@@ -957,7 +957,7 @@ export function CatalogView({
             ← На главную
           </Link>
 
-          <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+          <div className="mt-3 flex flex-col gap-3 sm:mt-4 sm:gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <div className="-mx-3 flex snap-x flex-nowrap items-center gap-2 overflow-x-auto px-3 pb-2 sm:mx-0 sm:flex-wrap sm:gap-3 sm:overflow-visible sm:px-0 sm:pb-0">
                 <span className="inline-flex rounded-full border border-blue-500/40 bg-blue-500/10 px-3 py-1.5 text-xs font-medium text-blue-500">
@@ -969,11 +969,11 @@ export function CatalogView({
                 ) : null}
               </div>
 
-              <h1 className="mt-3 text-3xl font-bold tracking-[-0.055em] sm:text-4xl md:text-5xl lg:text-6xl">
+              <h1 className="mt-2 text-[30px] font-bold leading-[1.02] tracking-[-0.055em] sm:mt-3 sm:text-4xl md:text-5xl lg:text-6xl">
                 {pageTitle}
               </h1>
 
-              <p className="mt-3 max-w-[760px] text-sm leading-relaxed text-muted sm:text-base">
+              <p className="mt-2 max-w-[760px] text-sm leading-relaxed text-muted sm:mt-3 sm:text-base">
                 {pageDescription}
               </p>
             </div>
@@ -982,7 +982,7 @@ export function CatalogView({
               <button
                 type="button"
                 onClick={() => setIsFilterOpen((prev) => !prev)}
-                className={`rounded-xl border px-4 py-3 text-sm font-medium transition-all duration-300 sm:px-6 sm:py-4 ${
+                className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-300 sm:px-6 sm:py-4 ${
                   isFilterOpen
                     ? "border-blue-500 bg-blue-600 text-white"
                     : "border-theme bg-transparent hover:border-blue-500/40 hover:bg-blue-soft"
@@ -1004,7 +1004,7 @@ export function CatalogView({
           </div>
         </section>
 
-        <section className="mt-5 sm:mt-8">
+        <section className="mt-4 sm:mt-8">
           <div className="-mx-3 flex snap-x flex-nowrap items-center gap-2 overflow-x-auto px-3 pb-2 sm:mx-0 sm:flex-wrap sm:gap-3 sm:overflow-visible sm:px-0 sm:pb-0">
             <Link
               href="/catalog"
@@ -1089,7 +1089,7 @@ export function CatalogView({
         )}
 
         <section
-          className="mt-6 flex flex-col gap-4 xl:flex-row xl:items-start"
+          className="mt-4 flex flex-col gap-4 sm:mt-6 xl:flex-row xl:items-start"
           id="catalog-products"
         >
           {isFilterOpen && (
@@ -1192,7 +1192,7 @@ function SortControl({
       <button
         type="button"
         onClick={onToggle}
-        className={`rounded-xl border px-4 py-3 text-sm font-medium transition-colors sm:px-6 sm:py-4 ${
+        className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors sm:px-6 sm:py-4 ${
           isOpen
             ? "border-blue-500/40 bg-blue-500/10 text-blue-500"
             : "border-theme bg-transparent hover:border-blue-500/40 hover:bg-blue-soft"
@@ -1281,14 +1281,14 @@ function ActiveFilterSummary({
   ].filter(Boolean) as string[];
 
   return (
-    <section className="mt-5 rounded-[22px] border border-blue-500/30 bg-blue-500/10 p-4 sm:mt-8 sm:rounded-[28px] sm:p-5">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <section className="mt-4 rounded-[20px] border border-blue-500/30 bg-blue-500/10 p-3 sm:mt-8 sm:rounded-[28px] sm:p-5">
+      <div className="flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <div className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-500">
             Активные фильтры
           </div>
 
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-2 flex flex-wrap gap-1.5 sm:mt-3 sm:gap-2">
             {filterTags.map((tag) => (
               <span
                 key={tag}
@@ -1299,7 +1299,7 @@ function ActiveFilterSummary({
             ))}
           </div>
 
-          <p className="mt-3 text-sm text-muted">
+          <p className="mt-2 text-sm text-muted sm:mt-3">
             {showPositionResults
               ? `Показаны позиции / SKU: ${resultCount}.`
               : `Показаны модели товаров: ${resultCount}.`}
@@ -1333,12 +1333,12 @@ function PositionGrid({
     <section>
       <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-[-0.04em] sm:text-3xl">{title}</h2>
-          <p className="mt-2 text-sm text-muted">{subtitle}</p>
+          <h2 className="text-xl font-bold tracking-[-0.04em] sm:text-3xl">{title}</h2>
+          <p className="mt-1 text-sm text-muted sm:mt-2">{subtitle}</p>
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-5 sm:gap-5 lg:grid-cols-3 2xl:grid-cols-4">
+      <div className="mt-3 grid grid-cols-2 gap-2.5 sm:mt-5 sm:gap-5 lg:grid-cols-3 2xl:grid-cols-4">
         {positions.map((position) => (
           <PositionProductCard key={position.sku} position={position} dark={dark} />
         ))}
@@ -1357,14 +1357,14 @@ function PositionProductCard({
   return (
     <Link
       href={`/product/${position.modelSlug}?sku=${encodeURIComponent(position.sku)}`}
-      className={`group block h-full rounded-[22px] border p-2.5 transition-all duration-500 hover:-translate-y-1 sm:rounded-3xl sm:p-4 ${
+      className={`group block h-full rounded-[18px] border p-2 transition-all duration-500 hover:-translate-y-1 sm:rounded-3xl sm:p-4 ${
         dark
           ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
           : "border-black/10 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)] hover:border-blue-500/35"
       }`}
     >
       <div
-        className={`flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl transition-colors duration-700 sm:aspect-[3/4] ${
+        className={`flex aspect-square w-full items-center justify-center overflow-hidden rounded-[14px] transition-colors duration-700 sm:rounded-2xl sm:aspect-[3/4] ${
           position.images?.[0] || getModelImage(position.product)
             ? "bg-white text-slate-400"
             : dark
@@ -1384,12 +1384,12 @@ function PositionProductCard({
         )}
       </div>
 
-      <div className="px-0.5 pb-0.5 pt-3 sm:px-1 sm:pb-1 sm:pt-4">
+      <div className="px-0.5 pb-0.5 pt-2 sm:px-1 sm:pb-1 sm:pt-4">
         <div className="truncate text-[11px] text-muted sm:text-xs">
           {position.brand} · {position.productName}
         </div>
 
-        <h3 className="mt-1 line-clamp-2 text-sm font-bold leading-tight sm:text-lg">
+        <h3 className="mt-1 line-clamp-2 text-[13px] font-bold leading-tight sm:text-lg">
           {position.title}
         </h3>
 
@@ -1415,7 +1415,7 @@ function PositionProductCard({
           </span>
         </div>
 
-        <div className="mt-3 flex flex-col gap-2 sm:mt-4 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
+        <div className="mt-2 flex flex-col gap-1.5 sm:mt-4 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
           <div>
             {position.oldPrice && (
               <div className="text-xs text-muted line-through">
@@ -1423,7 +1423,7 @@ function PositionProductCard({
               </div>
             )}
 
-            <p className="text-base font-bold tracking-[-0.03em] sm:text-lg">
+            <p className="text-sm font-bold tracking-[-0.03em] sm:text-lg">
               {position.price}
             </p>
           </div>
@@ -1439,7 +1439,7 @@ function PositionProductCard({
 
         <div className="mt-2 hidden text-xs text-muted-soft sm:block">Код товара: {position.sku}</div>
 
-        <div className="mt-3 w-full rounded-xl bg-blue-600 py-2.5 text-center text-xs font-medium text-white transition-all duration-300 group-hover:bg-blue-500 sm:mt-5 sm:py-3 sm:text-sm">
+        <div className="mt-2 w-full rounded-xl bg-blue-600 py-2 text-center text-xs font-medium text-white transition-all duration-300 group-hover:bg-blue-500 sm:mt-5 sm:py-3 sm:text-sm">
           Открыть товар →
         </div>
       </div>

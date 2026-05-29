@@ -138,13 +138,13 @@ export function ProductCarousel({
   }
 
   return (
-    <section className="mt-8 sm:mt-12">
-      <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+    <section className="mt-5 sm:mt-12">
+      <div className="flex flex-col gap-2 sm:gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-[-0.04em] sm:text-3xl">{title}</h2>
+          <h2 className="text-xl font-bold tracking-[-0.04em] sm:text-3xl">{title}</h2>
 
           {subtitle && (
-            <p className={`mt-2 text-sm ${mutedTextClass(dark)}`}>
+            <p className={`mt-1 text-sm sm:mt-2 ${mutedTextClass(dark)}`}>
               {subtitle}
             </p>
           )}
@@ -207,7 +207,7 @@ export function ProductCarousel({
         onPointerCancel={handlePointerUp}
         onPointerLeave={handlePointerUp}
         onClickCapture={handleClickCapture}
-        className="mt-3 cursor-grab select-none overflow-x-auto px-1 py-2 active:cursor-grabbing sm:mt-5 [&::-webkit-scrollbar]:hidden"
+        className="mt-3 cursor-grab select-none overflow-x-auto px-0.5 py-1.5 active:cursor-grabbing sm:mt-5 sm:px-1 sm:py-2 [&::-webkit-scrollbar]:hidden"
         style={{
           scrollbarWidth: "none",
           msOverflowStyle: "none",
@@ -217,7 +217,7 @@ export function ProductCarousel({
           {products.map((product) => (
             <div
               key={product.slug}
-              className="w-[164px] shrink-0 sm:w-[240px] md:w-[270px] lg:w-[280px]"
+              className="w-[148px] shrink-0 sm:w-[240px] md:w-[270px] lg:w-[280px]"
             >
               <CarouselProductCard product={product} dark={dark} />
             </div>
@@ -258,14 +258,14 @@ function CarouselProductCard({
     <Link
       href={`/product/${product.slug}`}
       draggable={false}
-      className={`group block h-full rounded-[22px] border p-2.5 transition-all duration-500 hover:-translate-y-1 sm:rounded-3xl sm:p-4 ${
+      className={`group block h-full rounded-[18px] border p-2 transition-all duration-500 hover:-translate-y-1 sm:rounded-3xl sm:p-4 ${
         dark
           ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
           : "border-black/10 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)] hover:border-blue-500/35"
       }`}
     >
       <div
-        className={`flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl transition-colors duration-700 sm:aspect-[3/4] ${
+        className={`flex aspect-square w-full items-center justify-center overflow-hidden rounded-[14px] transition-colors duration-700 sm:rounded-2xl sm:aspect-[3/4] ${
           image ? "bg-white text-slate-400" : dark ? "bg-white/[0.045] text-white/25" : "bg-slate-100 text-black/25"
         }`}
       >
@@ -282,22 +282,22 @@ function CarouselProductCard({
         )}
       </div>
 
-      <div className="px-0.5 pb-0.5 pt-3 sm:px-1 sm:pb-1 sm:pt-4">
+      <div className="px-0.5 pb-0.5 pt-2 sm:px-1 sm:pb-1 sm:pt-4">
         {product.brand && (
           <div className={`truncate text-[11px] sm:text-xs ${mutedTextClass(dark)}`}>
             {product.brand}
           </div>
         )}
 
-        <h3 className="mt-1 line-clamp-2 text-sm font-bold leading-tight sm:text-base">
+        <h3 className="mt-1 line-clamp-2 text-[13px] font-bold leading-tight sm:text-base">
           {product.name}
         </h3>
 
-        <p className={`mt-1 text-sm ${mutedTextClass(dark)}`}>
+        <p className={`mt-1 text-sm font-semibold sm:font-normal ${mutedTextClass(dark)}`}>
           {product.price}
         </p>
 
-        <div className="mt-3 flex gap-1.5 sm:mt-4 sm:gap-2">
+        <div className="mt-2 flex gap-1.5 sm:mt-4 sm:gap-2">
           {product.colors.map((color) => (
             <span
               key={color}
@@ -309,7 +309,7 @@ function CarouselProductCard({
           ))}
         </div>
 
-        <div className="mt-3 w-full rounded-xl bg-blue-600 py-2.5 text-center text-xs font-medium text-white transition-all duration-300 group-hover:bg-blue-500 sm:mt-5 sm:py-3 sm:text-sm">
+        <div className="mt-2 w-full rounded-xl bg-blue-600 py-2 text-center text-xs font-medium text-white transition-all duration-300 group-hover:bg-blue-500 sm:mt-5 sm:py-3 sm:text-sm">
           Перейти →
         </div>
       </div>
