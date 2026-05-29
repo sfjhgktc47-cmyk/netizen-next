@@ -1,12 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import {
-  useRef,
-  useState,
-  type MouseEvent,
-  type PointerEvent,
-} from "react";
+import { useRef, useState, type MouseEvent, type PointerEvent } from "react";
 
 type CarouselProduct = {
   slug: string;
@@ -138,15 +133,15 @@ export function ProductCarousel({
   }
 
   return (
-    <section className="mt-12">
+    <section className="mt-8 sm:mt-12">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-[-0.04em]">{title}</h2>
+          <h2 className="text-[28px] font-bold leading-none tracking-[-0.04em] sm:text-3xl">
+            {title}
+          </h2>
 
           {subtitle && (
-            <p className={`mt-2 text-sm ${mutedTextClass(dark)}`}>
-              {subtitle}
-            </p>
+            <p className={`mt-2 text-sm ${mutedTextClass(dark)}`}>{subtitle}</p>
           )}
         </div>
 
@@ -168,7 +163,7 @@ export function ProductCarousel({
             </Link>
           )}
 
-          <div className="flex items-center gap-2">
+          <div className="hidden items-center gap-2 sm:flex">
             <button
               type="button"
               onClick={() => scrollProducts("prev")}
@@ -207,17 +202,17 @@ export function ProductCarousel({
         onPointerCancel={handlePointerUp}
         onPointerLeave={handlePointerUp}
         onClickCapture={handleClickCapture}
-        className="mt-5 cursor-grab select-none overflow-x-auto px-1 py-2 active:cursor-grabbing [&::-webkit-scrollbar]:hidden"
+        className="mt-4 cursor-grab select-none overflow-x-auto px-1 py-2 active:cursor-grabbing sm:mt-5 [&::-webkit-scrollbar]:hidden"
         style={{
           scrollbarWidth: "none",
           msOverflowStyle: "none",
         }}
       >
-        <div className="flex gap-5">
+        <div className="flex gap-3 sm:gap-5">
           {products.map((product) => (
             <div
               key={product.slug}
-              className="w-[250px] shrink-0 sm:w-[270px] lg:w-[280px]"
+              className="w-[calc((100vw-44px)/2)] min-w-[150px] shrink-0 sm:w-[270px] lg:w-[280px]"
             >
               <CarouselProductCard product={product} dark={dark} />
             </div>
@@ -258,7 +253,7 @@ function CarouselProductCard({
     <Link
       href={`/product/${product.slug}`}
       draggable={false}
-      className={`group block h-full rounded-3xl border p-4 transition-all duration-500 hover:-translate-y-1 ${
+      className={`group block h-full rounded-[24px] border p-2.5 transition-all duration-500 hover:-translate-y-1 sm:rounded-3xl sm:p-4 ${
         dark
           ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
           : "border-black/10 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)] hover:border-blue-500/35"
@@ -266,7 +261,11 @@ function CarouselProductCard({
     >
       <div
         className={`flex aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-2xl transition-colors duration-700 ${
-          image ? "bg-white text-slate-400" : dark ? "bg-white/[0.045] text-white/25" : "bg-slate-100 text-black/25"
+          image
+            ? "bg-white text-slate-400"
+            : dark
+              ? "bg-white/[0.045] text-white/25"
+              : "bg-slate-100 text-black/25"
         }`}
       >
         {image ? (
@@ -275,21 +274,21 @@ function CarouselProductCard({
             src={image}
             alt={product.name}
             draggable={false}
-            className="h-full w-full object-contain p-3 transition-transform duration-700 group-hover:scale-105"
+            className="h-full w-full object-contain p-2 transition-transform duration-700 group-hover:scale-105 sm:p-3"
           />
         ) : (
           "Фото товара"
         )}
       </div>
 
-      <div className="px-1 pb-1 pt-4">
+      <div className="px-1 pb-1 pt-3 sm:pt-4">
         {product.brand && (
           <div className={`text-xs ${mutedTextClass(dark)}`}>
             {product.brand}
           </div>
         )}
 
-        <h3 className="mt-1 text-base font-bold leading-tight">
+        <h3 className="mt-1 line-clamp-2 text-sm font-bold leading-tight sm:text-base">
           {product.name}
         </h3>
 
@@ -309,7 +308,7 @@ function CarouselProductCard({
           ))}
         </div>
 
-        <div className="mt-5 w-full rounded-xl bg-blue-600 py-3 text-center text-sm font-medium text-white transition-all duration-300 group-hover:bg-blue-500">
+        <div className="mt-3 w-full rounded-2xl bg-blue-600 py-3 text-center text-xs font-bold text-white transition-all duration-300 group-hover:bg-blue-500 sm:mt-5 sm:rounded-xl sm:text-sm sm:font-medium">
           Перейти →
         </div>
       </div>

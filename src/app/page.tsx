@@ -117,16 +117,89 @@ type HomePayload = {
 };
 
 const defaultHomePageBlocks: HomePageBlock[] = [
-  { id: "hero", pageKey: "home", type: "hero", title: "Hero", description: "", enabled: true, sortOrder: 10, settings: {} },
-  { id: "benefits", pageKey: "home", type: "benefits", title: "Преимущества", description: "", enabled: true, sortOrder: 20, settings: {} },
-  { id: "categories", pageKey: "home", type: "category-grid", title: "Категории", description: "", enabled: true, sortOrder: 30, settings: { title: "Выберите категорию", subtitle: "Выберите направление и найдите свой идеальный гаджет", limit: 12, showButton: true, buttonText: "Смотреть все категории →", buttonHref: "/catalog" } },
-  { id: "popular-products", pageKey: "home", type: "popular-products", title: "Популярные товары", description: "", enabled: true, sortOrder: 40, settings: { title: "Популярные товары", subtitle: "Выберите модель — конфигурацию подберёте на странице товара.", limit: 12, showButton: true, buttonText: "Смотреть все товары →", buttonHref: "/catalog?popular=1" } },
-  { id: "new-arrivals", pageKey: "home", type: "new-arrivals", title: "Новинки", description: "", enabled: true, sortOrder: 50, settings: { title: "Новинки", subtitle: "Техника, которая только появилась", limit: 3 } },
-  { id: "support", pageKey: "home", type: "support", title: "Поддержка", description: "", enabled: true, sortOrder: 60, settings: {} },
+  {
+    id: "hero",
+    pageKey: "home",
+    type: "hero",
+    title: "Hero",
+    description: "",
+    enabled: true,
+    sortOrder: 10,
+    settings: {},
+  },
+  {
+    id: "benefits",
+    pageKey: "home",
+    type: "benefits",
+    title: "Преимущества",
+    description: "",
+    enabled: true,
+    sortOrder: 20,
+    settings: {},
+  },
+  {
+    id: "categories",
+    pageKey: "home",
+    type: "category-grid",
+    title: "Категории",
+    description: "",
+    enabled: true,
+    sortOrder: 30,
+    settings: {
+      title: "Выберите категорию",
+      subtitle: "Выберите направление и найдите свой идеальный гаджет",
+      limit: 12,
+      showButton: true,
+      buttonText: "Смотреть все категории →",
+      buttonHref: "/catalog",
+    },
+  },
+  {
+    id: "popular-products",
+    pageKey: "home",
+    type: "popular-products",
+    title: "Популярные товары",
+    description: "",
+    enabled: true,
+    sortOrder: 40,
+    settings: {
+      title: "Популярные товары",
+      subtitle: "Выберите модель — конфигурацию подберёте на странице товара.",
+      limit: 12,
+      showButton: true,
+      buttonText: "Смотреть все товары →",
+      buttonHref: "/catalog?popular=1",
+    },
+  },
+  {
+    id: "new-arrivals",
+    pageKey: "home",
+    type: "new-arrivals",
+    title: "Новинки",
+    description: "",
+    enabled: true,
+    sortOrder: 50,
+    settings: {
+      title: "Новинки",
+      subtitle: "Техника, которая только появилась",
+      limit: 3,
+    },
+  },
+  {
+    id: "support",
+    pageKey: "home",
+    type: "support",
+    title: "Поддержка",
+    description: "",
+    enabled: true,
+    sortOrder: 60,
+    settings: {},
+  },
 ];
 
 function getProductImage(product: HomeProduct) {
-  const mainImage = typeof product.image === "string" ? product.image.trim() : "";
+  const mainImage =
+    typeof product.image === "string" ? product.image.trim() : "";
 
   if (mainImage) {
     return mainImage;
@@ -143,7 +216,6 @@ function isConfiguredProduct(product: HomeProduct) {
   return product.slug !== "catalog" && Boolean(getProductImage(product));
 }
 
-
 export default function Home() {
   const { dark } = useTheme();
   const [categories, setCategories] = useState<HomeCategory[]>([]);
@@ -152,7 +224,9 @@ export default function Home() {
   const [homeBlocks, setHomeBlocks] = useState<HomePageBlock[]>([]);
   const [banners, setBanners] = useState<HomeBanner[]>([]);
   const [benefits, setBenefits] = useState<HomeBenefit[]>([]);
-  const [siteSettings, setSiteSettings] = useState<PublicSiteSettings | null>(null);
+  const [siteSettings, setSiteSettings] = useState<PublicSiteSettings | null>(
+    null,
+  );
 
   useEffect(() => {
     let mounted = true;
@@ -162,7 +236,9 @@ export default function Home() {
       .then((payload: HomePayload) => {
         if (!mounted) return;
 
-        const allProducts = Array.isArray(payload.products) ? payload.products : [];
+        const allProducts = Array.isArray(payload.products)
+          ? payload.products
+          : [];
         const dbPopularProducts = Array.isArray(payload.popularProducts)
           ? payload.popularProducts
           : allProducts;
@@ -170,16 +246,20 @@ export default function Home() {
           ? payload.newArrivals
           : allProducts.filter((product) => product.isNew);
 
-        setCategories(Array.isArray(payload.categories) ? payload.categories : []);
+        setCategories(
+          Array.isArray(payload.categories) ? payload.categories : [],
+        );
         setSiteSettings(payload.siteSettings ?? null);
-        setHomeBlocks(Array.isArray(payload.pageBlocks) ? payload.pageBlocks : []);
+        setHomeBlocks(
+          Array.isArray(payload.pageBlocks) ? payload.pageBlocks : [],
+        );
         setBanners(Array.isArray(payload.banners) ? payload.banners : []);
         setBenefits(Array.isArray(payload.benefits) ? payload.benefits : []);
         setPopularProducts(dbPopularProducts.filter(isConfiguredProduct));
         setNewArrivals(
           dbNewArrivals
             .filter((product) => product.slug !== "catalog")
-            .slice(0, 3)
+            .slice(0, 3),
         );
       })
       .catch(() => {
@@ -200,7 +280,9 @@ export default function Home() {
   }, []);
 
   const visibleCategories = categories;
-  const visibleHomeBlocks = homeBlocks
+  const visibleHomeBlocks = (
+    homeBlocks.length ? homeBlocks : defaultHomePageBlocks
+  )
     .filter((block) => block.enabled)
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
@@ -212,7 +294,7 @@ export default function Home() {
           : "min-h-screen bg-[#f6f8fb] text-[#0b1220] transition-colors duration-700 ease-in-out"
       }
     >
-      <div className="mx-auto max-w-[1440px] px-6 py-6">
+      <div className="mx-auto max-w-[1440px] px-3 py-3 sm:px-6 sm:py-6">
         <SiteHeader />
 
         {visibleHomeBlocks.map((block) => (
@@ -233,7 +315,6 @@ export default function Home() {
     </main>
   );
 }
-
 
 function HomeModule({
   block,
@@ -259,24 +340,14 @@ function HomeModule({
   const limit = getBlockNumber(settings, "limit", 12);
 
   if (type === "hero") {
-    const bannerId = getBlockText(settings, "bannerId", "");
-    const placement = getBlockText(settings, "placement", "");
-    const selectedBanner = selectHomeBanner(banners, bannerId, placement);
-
-    if (!selectedBanner) return null;
-
-    return <Hero dark={dark} banner={selectedBanner} />;
+    return <Hero dark={dark} banners={banners} />;
   }
 
   if (type === "benefits") {
-    const visibleBenefits = benefits.slice(0, getBlockNumber(settings, "limit", 6));
-
-    if (visibleBenefits.length === 0) return null;
-
     return (
       <Benefits
         dark={dark}
-        benefits={visibleBenefits}
+        benefits={benefits.slice(0, getBlockNumber(settings, "limit", 6))}
         title={getBlockText(settings, "title", "Преимущества")}
         subtitle={getBlockText(settings, "subtitle", "Почему выбирают Netizen")}
       />
@@ -289,8 +360,16 @@ function HomeModule({
         dark={dark}
         categories={categories.slice(0, limit)}
         title={getBlockText(settings, "title", "Выберите категорию")}
-        subtitle={getBlockText(settings, "subtitle", "Выберите направление и найдите свой идеальный гаджет")}
-        buttonText={getBlockText(settings, "buttonText", "Смотреть все категории →")}
+        subtitle={getBlockText(
+          settings,
+          "subtitle",
+          "Выберите направление и найдите свой идеальный гаджет",
+        )}
+        buttonText={getBlockText(
+          settings,
+          "buttonText",
+          "Смотреть все категории →",
+        )}
         buttonHref={getBlockText(settings, "buttonHref", "/catalog")}
         showButton={getBlockBoolean(settings, "showButton", true)}
       />
@@ -303,8 +382,16 @@ function HomeModule({
         dark={dark}
         products={popularProducts.slice(0, limit)}
         title={getBlockText(settings, "title", "Популярные товары")}
-        subtitle={getBlockText(settings, "subtitle", "Выберите модель — конфигурацию подберёте на странице товара.")}
-        buttonText={getBlockText(settings, "buttonText", "Смотреть все товары →")}
+        subtitle={getBlockText(
+          settings,
+          "subtitle",
+          "Выберите модель — конфигурацию подберёте на странице товара.",
+        )}
+        buttonText={getBlockText(
+          settings,
+          "buttonText",
+          "Смотреть все товары →",
+        )}
         buttonHref={getBlockText(settings, "buttonHref", "/catalog?popular=1")}
         showButton={getBlockBoolean(settings, "showButton", true)}
       />
@@ -313,7 +400,12 @@ function HomeModule({
 
   if (type === "product-carousel") {
     const filter = getBlockText(settings, "filter", "all");
-    const source = filter === "popular" ? popularProducts : filter === "new" ? newArrivals : allProducts;
+    const source =
+      filter === "popular"
+        ? popularProducts
+        : filter === "new"
+          ? newArrivals
+          : allProducts;
 
     return (
       <PopularProducts
@@ -334,7 +426,11 @@ function HomeModule({
         dark={dark}
         products={newArrivals.slice(0, getBlockNumber(settings, "limit", 3))}
         title={getBlockText(settings, "title", "Новинки")}
-        subtitle={getBlockText(settings, "subtitle", "Техника, которая только появилась")}
+        subtitle={getBlockText(
+          settings,
+          "subtitle",
+          "Техника, которая только появилась",
+        )}
       />
     );
   }
@@ -344,9 +440,14 @@ function HomeModule({
     const placement = getBlockText(settings, "placement", "home");
     const selectedBanner = bannerId
       ? banners.find((banner) => banner.id === bannerId)
-      : banners.find((banner) => banner.placement === placement || banner.placement === "home") ?? banners[0];
+      : (banners.find(
+          (banner) =>
+            banner.placement === placement || banner.placement === "home",
+        ) ?? banners[0]);
 
-    return <PromoBanner dark={dark} settings={settings} banner={selectedBanner} />;
+    return (
+      <PromoBanner dark={dark} settings={settings} banner={selectedBanner} />
+    );
   }
 
   if (type === "text-image") {
@@ -360,7 +461,11 @@ function HomeModule({
   return null;
 }
 
-function getBlockText(settings: Record<string, string | number | boolean | null>, key: string, fallback: string) {
+function getBlockText(
+  settings: Record<string, string | number | boolean | null>,
+  key: string,
+  fallback: string,
+) {
   const value = settings[key];
 
   if (typeof value === "string") {
@@ -374,7 +479,11 @@ function getBlockText(settings: Record<string, string | number | boolean | null>
   return fallback;
 }
 
-function getBlockNumber(settings: Record<string, string | number | boolean | null>, key: string, fallback: number) {
+function getBlockNumber(
+  settings: Record<string, string | number | boolean | null>,
+  key: string,
+  fallback: number,
+) {
   const value = settings[key];
 
   if (typeof value === "number" && Number.isFinite(value)) {
@@ -389,33 +498,13 @@ function getBlockNumber(settings: Record<string, string | number | boolean | nul
   return fallback;
 }
 
-function getBlockBoolean(settings: Record<string, string | number | boolean | null>, key: string, fallback: boolean) {
+function getBlockBoolean(
+  settings: Record<string, string | number | boolean | null>,
+  key: string,
+  fallback: boolean,
+) {
   const value = settings[key];
   return typeof value === "boolean" ? value : fallback;
-}
-
-
-function selectHomeBanner(banners: HomeBanner[], bannerId = "", placement = "") {
-  const activeBanners = banners.filter((banner) => banner.enabled);
-
-  if (bannerId) {
-    const byId = activeBanners.find((banner) => banner.id === bannerId);
-    if (byId) return byId;
-  }
-
-  const placements = [placement, "home", "hero", "main", "manual"]
-    .map((item) => item.trim())
-    .filter(Boolean);
-
-  for (const currentPlacement of placements) {
-    const byPlacement = activeBanners.find(
-      (banner) => banner.placement === currentPlacement
-    );
-
-    if (byPlacement) return byPlacement;
-  }
-
-  return activeBanners[0] ?? null;
 }
 
 function panelClass(dark: boolean) {
@@ -428,69 +517,181 @@ function mutedTextClass(dark: boolean) {
   return dark ? "text-white/55" : "text-black/55";
 }
 
-function Hero({ dark, banner }: { dark: boolean; banner: HomeBanner }) {
-  const image = dark
+function getBannerImage(banner: HomeBanner, dark: boolean) {
+  const desktopImage = dark
     ? banner.imageDark || banner.imageLight || banner.imageMobile
     : banner.imageLight || banner.imageDark || banner.imageMobile;
-  const title = banner.title || banner.adminTitle;
-  const text = banner.subtitle || banner.description;
-  const buttonText = banner.buttonText || "Подробнее";
-  const buttonHref = banner.buttonHref || "/catalog";
+  const mobileImage = banner.imageMobile || desktopImage;
+
+  return { desktopImage, mobileImage };
+}
+
+function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
+  const slides = banners
+    .filter((banner) => banner.enabled)
+    .sort((a, b) => a.sortOrder - b.sortOrder);
+
+  const [activeSlide, setActiveSlide] = useState(0);
+  const [dragStartX, setDragStartX] = useState<number | null>(null);
+  const [isHeroHovered, setIsHeroHovered] = useState(false);
+
+  useEffect(() => {
+    setActiveSlide(0);
+  }, [slides.length]);
+
+  useEffect(() => {
+    if (slides.length <= 1 || isHeroHovered) return;
+
+    const interval = window.setInterval(() => {
+      setActiveSlide((current) => (current + 1) % slides.length);
+    }, 5000);
+
+    return () => window.clearInterval(interval);
+  }, [slides.length, isHeroHovered]);
+
+  if (slides.length === 0) {
+    return null;
+  }
+
+  const slide = slides[Math.min(activeSlide, slides.length - 1)];
+  const { desktopImage, mobileImage } = getBannerImage(slide, dark);
+  const hasImage = Boolean(desktopImage || mobileImage);
+  const title = slide.title || slide.adminTitle;
+  const text = slide.subtitle || slide.description;
+  const primaryLabel = slide.buttonText || "Подробнее";
+  const primaryHref = slide.buttonHref || "/catalog";
+
+  function goToNextSlide() {
+    setActiveSlide((current) => (current + 1) % slides.length);
+  }
+
+  function goToPrevSlide() {
+    setActiveSlide((current) =>
+      current === 0 ? slides.length - 1 : current - 1,
+    );
+  }
+
+  function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
+    setDragStartX(event.clientX);
+  }
+
+  function handlePointerUp(event: PointerEvent<HTMLDivElement>) {
+    if (dragStartX === null) return;
+
+    const distance = dragStartX - event.clientX;
+    const swipeThreshold = 44;
+
+    if (Math.abs(distance) > swipeThreshold) {
+      if (distance > 0) {
+        goToNextSlide();
+      } else {
+        goToPrevSlide();
+      }
+    }
+
+    setDragStartX(null);
+  }
 
   return (
-    <section className="relative mt-6 overflow-hidden rounded-[34px]">
+    <section className="relative mt-4 overflow-hidden rounded-[28px] sm:mt-6 sm:rounded-[34px]">
       <div
-        className={`relative min-h-[560px] overflow-hidden rounded-[34px] transition-all duration-700 ${
-          dark ? "bg-[#020814]" : "bg-white"
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerLeave={() => {
+          setDragStartX(null);
+          setIsHeroHovered(false);
+        }}
+        onMouseEnter={() => setIsHeroHovered(true)}
+        onMouseLeave={() => setIsHeroHovered(false)}
+        className={`relative min-h-[390px] cursor-grab select-none overflow-hidden rounded-[28px] border transition-all duration-700 active:cursor-grabbing sm:min-h-[500px] sm:rounded-[34px] lg:h-[560px] ${
+          dark
+            ? "border-white/10 bg-[#0b111d] shadow-[0_24px_90px_rgba(0,60,255,0.10)]"
+            : "border-black/5 bg-white shadow-[0_24px_90px_rgba(15,23,42,0.08)]"
         }`}
       >
-        {image ? (
-          <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-all duration-700"
-            style={{
-              backgroundImage: `url(${image})`,
-            }}
-          />
+        {hasImage ? (
+          <picture>
+            <source
+              media="(max-width: 640px)"
+              srcSet={mobileImage || desktopImage}
+            />
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={desktopImage || mobileImage}
+              alt={title}
+              draggable={false}
+              className="absolute inset-0 h-full w-full object-cover object-center transition-transform duration-700"
+            />
+          </picture>
         ) : null}
 
         <div
           className={`absolute inset-0 transition-all duration-700 ${
             dark
-              ? "bg-gradient-to-r from-[#020814]/95 via-[#020814]/55 to-[#020814]/5"
-              : "bg-gradient-to-r from-white/95 via-white/55 to-white/5"
+              ? "bg-gradient-to-b from-[#020814]/80 via-[#020814]/55 to-[#020814]/95 sm:bg-gradient-to-r sm:from-[#020814]/95 sm:via-[#020814]/62 sm:to-[#020814]/12"
+              : "bg-gradient-to-b from-white/85 via-white/55 to-white sm:bg-gradient-to-r sm:from-white/95 sm:via-white/62 sm:to-white/12"
           }`}
         />
 
-        <div className="relative z-10 flex min-h-[560px] items-center px-8 py-12 sm:px-12 lg:px-16">
+        <div className="relative z-10 flex min-h-[390px] items-start px-5 py-8 sm:min-h-[500px] sm:items-center sm:px-12 sm:py-12 lg:h-full lg:px-16">
           <div className="max-w-[650px]">
-            {banner.label ? (
-              <div className="mb-7 inline-flex rounded-full border border-blue-500/50 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-500">
-                {banner.label}
+            {slide.label ? (
+              <div className="mb-5 inline-flex rounded-full border border-blue-500/50 bg-blue-500/10 px-4 py-2 text-xs font-semibold text-blue-500 sm:mb-7 sm:text-sm">
+                {slide.label}
               </div>
             ) : null}
 
-            <h1 className="max-w-[620px] text-[42px] font-bold leading-[1.12] tracking-[-0.055em] sm:text-[54px] lg:text-[64px]">
+            <h1 className="max-w-[620px] text-[34px] font-bold leading-[1.02] tracking-[-0.06em] sm:text-[54px] lg:text-[64px]">
               {title}
             </h1>
 
             {text ? (
               <p
-                className={`mt-6 max-w-[470px] text-base leading-relaxed lg:text-lg ${mutedTextClass(
-                  dark
-                )}`}
+                className={`mt-4 max-w-[470px] text-sm leading-relaxed sm:mt-6 sm:text-base lg:text-lg ${mutedTextClass(dark)}`}
               >
                 {text}
               </p>
             ) : null}
 
-            <div className="mt-8 flex flex-wrap gap-4">
+            <div className="mt-6 flex flex-wrap gap-3 sm:mt-8 sm:gap-4">
               <Link
-                href={buttonHref}
-                className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-7 py-4 text-sm font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500"
+                href={primaryHref}
+                className="inline-flex min-h-12 items-center justify-center rounded-2xl bg-blue-600 px-6 text-sm font-bold text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500 sm:rounded-xl sm:px-7 sm:py-4 sm:font-medium"
               >
-                {buttonText} →
+                {primaryLabel} →
+              </Link>
+
+              <Link
+                href="/catalog"
+                className={`inline-flex min-h-12 items-center justify-center rounded-2xl border px-6 text-sm font-bold transition-all duration-300 hover:-translate-y-0.5 sm:rounded-xl sm:px-7 sm:py-4 sm:font-medium ${
+                  dark
+                    ? "border-white/10 bg-white/[0.06] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
+                    : "border-black/10 bg-white text-black hover:border-blue-500/40 hover:bg-blue-50"
+                }`}
+              >
+                Каталог →
               </Link>
             </div>
+
+            {slides.length > 1 ? (
+              <div className="mt-6 flex items-center gap-2 sm:mt-8">
+                {slides.map((item, index) => {
+                  const isActive = activeSlide === index;
+
+                  return (
+                    <button
+                      key={item.id}
+                      type="button"
+                      onClick={() => setActiveSlide(index)}
+                      aria-label={`Открыть баннер ${index + 1}`}
+                      className={`rounded-full bg-blue-600 transition-all duration-300 ${
+                        isActive ? "h-1.5 w-10" : "h-1.5 w-1.5"
+                      }`}
+                    />
+                  );
+                })}
+              </div>
+            ) : null}
           </div>
         </div>
       </div>
@@ -509,27 +710,37 @@ function Benefits({
   title?: string;
   subtitle?: string;
 }) {
-  const items = benefits;
+  const items = benefits.filter((item) => item.enabled);
 
-  if (items.length === 0) return null;
+  if (items.length === 0) {
+    return null;
+  }
 
   return (
-    <section className={`mt-10 rounded-2xl border p-6 transition-all duration-700 ${panelClass(dark)}`}>
+    <section
+      className={`mt-5 rounded-[28px] border p-5 transition-all duration-700 sm:mt-10 sm:rounded-2xl sm:p-6 ${panelClass(dark)}`}
+    >
       <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-[-0.04em]">{title}</h2>
+          <h2 className="text-2xl font-bold tracking-[-0.04em] sm:text-3xl">
+            {title}
+          </h2>
           <p className={`mt-2 text-sm ${mutedTextClass(dark)}`}>{subtitle}</p>
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-1 gap-4 md:grid-cols-5">
+      <div className="mobile-scrollbar-none -mx-2 mt-5 flex gap-3 overflow-x-auto px-2 pb-1 md:mx-0 md:grid md:grid-cols-5 md:gap-4 md:overflow-visible md:px-0 md:pb-0">
         {items.map((item) => {
           const card = (
-            <div className="flex gap-4">
+            <div className="flex min-w-[240px] gap-4 rounded-2xl md:min-w-0">
               <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full border border-blue-500/30 text-blue-500">
                 {item.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.image} alt="" className="h-full w-full object-cover" />
+                  <img
+                    src={item.image}
+                    alt=""
+                    className="h-full w-full object-cover"
+                  />
                 ) : (
                   item.icon || "✓"
                 )}
@@ -545,7 +756,11 @@ function Benefits({
           );
 
           return item.href ? (
-            <Link key={item.id} href={item.href} className="rounded-xl transition-opacity hover:opacity-80">
+            <Link
+              key={item.id}
+              href={item.href}
+              className="rounded-xl transition-opacity hover:opacity-80"
+            >
               {card}
             </Link>
           ) : (
@@ -575,20 +790,18 @@ function Categories({
   showButton?: boolean;
 }) {
   return (
-    <section className="py-20">
+    <section className="py-10 sm:py-20">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
-          <h2 className="text-4xl font-bold tracking-[-0.04em]">
+          <h2 className="text-[30px] font-bold leading-none tracking-[-0.04em] sm:text-4xl">
             {title}
           </h2>
 
-          <p className={`mt-3 ${mutedTextClass(dark)}`}>
-            {subtitle}
-          </p>
+          <p className={`mt-3 ${mutedTextClass(dark)}`}>{subtitle}</p>
         </div>
       </div>
 
-      <div className="mt-8 grid grid-cols-1 auto-rows-fr gap-5 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 auto-rows-fr gap-3 sm:mt-8 sm:gap-5 lg:grid-cols-4">
         {categories.map((category) => {
           const image = category.image?.trim() ?? "";
 
@@ -596,7 +809,7 @@ function Categories({
             <Link
               key={category.id || category.slug}
               href={category.href || `/catalog/${category.slug}`}
-              className={`group relative h-[160px] overflow-hidden rounded-2xl border p-5 transition-all duration-500 hover:-translate-y-1 ${
+              className={`group relative h-[136px] overflow-hidden rounded-[24px] border p-4 transition-all duration-500 hover:-translate-y-1 sm:h-[160px] sm:rounded-2xl sm:p-5 ${
                 dark
                   ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
                   : "border-black/10 bg-white shadow-[0_20px_70px_rgba(15,23,42,0.08)] hover:border-blue-500/35 hover:shadow-[0_28px_90px_rgba(15,23,42,0.12)]"
@@ -610,7 +823,7 @@ function Categories({
 
                   <p
                     className={`mt-2 line-clamp-2 text-xs leading-relaxed ${mutedTextClass(
-                      dark
+                      dark,
                     )}`}
                   >
                     {category.description}
@@ -628,7 +841,7 @@ function Categories({
                 </div>
               </div>
 
-              <div className="absolute right-5 top-1/2 flex h-[92px] w-[92px] -translate-y-1/2 items-center justify-center overflow-hidden rounded-2xl">
+              <div className="absolute right-3 top-1/2 flex h-[72px] w-[72px] -translate-y-1/2 items-center justify-center overflow-hidden rounded-2xl sm:right-5 sm:h-[92px] sm:w-[92px]">
                 {image ? (
                   <div
                     className="h-full w-full bg-contain bg-center bg-no-repeat opacity-95 transition-transform duration-500 group-hover:scale-105"
@@ -661,7 +874,7 @@ function Categories({
         <div className="mt-8 flex justify-center">
           <Link
             href={buttonHref}
-            className={`min-w-[280px] rounded-xl border px-10 py-4 text-center text-sm font-medium transition-all duration-500 hover:-translate-y-0.5 ${
+            className={`w-full rounded-2xl border px-8 py-4 text-center text-sm font-bold transition-all duration-500 hover:-translate-y-0.5 sm:w-auto sm:min-w-[280px] sm:rounded-xl sm:px-10 sm:font-medium ${
               dark
                 ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
                 : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
@@ -775,14 +988,15 @@ function PopularProducts({
 
   if (products.length === 0) {
     return (
-      <section className="pb-20">
+      <section className="pb-12 sm:pb-20">
         <div>
-          <h2 className="text-[42px] font-bold leading-none tracking-[-0.04em] lg:text-[52px]">
+          <h2 className="text-[32px] font-bold leading-none tracking-[-0.04em] sm:text-[42px] lg:text-[52px]">
             {title}
           </h2>
 
           <p className={`mt-3 text-base ${mutedTextClass(dark)}`}>
-            {subtitle || "Добавьте реальные товары в БД и загрузите фото, чтобы они появились на главной."}
+            {subtitle ||
+              "Добавьте реальные товары в БД и загрузите фото, чтобы они появились на главной."}
           </p>
         </div>
 
@@ -800,19 +1014,17 @@ function PopularProducts({
   }
 
   return (
-    <section className="pb-20">
+    <section className="pb-12 sm:pb-20">
       <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div>
-          <h2 className="text-[42px] font-bold leading-none tracking-[-0.04em] lg:text-[52px]">
+          <h2 className="text-[32px] font-bold leading-none tracking-[-0.04em] sm:text-[42px] lg:text-[52px]">
             {title}
           </h2>
 
-          <p className={`mt-3 text-base ${mutedTextClass(dark)}`}>
-            {subtitle}
-          </p>
+          <p className={`mt-3 text-base ${mutedTextClass(dark)}`}>{subtitle}</p>
         </div>
 
-        <div className="flex items-center gap-3">
+        <div className="hidden items-center gap-3 sm:flex">
           <button
             type="button"
             onClick={() => scrollProducts("prev")}
@@ -850,17 +1062,17 @@ function PopularProducts({
         onPointerCancel={handleProductsPointerUp}
         onPointerLeave={handleProductsPointerUp}
         onClickCapture={handleProductsClickCapture}
-        className="mt-8 cursor-grab select-none overflow-x-auto px-1 py-2 active:cursor-grabbing [&::-webkit-scrollbar]:hidden"
+        className="mt-5 cursor-grab select-none overflow-x-auto px-1 py-2 active:cursor-grabbing sm:mt-8 [&::-webkit-scrollbar]:hidden"
         style={{
           scrollbarWidth: "none",
           msOverflowStyle: "none",
         }}
       >
-        <div className="flex gap-6">
+        <div className="flex gap-3 sm:gap-6">
           {products.map((product) => (
             <div
               key={product.slug}
-              className="w-[280px] shrink-0 sm:w-[300px] lg:w-[310px]"
+              className="w-[calc((100vw-44px)/2)] min-w-[150px] shrink-0 sm:w-[300px] lg:w-[310px]"
             >
               <ProductCard product={product} dark={dark} />
             </div>
@@ -887,7 +1099,7 @@ function PopularProducts({
         <div className="mt-8 flex justify-center">
           <Link
             href={buttonHref}
-            className={`min-w-[320px] rounded-xl border px-10 py-4 text-center text-sm font-medium transition-all duration-500 hover:-translate-y-0.5 ${
+            className={`w-full rounded-2xl border px-8 py-4 text-center text-sm font-bold transition-all duration-500 hover:-translate-y-0.5 sm:w-auto sm:min-w-[320px] sm:rounded-xl sm:px-10 sm:font-medium ${
               dark
                 ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
                 : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
@@ -909,20 +1121,21 @@ function ProductCard({
   dark: boolean;
 }) {
   const image = getProductImage(product);
-  const href = product.slug === "catalog" ? "/catalog" : `/product/${product.slug}`;
+  const href =
+    product.slug === "catalog" ? "/catalog" : `/product/${product.slug}`;
 
   return (
     <Link
       href={href}
       draggable={false}
-      className={`group block h-full rounded-3xl border p-4 transition-all duration-500 hover:-translate-y-1 ${
+      className={`group block h-full rounded-[24px] border p-2.5 transition-all duration-500 hover:-translate-y-1 sm:rounded-3xl sm:p-4 ${
         dark
           ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
           : "border-black/10 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)] hover:border-blue-500/35"
       }`}
     >
       <div
-        className={`flex h-[230px] items-center justify-center overflow-hidden rounded-2xl transition-colors duration-700 ${
+        className={`flex aspect-square h-auto items-center justify-center overflow-hidden rounded-[18px] transition-colors duration-700 sm:h-[230px] sm:rounded-2xl ${
           image
             ? "bg-white"
             : dark
@@ -943,12 +1156,16 @@ function ProductCard({
         )}
       </div>
 
-      <div className="px-1 pb-1 pt-4">
+      <div className="px-1 pb-1 pt-3 sm:pt-4">
         {product.brand ? (
-          <p className={`mb-1 text-xs ${mutedTextClass(dark)}`}>{product.brand}</p>
+          <p className={`mb-1 text-xs ${mutedTextClass(dark)}`}>
+            {product.brand}
+          </p>
         ) : null}
 
-        <h3 className="text-lg font-bold leading-tight">{product.name}</h3>
+        <h3 className="line-clamp-2 text-sm font-bold leading-tight sm:text-lg">
+          {product.name}
+        </h3>
 
         <p className={`mt-1 text-sm ${mutedTextClass(dark)}`}>
           {product.price}
@@ -966,7 +1183,7 @@ function ProductCard({
           ))}
         </div>
 
-        <div className="mt-5 w-full rounded-xl bg-blue-600 py-3.5 text-center text-sm font-medium text-white transition-all duration-300 group-hover:bg-blue-500">
+        <div className="mt-3 w-full rounded-2xl bg-blue-600 py-3 text-center text-xs font-bold text-white transition-all duration-300 group-hover:bg-blue-500 sm:mt-5 sm:rounded-xl sm:py-3.5 sm:text-sm sm:font-medium">
           Перейти →
         </div>
       </div>
@@ -992,14 +1209,12 @@ function NewArrivals({
 
   if (!mainItem) {
     return (
-      <section className="pb-20">
+      <section className="pb-12 sm:pb-20">
         <div className="mb-8">
-          <h2 className="text-[42px] font-bold leading-none tracking-[-0.04em] lg:text-[52px]">
+          <h2 className="text-[32px] font-bold leading-none tracking-[-0.04em] sm:text-[42px] lg:text-[52px]">
             {title}
           </h2>
-          <p className={`mt-3 text-base ${mutedTextClass(dark)}`}>
-            {subtitle}
-          </p>
+          <p className={`mt-3 text-base ${mutedTextClass(dark)}`}>{subtitle}</p>
         </div>
 
         <div
@@ -1017,15 +1232,13 @@ function NewArrivals({
   }
 
   return (
-    <section className="pb-20">
+    <section className="pb-12 sm:pb-20">
       <div className="mb-8">
-        <h2 className="text-[42px] font-bold leading-none tracking-[-0.04em] lg:text-[52px]">
+        <h2 className="text-[32px] font-bold leading-none tracking-[-0.04em] sm:text-[42px] lg:text-[52px]">
           {title}
         </h2>
 
-        <p className={`mt-3 text-base ${mutedTextClass(dark)}`}>
-          {subtitle}
-        </p>
+        <p className={`mt-3 text-base ${mutedTextClass(dark)}`}>{subtitle}</p>
       </div>
 
       <div className="grid gap-4">
@@ -1034,7 +1247,11 @@ function NewArrivals({
         {secondaryItems.length > 0 ? (
           <div className="grid gap-4 lg:grid-cols-2">
             {secondaryItems.map((item) => (
-              <NewArrivalCard key={`${item.slug}-${item.name}`} item={item} dark={dark} />
+              <NewArrivalCard
+                key={`${item.slug}-${item.name}`}
+                item={item}
+                dark={dark}
+              />
             ))}
           </div>
         ) : null}
@@ -1071,7 +1288,9 @@ function NewArrivalCard({
           : "border-black/10 bg-white shadow-[0_24px_90px_rgba(15,23,42,0.08)] hover:border-blue-500/35"
       }`}
     >
-      <div className={`${featured ? "p-8 lg:p-10" : "p-7 lg:p-8"} relative z-10 flex flex-col items-start justify-center`}>
+      <div
+        className={`${featured ? "p-8 lg:p-10" : "p-7 lg:p-8"} relative z-10 flex flex-col items-start justify-center`}
+      >
         <div className="text-xs font-bold uppercase tracking-[0.18em] text-blue-500">
           Новинка
         </div>
@@ -1101,7 +1320,9 @@ function NewArrivalCard({
             {featured ? "Подробнее →" : "→"}
           </span>
 
-          <span className={`text-sm ${mutedTextClass(dark)}`}>{item.price}</span>
+          <span className={`text-sm ${mutedTextClass(dark)}`}>
+            {item.price}
+          </span>
         </div>
       </div>
 
@@ -1123,7 +1344,9 @@ function NewArrivalCard({
         ) : (
           <div
             className={`absolute inset-6 rounded-[28px] border border-dashed ${
-              dark ? "border-white/10 bg-white/[0.025]" : "border-black/10 bg-slate-50/80"
+              dark
+                ? "border-white/10 bg-white/[0.025]"
+                : "border-black/10 bg-slate-50/80"
             }`}
           />
         )}
@@ -1131,7 +1354,6 @@ function NewArrivalCard({
     </Link>
   );
 }
-
 
 function bannerTitleSizeClass(size?: string) {
   if (size === "md") return "text-3xl lg:text-4xl";
@@ -1155,20 +1377,30 @@ function PromoBanner({
   banner?: HomeBanner;
 }) {
   const title = banner?.title || getBlockText(settings, "title", "Промо-блок");
-  const subtitle = banner?.subtitle || banner?.description || getBlockText(settings, "subtitle", "Добавьте текст и изображение в редакторе сайта.");
+  const subtitle =
+    banner?.subtitle ||
+    banner?.description ||
+    getBlockText(
+      settings,
+      "subtitle",
+      "Добавьте текст и изображение в редакторе сайта.",
+    );
   const image = banner
     ? dark
       ? banner.imageDark || banner.imageLight || banner.imageMobile
       : banner.imageLight || banner.imageDark || banner.imageMobile
     : getBlockText(settings, "image", "");
   const label = banner?.label || getBlockText(settings, "label", "Промо");
-  const buttonText = banner?.buttonText || getBlockText(settings, "buttonText", "Подробнее →");
-  const buttonHref = banner?.buttonHref || getBlockText(settings, "buttonHref", "/catalog");
-  const titleSize = banner?.titleSize || getBlockText(settings, "titleSize", "lg");
+  const buttonText =
+    banner?.buttonText || getBlockText(settings, "buttonText", "Подробнее →");
+  const buttonHref =
+    banner?.buttonHref || getBlockText(settings, "buttonHref", "/catalog");
+  const titleSize =
+    banner?.titleSize || getBlockText(settings, "titleSize", "lg");
   const textSize = banner?.textSize || getBlockText(settings, "textSize", "md");
 
   return (
-    <section className="pb-20">
+    <section className="pb-12 sm:pb-20">
       <Link
         href={buttonHref}
         className={`group grid min-h-[260px] overflow-hidden rounded-[34px] border transition-all duration-500 hover:-translate-y-1 lg:grid-cols-[0.95fr_1.05fr] ${
@@ -1178,11 +1410,17 @@ function PromoBanner({
         }`}
       >
         <div className="flex flex-col items-start justify-center p-8 lg:p-10">
-          <div className="text-xs font-bold uppercase tracking-[0.18em] text-blue-500">{label}</div>
-          <h2 className={`mt-4 max-w-[520px] font-bold leading-[1.05] tracking-[-0.05em] ${bannerTitleSizeClass(titleSize)}`}>
+          <div className="text-xs font-bold uppercase tracking-[0.18em] text-blue-500">
+            {label}
+          </div>
+          <h2
+            className={`mt-4 max-w-[520px] font-bold leading-[1.05] tracking-[-0.05em] ${bannerTitleSizeClass(titleSize)}`}
+          >
             {title}
           </h2>
-          <p className={`mt-4 max-w-[430px] leading-relaxed ${bannerTextSizeClass(textSize)} ${mutedTextClass(dark)}`}>
+          <p
+            className={`mt-4 max-w-[430px] leading-relaxed ${bannerTextSizeClass(textSize)} ${mutedTextClass(dark)}`}
+          >
             {subtitle}
           </p>
           <span className="mt-7 inline-flex rounded-xl bg-blue-600 px-6 py-4 text-sm font-medium text-white transition-colors group-hover:bg-blue-500">
@@ -1190,12 +1428,20 @@ function PromoBanner({
           </span>
         </div>
 
-        <div className={`flex min-h-[220px] items-center justify-center ${dark ? "bg-white/[0.035]" : "bg-slate-50"}`}>
+        <div
+          className={`flex min-h-[220px] items-center justify-center ${dark ? "bg-white/[0.035]" : "bg-slate-50"}`}
+        >
           {image ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={image} alt={title} className="h-full max-h-[360px] w-full object-contain p-6 transition-transform duration-500 group-hover:scale-105" />
+            <img
+              src={image}
+              alt={title}
+              className="h-full max-h-[360px] w-full object-contain p-6 transition-transform duration-500 group-hover:scale-105"
+            />
           ) : (
-            <div className={`mx-6 h-[180px] w-full rounded-3xl border border-dashed ${dark ? "border-white/10 bg-white/[0.03]" : "border-black/10 bg-white"}`} />
+            <div
+              className={`mx-6 h-[180px] w-full rounded-3xl border border-dashed ${dark ? "border-white/10 bg-white/[0.03]" : "border-black/10 bg-white"}`}
+            />
           )}
         </div>
       </Link>
@@ -1211,12 +1457,16 @@ function TextImageModule({
   settings: Record<string, string | number | boolean | null>;
 }) {
   const title = getBlockText(settings, "title", "Заголовок секции");
-  const subtitle = getBlockText(settings, "subtitle", "Описание секции можно менять в редакторе сайта.");
+  const subtitle = getBlockText(
+    settings,
+    "subtitle",
+    "Описание секции можно менять в редакторе сайта.",
+  );
   const image = getBlockText(settings, "image", "");
   const imageSide = getBlockText(settings, "imageSide", "right");
 
   return (
-    <section className="pb-20">
+    <section className="pb-12 sm:pb-20">
       <div
         className={`grid overflow-hidden rounded-[34px] border lg:grid-cols-2 ${
           dark
@@ -1224,19 +1474,31 @@ function TextImageModule({
             : "border-black/10 bg-white shadow-[0_24px_90px_rgba(15,23,42,0.08)]"
         }`}
       >
-        <div className={`flex min-h-[300px] items-center justify-center p-8 ${imageSide === "left" ? "lg:order-1" : "lg:order-2"}`}>
+        <div
+          className={`flex min-h-[300px] items-center justify-center p-8 ${imageSide === "left" ? "lg:order-1" : "lg:order-2"}`}
+        >
           {image ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <img src={image} alt={title} className="max-h-[360px] w-full object-contain" />
+            <img
+              src={image}
+              alt={title}
+              className="max-h-[360px] w-full object-contain"
+            />
           ) : (
-            <div className={`h-[240px] w-full rounded-3xl border border-dashed ${dark ? "border-white/10 bg-white/[0.03]" : "border-black/10 bg-slate-50"}`} />
+            <div
+              className={`h-[240px] w-full rounded-3xl border border-dashed ${dark ? "border-white/10 bg-white/[0.03]" : "border-black/10 bg-slate-50"}`}
+            />
           )}
         </div>
-        <div className={`flex flex-col justify-center p-8 lg:p-12 ${imageSide === "left" ? "lg:order-2" : "lg:order-1"}`}>
+        <div
+          className={`flex flex-col justify-center p-8 lg:p-12 ${imageSide === "left" ? "lg:order-2" : "lg:order-1"}`}
+        >
           <h2 className="max-w-[520px] text-4xl font-bold leading-[1.05] tracking-[-0.05em] lg:text-5xl">
             {title}
           </h2>
-          <p className={`mt-5 max-w-[520px] text-base leading-relaxed lg:text-lg ${mutedTextClass(dark)}`}>
+          <p
+            className={`mt-5 max-w-[520px] text-base leading-relaxed lg:text-lg ${mutedTextClass(dark)}`}
+          >
             {subtitle}
           </p>
         </div>
@@ -1305,7 +1567,7 @@ function SupportBlock({ dark }: { dark: boolean }) {
   return (
     <section
       className={`mb-20 rounded-[32px] border p-8 transition-all duration-700 md:p-10 ${panelClass(
-        dark
+        dark,
       )}`}
     >
       <h2 className="text-4xl font-bold tracking-[-0.04em] md:text-5xl">
@@ -1335,7 +1597,7 @@ function SupportBlock({ dark }: { dark: boolean }) {
 
               <p
                 className={`mt-3 text-sm leading-relaxed ${mutedTextClass(
-                  dark
+                  dark,
                 )}`}
               >
                 {item.text}
@@ -1365,7 +1627,7 @@ function SupportBlock({ dark }: { dark: boolean }) {
                   <button
                     onClick={() =>
                       setActiveFaqId((prev) =>
-                        prev === item.id ? null : item.id
+                        prev === item.id ? null : item.id,
                       )
                     }
                     className="group relative w-full px-6 py-5 text-left"
@@ -1400,7 +1662,7 @@ function SupportBlock({ dark }: { dark: boolean }) {
                       >
                         <p
                           className={`pr-10 text-sm leading-relaxed ${mutedTextClass(
-                            dark
+                            dark,
                           )}`}
                         >
                           {item.answer}
@@ -1434,7 +1696,7 @@ function Footer({
   return (
     <footer
       className={`rounded-[32px] border p-10 transition-all duration-700 ${panelClass(
-        dark
+        dark,
       )}`}
     >
       <div className="grid gap-10 lg:grid-cols-[1.25fr_1fr_1fr_1fr]">
@@ -1484,7 +1746,7 @@ function Footer({
 
             <p
               className={`mt-3 max-w-[360px] text-sm leading-relaxed ${mutedTextClass(
-                dark
+                dark,
               )}`}
             >
               Подпишитесь и узнавайте первыми о новых поступлениях и акциях.
@@ -1492,7 +1754,9 @@ function Footer({
 
             <div
               className={`mt-5 flex h-14 overflow-hidden rounded-xl border transition-all duration-700 ${
-                dark ? "border-white/10 bg-black/20" : "border-black/10 bg-white"
+                dark
+                  ? "border-white/10 bg-black/20"
+                  : "border-black/10 bg-white"
               }`}
             >
               <input
@@ -1537,7 +1801,9 @@ function Footer({
 
       <div
         className={`mt-10 flex flex-col gap-6 border-t pt-8 text-sm transition-colors duration-700 lg:flex-row lg:items-center lg:justify-between ${
-          dark ? "border-white/10 text-white/45" : "border-black/10 text-black/45"
+          dark
+            ? "border-white/10 text-white/45"
+            : "border-black/10 text-black/45"
         }`}
       >
         <div>© 2024 {storeName}. Все права защищены.</div>

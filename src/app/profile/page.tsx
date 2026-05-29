@@ -101,7 +101,8 @@ function formatDate(value: string) {
 }
 
 function getInitialLetter(profile: CustomerProfile) {
-  const source = profile.name || profile.lastName || profile.phone || profile.email || "Н";
+  const source =
+    profile.name || profile.lastName || profile.phone || profile.email || "Н";
   return source.trim()[0]?.toUpperCase() ?? "Н";
 }
 
@@ -116,7 +117,11 @@ function getOrderTitle(order: ProfileOrder) {
     return "Заявка без товаров";
   }
 
-  return firstItem.productTitle || firstItem.title || `${order.items.length} товар(ов)`;
+  return (
+    firstItem.productTitle ||
+    firstItem.title ||
+    `${order.items.length} товар(ов)`
+  );
 }
 
 function getOrderStatusLabel(status: string) {
@@ -147,10 +152,13 @@ export default function ProfilePage() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
   const [profile, setProfile] = useState<CustomerProfile>(emptyProfile);
-  const [draftProfile, setDraftProfile] = useState<CustomerProfile>(emptyProfile);
+  const [draftProfile, setDraftProfile] =
+    useState<CustomerProfile>(emptyProfile);
   const [orders, setOrders] = useState<ProfileOrder[]>([]);
   const [addresses, setAddresses] = useState<ProfileAddress[]>([]);
-  const [supportRequests, setSupportRequests] = useState<ProfileSupportRequest[]>([]);
+  const [supportRequests, setSupportRequests] = useState<
+    ProfileSupportRequest[]
+  >([]);
   const [favorites, setFavorites] = useState<ProfileFavorite[]>([]);
   const [newAddress, setNewAddress] = useState("");
   const [activeModal, setActiveModal] = useState<ModalType>(null);
@@ -182,7 +190,9 @@ export default function ProfilePage() {
       }
 
       const response = await fetch("/api/auth/profile", { cache: "no-store" });
-      const data = (await response.json().catch(() => ({}))) as Partial<ProfileData> & {
+      const data = (await response
+        .json()
+        .catch(() => ({}))) as Partial<ProfileData> & {
         ok?: boolean;
         message?: string;
       };
@@ -224,7 +234,9 @@ export default function ProfilePage() {
   }, []);
 
   function openAuthModal(mode: "login" | "register" = "login") {
-    window.dispatchEvent(new CustomEvent("netizen-open-auth", { detail: mode }));
+    window.dispatchEvent(
+      new CustomEvent("netizen-open-auth", { detail: mode }),
+    );
   }
 
   async function saveProfile() {
@@ -275,7 +287,10 @@ export default function ProfilePage() {
     const response = await fetch("/api/auth/profile", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "add-address", address: normalizedAddress }),
+      body: JSON.stringify({
+        action: "add-address",
+        address: normalizedAddress,
+      }),
     });
     const data = (await response.json().catch(() => ({}))) as {
       message?: string;
@@ -305,12 +320,12 @@ export default function ProfilePage() {
 
   if (!isAuthenticated) {
     return (
-      <main className="min-h-screen bg-page px-6 py-6 text-main transition-colors duration-700">
+      <main className="min-h-screen bg-page px-3 py-3 text-main transition-colors duration-700 sm:px-6 sm:py-6">
         <div className="mx-auto max-w-[1440px]">
           <SiteHeader />
 
-          <section className="mt-10 grid min-h-[520px] place-items-center">
-            <div className="card w-full max-w-[720px] rounded-[34px] p-8 text-center">
+          <section className="mt-7 grid min-h-[520px] place-items-center sm:mt-10">
+            <div className="card w-full max-w-[720px] rounded-[28px] p-6 text-center sm:rounded-[34px] sm:p-8">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-2xl font-bold text-white">
                 👤
               </div>
@@ -319,13 +334,14 @@ export default function ProfilePage() {
                 Личный кабинет
               </div>
 
-              <h1 className="mt-3 text-4xl font-bold tracking-[-0.05em] md:text-5xl">
+              <h1 className="mt-3 text-[32px] font-bold leading-none tracking-[-0.05em] md:text-5xl">
                 Войдите или зарегистрируйтесь
               </h1>
 
               <p className="mx-auto mt-4 max-w-[560px] text-sm leading-relaxed text-muted">
-                Профиль, заявки, адреса доставки, избранное и обращения показываются
-                только после входа клиента. Данные берутся из базы, а не из браузера.
+                Профиль, заявки, адреса доставки, избранное и обращения
+                показываются только после входа клиента. Данные берутся из базы,
+                а не из браузера.
               </p>
 
               {error && (
@@ -359,7 +375,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen bg-page px-6 py-6 text-main transition-colors duration-700">
+    <main className="min-h-screen bg-page px-3 py-3 text-main transition-colors duration-700 sm:px-6 sm:py-6">
       <div className="mx-auto max-w-[1440px]">
         <SiteHeader />
 
@@ -372,20 +388,20 @@ export default function ProfilePage() {
           </Link>
         </div>
 
-        <section className="mt-6 grid gap-8 lg:grid-cols-[1fr_360px] lg:items-start">
-          <div className="space-y-8">
-            <section className="card rounded-[28px] p-6">
+        <section className="mt-5 grid gap-5 sm:mt-6 sm:gap-8 lg:grid-cols-[1fr_360px] lg:items-start">
+          <div className="space-y-5 sm:space-y-8">
+            <section className="card rounded-[28px] p-5 sm:p-6">
               <div className="inline-flex rounded-full border border-blue-500/35 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-500">
                 Личный кабинет
               </div>
 
-              <h1 className="mt-4 max-w-[760px] text-4xl font-bold tracking-[-0.05em]">
+              <h1 className="mt-4 max-w-[760px] text-[32px] font-bold leading-none tracking-[-0.05em] sm:text-4xl">
                 Ваши заказы, данные и обращения
               </h1>
 
               <p className="mt-4 max-w-[620px] text-sm leading-relaxed text-muted">
-                Здесь показываются только реальные данные клиента из базы: заявки,
-                адреса доставки, избранные товары и обращения.
+                Здесь показываются только реальные данные клиента из базы:
+                заявки, адреса доставки, избранные товары и обращения.
               </p>
 
               {error && (
@@ -419,14 +435,14 @@ export default function ProfilePage() {
               </div>
             </section>
 
-            <section className="card rounded-[34px] p-8">
+            <section className="card rounded-[28px] p-5 sm:rounded-[34px] sm:p-8">
               <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
                   <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-500">
                     Заказы
                   </div>
 
-                  <h2 className="mt-3 text-4xl font-bold tracking-[-0.045em]">
+                  <h2 className="mt-3 text-[30px] font-bold leading-none tracking-[-0.045em] sm:text-4xl">
                     Мои заявки
                   </h2>
                 </div>
@@ -440,25 +456,30 @@ export default function ProfilePage() {
               </div>
 
               {orders.length > 0 ? (
-                <div className="mt-8 grid gap-4">
+                <div className="mt-5 grid gap-3 sm:mt-8 sm:gap-4">
                   {orders.map((order) => (
                     <article
                       key={order.id}
-                      className="rounded-2xl border border-theme bg-blue-soft p-5"
+                      className="rounded-2xl border border-theme bg-blue-soft p-4 sm:p-5"
                     >
                       <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                         <div>
-                          <div className="text-sm text-muted">{order.publicId}</div>
+                          <div className="text-sm text-muted">
+                            {order.publicId}
+                          </div>
 
-                          <h3 className="mt-1 text-xl font-bold">
+                          <h3 className="mt-1 text-lg font-bold sm:text-xl">
                             {getOrderTitle(order)}
                           </h3>
 
                           <p className="mt-2 text-sm text-muted">
-                            {formatDate(order.createdAt)} · {formatPrice(order.total)}
+                            {formatDate(order.createdAt)} ·{" "}
+                            {formatPrice(order.total)}
                           </p>
 
-                          <p className="mt-1 text-sm text-muted">{order.delivery}</p>
+                          <p className="mt-1 text-sm text-muted">
+                            {order.delivery}
+                          </p>
                         </div>
 
                         <div className="flex flex-col gap-3 md:items-end">
@@ -484,14 +505,17 @@ export default function ProfilePage() {
               )}
             </section>
 
-            <section id="favorites" className="card rounded-[34px] p-8">
+            <section
+              id="favorites"
+              className="card rounded-[28px] p-5 sm:rounded-[34px] sm:p-8"
+            >
               <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
                   <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-500">
                     Избранное
                   </div>
 
-                  <h2 className="mt-3 text-4xl font-bold tracking-[-0.045em]">
+                  <h2 className="mt-3 text-[30px] font-bold leading-none tracking-[-0.045em] sm:text-4xl">
                     Избранные товары
                   </h2>
                 </div>
@@ -505,14 +529,14 @@ export default function ProfilePage() {
               </div>
 
               {favorites.length > 0 ? (
-                <div className="mt-8 grid gap-4 md:grid-cols-2">
+                <div className="mt-5 grid gap-3 sm:mt-8 md:grid-cols-2">
                   {favorites.map((favorite) => (
                     <article
                       key={favorite.id}
-                      className="rounded-2xl border border-theme bg-transparent p-5 transition-colors hover:border-blue-500/35 hover:bg-blue-soft"
+                      className="rounded-2xl border border-theme bg-transparent p-3 transition-colors hover:border-blue-500/35 hover:bg-blue-soft sm:p-5"
                     >
-                      <div className="flex gap-5">
-                        <div className="soft-box flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white text-xs text-muted-soft">
+                      <div className="flex gap-3 sm:gap-5">
+                        <div className="soft-box flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white text-xs text-muted-soft sm:h-24 sm:w-24">
                           {favorite.product.image ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
@@ -526,8 +550,10 @@ export default function ProfilePage() {
                         </div>
 
                         <div className="flex min-w-0 flex-1 flex-col">
-                          <div className="text-sm text-muted">{favorite.product.brand}</div>
-                          <h3 className="mt-1 text-lg font-bold leading-tight">
+                          <div className="text-sm text-muted">
+                            {favorite.product.brand}
+                          </div>
+                          <h3 className="mt-1 text-base font-bold leading-tight sm:text-lg">
                             {favorite.product.name}
                           </h3>
 
@@ -554,17 +580,17 @@ export default function ProfilePage() {
               )}
             </section>
 
-            <section className="card rounded-[34px] p-8">
+            <section className="card rounded-[28px] p-5 sm:rounded-[34px] sm:p-8">
               <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-500">
                 Поддержка
               </div>
 
-              <h2 className="mt-3 text-4xl font-bold tracking-[-0.045em]">
+              <h2 className="mt-3 text-[30px] font-bold leading-none tracking-[-0.045em] sm:text-4xl">
                 Обращения
               </h2>
 
               {supportRequests.length > 0 ? (
-                <div className="mt-8 grid gap-4">
+                <div className="mt-5 grid gap-3 sm:mt-8 sm:gap-4">
                   {supportRequests.map((request) => (
                     <article
                       key={request.id}
@@ -572,8 +598,12 @@ export default function ProfilePage() {
                     >
                       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                         <div>
-                          <div className="text-sm text-muted">{request.publicId}</div>
-                          <h3 className="mt-1 text-xl font-bold">{request.topic}</h3>
+                          <div className="text-sm text-muted">
+                            {request.publicId}
+                          </div>
+                          <h3 className="mt-1 text-lg font-bold sm:text-xl">
+                            {request.topic}
+                          </h3>
 
                           <p className="mt-2 text-sm leading-relaxed text-muted">
                             {request.message}
@@ -598,8 +628,8 @@ export default function ProfilePage() {
             </section>
           </div>
 
-          <aside className="space-y-8 lg:sticky lg:top-6">
-            <section className="card rounded-[28px] p-7">
+          <aside className="space-y-5 sm:space-y-8 lg:sticky lg:top-6">
+            <section className="card rounded-[28px] p-5 sm:p-7">
               <div className="flex items-center gap-4">
                 <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-2xl font-bold text-white">
                   {getInitialLetter(profile)}
@@ -614,10 +644,22 @@ export default function ProfilePage() {
               </div>
 
               <div className="mt-7 space-y-4">
-                <ProfileField label="Имя" value={profile.name || "Не указано"} />
-                <ProfileField label="Фамилия" value={profile.lastName || "Не указана"} />
-                <ProfileField label="Телефон" value={profile.phone || "Не указан"} />
-                <ProfileField label="E-mail" value={profile.email || "Не указан"} />
+                <ProfileField
+                  label="Имя"
+                  value={profile.name || "Не указано"}
+                />
+                <ProfileField
+                  label="Фамилия"
+                  value={profile.lastName || "Не указана"}
+                />
+                <ProfileField
+                  label="Телефон"
+                  value={profile.phone || "Не указан"}
+                />
+                <ProfileField
+                  label="E-mail"
+                  value={profile.email || "Не указан"}
+                />
               </div>
 
               <button
@@ -646,12 +688,12 @@ export default function ProfilePage() {
               )}
             </section>
 
-            <section className="card rounded-[34px] p-8">
+            <section className="card rounded-[28px] p-5 sm:rounded-[34px] sm:p-8">
               <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-500">
                 Доставка
               </div>
 
-              <h2 className="mt-3 text-3xl font-bold tracking-[-0.04em]">
+              <h2 className="mt-3 text-2xl font-bold tracking-[-0.04em] sm:text-3xl">
                 Адреса
               </h2>
 
@@ -681,12 +723,12 @@ export default function ProfilePage() {
               </button>
             </section>
 
-            <section className="card rounded-[34px] p-8">
+            <section className="card rounded-[28px] p-5 sm:rounded-[34px] sm:p-8">
               <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-500">
                 Быстро
               </div>
 
-              <h2 className="mt-3 text-3xl font-bold tracking-[-0.04em]">
+              <h2 className="mt-3 text-2xl font-bold tracking-[-0.04em] sm:text-3xl">
                 Действия
               </h2>
 
@@ -859,7 +901,9 @@ function EmptyState({
   return (
     <div className="mt-8 rounded-2xl border border-theme bg-blue-soft p-6">
       <h3 className="text-xl font-bold">{title}</h3>
-      <p className="mt-2 max-w-[560px] text-sm leading-relaxed text-muted">{text}</p>
+      <p className="mt-2 max-w-[560px] text-sm leading-relaxed text-muted">
+        {text}
+      </p>
       <Link
         href={href}
         className="mt-5 inline-flex rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500"
@@ -887,7 +931,9 @@ function Modal({
             <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-500">
               Личный кабинет
             </div>
-            <h2 className="mt-2 text-3xl font-bold tracking-[-0.04em]">{title}</h2>
+            <h2 className="mt-2 text-3xl font-bold tracking-[-0.04em]">
+              {title}
+            </h2>
           </div>
 
           <button

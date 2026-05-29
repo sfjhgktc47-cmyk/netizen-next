@@ -83,3 +83,17 @@ a {
 .bg-blue-soft {
   background: var(--blue-soft);
 }
+@media (max-width: 767px) {
+  body {
+    padding-bottom: calc(78px + env(safe-area-inset-bottom));
+  }
+
+  .mobile-scrollbar-none {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+  }
+
+  .mobile-scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
