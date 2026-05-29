@@ -1,9 +1,8 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
-import { useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AuthModal } from "@/components/auth-modal";
 import { useTheme } from "@/components/theme-provider";
 
@@ -29,8 +28,30 @@ type HeaderSiteSettings = {
     storeName?: string;
     logoLight?: string;
     logoDark?: string;
+    mobileLogo?: string;
+    favicon?: string;
+    navIconHome?: string;
+    navIconCatalog?: string;
+    navIconNew?: string;
+    navIconSupport?: string;
+    navIconCart?: string;
   };
 };
+
+type BottomNavItem = {
+  key: "home" | "catalog" | "new" | "support" | "cart";
+  label: string;
+  href: string;
+  fallbackIcon: string;
+};
+
+const bottomNavItems: BottomNavItem[] = [
+  { key: "home", label: "Главная", href: "/", fallbackIcon: "⌂" },
+  { key: "catalog", label: "Каталог", href: "/catalog", fallbackIcon: "▦" },
+  { key: "new", label: "Новинки", href: "/new", fallbackIcon: "✦" },
+  { key: "support", label: "Поддержка", href: "/help", fallbackIcon: "?" },
+  { key: "cart", label: "Корзина", href: "/cart", fallbackIcon: "🛒" },
+];
 
 function getUserInitial(user: HeaderAuthUser | null) {
   if (!user) {
@@ -42,25 +63,58 @@ function getUserInitial(user: HeaderAuthUser | null) {
   }
 
   const source =
-    user.profile?.name ||
-    user.profile?.lastName ||
-    user.profile?.phone ||
-    user.profile?.email ||
-    "П";
+    user.profile?.name || user.profile?.lastName || user.profile?.phone || user.profile?.email || "П";
 
   return source.trim()[0]?.toUpperCase() ?? "П";
 }
 
+function isImageIcon(value: string) {
+  return /^(\/|https?:\/\/|data:image\/)/i.test(value.trim());
+}
+
+function renderNavIcon(icon: string, label: string) {
+  const value = icon.trim();
+
+  if (value && isImageIcon(value)) {
+    return (
+      // eslint-disable-next-line @next/next/no-img-element
+      <img src={value} alt="" className="h-5 w-5 object-contain" aria-hidden="true" />
+    );
+  }
+
+  return <span className="text-[19px] leading-none">{value || label[0]}</span>;
+}
+
+function isActivePath(pathname: string, item: BottomNavItem) {
+  if (item.href === "/") {
+    return pathname === "/";
+  }
+
+  return pathname === item.href || pathname.startsWith(`${item.href}/`);
+}
+
 export function SiteHeader() {
   const { dark, toggleTheme } = useTheme();
-  const pathname = usePathname();
+  const pathname = usePathname() || "/";
   const [cartCount, setCartCount] = useState(0);
   const [authUser, setAuthUser] = useState<HeaderAuthUser | null>(null);
   const [authMode, setAuthMode] = useState<AuthMode>("login");
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const [siteSettings, setSiteSettings] = useState<HeaderSiteSettings | null>(
-    null,
-  );
+  const [siteSettings, setSiteSettings] = useState<HeaderSiteSettings | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    document.body.classList.add("has-mobile-bottom-nav");
+
+    return () => {
+      document.body.classList.remove("has-mobile-bottom-nav");
+    };
+  }, []);
+
+  useEffect(() => {
+    const currentSearch = new URLSearchParams(window.location.search).get("search") ?? "";
+    setSearchQuery(currentSearch);
+  }, [pathname]);
 
   useEffect(() => {
     const updateCartCount = () => {
@@ -81,9 +135,7 @@ export function SiteHeader() {
 
     const updateSiteSettings = async () => {
       try {
-        const response = await fetch("/api/site-settings", {
-          cache: "no-store",
-        });
+        const response = await fetch("/api/site-settings", { cache: "no-store" });
         const data = (await response.json().catch(() => ({}))) as {
           site?: HeaderSiteSettings;
         };
@@ -123,6 +175,24 @@ export function SiteHeader() {
     };
   }, []);
 
+  useEffect(() => {
+    const favicon = siteSettings?.branding?.favicon?.trim();
+
+    if (!favicon || typeof document === "undefined") {
+      return;
+    }
+
+    let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+
+    if (!link) {
+      link = document.createElement("link");
+      link.rel = "icon";
+      document.head.appendChild(link);
+    }
+
+    link.href = favicon;
+  }, [siteSettings?.branding?.favicon]);
+
   const navItems = [
     { label: "Каталог", href: "/catalog" },
     { label: "Новинки", href: "/new" },
@@ -130,61 +200,85 @@ export function SiteHeader() {
     { label: "Поддержка", href: "/help" },
   ];
 
+  const iconMap = useMemo(
+    () => ({
+      home: siteSettings?.branding?.navIconHome?.trim() || "⌂",
+      catalog: siteSettings?.branding?.navIconCatalog?.trim() || "▦",
+      new: siteSettings?.branding?.navIconNew?.trim() || "✦",
+      support: siteSettings?.branding?.navIconSupport?.trim() || "?",
+      cart: siteSettings?.branding?.navIconCart?.trim() || "🛒",
+    }),
+    [siteSettings?.branding]
+  );
+
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" }).catch(() => null);
     setAuthUser(null);
     window.dispatchEvent(new Event("netizen-auth-updated"));
 
-    if (
-      window.location.pathname.startsWith("/profile") ||
-      window.location.pathname.startsWith("/nz-console")
-    ) {
+    if (window.location.pathname.startsWith("/profile") || window.location.pathname.startsWith("/nz-console")) {
       window.location.href = "/";
     }
   }
 
-  const accountHref = authUser?.role === "admin" ? "/nz-console" : "/profile";
-  const accountLabel =
-    authUser?.role === "admin" ? "Админ-панель" : "Личный кабинет";
-  const logoLight =
-    siteSettings?.branding?.logoLight?.trim() || "/logo-light.png";
-  const logoDark = siteSettings?.branding?.logoDark?.trim() || "/logo-dark.png";
-  const storeName = siteSettings?.branding?.storeName?.trim() || "Нетизен";
+  function submitSearch(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
 
-  const mobileNavItems: Array<{
-    label: string;
-    href: string;
-    icon: string;
-    badge?: number;
-  }> = [
-    { label: "Главная", href: "/", icon: "⌂" },
-    { label: "Каталог", href: "/catalog", icon: "▦" },
-    { label: "Новинки", href: "/new", icon: "✦" },
-    { label: "Избранное", href: "/profile#favorites", icon: "♡" },
-    { label: "Корзина", href: "/cart", icon: "🛒", badge: cartCount },
-  ];
+    const query = searchQuery.trim();
+
+    if (!query) {
+      window.location.href = "/catalog";
+      return;
+    }
+
+    window.location.href = `/catalog?search=${encodeURIComponent(query)}`;
+  }
+
+  const accountHref = authUser?.role === "admin" ? "/nz-console" : "/profile";
+  const accountLabel = authUser?.role === "admin" ? "Админ-панель" : "Личный кабинет";
+  const logoLight = siteSettings?.branding?.logoLight?.trim() || "/logo-light.png";
+  const logoDark = siteSettings?.branding?.logoDark?.trim() || "/logo-dark.png";
+  const mobileLogo = siteSettings?.branding?.mobileLogo?.trim();
+  const storeName = siteSettings?.branding?.storeName?.trim() || "Нетизен";
+  const logoSrc = dark ? logoLight : logoDark;
 
   return (
     <>
       <header
-        className={`sticky top-3 z-40 flex h-[64px] items-center justify-between rounded-[22px] border px-4 transition-all duration-700 sm:h-[76px] sm:rounded-2xl sm:px-8 ${
+        className={`flex h-[64px] items-center justify-between rounded-2xl border px-3 transition-all duration-700 sm:h-[70px] sm:px-5 lg:h-[76px] lg:px-8 ${
           dark
-            ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] backdrop-blur-xl"
-            : "border-black/10 bg-white/95 shadow-[0_20px_80px_rgba(15,23,42,0.08)] backdrop-blur-xl"
+            ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)]"
+            : "border-black/10 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)]"
         }`}
       >
         <Link
           href="/"
-          className="relative flex h-11 w-[112px] items-center justify-start overflow-hidden sm:h-12 sm:w-[150px]"
+          className="relative flex h-11 w-[118px] shrink-0 items-center justify-start overflow-hidden sm:w-[140px] lg:h-12 lg:w-[150px]"
+          aria-label={storeName}
         >
-          <Image
-            src={dark ? logoLight : logoDark}
-            alt={storeName}
-            width={150}
-            height={48}
-            priority
-            className="h-auto max-h-8 w-auto object-contain transition-opacity duration-700 sm:max-h-9"
-          />
+          {mobileLogo ? (
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={mobileLogo}
+                alt={storeName}
+                className="h-auto max-h-8 w-auto object-contain transition-opacity duration-700 sm:max-h-9 lg:hidden"
+              />
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src={logoSrc}
+                alt={storeName}
+                className="hidden h-auto max-h-9 w-auto object-contain transition-opacity duration-700 lg:block"
+              />
+            </>
+          ) : (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img
+              src={logoSrc}
+              alt={storeName}
+              className="h-auto max-h-8 w-auto object-contain transition-opacity duration-700 sm:max-h-9"
+            />
+          )}
         </Link>
 
         <nav
@@ -199,27 +293,37 @@ export function SiteHeader() {
               className="group relative overflow-hidden rounded-xl px-5 py-3 transition-colors duration-300 hover:text-white"
             >
               <span className="relative z-10">{item.label}</span>
+
               <span className="absolute inset-0 translate-y-full rounded-xl bg-blue-600/90 opacity-0 transition-all duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100" />
             </Link>
           ))}
         </nav>
 
-        <div className="flex items-center gap-2 sm:gap-4">
-          <div
-            className={`hidden h-11 w-[260px] items-center rounded-xl border px-4 text-sm transition-all duration-700 xl:flex ${
+        <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
+          <form
+            onSubmit={submitSearch}
+            className={`hidden h-11 w-[300px] items-center rounded-xl border px-4 text-sm transition-all duration-700 lg:flex ${
               dark
-                ? "border-white/10 bg-black/20 text-white/50"
-                : "border-black/10 bg-[#f6f8fb] text-black/45"
+                ? "border-white/10 bg-black/20 text-white/70 focus-within:border-blue-500/55"
+                : "border-black/10 bg-[#f6f8fb] text-black/70 focus-within:border-blue-500/55"
             }`}
           >
-            Поиск по каталогу
-          </div>
+            <input
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="Поиск по каталогу"
+              className="h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-current/50"
+            />
+            <button type="submit" className="ml-2 text-blue-500" aria-label="Найти">
+              ⌕
+            </button>
+          </form>
 
           <button
             type="button"
             onClick={toggleTheme}
             aria-label="Переключить тему"
-            className={`relative h-10 w-12 rounded-xl border transition-all duration-700 sm:h-11 sm:w-16 ${
+            className={`relative h-10 w-14 rounded-xl border transition-all duration-700 sm:h-11 sm:w-16 ${
               dark
                 ? "border-white/10 bg-blue-600/15"
                 : "border-black/10 bg-blue-50"
@@ -227,7 +331,7 @@ export function SiteHeader() {
           >
             <span
               className={`absolute top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg bg-blue-600 text-xs text-white transition-all duration-500 ease-in-out sm:h-8 sm:w-8 sm:text-sm ${
-                dark ? "left-4 sm:left-7" : "left-1"
+                dark ? "left-6 sm:left-7" : "left-1"
               }`}
             >
               {dark ? "☾" : "☀"}
@@ -243,6 +347,7 @@ export function SiteHeader() {
             }`}
           >
             🛒
+
             {cartCount > 0 && (
               <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white shadow-lg shadow-red-500/30">
                 {cartCount}
@@ -286,7 +391,7 @@ export function SiteHeader() {
                 setAuthMode("login");
                 setIsAuthModalOpen(true);
               }}
-              className="rounded-xl border border-theme bg-transparent px-4 py-2.5 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-5 sm:py-3"
+              className="rounded-xl border border-theme bg-transparent px-3 py-2.5 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-5 sm:py-3"
             >
               Войти
             </button>
@@ -294,39 +399,57 @@ export function SiteHeader() {
         </div>
       </header>
 
-      <nav
-        className={`fixed inset-x-0 bottom-0 z-50 border-t px-2 pb-[max(0.65rem,env(safe-area-inset-bottom))] pt-2 shadow-[0_-18px_60px_rgba(2,8,20,0.18)] backdrop-blur-xl md:hidden ${
+      <form
+        onSubmit={submitSearch}
+        className={`mt-3 flex h-12 items-center rounded-2xl border px-4 text-sm transition-all duration-700 lg:hidden ${
           dark
-            ? "border-white/10 bg-[#161b22]/95 text-white"
-            : "border-black/10 bg-white/95 text-[#07111f]"
+            ? "border-white/10 bg-white/[0.035] text-white/70 focus-within:border-blue-500/55"
+            : "border-black/10 bg-white text-black/65 shadow-[0_14px_50px_rgba(15,23,42,0.06)] focus-within:border-blue-500/55"
         }`}
-        aria-label="Мобильная навигация"
       >
-        <div className="mx-auto grid max-w-[430px] grid-cols-5 gap-1">
-          {mobileNavItems.map((item) => {
-            const path = item.href.split("#")[0];
-            const isActive =
-              path === "/" ? pathname === "/" : pathname.startsWith(path);
+        <span className="mr-3 text-blue-500">⌕</span>
+        <input
+          value={searchQuery}
+          onChange={(event) => setSearchQuery(event.target.value)}
+          placeholder="Поиск по каталогу"
+          className="h-full min-w-0 flex-1 bg-transparent outline-none placeholder:text-current/50"
+        />
+        <button type="submit" className="ml-3 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white">
+          Найти
+        </button>
+      </form>
+
+      <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-3 pb-[calc(env(safe-area-inset-bottom)+10px)] lg:hidden">
+        <div
+          className={`pointer-events-auto grid w-full max-w-[470px] grid-cols-5 gap-1 rounded-[24px] border p-2 shadow-[0_20px_80px_rgba(15,23,42,0.24)] backdrop-blur-xl ${
+            dark ? "border-white/10 bg-[#07111f]/88" : "border-black/10 bg-white/92"
+          }`}
+        >
+          {bottomNavItems.map((item) => {
+            const active = isActivePath(pathname, item);
+            const icon = iconMap[item.key] || item.fallbackIcon;
 
             return (
               <Link
-                key={item.label}
+                key={item.key}
                 href={item.href}
-                className={`relative flex min-h-[58px] flex-col items-center justify-center gap-1 rounded-2xl text-[11px] font-semibold transition-all ${
-                  isActive
-                    ? "bg-blue-600 text-white shadow-lg shadow-blue-600/25"
+                aria-label={item.label}
+                className={`relative flex min-h-[56px] flex-col items-center justify-center gap-1 rounded-[18px] text-[10px] font-semibold transition-all ${
+                  active
+                    ? "bg-blue-600 text-white shadow-[0_10px_28px_rgba(37,99,235,0.3)]"
                     : dark
-                      ? "text-white/55 hover:bg-white/[0.06] hover:text-white"
-                      : "text-black/50 hover:bg-black/[0.04] hover:text-black"
+                      ? "text-white/58 hover:bg-white/[0.06] hover:text-white"
+                      : "text-slate-500 hover:bg-blue-50 hover:text-blue-600"
                 }`}
               >
-                <span className="text-[20px] leading-none">{item.icon}</span>
-                <span className="leading-none">{item.label}</span>
-                {item.badge ? (
-                  <span className="absolute right-3 top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-pink-500 px-1.5 text-[11px] font-bold text-white">
-                    {item.badge}
+                <span className="flex h-5 items-center justify-center">{renderNavIcon(icon, item.label)}</span>
+                <span className="max-w-full truncate leading-none">{item.label}</span>
+
+                {item.key === "cart" && cartCount > 0 && (
+                  <span className="absolute right-2 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold leading-none text-white">
+                    {cartCount}
                   </span>
-                ) : null}
+                )}
               </Link>
             );
           })}

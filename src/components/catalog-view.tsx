@@ -2,14 +2,8 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useRef, useState } from "react";
-import {
-  products as fallbackProducts,
-  type ProductModel as CatalogProductBase,
-} from "@/data/products";
-import {
-  productPositions as fallbackProductPositions,
-  type ProductPosition as CatalogPositionBase,
-} from "@/data/product-positions";
+import { products as fallbackProducts, type ProductModel as CatalogProductBase } from "@/data/products";
+import { productPositions as fallbackProductPositions, type ProductPosition as CatalogPositionBase } from "@/data/product-positions";
 import { getModelPriceRange, getPriceNumber } from "@/lib/product-pricing";
 import { SiteHeader } from "@/components/site-header";
 import { ProductCarousel } from "@/components/product-carousel";
@@ -65,11 +59,7 @@ const sortModeLabels: Record<SortMode, string> = {
   new: "новинки",
 };
 
-const sortModeOptions: {
-  value: SortMode;
-  label: string;
-  description: string;
-}[] = [
+const sortModeOptions: { value: SortMode; label: string; description: string }[] = [
   {
     value: "popular",
     label: "Популярные",
@@ -92,19 +82,12 @@ const sortModeOptions: {
   },
 ];
 
-const filterBrands = [
-  "Apple",
-  "Samsung",
-  "Dyson",
-  "Sony",
-  "JBL",
-  "PlayStation",
-];
+const filterBrands = ["Apple", "Samsung", "Dyson", "Sony", "JBL", "PlayStation"];
 const emptyValue = "—";
 
 function uniqueValues(values: string[]) {
   return Array.from(
-    new Set(values.filter((value) => Boolean(value) && value !== emptyValue)),
+    new Set(values.filter((value) => Boolean(value) && value !== emptyValue))
   );
 }
 
@@ -112,11 +95,7 @@ function uniqueColorOptions(positions: ProductPosition[]) {
   const map = new Map<string, ColorOption>();
 
   positions.forEach((position) => {
-    if (
-      !position.color ||
-      position.color === emptyValue ||
-      map.has(position.color)
-    ) {
+    if (!position.color || position.color === emptyValue || map.has(position.color)) {
       return;
     }
 
@@ -129,9 +108,7 @@ function uniqueColorOptions(positions: ProductPosition[]) {
   return Array.from(map.values());
 }
 
-function getCleanImages(
-  ...sources: Array<string | string[] | undefined | null>
-) {
+function getCleanImages(...sources: Array<string | string[] | undefined | null>) {
   return Array.from(
     new Set(
       sources
@@ -143,8 +120,8 @@ function getCleanImages(
           return source ? [source] : [];
         })
         .map((image) => image.trim())
-        .filter(Boolean),
-    ),
+        .filter(Boolean)
+    )
   );
 }
 function getModelImages(product: CatalogProductBase) {
@@ -191,7 +168,7 @@ function getOnlyDigits(value: string) {
 function getProductPriceStats(
   modelSlug: string,
   fallbackPrice: string,
-  positions: ProductPosition[],
+  positions: ProductPosition[]
 ) {
   const prices = positions
     .filter((position) => position.modelSlug === modelSlug)
@@ -257,6 +234,8 @@ function sortCatalogPositions(items: CatalogPosition[], sortMode: SortMode) {
   });
 }
 
+
+
 type CatalogUrlFilters = {
   selectedBrand: string | null;
   selectedModelSlug: string | null;
@@ -266,6 +245,7 @@ type CatalogUrlFilters = {
   selectedStatus: string | null;
   priceFrom: string;
   priceTo: string;
+  searchQuery: string;
   sortMode: SortMode;
   onlyPopular: boolean;
 };
@@ -279,17 +259,13 @@ const defaultUrlFilters: CatalogUrlFilters = {
   selectedStatus: null,
   priceFrom: "",
   priceTo: "",
+  searchQuery: "",
   sortMode: "popular",
   onlyPopular: false,
 };
 
 function isSortMode(value: string | null): value is SortMode {
-  return (
-    value === "popular" ||
-    value === "price_asc" ||
-    value === "price_desc" ||
-    value === "new"
-  );
+  return value === "popular" || value === "price_asc" || value === "price_desc" || value === "new";
 }
 
 function getUrlValue(params: URLSearchParams, key: string) {
@@ -306,10 +282,10 @@ function parseCatalogUrlFilters(params: URLSearchParams): CatalogUrlFilters {
     selectedMemory: getUrlValue(params, "memory"),
     selectedColor: getUrlValue(params, "color"),
     selectedSim: getUrlValue(params, "sim"),
-    selectedStatus:
-      getUrlValue(params, "availability") ?? getUrlValue(params, "status"),
+    selectedStatus: getUrlValue(params, "availability") ?? getUrlValue(params, "status"),
     priceFrom: params.get("priceFrom") ?? "",
     priceTo: params.get("priceTo") ?? "",
+    searchQuery: params.get("search") ?? params.get("q") ?? "",
     sortMode: isSortMode(sort) ? sort : "popular",
     onlyPopular: params.get("popular") === "1",
   };
@@ -341,6 +317,8 @@ function writeCatalogUrlFiltersToWindow(filters: CatalogUrlFilters) {
     "status",
     "priceFrom",
     "priceTo",
+    "search",
+    "q",
     "sort",
     "popular",
   ].forEach((key) => params.delete(key));
@@ -350,10 +328,10 @@ function writeCatalogUrlFiltersToWindow(filters: CatalogUrlFilters) {
   if (filters.selectedMemory) params.set("memory", filters.selectedMemory);
   if (filters.selectedColor) params.set("color", filters.selectedColor);
   if (filters.selectedSim) params.set("sim", filters.selectedSim);
-  if (filters.selectedStatus)
-    params.set("availability", filters.selectedStatus);
+  if (filters.selectedStatus) params.set("availability", filters.selectedStatus);
   if (filters.priceFrom) params.set("priceFrom", filters.priceFrom);
   if (filters.priceTo) params.set("priceTo", filters.priceTo);
+  if (filters.searchQuery.trim()) params.set("search", filters.searchQuery.trim());
   if (filters.sortMode !== "popular") params.set("sort", filters.sortMode);
   if (filters.onlyPopular) params.set("popular", "1");
 
@@ -379,9 +357,7 @@ function getAvailabilityText(position: CatalogPosition) {
   }
 
   if (position.status === "active") {
-    return position.stock > 0
-      ? `В наличии · ${position.stock} шт.`
-      : "В наличии";
+    return position.stock > 0 ? `В наличии · ${position.stock} шт.` : "В наличии";
   }
 
   return getStatusName(position.status);
@@ -399,6 +375,20 @@ function getAvailabilityBadgeClass(position: CatalogPosition) {
   return "bg-orange-500/10 text-orange-500";
 }
 
+function normalizeSearchText(value: string) {
+  return value.toLowerCase().replace(/ё/g, "е").trim();
+}
+
+function includesSearchQuery(values: Array<string | undefined | null>, query: string) {
+  const normalizedQuery = normalizeSearchText(query);
+
+  if (!normalizedQuery) {
+    return true;
+  }
+
+  return values.some((value) => normalizeSearchText(value ?? "").includes(normalizedQuery));
+}
+
 type SpecificationKey = "memory" | "color" | "sim" | "status";
 
 type SpecificationSelection = {
@@ -412,7 +402,7 @@ function isPositionAvailableForOption(
   position: CatalogPosition,
   key: SpecificationKey,
   value: string,
-  selection: SpecificationSelection,
+  selection: SpecificationSelection
 ) {
   const memory = key === "memory" ? value : selection.selectedMemory;
   const color = key === "color" ? value : selection.selectedColor;
@@ -431,13 +421,13 @@ function getDisabledOptions(
   options: string[],
   key: SpecificationKey,
   positions: CatalogPosition[],
-  selection: SpecificationSelection,
+  selection: SpecificationSelection
 ) {
   return options.filter(
     (option) =>
       !positions.some((position) =>
-        isPositionAvailableForOption(position, key, option, selection),
-      ),
+        isPositionAvailableForOption(position, key, option, selection)
+      )
   );
 }
 
@@ -449,14 +439,13 @@ export function CatalogView({
 }: CatalogViewProps) {
   const { dark } = useTheme();
 
-  const catalogProductsData =
-    productsData.length > 0 ? productsData : fallbackProducts;
+  const catalogProductsData = productsData.length > 0 ? productsData : fallbackProducts;
   const catalogPositionsData =
     positionsData.length > 0 ? positionsData : fallbackProductPositions;
   const categories = categoriesData;
 
   const activeCategoryIndex = categories.findIndex(
-    (category) => category.id === categoryId,
+    (category) => category.id === categoryId
   );
 
   const isUrlSyncReady = useRef(false);
@@ -464,18 +453,17 @@ export function CatalogView({
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(
-    () => activeCategoryIndex >= 6,
+    () => activeCategoryIndex >= 6
   );
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
-  const [selectedModelSlug, setSelectedModelSlug] = useState<string | null>(
-    null,
-  );
+  const [selectedModelSlug, setSelectedModelSlug] = useState<string | null>(null);
   const [selectedMemory, setSelectedMemory] = useState<string | null>(null);
   const [selectedColor, setSelectedColor] = useState<string | null>(null);
   const [selectedSim, setSelectedSim] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [priceFrom, setPriceFrom] = useState("");
   const [priceTo, setPriceTo] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [sortMode, setSortMode] = useState<SortMode>("popular");
   const [onlyPopular, setOnlyPopular] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
@@ -498,6 +486,7 @@ export function CatalogView({
       setSelectedStatus(filters.selectedStatus);
       setPriceFrom(filters.priceFrom);
       setPriceTo(filters.priceTo);
+      setSearchQuery(filters.searchQuery);
       setSortMode(filters.sortMode);
       setOnlyPopular(filters.onlyPopular);
     }
@@ -529,6 +518,7 @@ export function CatalogView({
       selectedStatus,
       priceFrom,
       priceTo,
+      searchQuery,
       sortMode,
       onlyPopular,
     });
@@ -536,6 +526,7 @@ export function CatalogView({
     onlyPopular,
     priceFrom,
     priceTo,
+    searchQuery,
     selectedBrand,
     selectedColor,
     selectedMemory,
@@ -545,46 +536,52 @@ export function CatalogView({
     sortMode,
   ]);
 
-  const allProducts = useMemo(() => {
-    const positionImagesByModel = catalogPositionsData.reduce<
-      Record<string, string[]>
-    >((acc, position) => {
-      const images = getCleanImages(position.images);
+  const allProducts = useMemo(
+    () => {
+      const positionImagesByModel = catalogPositionsData.reduce<Record<string, string[]>>(
+        (acc, position) => {
+          const images = getCleanImages(position.images);
 
-      if (images.length === 0) {
-        return acc;
-      }
+          if (images.length === 0) {
+            return acc;
+          }
 
-      acc[position.modelSlug] = getCleanImages(acc[position.modelSlug], images);
-      return acc;
-    }, {});
-
-    return catalogProductsData.map((product) => {
-      const priceStats = getProductPriceStats(
-        product.slug,
-        product.price,
-        catalogPositionsData,
+          acc[position.modelSlug] = getCleanImages(acc[position.modelSlug], images);
+          return acc;
+        },
+        {}
       );
-      const productImages = getModelImages(product);
-      const positionImages = positionImagesByModel[product.slug] ?? [];
-      const images = getCleanImages(productImages, positionImages);
 
-      return {
-        ...product,
-        image: images[0] ?? "",
-        images,
-        ...priceStats,
-      };
-    }) as ProductModel[];
-  }, [catalogProductsData, catalogPositionsData]);
+      return catalogProductsData.map((product) => {
+        const priceStats = getProductPriceStats(
+          product.slug,
+          product.price,
+          catalogPositionsData
+        );
+        const productImages = getModelImages(product);
+        const positionImages = positionImagesByModel[product.slug] ?? [];
+        const images = getCleanImages(productImages, positionImages);
+
+        return {
+          ...product,
+          image: images[0] ?? "",
+          images,
+          ...priceStats,
+        };
+      }) as ProductModel[];
+    },
+    [catalogProductsData, catalogPositionsData]
+  );
 
   const activeCategory = categories.find(
-    (category) => category.id === categoryId,
+    (category) => category.id === categoryId
   );
 
   const selectedModel = allProducts.find(
-    (product) => product.slug === selectedModelSlug,
+    (product) => product.slug === selectedModelSlug
   );
+
+  const normalizedSearchQuery = searchQuery.trim();
 
   const effectiveCategoryId = activeCategory?.id ?? selectedModel?.category;
   const showSpecificationFilters = Boolean(effectiveCategoryId);
@@ -601,9 +598,19 @@ export function CatalogView({
           return false;
         }
 
+        if (
+          normalizedSearchQuery &&
+          !includesSearchQuery(
+            [product.name, product.brand, product.category, product.shortDescription, product.price],
+            normalizedSearchQuery
+          )
+        ) {
+          return false;
+        }
+
         return true;
       }),
-    [allProducts, categoryId, onlyPopular],
+    [allProducts, categoryId, normalizedSearchQuery, onlyPopular]
   );
 
   const visibleModelProducts = useMemo(
@@ -611,7 +618,7 @@ export function CatalogView({
       selectedBrand
         ? categoryProducts.filter((product) => product.brand === selectedBrand)
         : categoryProducts,
-    [categoryProducts, selectedBrand],
+    [categoryProducts, selectedBrand]
   );
 
   const modelOptions = useMemo(() => {
@@ -666,44 +673,31 @@ export function CatalogView({
 
       return true;
     });
-  }, [
-    categoryId,
-    enrichedPositions,
-    onlyPopular,
-    selectedBrand,
-    selectedModelSlug,
-  ]);
+  }, [categoryId, enrichedPositions, onlyPopular, selectedBrand, selectedModelSlug]);
 
   const memoryOptions = useMemo(
-    () =>
-      uniqueValues(
-        positionsForFilterOptions.map((position) => position.memory),
-      ),
-    [positionsForFilterOptions],
+    () => uniqueValues(positionsForFilterOptions.map((position) => position.memory)),
+    [positionsForFilterOptions]
   );
 
   const colorOptions = useMemo(
     () => uniqueColorOptions(positionsForFilterOptions),
-    [positionsForFilterOptions],
+    [positionsForFilterOptions]
   );
 
   const simOptions = useMemo(
-    () =>
-      uniqueValues(positionsForFilterOptions.map((position) => position.sim)),
-    [positionsForFilterOptions],
+    () => uniqueValues(positionsForFilterOptions.map((position) => position.sim)),
+    [positionsForFilterOptions]
   );
 
   const statusOptions = useMemo(
-    () =>
-      uniqueValues(
-        positionsForFilterOptions.map((position) => position.status),
-      ),
-    [positionsForFilterOptions],
+    () => uniqueValues(positionsForFilterOptions.map((position) => position.status)),
+    [positionsForFilterOptions]
   );
 
   const specificationSelection = useMemo(
     () => ({ selectedMemory, selectedColor, selectedSim, selectedStatus }),
-    [selectedColor, selectedMemory, selectedSim, selectedStatus],
+    [selectedColor, selectedMemory, selectedSim, selectedStatus]
   );
 
   const disabledMemoryOptions = useMemo(
@@ -712,9 +706,9 @@ export function CatalogView({
         memoryOptions,
         "memory",
         positionsForFilterOptions,
-        specificationSelection,
+        specificationSelection
       ),
-    [memoryOptions, positionsForFilterOptions, specificationSelection],
+    [memoryOptions, positionsForFilterOptions, specificationSelection]
   );
 
   const disabledColorOptions = useMemo(
@@ -723,9 +717,9 @@ export function CatalogView({
         colorOptions.map((color) => color.name),
         "color",
         positionsForFilterOptions,
-        specificationSelection,
+        specificationSelection
       ),
-    [colorOptions, positionsForFilterOptions, specificationSelection],
+    [colorOptions, positionsForFilterOptions, specificationSelection]
   );
 
   const disabledSimOptions = useMemo(
@@ -734,9 +728,9 @@ export function CatalogView({
         simOptions,
         "sim",
         positionsForFilterOptions,
-        specificationSelection,
+        specificationSelection
       ),
-    [simOptions, positionsForFilterOptions, specificationSelection],
+    [simOptions, positionsForFilterOptions, specificationSelection]
   );
 
   const disabledStatusOptions = useMemo(
@@ -745,9 +739,9 @@ export function CatalogView({
         statusOptions,
         "status",
         positionsForFilterOptions,
-        specificationSelection,
+        specificationSelection
       ),
-    [statusOptions, positionsForFilterOptions, specificationSelection],
+    [statusOptions, positionsForFilterOptions, specificationSelection]
   );
 
   const positionResults = useMemo(() => {
@@ -797,6 +791,25 @@ export function CatalogView({
         return false;
       }
 
+      if (
+        normalizedSearchQuery &&
+        !includesSearchQuery(
+          [
+            position.title,
+            position.productName,
+            position.brand,
+            position.sku,
+            position.memory,
+            position.color,
+            position.sim,
+            position.product.shortDescription,
+          ],
+          normalizedSearchQuery
+        )
+      ) {
+        return false;
+      }
+
       return true;
     });
   }, [
@@ -805,6 +818,7 @@ export function CatalogView({
     onlyPopular,
     priceFrom,
     priceTo,
+    searchQuery,
     selectedBrand,
     selectedColor,
     selectedMemory,
@@ -815,12 +829,12 @@ export function CatalogView({
 
   const sortedVisibleModelProducts = useMemo(
     () => sortProductModels(visibleModelProducts, sortMode),
-    [sortMode, visibleModelProducts],
+    [sortMode, visibleModelProducts]
   );
 
   const sortedPositionResults = useMemo(
     () => sortCatalogPositions(positionResults, sortMode),
-    [positionResults, sortMode],
+    [positionResults, sortMode]
   );
 
   const productsByBrand = useMemo(() => {
@@ -833,37 +847,35 @@ export function CatalogView({
         acc[product.brand].push(product);
         return acc;
       },
-      {},
+      {}
     );
 
-    return Object.entries(grouped).map(
-      ([brand, brandProducts]) =>
-        [brand, sortProductModels(brandProducts, sortMode)] as [
-          string,
-          ProductModel[],
-        ],
-    );
+    return Object.entries(grouped).map(([brand, brandProducts]) => [
+      brand,
+      sortProductModels(brandProducts, sortMode),
+    ] as [string, ProductModel[]]);
   }, [sortMode, visibleModelProducts]);
 
   const hasSpecificationFilters = Boolean(
     selectedModelSlug ||
-    selectedMemory ||
-    selectedColor ||
-    selectedSim ||
-    selectedStatus ||
-    priceFrom ||
-    priceTo,
+      selectedMemory ||
+      selectedColor ||
+      selectedSim ||
+      selectedStatus ||
+      priceFrom ||
+      priceTo
   );
 
-  const shouldShowPositionResults = Boolean(hasSpecificationFilters);
-  const hasActiveFilters = Boolean(
-    onlyPopular || selectedBrand || hasSpecificationFilters,
-  );
+  const hasSearchQuery = Boolean(normalizedSearchQuery);
+  const shouldShowPositionResults = Boolean(hasSpecificationFilters || hasSearchQuery);
+  const hasActiveFilters = Boolean(onlyPopular || selectedBrand || hasSpecificationFilters || hasSearchQuery);
   const resultCount = shouldShowPositionResults
     ? positionResults.length
     : visibleModelProducts.length;
 
-  const pageTitle = selectedModel
+  const pageTitle = normalizedSearchQuery
+    ? `Поиск: ${normalizedSearchQuery}`
+    : selectedModel
     ? selectedModel.name
     : selectedBrand
       ? activeCategory
@@ -875,7 +887,9 @@ export function CatalogView({
           ? "Популярные товары"
           : "Каталог техники";
 
-  const pageDescription = onlyPopular
+  const pageDescription = normalizedSearchQuery
+    ? "Показали товары и конкретные SKU, которые совпадают с поисковым запросом."
+    : onlyPopular
     ? "Показаны модели, отмеченные в админке как популярные. Можно открыть карточку товара или уточнить подборку фильтрами."
     : shouldShowPositionResults
       ? "Показаны конкретные позиции / SKU из базы: фото, конфигурация, цена и наличие. Можно сразу открыть нужную комплектацию."
@@ -912,14 +926,13 @@ export function CatalogView({
   function handleResetCatalogState() {
     setOnlyPopular(false);
     setSelectedBrand(null);
+    setSearchQuery("");
     resetSpecificationFilters();
     setSortMode("popular");
   }
 
   function handleSelectModel(modelSlug: string) {
-    setSelectedModelSlug((current) =>
-      current === modelSlug ? null : modelSlug,
-    );
+    setSelectedModelSlug((current) => (current === modelSlug ? null : modelSlug));
     setSelectedMemory(null);
     setSelectedColor(null);
     setSelectedSim(null);
@@ -929,13 +942,13 @@ export function CatalogView({
   }
 
   return (
-    <main className="min-h-screen bg-page px-3 py-3 text-main transition-colors duration-700 sm:px-6 sm:py-6 xl:px-8">
+    <main className="min-h-screen bg-page px-4 py-6 text-main transition-colors duration-700 sm:px-6 xl:px-8">
       <div className="w-full">
         <div className="mx-auto max-w-[1440px]">
           <SiteHeader />
         </div>
 
-        <section className="mt-7 sm:mt-10">
+        <section className="mt-10">
           <Link
             href="/"
             className="text-sm text-blue-500 transition-colors hover:text-blue-400"
@@ -943,7 +956,7 @@ export function CatalogView({
             ← На главную
           </Link>
 
-          <div className="mt-4 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="mt-5 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <div className="flex flex-wrap items-center gap-3">
                 <span className="inline-flex rounded-full border border-blue-500/40 bg-blue-500/10 px-4 py-2 text-xs font-medium text-blue-500">
@@ -955,20 +968,20 @@ export function CatalogView({
                 ) : null}
               </div>
 
-              <h1 className="mt-4 text-[36px] font-bold leading-none tracking-[-0.055em] sm:text-5xl md:text-6xl">
+              <h1 className="mt-4 text-5xl font-bold tracking-[-0.055em] md:text-6xl">
                 {pageTitle}
               </h1>
 
-              <p className="mt-3 max-w-[760px] text-sm leading-relaxed text-muted sm:mt-4 sm:text-base">
+              <p className="mt-4 max-w-[760px] text-base leading-relaxed text-muted">
                 {pageDescription}
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
+            <div className="flex flex-wrap gap-3">
               <button
                 type="button"
                 onClick={() => setIsFilterOpen((prev) => !prev)}
-                className={`rounded-2xl border px-5 py-4 text-sm font-bold transition-all duration-300 sm:rounded-xl sm:px-6 sm:font-medium ${
+                className={`rounded-xl border px-6 py-4 text-sm font-medium transition-all duration-300 ${
                   isFilterOpen
                     ? "border-blue-500 bg-blue-600 text-white"
                     : "border-theme bg-transparent hover:border-blue-500/40 hover:bg-blue-soft"
@@ -990,22 +1003,21 @@ export function CatalogView({
           </div>
         </section>
 
-        <section className="mt-5 sm:mt-8">
-          <div className="mobile-scrollbar-none -mx-3 flex gap-2 overflow-x-auto px-3 pb-1 sm:mx-0 sm:flex-wrap sm:gap-3 sm:overflow-visible sm:px-0 sm:pb-0">
+        <section className="mt-8">
+          <div className="flex flex-wrap items-center gap-3">
             <Link
               href="/catalog"
               onClick={handleResetCatalogState}
-              className={`shrink-0 rounded-full border px-5 py-3 text-sm font-semibold transition-all duration-300 ${
-                !onlyPopular &&
-                !categoryId &&
-                !selectedBrand &&
-                !hasSpecificationFilters
+              className={`rounded-full border px-5 py-3 text-sm font-medium transition-all duration-300 ${
+                !onlyPopular && !categoryId && !selectedBrand && !hasSpecificationFilters
                   ? "border-blue-500 bg-blue-600 text-white"
                   : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
               }`}
             >
               Все товары
             </Link>
+
+
 
             <Link
               href="/catalog?popular=1"
@@ -1015,11 +1027,8 @@ export function CatalogView({
                 resetSpecificationFilters();
                 setSortMode("popular");
               }}
-              className={`shrink-0 rounded-full border px-5 py-3 text-sm font-semibold transition-all duration-300 ${
-                onlyPopular &&
-                !categoryId &&
-                !selectedBrand &&
-                !hasSpecificationFilters
+              className={`rounded-full border px-5 py-3 text-sm font-medium transition-all duration-300 ${
+                onlyPopular && !categoryId && !selectedBrand && !hasSpecificationFilters
                   ? "border-blue-500 bg-blue-600 text-white"
                   : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
               }`}
@@ -1029,15 +1038,14 @@ export function CatalogView({
 
             {(isCategoriesOpen ? categories : categories.slice(0, 6)).map(
               (category) => {
-                const isActive =
-                  category.id === categoryId && !hasActiveFilters;
+                const isActive = category.id === categoryId && !hasActiveFilters;
 
                 return (
                   <Link
                     key={category.id}
                     href={category.href}
                     onClick={handleResetCatalogState}
-                    className={`shrink-0 rounded-full border px-5 py-3 text-sm font-semibold transition-all duration-300 ${
+                    className={`rounded-full border px-5 py-3 text-sm font-medium transition-all duration-300 ${
                       isActive
                         ? "border-blue-500 bg-blue-600 text-white"
                         : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
@@ -1046,14 +1054,14 @@ export function CatalogView({
                     {category.name}
                   </Link>
                 );
-              },
+              }
             )}
 
             {categories.length > 6 && (
               <button
                 type="button"
                 onClick={() => setIsCategoriesOpen((prev) => !prev)}
-                className="shrink-0 rounded-full border border-theme bg-transparent px-5 py-3 text-sm font-semibold text-blue-500 transition-all duration-300 hover:border-blue-500/40 hover:bg-blue-soft"
+                className="rounded-full border border-theme bg-transparent px-5 py-3 text-sm font-medium text-blue-500 transition-all duration-300 hover:border-blue-500/40 hover:bg-blue-soft"
               >
                 {isCategoriesOpen ? "Свернуть" : "Развернуть"}
               </button>
@@ -1070,6 +1078,7 @@ export function CatalogView({
             selectedColor={selectedColor}
             selectedSim={selectedSim}
             selectedStatus={selectedStatus}
+            searchQuery={normalizedSearchQuery}
             priceFrom={priceFrom}
             priceTo={priceTo}
             showPositionResults={shouldShowPositionResults}
@@ -1079,12 +1088,12 @@ export function CatalogView({
         )}
 
         <section
-          className="mt-6 flex flex-col gap-5 sm:mt-8 xl:flex-row xl:items-start"
+          className="mt-8 flex flex-col gap-6 xl:flex-row xl:items-start"
           id="catalog-products"
         >
           {isFilterOpen && (
-            <div className="fixed inset-0 z-50 flex items-end justify-center overflow-y-auto bg-black/45 px-3 py-5 backdrop-blur-sm xl:sticky xl:top-6 xl:inset-auto xl:block xl:w-[320px] xl:shrink-0 xl:overflow-visible xl:bg-transparent xl:p-0 xl:backdrop-blur-0">
-              <div className="w-full max-w-[430px] xl:max-w-none xl:mx-0 xl:max-h-[calc(100vh-48px)] xl:overflow-y-auto xl:pr-1 xl:pb-4">
+            <div className="fixed inset-0 z-50 overflow-y-auto bg-black/45 px-4 py-5 backdrop-blur-sm xl:sticky xl:top-6 xl:inset-auto xl:w-[320px] xl:shrink-0 xl:overflow-visible xl:bg-transparent xl:p-0 xl:backdrop-blur-0">
+              <div className="mx-auto max-w-[430px] xl:mx-0 xl:max-h-[calc(100vh-48px)] xl:overflow-y-auto xl:pr-1 xl:pb-4">
                 <FilterPanel
                   onClose={() => setIsFilterOpen(false)}
                   activeCategoryName={activeCategory?.name ?? null}
@@ -1115,12 +1124,8 @@ export function CatalogView({
                   onSelectColor={setSelectedColor}
                   onSelectSim={setSelectedSim}
                   onSelectStatus={setSelectedStatus}
-                  onPriceFromChange={(value) =>
-                    setPriceFrom(sanitizePriceInput(value))
-                  }
-                  onPriceToChange={(value) =>
-                    setPriceTo(sanitizePriceInput(value))
-                  }
+                  onPriceFromChange={(value) => setPriceFrom(sanitizePriceInput(value))}
+                  onPriceToChange={(value) => setPriceTo(sanitizePriceInput(value))}
                   onResetSpecifications={resetSpecificationFilters}
                 />
               </div>
@@ -1133,10 +1138,9 @@ export function CatalogView({
                 <PositionGrid
                   positions={sortedPositionResults}
                   title={
-                    selectedModel?.name ??
-                    selectedBrand ??
-                    activeCategory?.name ??
-                    "Позиции / SKU"
+                    normalizedSearchQuery
+                      ? `Найдено по запросу “${normalizedSearchQuery}”`
+                      : selectedModel?.name ?? selectedBrand ?? activeCategory?.name ?? "Позиции / SKU"
                   }
                   subtitle={`${positionResults.length} конкретных позиций в подборке`}
                   dark={dark}
@@ -1170,6 +1174,7 @@ export function CatalogView({
   );
 }
 
+
 function SortControl({
   sortMode,
   isOpen,
@@ -1186,7 +1191,7 @@ function SortControl({
       <button
         type="button"
         onClick={onToggle}
-        className={`w-full rounded-2xl border px-5 py-4 text-sm font-bold transition-colors sm:w-auto sm:rounded-xl sm:px-6 sm:font-medium ${
+        className={`rounded-xl border px-6 py-4 text-sm font-medium transition-colors ${
           isOpen
             ? "border-blue-500/40 bg-blue-500/10 text-blue-500"
             : "border-theme bg-transparent hover:border-blue-500/40 hover:bg-blue-soft"
@@ -1196,7 +1201,7 @@ function SortControl({
       </button>
 
       {isOpen && (
-        <div className="absolute left-0 top-[calc(100%+10px)] z-30 w-[min(260px,calc(100vw-2rem))] rounded-2xl border border-theme bg-page p-2 shadow-[0_24px_90px_rgba(15,23,42,0.22)] sm:left-auto sm:right-0 sm:w-[260px]">
+        <div className="absolute right-0 top-[calc(100%+10px)] z-30 w-[260px] rounded-2xl border border-theme bg-page p-2 shadow-[0_24px_90px_rgba(15,23,42,0.22)]">
           {sortModeOptions.map((option) => {
             const isActive = option.value === sortMode;
 
@@ -1240,6 +1245,7 @@ function ActiveFilterSummary({
   selectedColor,
   selectedSim,
   selectedStatus,
+  searchQuery,
   priceFrom,
   priceTo,
   showPositionResults,
@@ -1253,6 +1259,7 @@ function ActiveFilterSummary({
   selectedColor: string | null;
   selectedSim: string | null;
   selectedStatus: string | null;
+  searchQuery: string;
   priceFrom: string;
   priceTo: string;
   showPositionResults: boolean;
@@ -1267,6 +1274,7 @@ function ActiveFilterSummary({
     selectedColor ? `Цвет: ${selectedColor}` : null,
     selectedSim ? `SIM: ${selectedSim}` : null,
     selectedStatus ? `Статус: ${getStatusName(selectedStatus)}` : null,
+    searchQuery ? `Поиск: ${searchQuery}` : null,
     priceFrom ? `Цена от: ${priceFrom}` : null,
     priceTo ? `Цена до: ${priceTo}` : null,
   ].filter(Boolean) as string[];
@@ -1324,20 +1332,14 @@ function PositionGrid({
     <section>
       <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <h2 className="text-[28px] font-bold leading-none tracking-[-0.04em] sm:text-3xl">
-            {title}
-          </h2>
+          <h2 className="text-3xl font-bold tracking-[-0.04em]">{title}</h2>
           <p className="mt-2 text-sm text-muted">{subtitle}</p>
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-5 sm:gap-5 lg:grid-cols-3 2xl:grid-cols-4">
+      <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
         {positions.map((position) => (
-          <PositionProductCard
-            key={position.sku}
-            position={position}
-            dark={dark}
-          />
+          <PositionProductCard key={position.sku} position={position} dark={dark} />
         ))}
       </div>
     </section>
@@ -1354,7 +1356,7 @@ function PositionProductCard({
   return (
     <Link
       href={`/product/${position.modelSlug}?sku=${encodeURIComponent(position.sku)}`}
-      className={`group block h-full rounded-[24px] border p-2.5 transition-all duration-500 hover:-translate-y-1 sm:rounded-3xl sm:p-4 ${
+      className={`group block h-full rounded-3xl border p-4 transition-all duration-500 hover:-translate-y-1 ${
         dark
           ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
           : "border-black/10 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)] hover:border-blue-500/35"
@@ -1374,23 +1376,23 @@ function PositionProductCard({
           <img
             src={position.images?.[0] ?? getModelImage(position.product)}
             alt={position.title}
-            className="h-full w-full object-contain p-2 sm:p-3"
+            className="h-full w-full object-contain p-3"
           />
         ) : (
           "Фото товара"
         )}
       </div>
 
-      <div className="px-1 pb-1 pt-3 sm:pt-4">
-        <div className="line-clamp-1 text-[11px] text-muted sm:text-xs">
+      <div className="px-1 pb-1 pt-4">
+        <div className="text-xs text-muted">
           {position.brand} · {position.productName}
         </div>
 
-        <h3 className="mt-1 line-clamp-2 text-sm font-bold leading-tight sm:text-lg">
+        <h3 className="mt-1 text-lg font-bold leading-tight">
           {position.title}
         </h3>
 
-        <div className="mt-2 hidden flex-wrap gap-2 text-xs text-muted sm:flex sm:mt-3">
+        <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted">
           {position.memory !== emptyValue && (
             <span className="rounded-full border border-theme px-2 py-1">
               {position.memory}
@@ -1412,7 +1414,7 @@ function PositionProductCard({
           </span>
         </div>
 
-        <div className="mt-3 flex flex-col gap-2 sm:mt-4 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
+        <div className="mt-4 flex items-end justify-between gap-3">
           <div>
             {position.oldPrice && (
               <div className="text-xs text-muted line-through">
@@ -1420,25 +1422,23 @@ function PositionProductCard({
               </div>
             )}
 
-            <p className="text-base font-bold tracking-[-0.03em] sm:text-lg">
+            <p className="text-lg font-bold tracking-[-0.03em]">
               {position.price}
             </p>
           </div>
 
           <div
-            className={`w-fit rounded-full px-2.5 py-1 text-[11px] font-medium sm:px-3 sm:text-xs ${getAvailabilityBadgeClass(
-              position,
+            className={`rounded-full px-3 py-1 text-xs font-medium ${getAvailabilityBadgeClass(
+              position
             )}`}
           >
             {getAvailabilityText(position)}
           </div>
         </div>
 
-        <div className="mt-2 hidden text-xs text-muted-soft sm:block">
-          Код товара: {position.sku}
-        </div>
+        <div className="mt-2 text-xs text-muted-soft">Код товара: {position.sku}</div>
 
-        <div className="mt-3 w-full rounded-2xl bg-blue-600 py-3 text-center text-xs font-bold text-white transition-all duration-300 group-hover:bg-blue-500 sm:mt-5 sm:rounded-xl sm:text-sm sm:font-medium">
+        <div className="mt-5 w-full rounded-xl bg-blue-600 py-3 text-center text-sm font-medium text-white transition-all duration-300 group-hover:bg-blue-500">
           Открыть товар →
         </div>
       </div>
@@ -1518,14 +1518,14 @@ function FilterPanel({
     : modelOptions;
 
   return (
-    <aside className="card min-h-[560px] rounded-[30px] p-5 shadow-[0_30px_120px_rgba(37,99,235,0.18)] max-xl:rounded-b-none max-xl:pb-8">
+    <aside className="card min-h-[560px] rounded-[30px] p-5 shadow-[0_30px_120px_rgba(37,99,235,0.18)]">
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="text-xs font-medium uppercase tracking-[0.2em] text-blue-500">
             Фильтры
           </div>
 
-          <h3 className="mt-3 text-2xl font-bold tracking-[-0.045em] sm:text-3xl">
+          <h3 className="mt-3 text-3xl font-bold tracking-[-0.045em]">
             Уточнить выбор
           </h3>
         </div>
@@ -1616,8 +1616,7 @@ function FilterPanel({
         {showSpecificationFilters ? (
           <div className="rounded-2xl border border-theme bg-blue-soft p-4">
             <div className="font-semibold">
-              Характеристики{" "}
-              {activeCategoryName ? `· ${activeCategoryName}` : ""}
+              Характеристики {activeCategoryName ? `· ${activeCategoryName}` : ""}
             </div>
 
             <div className="mt-5 space-y-5">
@@ -1638,18 +1637,14 @@ function FilterPanel({
                   <div className="flex flex-wrap gap-2">
                     {colorOptions.map((color) => {
                       const isActive = color.name === selectedColor;
-                      const isDisabled = disabledColorOptions.includes(
-                        color.name,
-                      );
+                      const isDisabled = disabledColorOptions.includes(color.name);
 
                       return (
                         <button
                           key={color.name}
                           type="button"
                           disabled={isDisabled}
-                          onClick={() =>
-                            onSelectColor(isActive ? null : color.name)
-                          }
+                          onClick={() => onSelectColor(isActive ? null : color.name)}
                           title={
                             isDisabled
                               ? "Недоступно для выбранной комбинации"
@@ -1737,8 +1732,8 @@ function FilterPanel({
           <div className="font-semibold">Результат</div>
 
           <p className="mt-2 text-sm leading-relaxed text-muted">
-            Сейчас найдено: {resultCount}. Серые параметры недоступны для
-            текущего выбора и не нажимаются.
+            Сейчас найдено: {resultCount}. Серые параметры недоступны для текущего
+            выбора и не нажимаются.
           </p>
 
           <button
@@ -1812,17 +1807,21 @@ function FilterButtonGroup({
   );
 }
 
-function EmptyCatalogState({ onReset }: { onReset: () => void }) {
+function EmptyCatalogState({
+  onReset,
+}: {
+  onReset: () => void;
+}) {
   return (
     <div className="transition-all duration-300">
-      <div className="card rounded-[28px] p-7 text-center sm:rounded-[34px] sm:p-12">
-        <h2 className="text-[30px] font-bold tracking-[-0.04em] sm:text-4xl">
+      <div className="card rounded-[34px] p-12 text-center">
+        <h2 className="text-4xl font-bold tracking-[-0.04em]">
           Ничего не найдено
         </h2>
 
         <p className="mx-auto mt-4 max-w-[560px] text-muted">
-          По выбранным фильтрам товаров нет. Попробуйте убрать цвет, память, SIM
-          или изменить диапазон цены.
+          По выбранным фильтрам товаров нет. Попробуйте убрать цвет, память,
+          SIM или изменить диапазон цены.
         </p>
 
         <button
