@@ -942,13 +942,13 @@ export function CatalogView({
   }
 
   return (
-    <main className="min-h-screen bg-page px-4 py-6 text-main transition-colors duration-700 sm:px-6 xl:px-8">
+    <main className="min-h-screen bg-page px-3 py-4 text-main transition-colors duration-700 sm:px-5 sm:py-6 xl:px-8">
       <div className="w-full">
         <div className="mx-auto max-w-[1440px]">
           <SiteHeader />
         </div>
 
-        <section className="mt-10">
+        <section className="mt-6 sm:mt-8 lg:mt-10">
           <Link
             href="/"
             className="text-sm text-blue-500 transition-colors hover:text-blue-400"
@@ -956,10 +956,10 @@ export function CatalogView({
             ← На главную
           </Link>
 
-          <div className="mt-5 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="mt-4 flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="inline-flex rounded-full border border-blue-500/40 bg-blue-500/10 px-4 py-2 text-xs font-medium text-blue-500">
+              <div className="-mx-3 flex snap-x flex-nowrap items-center gap-2 overflow-x-auto px-3 pb-2 sm:mx-0 sm:flex-wrap sm:gap-3 sm:overflow-visible sm:px-0 sm:pb-0">
+                <span className="inline-flex rounded-full border border-blue-500/40 bg-blue-500/10 px-3 py-1.5 text-xs font-medium text-blue-500">
                   Каталог
                 </span>
 
@@ -968,20 +968,20 @@ export function CatalogView({
                 ) : null}
               </div>
 
-              <h1 className="mt-4 text-5xl font-bold tracking-[-0.055em] md:text-6xl">
+              <h1 className="mt-3 text-3xl font-bold tracking-[-0.055em] sm:text-4xl md:text-5xl lg:text-6xl">
                 {pageTitle}
               </h1>
 
-              <p className="mt-4 max-w-[760px] text-base leading-relaxed text-muted">
+              <p className="mt-3 max-w-[760px] text-sm leading-relaxed text-muted sm:text-base">
                 {pageDescription}
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2 sm:gap-3">
               <button
                 type="button"
                 onClick={() => setIsFilterOpen((prev) => !prev)}
-                className={`rounded-xl border px-6 py-4 text-sm font-medium transition-all duration-300 ${
+                className={`rounded-xl border px-4 py-3 text-sm font-medium transition-all duration-300 sm:px-6 sm:py-4 ${
                   isFilterOpen
                     ? "border-blue-500 bg-blue-600 text-white"
                     : "border-theme bg-transparent hover:border-blue-500/40 hover:bg-blue-soft"
@@ -1003,12 +1003,12 @@ export function CatalogView({
           </div>
         </section>
 
-        <section className="mt-8">
-          <div className="flex flex-wrap items-center gap-3">
+        <section className="mt-5 sm:mt-8">
+          <div className="-mx-3 flex snap-x flex-nowrap items-center gap-2 overflow-x-auto px-3 pb-2 sm:mx-0 sm:flex-wrap sm:gap-3 sm:overflow-visible sm:px-0 sm:pb-0">
             <Link
               href="/catalog"
               onClick={handleResetCatalogState}
-              className={`rounded-full border px-5 py-3 text-sm font-medium transition-all duration-300 ${
+              className={`snap-start whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-medium transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
                 !onlyPopular && !categoryId && !selectedBrand && !hasSpecificationFilters
                   ? "border-blue-500 bg-blue-600 text-white"
                   : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
@@ -1027,7 +1027,7 @@ export function CatalogView({
                 resetSpecificationFilters();
                 setSortMode("popular");
               }}
-              className={`rounded-full border px-5 py-3 text-sm font-medium transition-all duration-300 ${
+              className={`snap-start whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-medium transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
                 onlyPopular && !categoryId && !selectedBrand && !hasSpecificationFilters
                   ? "border-blue-500 bg-blue-600 text-white"
                   : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
@@ -1045,7 +1045,7 @@ export function CatalogView({
                     key={category.id}
                     href={category.href}
                     onClick={handleResetCatalogState}
-                    className={`rounded-full border px-5 py-3 text-sm font-medium transition-all duration-300 ${
+                    className={`snap-start whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-medium transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
                       isActive
                         ? "border-blue-500 bg-blue-600 text-white"
                         : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
@@ -1061,7 +1061,7 @@ export function CatalogView({
               <button
                 type="button"
                 onClick={() => setIsCategoriesOpen((prev) => !prev)}
-                className="rounded-full border border-theme bg-transparent px-5 py-3 text-sm font-medium text-blue-500 transition-all duration-300 hover:border-blue-500/40 hover:bg-blue-soft"
+                className="snap-start whitespace-nowrap rounded-full border border-theme bg-transparent px-4 py-2.5 text-xs font-medium text-blue-500 transition-all duration-300 hover:border-blue-500/40 hover:bg-blue-soft sm:px-5 sm:py-3 sm:text-sm"
               >
                 {isCategoriesOpen ? "Свернуть" : "Развернуть"}
               </button>
@@ -1088,11 +1088,11 @@ export function CatalogView({
         )}
 
         <section
-          className="mt-8 flex flex-col gap-6 xl:flex-row xl:items-start"
+          className="mt-6 flex flex-col gap-4 xl:flex-row xl:items-start"
           id="catalog-products"
         >
           {isFilterOpen && (
-            <div className="fixed inset-0 z-50 overflow-y-auto bg-black/45 px-4 py-5 backdrop-blur-sm xl:sticky xl:top-6 xl:inset-auto xl:w-[320px] xl:shrink-0 xl:overflow-visible xl:bg-transparent xl:p-0 xl:backdrop-blur-0">
+            <div className="fixed inset-0 z-50 overflow-y-auto bg-black/45 px-3 py-4 backdrop-blur-sm xl:sticky xl:top-6 xl:inset-auto xl:w-[320px] xl:shrink-0 xl:overflow-visible xl:bg-transparent xl:p-0 xl:backdrop-blur-0">
               <div className="mx-auto max-w-[430px] xl:mx-0 xl:max-h-[calc(100vh-48px)] xl:overflow-y-auto xl:pr-1 xl:pb-4">
                 <FilterPanel
                   onClose={() => setIsFilterOpen(false)}
@@ -1191,7 +1191,7 @@ function SortControl({
       <button
         type="button"
         onClick={onToggle}
-        className={`rounded-xl border px-6 py-4 text-sm font-medium transition-colors ${
+        className={`rounded-xl border px-4 py-3 text-sm font-medium transition-colors sm:px-6 sm:py-4 ${
           isOpen
             ? "border-blue-500/40 bg-blue-500/10 text-blue-500"
             : "border-theme bg-transparent hover:border-blue-500/40 hover:bg-blue-soft"
@@ -1280,7 +1280,7 @@ function ActiveFilterSummary({
   ].filter(Boolean) as string[];
 
   return (
-    <section className="mt-8 rounded-[28px] border border-blue-500/30 bg-blue-500/10 p-5">
+    <section className="mt-5 rounded-[22px] border border-blue-500/30 bg-blue-500/10 p-4 sm:mt-8 sm:rounded-[28px] sm:p-5">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <div className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-500">
@@ -1291,7 +1291,7 @@ function ActiveFilterSummary({
             {filterTags.map((tag) => (
               <span
                 key={tag}
-                className="rounded-full border border-blue-500/25 bg-blue-500/10 px-3 py-2 text-sm font-medium text-blue-500"
+                className="rounded-full border border-blue-500/25 bg-blue-500/10 px-2.5 py-1.5 text-xs font-medium text-blue-500 sm:px-3 sm:py-2 sm:text-sm"
               >
                 {tag}
               </span>
@@ -1308,7 +1308,7 @@ function ActiveFilterSummary({
         <button
           type="button"
           onClick={onReset}
-          className="w-full rounded-xl border border-theme bg-transparent px-5 py-4 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft md:w-auto"
+          className="w-full rounded-xl border border-theme bg-transparent px-4 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft md:w-auto"
         >
           Сбросить параметры
         </button>
@@ -1332,12 +1332,12 @@ function PositionGrid({
     <section>
       <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-[-0.04em]">{title}</h2>
+          <h2 className="text-2xl font-bold tracking-[-0.04em] sm:text-3xl">{title}</h2>
           <p className="mt-2 text-sm text-muted">{subtitle}</p>
         </div>
       </div>
 
-      <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-5 sm:gap-5 lg:grid-cols-3 2xl:grid-cols-4">
         {positions.map((position) => (
           <PositionProductCard key={position.sku} position={position} dark={dark} />
         ))}
@@ -1356,14 +1356,14 @@ function PositionProductCard({
   return (
     <Link
       href={`/product/${position.modelSlug}?sku=${encodeURIComponent(position.sku)}`}
-      className={`group block h-full rounded-3xl border p-4 transition-all duration-500 hover:-translate-y-1 ${
+      className={`group block h-full rounded-[22px] border p-2.5 transition-all duration-500 hover:-translate-y-1 sm:rounded-3xl sm:p-4 ${
         dark
           ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
           : "border-black/10 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)] hover:border-blue-500/35"
       }`}
     >
       <div
-        className={`flex aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-2xl transition-colors duration-700 ${
+        className={`flex aspect-square w-full items-center justify-center overflow-hidden rounded-2xl transition-colors duration-700 sm:aspect-[3/4] ${
           position.images?.[0] || getModelImage(position.product)
             ? "bg-white text-slate-400"
             : dark
@@ -1376,23 +1376,23 @@ function PositionProductCard({
           <img
             src={position.images?.[0] ?? getModelImage(position.product)}
             alt={position.title}
-            className="h-full w-full object-contain p-3"
+            className="h-full w-full object-contain p-2 sm:p-3"
           />
         ) : (
           "Фото товара"
         )}
       </div>
 
-      <div className="px-1 pb-1 pt-4">
-        <div className="text-xs text-muted">
+      <div className="px-0.5 pb-0.5 pt-3 sm:px-1 sm:pb-1 sm:pt-4">
+        <div className="truncate text-[11px] text-muted sm:text-xs">
           {position.brand} · {position.productName}
         </div>
 
-        <h3 className="mt-1 text-lg font-bold leading-tight">
+        <h3 className="mt-1 line-clamp-2 text-sm font-bold leading-tight sm:text-lg">
           {position.title}
         </h3>
 
-        <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted">
+        <div className="mt-2 hidden flex-wrap gap-2 text-xs text-muted sm:flex">
           {position.memory !== emptyValue && (
             <span className="rounded-full border border-theme px-2 py-1">
               {position.memory}
@@ -1414,7 +1414,7 @@ function PositionProductCard({
           </span>
         </div>
 
-        <div className="mt-4 flex items-end justify-between gap-3">
+        <div className="mt-3 flex flex-col gap-2 sm:mt-4 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
           <div>
             {position.oldPrice && (
               <div className="text-xs text-muted line-through">
@@ -1422,13 +1422,13 @@ function PositionProductCard({
               </div>
             )}
 
-            <p className="text-lg font-bold tracking-[-0.03em]">
+            <p className="text-base font-bold tracking-[-0.03em] sm:text-lg">
               {position.price}
             </p>
           </div>
 
           <div
-            className={`rounded-full px-3 py-1 text-xs font-medium ${getAvailabilityBadgeClass(
+            className={`w-fit rounded-full px-2.5 py-1 text-[11px] font-medium sm:px-3 sm:text-xs ${getAvailabilityBadgeClass(
               position
             )}`}
           >
@@ -1436,9 +1436,9 @@ function PositionProductCard({
           </div>
         </div>
 
-        <div className="mt-2 text-xs text-muted-soft">Код товара: {position.sku}</div>
+        <div className="mt-2 hidden text-xs text-muted-soft sm:block">Код товара: {position.sku}</div>
 
-        <div className="mt-5 w-full rounded-xl bg-blue-600 py-3 text-center text-sm font-medium text-white transition-all duration-300 group-hover:bg-blue-500">
+        <div className="mt-3 w-full rounded-xl bg-blue-600 py-2.5 text-center text-xs font-medium text-white transition-all duration-300 group-hover:bg-blue-500 sm:mt-5 sm:py-3 sm:text-sm">
           Открыть товар →
         </div>
       </div>
@@ -1518,14 +1518,14 @@ function FilterPanel({
     : modelOptions;
 
   return (
-    <aside className="card min-h-[560px] rounded-[30px] p-5 shadow-[0_30px_120px_rgba(37,99,235,0.18)]">
+    <aside className="card min-h-0 rounded-[24px] p-4 shadow-[0_30px_120px_rgba(37,99,235,0.18)] sm:rounded-[30px] sm:p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="text-xs font-medium uppercase tracking-[0.2em] text-blue-500">
             Фильтры
           </div>
 
-          <h3 className="mt-3 text-3xl font-bold tracking-[-0.045em]">
+          <h3 className="mt-2 text-2xl font-bold tracking-[-0.045em] sm:mt-3 sm:text-3xl">
             Уточнить выбор
           </h3>
         </div>
@@ -1533,13 +1533,13 @@ function FilterPanel({
         <button
           type="button"
           onClick={onClose}
-          className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-lg text-white transition-colors hover:bg-blue-500"
+          className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-lg text-white transition-colors hover:bg-blue-500 sm:h-11 sm:w-11"
         >
           ×
         </button>
       </div>
 
-      <div className="mt-7 space-y-7">
+      <div className="mt-5 space-y-5 sm:mt-7 sm:space-y-7">
         <div>
           <div className="mb-3 text-sm font-semibold">Бренд</div>
 
@@ -1577,7 +1577,7 @@ function FilterPanel({
 
         {visibleModelOptions.length > 0 && (
           <div>
-            <div className="mb-3 text-sm font-semibold">Модель</div>
+            <div className="mb-2 text-sm font-semibold">Модель</div>
 
             <div className="grid gap-2">
               {visibleModelOptions.map((product) => {
@@ -1632,7 +1632,7 @@ function FilterPanel({
 
               {colorOptions.length > 0 && (
                 <div>
-                  <div className="mb-3 text-sm font-semibold">Цвет</div>
+                  <div className="mb-2 text-sm font-semibold">Цвет</div>
 
                   <div className="flex flex-wrap gap-2">
                     {colorOptions.map((color) => {
@@ -1749,7 +1749,7 @@ function FilterPanel({
       <button
         type="button"
         onClick={onClose}
-        className="mt-7 w-full rounded-xl bg-blue-600 px-5 py-4 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+        className="mt-5 w-full rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500 sm:mt-7 sm:py-4"
       >
         Показать товары
       </button>
@@ -1814,8 +1814,8 @@ function EmptyCatalogState({
 }) {
   return (
     <div className="transition-all duration-300">
-      <div className="card rounded-[34px] p-12 text-center">
-        <h2 className="text-4xl font-bold tracking-[-0.04em]">
+      <div className="card rounded-[24px] p-6 text-center sm:rounded-[34px] sm:p-12">
+        <h2 className="text-2xl font-bold tracking-[-0.04em] sm:text-4xl">
           Ничего не найдено
         </h2>
 

@@ -78,11 +78,11 @@ function renderNavIcon(icon: string, label: string) {
   if (value && isImageIcon(value)) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={value} alt="" className="h-5 w-5 object-contain" aria-hidden="true" />
+      <img src={value} alt="" className="h-[18px] w-[18px] object-contain" aria-hidden="true" />
     );
   }
 
-  return <span className="text-[19px] leading-none">{value || label[0]}</span>;
+  return <span className="text-[17px] leading-none">{value || label[0]}</span>;
 }
 
 function isActivePath(pathname: string, item: BottomNavItem) {
@@ -245,7 +245,7 @@ export function SiteHeader() {
   return (
     <>
       <header
-        className={`flex h-[64px] items-center justify-between rounded-2xl border px-3 transition-all duration-700 sm:h-[70px] sm:px-5 lg:h-[76px] lg:px-8 ${
+        className={`flex h-[58px] items-center justify-between rounded-2xl border px-3 transition-all duration-700 sm:h-[64px] sm:px-5 lg:h-[76px] lg:px-8 ${
           dark
             ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)]"
             : "border-black/10 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)]"
@@ -253,7 +253,7 @@ export function SiteHeader() {
       >
         <Link
           href="/"
-          className="relative flex h-11 w-[118px] shrink-0 items-center justify-start overflow-hidden sm:w-[140px] lg:h-12 lg:w-[150px]"
+          className="relative flex h-10 w-[108px] shrink-0 items-center justify-start overflow-hidden sm:w-[128px] lg:h-12 lg:w-[150px]"
           aria-label={storeName}
         >
           {mobileLogo ? (
@@ -262,7 +262,7 @@ export function SiteHeader() {
               <img
                 src={mobileLogo}
                 alt={storeName}
-                className="h-auto max-h-8 w-auto object-contain transition-opacity duration-700 sm:max-h-9 lg:hidden"
+                className="h-auto max-h-7 w-auto object-contain transition-opacity duration-700 sm:max-h-8 lg:hidden"
               />
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
@@ -276,7 +276,7 @@ export function SiteHeader() {
             <img
               src={logoSrc}
               alt={storeName}
-              className="h-auto max-h-8 w-auto object-contain transition-opacity duration-700 sm:max-h-9"
+              className="h-auto max-h-7 w-auto object-contain transition-opacity duration-700 sm:max-h-8 lg:max-h-9"
             />
           )}
         </Link>
@@ -323,15 +323,15 @@ export function SiteHeader() {
             type="button"
             onClick={toggleTheme}
             aria-label="Переключить тему"
-            className={`relative h-10 w-14 rounded-xl border transition-all duration-700 sm:h-11 sm:w-16 ${
+            className={`relative h-9 w-12 rounded-xl border transition-all duration-700 sm:h-10 sm:w-14 lg:h-11 lg:w-16 ${
               dark
                 ? "border-white/10 bg-blue-600/15"
                 : "border-black/10 bg-blue-50"
             }`}
           >
             <span
-              className={`absolute top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg bg-blue-600 text-xs text-white transition-all duration-500 ease-in-out sm:h-8 sm:w-8 sm:text-sm ${
-                dark ? "left-6 sm:left-7" : "left-1"
+              className={`absolute top-1/2 flex h-[26px] w-[26px] -translate-y-1/2 items-center justify-center rounded-lg bg-blue-600 text-xs text-white transition-all duration-500 ease-in-out sm:h-7 sm:w-7 lg:h-8 lg:w-8 lg:text-sm ${
+                dark ? "left-5 sm:left-6 lg:left-7" : "left-1"
               }`}
             >
               {dark ? "☾" : "☀"}
@@ -340,7 +340,7 @@ export function SiteHeader() {
 
           <Link
             href="/cart"
-            className={`relative hidden h-11 w-11 items-center justify-center rounded-xl border transition-all duration-300 sm:flex ${
+            className={`relative hidden h-11 w-11 items-center justify-center rounded-xl border transition-all duration-300 lg:flex ${
               dark
                 ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
                 : "border-black/10 bg-white text-[#07111f] hover:border-blue-500/40 hover:bg-blue-50"
@@ -361,7 +361,7 @@ export function SiteHeader() {
                 href={accountHref}
                 aria-label={accountLabel}
                 title={accountLabel}
-                className={`flex h-10 w-10 items-center justify-center rounded-xl border text-sm font-bold transition-all duration-300 sm:h-11 sm:w-11 ${
+                className={`flex h-9 w-9 items-center justify-center rounded-xl border text-sm font-bold transition-all duration-300 sm:h-10 sm:w-10 lg:h-11 lg:w-11 ${
                   dark
                     ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
                     : "border-black/10 bg-white text-[#07111f] hover:border-blue-500/40 hover:bg-blue-50"
@@ -391,7 +391,7 @@ export function SiteHeader() {
                 setAuthMode("login");
                 setIsAuthModalOpen(true);
               }}
-              className="rounded-xl border border-theme bg-transparent px-3 py-2.5 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-5 sm:py-3"
+              className="rounded-xl border border-theme bg-transparent px-3 py-2 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-4 sm:py-2.5 lg:px-5 lg:py-3"
             >
               Войти
             </button>
@@ -401,7 +401,7 @@ export function SiteHeader() {
 
       <form
         onSubmit={submitSearch}
-        className={`mt-3 flex h-12 items-center rounded-2xl border px-4 text-sm transition-all duration-700 lg:hidden ${
+        className={`mt-2 flex h-10 items-center rounded-xl border px-3 text-sm transition-all duration-700 lg:hidden ${
           dark
             ? "border-white/10 bg-white/[0.035] text-white/70 focus-within:border-blue-500/55"
             : "border-black/10 bg-white text-black/65 shadow-[0_14px_50px_rgba(15,23,42,0.06)] focus-within:border-blue-500/55"
@@ -414,15 +414,15 @@ export function SiteHeader() {
           placeholder="Поиск по каталогу"
           className="h-full min-w-0 flex-1 bg-transparent outline-none placeholder:text-current/50"
         />
-        <button type="submit" className="ml-3 rounded-xl bg-blue-600 px-4 py-2 text-xs font-semibold text-white">
+        <button type="submit" className="ml-2 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white">
           Найти
         </button>
       </form>
 
-      <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-3 pb-[calc(env(safe-area-inset-bottom)+10px)] lg:hidden">
+      <nav className="pointer-events-none fixed inset-x-0 bottom-0 z-40 flex justify-center px-3 pb-[calc(env(safe-area-inset-bottom)+8px)] lg:hidden">
         <div
-          className={`pointer-events-auto grid w-full max-w-[470px] grid-cols-5 gap-1 rounded-[24px] border p-2 shadow-[0_20px_80px_rgba(15,23,42,0.24)] backdrop-blur-xl ${
-            dark ? "border-white/10 bg-[#07111f]/88" : "border-black/10 bg-white/92"
+          className={`pointer-events-auto grid w-full max-w-[420px] grid-cols-5 gap-1 rounded-[22px] border p-1.5 shadow-[0_20px_80px_rgba(15,23,42,0.24)] backdrop-blur-xl ${
+            dark ? "border-white/10 bg-[#07111f]/90" : "border-black/10 bg-white/95"
           }`}
         >
           {bottomNavItems.map((item) => {
@@ -434,11 +434,11 @@ export function SiteHeader() {
                 key={item.key}
                 href={item.href}
                 aria-label={item.label}
-                className={`relative flex min-h-[56px] flex-col items-center justify-center gap-1 rounded-[18px] text-[10px] font-semibold transition-all ${
+                className={`relative flex min-h-[50px] flex-col items-center justify-center gap-1 rounded-[16px] text-[9px] font-semibold transition-all ${
                   active
                     ? "bg-blue-600 text-white shadow-[0_10px_28px_rgba(37,99,235,0.3)]"
                     : dark
-                      ? "text-white/58 hover:bg-white/[0.06] hover:text-white"
+                      ? "text-white/60 hover:bg-white/[0.06] hover:text-white"
                       : "text-slate-500 hover:bg-blue-50 hover:text-blue-600"
                 }`}
               >

@@ -175,24 +175,6 @@ function getItemLineTotal(item: CartItem) {
   return getPriceNumber(item.price) * item.quantity;
 }
 
-function getItemImage(item: CartItem) {
-  const position = getPositionBySku(item.sku) as
-    | (ProductPosition & { images?: string[] })
-    | undefined;
-  const product = getProductBySlug(item.modelSlug) as
-    | (ProductModel & { image?: string; images?: string[] })
-    | undefined;
-  const images = [
-    ...(Array.isArray(position?.images) ? position.images : []),
-    product?.image,
-    ...(Array.isArray(product?.images) ? product.images : []),
-  ]
-    .map((image) => String(image ?? "").trim())
-    .filter(Boolean);
-
-  return images[0] ?? "";
-}
-
 function getSavedProfile(): StoredProfile | undefined {
   const possibleProfiles = [
     readJson<StoredProfile>("netizen-user"),
@@ -201,7 +183,7 @@ function getSavedProfile(): StoredProfile | undefined {
   ].filter(Boolean) as StoredProfile[];
 
   return possibleProfiles.find((profile) =>
-    Boolean(profile.name || profile.phone || profile.email),
+    Boolean(profile.name || profile.phone || profile.email)
   );
 }
 
@@ -215,9 +197,9 @@ function getStoredAddresses(profile?: StoredProfile) {
   return Array.from(
     new Set(
       [...profileAddresses, ...savedAddresses].filter(
-        (address) => typeof address === "string" && address.trim().length > 0,
-      ),
-    ),
+        (address) => typeof address === "string" && address.trim().length > 0
+      )
+    )
   );
 }
 
@@ -252,9 +234,7 @@ function getStoredDelivery(): DeliveryData {
 export default function CartPage() {
   const [items, setItems] = useState<CartItem[]>([]);
   const [isCartLoaded, setIsCartLoaded] = useState(false);
-  const [itemPendingRemove, setItemPendingRemove] = useState<CartItem | null>(
-    null,
-  );
+  const [itemPendingRemove, setItemPendingRemove] = useState<CartItem | null>(null);
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [isRegistered, setIsRegistered] = useState(false);
   const [customer, setCustomer] = useState<CustomerData>({
@@ -271,9 +251,7 @@ export default function CartPage() {
     deliveryTitle: "",
     pickupPointId: "",
   });
-  const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOption[]>(
-    fallbackDeliveryOptions,
-  );
+  const [deliveryOptions, setDeliveryOptions] = useState<DeliveryOption[]>(fallbackDeliveryOptions);
   const [savedAddresses, setSavedAddresses] = useState<string[]>([]);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [newAddress, setNewAddress] = useState("");
@@ -302,12 +280,10 @@ export default function CartPage() {
 
     async function loadDeliveryOptions() {
       const response = await fetch("/api/delivery-options").catch(() => null);
-      const payload = (await response?.json().catch(() => null)) as {
-        deliveries?: DeliveryOption[];
-      } | null;
-      const nextOptions = payload?.deliveries?.length
-        ? payload.deliveries
-        : fallbackDeliveryOptions;
+      const payload = (await response?.json().catch(() => null)) as
+        | { deliveries?: DeliveryOption[] }
+        | null;
+      const nextOptions = payload?.deliveries?.length ? payload.deliveries : fallbackDeliveryOptions;
 
       if (isMounted) {
         setDeliveryOptions(nextOptions);
@@ -347,12 +323,12 @@ export default function CartPage() {
 
   const totalQuantity = useMemo(
     () => items.reduce((sum, item) => sum + item.quantity, 0),
-    [items],
+    [items]
   );
 
   const subtotal = useMemo(
     () => items.reduce((sum, item) => sum + getItemLineTotal(item), 0),
-    [items],
+    [items]
   );
 
   const recommendationPositions = useMemo(() => {
@@ -364,39 +340,29 @@ export default function CartPage() {
         position.status !== "hidden" &&
         position.status !== "draft" &&
         (position.stock ?? 0) > 0 &&
-        !cartSkus.has(position.sku),
+        !cartSkus.has(position.sku)
     );
 
     const sameBrandPositions = availablePositions.filter((position) => {
       const product = getProductBySlug(position.modelSlug);
       const cartBrands = new Set(items.map((item) => item.brand));
 
-      return (
-        product &&
-        cartBrands.has(product.brand) &&
-        !cartModels.has(position.modelSlug)
-      );
+      return product && cartBrands.has(product.brand) && !cartModels.has(position.modelSlug);
     });
 
-    const baseList =
-      sameBrandPositions.length > 0 ? sameBrandPositions : availablePositions;
+    const baseList = sameBrandPositions.length > 0 ? sameBrandPositions : availablePositions;
 
     return baseList.slice(0, 5);
   }, [items]);
 
   const hasItems = items.length > 0;
-  const hasGuestContacts =
-    customer.name.trim().length > 0 && customer.phone.trim().length > 0;
+  const hasGuestContacts = customer.name.trim().length > 0 && customer.phone.trim().length > 0;
   const hasCourierAddress = isRegistered
-    ? delivery.savedAddress.trim().length > 0 ||
-      delivery.address.trim().length > 0
+    ? delivery.savedAddress.trim().length > 0 || delivery.address.trim().length > 0
     : delivery.city.trim().length > 0 && delivery.address.trim().length > 0;
-  const hasPickupAddress =
-    delivery.method === "pickup" && delivery.address.trim().length > 0;
-  const hasDelivery =
-    hasPickupAddress || (delivery.method === "courier" && hasCourierAddress);
-  const canPlaceOrder =
-    hasItems && hasDelivery && (isRegistered || hasGuestContacts);
+  const hasPickupAddress = delivery.method === "pickup" && delivery.address.trim().length > 0;
+  const hasDelivery = hasPickupAddress || (delivery.method === "courier" && hasCourierAddress);
+  const canPlaceOrder = hasItems && hasDelivery && (isRegistered || hasGuestContacts);
 
   const deliverySummary = getDeliverySummary(delivery, isRegistered);
   const contactSummary = isRegistered
@@ -417,10 +383,7 @@ export default function CartPage() {
       }
 
       const stock = getItemStock(item);
-      const safeQuantity = Math.min(
-        Math.max(1, nextQuantity),
-        Math.max(1, stock),
-      );
+      const safeQuantity = Math.min(Math.max(1, nextQuantity), Math.max(1, stock));
 
       return { ...item, quantity: safeQuantity };
     });
@@ -444,7 +407,7 @@ export default function CartPage() {
 
           const nextQuantity = Math.min(
             item.quantity + 1,
-            Math.max(1, position.stock ?? item.quantity + 1),
+            Math.max(1, position.stock ?? item.quantity + 1)
           );
 
           return { ...item, quantity: nextQuantity };
@@ -534,9 +497,7 @@ export default function CartPage() {
       return;
     }
 
-    const nextAddresses = Array.from(
-      new Set([...savedAddresses, normalizedAddress]),
-    );
+    const nextAddresses = Array.from(new Set([...savedAddresses, normalizedAddress]));
 
     setSavedAddresses(nextAddresses);
     saveAddresses(nextAddresses);
@@ -565,11 +526,7 @@ export default function CartPage() {
             : { ...customer, source: "guest" },
           delivery: {
             ...delivery,
-            title:
-              delivery.deliveryTitle ||
-              (delivery.method === "pickup"
-                ? "ПВЗ / самовывоз"
-                : "Курьерская доставка"),
+            title: delivery.deliveryTitle || (delivery.method === "pickup" ? "ПВЗ / самовывоз" : "Курьерская доставка"),
           },
           comment,
           items,
@@ -594,11 +551,7 @@ export default function CartPage() {
           : { ...customer, source: "guest" },
         delivery: {
           ...delivery,
-          title:
-            delivery.deliveryTitle ||
-            (delivery.method === "pickup"
-              ? "ПВЗ / самовывоз"
-              : "Курьерская доставка"),
+          title: delivery.deliveryTitle || (delivery.method === "pickup" ? "ПВЗ / самовывоз" : "Курьерская доставка"),
         },
         payment: {
           type: "cash",
@@ -617,9 +570,7 @@ export default function CartPage() {
       setOrderNumber(result.order.publicId);
       setIsOrderSent(true);
     } catch (error) {
-      setOrderError(
-        error instanceof Error ? error.message : "Не удалось создать заявку.",
-      );
+      setOrderError(error instanceof Error ? error.message : "Не удалось создать заявку.");
     } finally {
       setIsOrderSubmitting(false);
     }
@@ -631,37 +582,35 @@ export default function CartPage() {
 
   if (isOrderSent) {
     return (
-      <main className="min-h-screen bg-page px-3 py-3 text-main transition-colors duration-700 sm:px-6 sm:py-6">
+      <main className="min-h-screen bg-page px-3 py-4 text-main transition-colors duration-700 sm:px-5 sm:py-6">
         <div className="mx-auto max-w-[1440px]">
           <SiteHeader />
 
-          <section className="mx-auto mt-10 max-w-[760px] card rounded-[32px] p-10 text-center">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-2xl text-white">
+          <section className="mx-auto mt-6 max-w-[760px] card rounded-[24px] p-6 text-center sm:mt-10 sm:rounded-[32px] sm:p-10">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-xl text-white sm:h-16 sm:w-16 sm:text-2xl">
               ✓
             </div>
 
-            <h1 className="mt-6 text-[36px] font-bold leading-none tracking-[-0.04em] sm:text-5xl">
+            <h1 className="mt-4 text-3xl font-bold tracking-[-0.04em] sm:mt-6 sm:text-5xl">
               Заказ отправлен
             </h1>
 
             <p className="mx-auto mt-4 max-w-[560px] text-muted">
-              Номер заказа:{" "}
-              <span className="font-semibold text-main">{orderNumber}</span>.
-              Менеджер свяжется с вами, подтвердит наличие, доставку и итоговую
-              стоимость.
+              Номер заказа: <span className="font-semibold text-main">{orderNumber}</span>.
+              Менеджер свяжется с вами, подтвердит наличие, доставку и итоговую стоимость.
             </p>
 
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
               <Link
                 href="/catalog"
-                className="inline-flex justify-center rounded-xl bg-blue-600 px-7 py-4 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+                className="inline-flex justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500 sm:px-7 sm:py-4"
               >
                 Продолжить покупки →
               </Link>
 
               <Link
                 href="/profile"
-                className="inline-flex justify-center rounded-xl border border-theme bg-transparent px-7 py-4 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
+                className="inline-flex justify-center rounded-xl border border-theme bg-transparent px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-7 sm:py-4"
               >
                 Перейти в профиль
               </Link>
@@ -674,16 +623,16 @@ export default function CartPage() {
 
   if (!hasItems) {
     return (
-      <main className="min-h-screen bg-page px-3 py-3 text-main transition-colors duration-700 sm:px-6 sm:py-6">
+      <main className="min-h-screen bg-page px-3 py-4 text-main transition-colors duration-700 sm:px-5 sm:py-6">
         <div className="mx-auto max-w-[1440px]">
           <SiteHeader />
 
-          <section className="mt-5 card rounded-[28px] p-7 text-center sm:mt-6 sm:rounded-[32px] sm:p-10">
-            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-2xl text-white">
+          <section className="mt-5 card rounded-[24px] p-6 text-center sm:mt-6 sm:rounded-[32px] sm:p-10">
+            <div className="mx-auto flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-xl text-white sm:h-16 sm:w-16 sm:text-2xl">
               🛒
             </div>
 
-            <h1 className="mt-6 text-[36px] font-bold leading-none tracking-[-0.04em] sm:text-5xl">
+            <h1 className="mt-4 text-3xl font-bold tracking-[-0.04em] sm:mt-6 sm:text-5xl">
               Корзина пустая
             </h1>
 
@@ -695,14 +644,14 @@ export default function CartPage() {
             <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
               <Link
                 href="/catalog"
-                className="inline-flex justify-center rounded-xl bg-blue-600 px-7 py-4 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+                className="inline-flex justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500 sm:px-7 sm:py-4"
               >
                 Перейти в каталог →
               </Link>
 
               <Link
                 href="/new"
-                className="inline-flex justify-center rounded-xl border border-theme bg-transparent px-7 py-4 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
+                className="inline-flex justify-center rounded-xl border border-theme bg-transparent px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-7 sm:py-4"
               >
                 Смотреть новинки
               </Link>
@@ -714,11 +663,11 @@ export default function CartPage() {
   }
 
   return (
-    <main className="min-h-screen bg-page px-3 py-3 text-main transition-colors duration-700 sm:px-6 sm:py-6">
+    <main className="min-h-screen bg-page px-3 py-4 text-main transition-colors duration-700 sm:px-5 sm:py-6">
       <div className="mx-auto max-w-[1440px]">
         <SiteHeader />
 
-        <div className="mt-6">
+        <div className="mt-4 sm:mt-6">
           <Link
             href="/catalog"
             className="text-sm text-blue-500 transition-colors hover:text-blue-400"
@@ -727,25 +676,24 @@ export default function CartPage() {
           </Link>
         </div>
 
-        <div className="mt-5 grid items-start gap-5 sm:mt-6 lg:grid-cols-[1fr_420px] lg:gap-8">
-          <div className="space-y-6">
-            <section className="card rounded-[28px] p-4 sm:rounded-[32px] sm:p-6 md:p-8">
-              <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+        <div className="mt-4 grid items-start gap-5 lg:mt-6 lg:grid-cols-[1fr_420px] lg:gap-8">
+          <div className="space-y-4 sm:space-y-6">
+            <section className="card rounded-[24px] p-4 sm:rounded-[32px] sm:p-6 md:p-8">
+              <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
-                  <h1 className="text-[36px] font-bold leading-none tracking-[-0.04em] sm:text-5xl">
+                  <h1 className="text-3xl font-bold tracking-[-0.04em] sm:text-5xl">
                     Корзина
                   </h1>
 
-                  <p className="mt-2 text-muted">
-                    {totalQuantity} {totalQuantity === 1 ? "товар" : "товара"} в
-                    заказе
+                  <p className="mt-1 text-sm text-muted sm:mt-2 sm:text-base">
+                    {totalQuantity} {totalQuantity === 1 ? "товар" : "товара"} в заказе
                   </p>
                 </div>
 
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-wrap gap-2 sm:gap-3">
                   <Link
                     href="/catalog"
-                    className="rounded-xl border border-theme bg-transparent px-5 py-3 text-sm transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
+                    className="rounded-xl border border-theme bg-transparent px-4 py-2.5 text-sm transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-5 sm:py-3"
                   >
                     Продолжить покупки
                   </Link>
@@ -753,7 +701,7 @@ export default function CartPage() {
                   <button
                     type="button"
                     onClick={clearCart}
-                    className="rounded-xl border border-theme bg-transparent px-5 py-3 text-sm text-muted transition-colors hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-500"
+                    className="rounded-xl border border-theme bg-transparent px-4 py-2.5 text-sm text-muted transition-colors hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-500 sm:px-5 sm:py-3"
                   >
                     Очистить корзину
                   </button>
@@ -770,42 +718,31 @@ export default function CartPage() {
                   return (
                     <article
                       key={item.sku}
-                      className="rounded-[26px] border border-theme bg-blue-soft p-3 sm:rounded-3xl sm:p-5"
+                      className="rounded-[22px] border border-theme bg-blue-soft p-3 sm:rounded-3xl sm:p-5"
                     >
-                      <div className="grid grid-cols-[96px_1fr] gap-4 sm:grid-cols-[140px_1fr_auto] sm:gap-5 sm:items-center">
+                      <div className="grid grid-cols-[82px_minmax(0,1fr)] gap-3 sm:grid-cols-[110px_minmax(0,1fr)] sm:gap-4 md:grid-cols-[140px_1fr_auto] md:items-center md:gap-5">
                         <Link
                           href={productHref}
-                          className="soft-box flex h-[96px] items-center justify-center overflow-hidden rounded-2xl text-xs text-muted-soft sm:h-[140px] sm:text-sm"
+                          className="soft-box flex h-[82px] items-center justify-center rounded-2xl text-xs text-muted-soft sm:h-[110px] md:h-[140px] md:text-sm"
                         >
-                          {getItemImage(item) ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={getItemImage(item)}
-                              alt={item.title || item.productName}
-                              className="h-full w-full object-contain p-2"
-                            />
-                          ) : (
-                            "Фото"
-                          )}
+                          Фото
                         </Link>
 
                         <div>
-                          <div className="text-xs text-muted-soft sm:text-sm">
-                            {item.brand}
-                          </div>
+                          <div className="truncate text-xs text-muted-soft sm:text-sm">{item.brand}</div>
 
                           <Link
                             href={productHref}
-                            className="mt-1 block text-base font-bold leading-tight transition-colors hover:text-blue-500 sm:text-xl"
+                            className="mt-1 line-clamp-2 block text-sm font-bold leading-tight transition-colors hover:text-blue-500 sm:text-xl"
                           >
                             {item.title || item.productName}
                           </Link>
 
-                          <p className="mt-2 text-xs text-muted sm:text-sm">
+                          <p className="mt-1 line-clamp-1 text-xs text-muted sm:mt-2 sm:text-sm">
                             {item.memory} · {item.color} · {item.sim}
                           </p>
 
-                          <div className="mt-3 hidden flex-wrap gap-2 sm:flex">
+                          <div className="mt-2 hidden flex-wrap gap-2 sm:flex sm:mt-3">
                             <span className="inline-flex rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs text-blue-500">
                               Код товара: {item.sku}
                             </span>
@@ -817,12 +754,11 @@ export default function CartPage() {
                                   : "border-orange-500/30 bg-orange-500/10 text-orange-500"
                               }`}
                             >
-                              {getStatusName(status, stock)}
-                              {stock > 0 ? ` · ${stock} шт.` : ""}
+                              {getStatusName(status, stock)}{stock > 0 ? ` · ${stock} шт.` : ""}
                             </span>
                           </div>
 
-                          <div className="mt-4 flex flex-wrap gap-3 text-xs text-muted-soft sm:mt-5 sm:text-sm">
+                          <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-soft sm:mt-5 sm:gap-3 sm:text-sm">
                             <button className="transition-colors hover:text-blue-500">
                               В избранное
                             </button>
@@ -837,14 +773,12 @@ export default function CartPage() {
                           </div>
                         </div>
 
-                        <div className="col-span-2 flex items-center justify-between gap-4 border-t border-theme pt-3 sm:col-span-1 sm:flex-col sm:items-end sm:border-t-0 sm:pt-0 md:gap-6">
-                          <div className="flex items-center gap-3">
+                        <div className="col-span-2 flex items-center justify-between gap-3 md:col-span-1 md:flex-col md:items-end md:gap-6">
+                          <div className="flex items-center gap-2 sm:gap-3">
                             <button
                               type="button"
-                              onClick={() =>
-                                updateQuantity(item.sku, item.quantity - 1)
-                              }
-                              className="flex h-10 w-10 items-center justify-center rounded-xl border border-theme bg-transparent text-lg transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
+                              onClick={() => updateQuantity(item.sku, item.quantity - 1)}
+                              className="flex h-8 w-8 items-center justify-center rounded-xl border border-theme bg-transparent text-base transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:h-9 sm:w-9 sm:text-lg"
                             >
                               −
                             </button>
@@ -856,10 +790,8 @@ export default function CartPage() {
                             <button
                               type="button"
                               disabled={!canIncrease}
-                              onClick={() =>
-                                updateQuantity(item.sku, item.quantity + 1)
-                              }
-                              className="flex h-10 w-10 items-center justify-center rounded-xl border border-theme bg-transparent text-lg transition-colors hover:border-blue-500/40 hover:bg-blue-soft disabled:cursor-not-allowed disabled:opacity-40"
+                              onClick={() => updateQuantity(item.sku, item.quantity + 1)}
+                              className="flex h-8 w-8 items-center justify-center rounded-xl border border-theme bg-transparent text-base transition-colors hover:border-blue-500/40 hover:bg-blue-soft disabled:cursor-not-allowed disabled:opacity-40 sm:h-9 sm:w-9 sm:text-lg"
                             >
                               +
                             </button>
@@ -867,7 +799,7 @@ export default function CartPage() {
 
                           <div className="text-right">
                             {item.oldPrice && (
-                              <div className="text-sm text-muted-soft line-through">
+                              <div className="text-xs text-muted-soft line-through sm:text-sm">
                                 {item.oldPrice}
                               </div>
                             )}
@@ -888,17 +820,13 @@ export default function CartPage() {
               </div>
             </section>
 
-            <section
-              className={`grid gap-5 ${isRegistered ? "md:grid-cols-1" : "md:grid-cols-2"}`}
-            >
+            <section className={`grid gap-3 sm:gap-5 ${isRegistered ? "md:grid-cols-1" : "md:grid-cols-2"}`}>
               <CheckoutCard
                 title="Доставка"
                 text={deliverySummary}
                 status={hasDelivery ? "Заполнено" : "Нужно выбрать"}
                 isComplete={hasDelivery}
-                action={
-                  hasDelivery ? "Изменить доставку →" : "Выбрать доставку →"
-                }
+                action={hasDelivery ? "Изменить доставку →" : "Выбрать доставку →"}
                 onClick={() => setActiveModal("delivery")}
               />
 
@@ -908,21 +836,17 @@ export default function CartPage() {
                   text={contactSummary}
                   status={hasGuestContacts ? "Заполнено" : "Нужно заполнить"}
                   isComplete={hasGuestContacts}
-                  action={
-                    hasGuestContacts
-                      ? "Изменить контакты →"
-                      : "Заполнить контакты →"
-                  }
+                  action={hasGuestContacts ? "Изменить контакты →" : "Заполнить контакты →"}
                   onClick={() => setActiveModal("contacts")}
                 />
               )}
             </section>
           </div>
 
-          <aside className="card h-fit rounded-[28px] p-5 sm:rounded-[32px] sm:p-8 lg:sticky lg:top-6">
-            <h2 className="text-2xl font-bold">Итого</h2>
+          <aside className="card h-fit rounded-[24px] p-5 sm:rounded-[32px] sm:p-8 lg:sticky lg:top-6">
+            <h2 className="text-xl font-bold sm:text-2xl">Итого</h2>
 
-            <div className="mt-6 space-y-4 text-muted">
+            <div className="mt-4 space-y-3 text-sm text-muted sm:mt-6 sm:space-y-4 sm:text-base">
               <div className="flex justify-between gap-4">
                 <span>Товары</span>
                 <span className="text-main">{formatPrice(subtotal)}</span>
@@ -935,17 +859,13 @@ export default function CartPage() {
 
               <div className="flex justify-between gap-4">
                 <span>Доставка</span>
-                <span className="max-w-[190px] text-right text-main">
-                  {hasDelivery ? deliverySummary : "не выбрана"}
-                </span>
+                <span className="max-w-[190px] text-right text-main">{hasDelivery ? deliverySummary : "не выбрана"}</span>
               </div>
 
               {!isRegistered && (
                 <div className="flex justify-between gap-4">
                   <span>Контакты</span>
-                  <span className="max-w-[190px] text-right text-main">
-                    {hasGuestContacts ? customer.phone : "не указаны"}
-                  </span>
+                  <span className="max-w-[190px] text-right text-main">{hasGuestContacts ? customer.phone : "не указаны"}</span>
                 </div>
               )}
 
@@ -956,7 +876,7 @@ export default function CartPage() {
             </div>
 
             <div className="mt-6 border-t border-theme pt-6">
-              <div className="flex justify-between gap-4 text-xl font-bold">
+              <div className="flex justify-between gap-4 text-lg font-bold sm:text-xl">
                 <span>К оплате</span>
                 <span>{formatPrice(subtotal)}</span>
               </div>
@@ -978,19 +898,19 @@ export default function CartPage() {
               type="button"
               disabled={!canPlaceOrder || isOrderSubmitting}
               onClick={placeOrder}
-              className="mt-6 flex w-full justify-center rounded-2xl bg-blue-600 px-7 py-4 text-sm font-bold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-600/40 disabled:text-white/60 sm:rounded-xl sm:font-medium"
+              className="mt-5 flex w-full justify-center rounded-xl bg-blue-600 px-5 py-3.5 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-600/40 disabled:text-white/60 sm:mt-6 sm:px-7 sm:py-4"
             >
               {isOrderSubmitting ? "Отправляем заявку..." : "Оформить заказ →"}
             </button>
 
             <p className="mt-4 text-xs leading-relaxed text-muted-soft">
-              Оплата только наличными при получении. Менеджер подтвердит
-              наличие, доставку и итоговую стоимость заказа.
+              Оплата только наличными при получении. Менеджер подтвердит наличие,
+              доставку и итоговую стоимость заказа.
             </p>
           </aside>
         </div>
 
-        <div className="mt-8 space-y-10 sm:mt-10 sm:space-y-12">
+        <div className="mt-7 space-y-8 sm:mt-10 sm:space-y-12">
           <RecommendationStrip
             title="С этим товаром покупают"
             items={recommendationPositions}
@@ -1008,22 +928,15 @@ export default function CartPage() {
               <button
                 key={option.key}
                 type="button"
-                onClick={() =>
-                  option.type === "courier"
-                    ? selectCourier(option)
-                    : selectPickupPoint(option)
-                }
+                onClick={() => option.type === "courier" ? selectCourier(option) : selectPickupPoint(option)}
                 className={`rounded-2xl border p-5 text-left transition-all ${
-                  delivery.deliveryKey === option.key ||
-                  (!delivery.deliveryKey && delivery.method === option.type)
+                  delivery.deliveryKey === option.key || (!delivery.deliveryKey && delivery.method === option.type)
                     ? "border-blue-500/50 bg-blue-500/10"
                     : "border-theme bg-blue-soft hover:border-blue-500/30"
                 }`}
               >
                 <div className="font-semibold">{option.title}</div>
-                <p className="mt-2 text-xs text-muted sm:text-sm">
-                  {option.text}
-                </p>
+                <p className="mt-2 text-sm text-muted">{option.text}</p>
                 {option.type === "pickup" && option.address && (
                   <p className="mt-3 text-xs text-muted-soft">
                     {getAddressText(option.address)}
@@ -1038,13 +951,9 @@ export default function CartPage() {
               <div className="text-sm uppercase tracking-[0.18em] text-blue-500">
                 Адрес ПВЗ
               </div>
-              <div className="mt-2 text-xl font-bold">
-                {delivery.deliveryTitle || "Самовывоз"}
-              </div>
+              <div className="mt-2 text-xl font-bold">{delivery.deliveryTitle || "Самовывоз"}</div>
               <p className="mt-2 text-muted">{delivery.address}</p>
-              <p className="mt-1 text-sm text-muted-soft">
-                Адрес берётся из настроек сайта.
-              </p>
+              <p className="mt-1 text-sm text-muted-soft">Адрес берётся из настроек сайта.</p>
             </div>
           )}
 
@@ -1067,8 +976,7 @@ export default function CartPage() {
                           type="button"
                           onClick={() => selectSavedAddress(address)}
                           className={`rounded-2xl border p-4 text-left text-sm transition-all ${
-                            delivery.savedAddress === address ||
-                            delivery.address === address
+                            delivery.savedAddress === address || delivery.address === address
                               ? "border-blue-500/50 bg-blue-500/10"
                               : "border-theme bg-blue-soft hover:border-blue-500/30"
                           }`}
@@ -1103,7 +1011,7 @@ export default function CartPage() {
                             setIsAddingAddress(false);
                             setNewAddress("");
                           }}
-                          className="rounded-xl border border-theme bg-transparent px-5 py-3 text-sm transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
+                          className="rounded-xl border border-theme bg-transparent px-4 py-2.5 text-sm transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-5 sm:py-3"
                         >
                           Отмена
                         </button>
@@ -1124,8 +1032,7 @@ export default function CartPage() {
                   <div>
                     <div className="font-semibold">Адрес доставки</div>
                     <p className="mt-1 text-sm text-muted">
-                      Для гостя достаточно указать город и адрес, куда нужно
-                      привезти заказ.
+                      Для гостя достаточно указать город и адрес, куда нужно привезти заказ.
                     </p>
                   </div>
 
@@ -1133,11 +1040,7 @@ export default function CartPage() {
                     <input
                       value={delivery.city}
                       onChange={(event) =>
-                        setDelivery((current) => ({
-                          ...current,
-                          method: "courier",
-                          city: event.target.value,
-                        }))
+                        setDelivery((current) => ({ ...current, method: "courier", city: event.target.value }))
                       }
                       placeholder="Город"
                       className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
@@ -1146,12 +1049,7 @@ export default function CartPage() {
                     <input
                       value={delivery.address}
                       onChange={(event) =>
-                        setDelivery((current) => ({
-                          ...current,
-                          method: "courier",
-                          address: event.target.value,
-                          savedAddress: "",
-                        }))
+                        setDelivery((current) => ({ ...current, method: "courier", address: event.target.value, savedAddress: "" }))
                       }
                       placeholder="Улица, дом, квартира"
                       className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
@@ -1178,43 +1076,28 @@ export default function CartPage() {
       {activeModal === "contacts" && !isRegistered && (
         <Modal title="Контакты для заказа" onClose={() => setActiveModal(null)}>
           <p className="text-sm text-muted">
-            Контакты нужны только для гостевого заказа. У зарегистрированного
-            клиента этот блок скрыт, потому что данные берутся из профиля.
+            Контакты нужны только для гостевого заказа. У зарегистрированного клиента
+            этот блок скрыт, потому что данные берутся из профиля.
           </p>
 
           <div className="mt-5 grid gap-3 md:grid-cols-2">
             <input
               value={customer.name}
-              onChange={(event) =>
-                setCustomer((current) => ({
-                  ...current,
-                  name: event.target.value,
-                }))
-              }
+              onChange={(event) => setCustomer((current) => ({ ...current, name: event.target.value }))}
               placeholder="Ваше имя"
               className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
             />
 
             <input
               value={customer.phone}
-              onChange={(event) =>
-                setCustomer((current) => ({
-                  ...current,
-                  phone: event.target.value,
-                }))
-              }
+              onChange={(event) => setCustomer((current) => ({ ...current, phone: event.target.value }))}
               placeholder="Телефон"
               className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
             />
 
             <input
               value={customer.email}
-              onChange={(event) =>
-                setCustomer((current) => ({
-                  ...current,
-                  email: event.target.value,
-                }))
-              }
+              onChange={(event) => setCustomer((current) => ({ ...current, email: event.target.value }))}
               placeholder="E-mail, если удобно"
               className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50 md:col-span-2"
             />
@@ -1242,10 +1125,7 @@ export default function CartPage() {
       )}
 
       {itemPendingRemove && (
-        <Modal
-          title="Удалить товар?"
-          onClose={() => setItemPendingRemove(null)}
-        >
+        <Modal title="Удалить товар?" onClose={() => setItemPendingRemove(null)}>
           <p className="text-muted">
             {itemPendingRemove.title} будет удалён из корзины.
           </p>
@@ -1296,7 +1176,7 @@ function getDeliverySummary(delivery: DeliveryData, isRegistered: boolean) {
 function getMissingText(
   hasDelivery: boolean,
   isRegistered: boolean,
-  hasGuestContacts: boolean,
+  hasGuestContacts: boolean
 ) {
   if (!hasDelivery && !isRegistered && !hasGuestContacts) {
     return "Чтобы оформить заказ, выберите доставку и заполните контакты.";
@@ -1347,9 +1227,7 @@ function CheckoutCard({
         </span>
       </div>
 
-      <p className="mt-3 min-h-[40px] text-sm leading-relaxed text-muted">
-        {text}
-      </p>
+      <p className="mt-3 min-h-[40px] text-sm leading-relaxed text-muted">{text}</p>
 
       <div className="mt-6 text-sm font-medium text-blue-500">{action}</div>
     </button>
@@ -1381,7 +1259,7 @@ function Modal({
           </button>
         </div>
 
-        <div className="mt-6">{children}</div>
+        <div className="mt-4 sm:mt-6">{children}</div>
       </div>
     </div>
   );
@@ -1406,7 +1284,7 @@ function RecommendationStrip({
     <section>
       <h2 className="text-2xl font-bold">{title}</h2>
 
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-5 sm:gap-5 md:grid-cols-3 xl:grid-cols-5">
+      <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-3 xl:grid-cols-5">
         {items.map((position) => {
           const product = getProductBySlug(position.modelSlug);
           const isAdded = addedSku === position.sku;
@@ -1418,16 +1296,16 @@ function RecommendationStrip({
           return (
             <article
               key={position.sku}
-              className="card rounded-[24px] p-2.5 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/35 hover:bg-blue-soft sm:rounded-3xl sm:p-4"
+              className="card rounded-3xl p-4 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/35 hover:bg-blue-soft"
             >
-              <div className="soft-box flex aspect-square h-auto items-center justify-center rounded-2xl text-xs text-muted-soft sm:h-[150px] sm:text-sm">
+              <div className="soft-box flex h-[150px] items-center justify-center rounded-2xl text-sm text-muted-soft">
                 Фото
               </div>
 
               <div className="pt-4">
                 <div className="text-sm text-muted-soft">{product.brand}</div>
 
-                <h3 className="mt-1 line-clamp-2 min-h-[38px] text-sm font-bold leading-tight sm:min-h-[40px] sm:text-base">
+                <h3 className="mt-1 line-clamp-2 min-h-[40px] font-bold leading-tight">
                   {position.title}
                 </h3>
 
@@ -1442,9 +1320,7 @@ function RecommendationStrip({
                 <p className="mt-3 text-base font-bold">{position.price}</p>
 
                 {position.oldPrice && (
-                  <p className="text-xs text-muted-soft line-through">
-                    {position.oldPrice}
-                  </p>
+                  <p className="text-xs text-muted-soft line-through">{position.oldPrice}</p>
                 )}
 
                 <button
@@ -1478,21 +1354,21 @@ function ProductStrip({
     <section>
       <h2 className="text-2xl font-bold">{title}</h2>
 
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-5 sm:gap-5 md:grid-cols-3 xl:grid-cols-5">
+      <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-3 xl:grid-cols-5">
         {items.map((product, index) => (
           <Link
             key={`${product.slug}-${index}`}
             href={`/product/${product.slug}`}
-            className="card group rounded-[24px] p-2.5 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/35 hover:bg-blue-soft sm:rounded-3xl sm:p-4"
+            className="card group rounded-3xl p-4 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/35 hover:bg-blue-soft"
           >
-            <div className="soft-box flex aspect-square h-auto items-center justify-center rounded-2xl text-xs text-muted-soft sm:h-[150px] sm:text-sm">
+            <div className="soft-box flex h-[150px] items-center justify-center rounded-2xl text-sm text-muted-soft">
               Фото
             </div>
 
             <div className="pt-4">
               <div className="text-sm text-muted-soft">{product.brand}</div>
 
-              <h3 className="mt-1 line-clamp-2 text-sm font-bold leading-tight sm:text-base">
+              <h3 className="mt-1 line-clamp-2 font-bold leading-tight">
                 {product.name}
               </h3>
 
