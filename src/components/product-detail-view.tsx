@@ -178,6 +178,7 @@ export function ProductDetailView({
   // До выбора конфигурации остаётся фото материнской карточки, чтобы
   // разные комплектации не смешивались в галерее.
   const previewPosition = activePosition ?? selectedPosition;
+  const detailsPosition = previewPosition ?? positions[0];
   const mediaImages =
     previewPosition?.images && previewPosition.images.length > 0
       ? previewPosition.images
@@ -877,20 +878,18 @@ export function ProductDetailView({
         {hasProductStory(product) ? <ProductStory product={product} /> : null}
 
         <section className="mt-6 sm:mt-10">
-          {previewPosition && (
-            <ProductTabs
-              productName={product.name}
-              brand={product.brand}
-              category={categoryName}
-              memory={previewPosition.memory}
-              color={previewPosition.color}
-              sim={previewPosition.sim}
-              sku={previewPosition.sku}
-              description={product.description}
-              shortDescription={product.shortDescription}
-              benefits={benefits}
-            />
-          )}
+          <ProductTabs
+            productName={product.name}
+            brand={product.brand}
+            category={categoryName}
+            memory={detailsPosition?.memory || "Не выбрано"}
+            color={detailsPosition?.color || "Не выбрано"}
+            sim={detailsPosition?.sim || "Не выбрано"}
+            sku={detailsPosition?.sku || "Будет выбран после конфигурации"}
+            description={product.description}
+            shortDescription={product.shortDescription}
+            benefits={benefits}
+          />
         </section>
 
         <section className="mt-6 sm:mt-10">
