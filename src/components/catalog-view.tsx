@@ -499,6 +499,8 @@ export function CatalogView({
     return () => window.removeEventListener("popstate", syncFiltersFromUrl);
   }, []);
 
+  const normalizedSearchQuery = searchQuery.trim();
+
   useEffect(() => {
     if (!isUrlSyncReady.current) {
       return;
@@ -524,9 +526,9 @@ export function CatalogView({
     });
   }, [
     onlyPopular,
-    normalizedSearchQuery,
     priceFrom,
     priceTo,
+    searchQuery,
     selectedBrand,
     selectedColor,
     selectedMemory,
@@ -581,7 +583,6 @@ export function CatalogView({
     (product) => product.slug === selectedModelSlug
   );
 
-  const normalizedSearchQuery = searchQuery.trim();
 
   const effectiveCategoryId = activeCategory?.id ?? selectedModel?.category;
   const showSpecificationFilters = Boolean(effectiveCategoryId);
