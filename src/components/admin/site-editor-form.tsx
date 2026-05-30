@@ -895,39 +895,19 @@ function BenefitsModuleEditor({
 
 function BrandingEditor({ settings, updateBranding }: { settings: SiteEditorSettings; updateBranding: <K extends keyof SiteEditorSettings["branding"]>(key: K, value: SiteEditorSettings["branding"][K]) => void }) {
   return (
-    <div className="grid gap-6">
-      <div className="grid gap-5 md:grid-cols-2">
-        <Field label="Название магазина"><input value={settings.branding.storeName} onChange={(event) => updateBranding("storeName", event.target.value)} className="admin-input" /></Field>
-        <Field label="Тема сайта по умолчанию">
-          <select className="admin-input" value={settings.branding.defaultTheme} onChange={(event) => updateBranding("defaultTheme", event.target.value as SiteEditorSettings["branding"]["defaultTheme"])}>
-            <option value="system">Системная</option>
-            <option value="light">Светлая</option>
-            <option value="dark">Тёмная</option>
-          </select>
-        </Field>
-        <Field label="Логотип для тёмной темы"><input value={settings.branding.logoLight} onChange={(event) => updateBranding("logoLight", event.target.value)} className="admin-input" placeholder="/logo-light.png" /></Field>
-        <Field label="Логотип для светлой темы"><input value={settings.branding.logoDark} onChange={(event) => updateBranding("logoDark", event.target.value)} className="admin-input" placeholder="/logo-dark.png" /></Field>
-        <Field label="Мобильный логотип"><input value={settings.branding.mobileLogo} onChange={(event) => updateBranding("mobileLogo", event.target.value)} className="admin-input" placeholder="Можно оставить пустым — возьмётся основной" /></Field>
-        <Field label="Favicon / иконка вкладки"><input value={settings.branding.favicon} onChange={(event) => updateBranding("favicon", event.target.value)} className="admin-input" placeholder="/favicon.ico" /></Field>
-        <Field label="Основной цвет"><input value={settings.branding.primaryColor} onChange={(event) => updateBranding("primaryColor", event.target.value)} className="admin-input" /></Field>
-        <Field label="Акцентный цвет"><input value={settings.branding.accentColor} onChange={(event) => updateBranding("accentColor", event.target.value)} className="admin-input" /></Field>
-      </div>
-
-      <div className="rounded-3xl border border-white/10 bg-black/20 p-5 sm:p-6">
-        <div className="text-xs font-medium uppercase tracking-[0.16em] text-white/35">Мобильная нижняя панель</div>
-        <h3 className="mt-2 text-xl font-bold tracking-[-0.035em]">Иконки навигации</h3>
-        <p className="mt-2 text-sm leading-relaxed text-white/45">
-          Можно поставить эмодзи, короткий символ или путь к картинке, например /uploads/home.svg.
-        </p>
-
-        <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-5">
-          <Field label="Главная"><input value={settings.branding.navIconHome} onChange={(event) => updateBranding("navIconHome", event.target.value)} className="admin-input" /></Field>
-          <Field label="Каталог"><input value={settings.branding.navIconCatalog} onChange={(event) => updateBranding("navIconCatalog", event.target.value)} className="admin-input" /></Field>
-          <Field label="Новинки"><input value={settings.branding.navIconNew} onChange={(event) => updateBranding("navIconNew", event.target.value)} className="admin-input" /></Field>
-          <Field label="Поддержка"><input value={settings.branding.navIconSupport} onChange={(event) => updateBranding("navIconSupport", event.target.value)} className="admin-input" /></Field>
-          <Field label="Корзина"><input value={settings.branding.navIconCart} onChange={(event) => updateBranding("navIconCart", event.target.value)} className="admin-input" /></Field>
-        </div>
-      </div>
+    <div className="grid gap-5 md:grid-cols-2">
+      <Field label="Название магазина"><input value={settings.branding.storeName} onChange={(event) => updateBranding("storeName", event.target.value)} className="admin-input" /></Field>
+      <Field label="Тема сайта по умолчанию">
+        <select className="admin-input" value={settings.branding.defaultTheme} onChange={(event) => updateBranding("defaultTheme", event.target.value as SiteEditorSettings["branding"]["defaultTheme"])}>
+          <option value="system">Системная</option>
+          <option value="light">Светлая</option>
+          <option value="dark">Тёмная</option>
+        </select>
+      </Field>
+      <Field label="Логотип для тёмной темы"><input value={settings.branding.logoLight} onChange={(event) => updateBranding("logoLight", event.target.value)} className="admin-input" /></Field>
+      <Field label="Логотип для светлой темы"><input value={settings.branding.logoDark} onChange={(event) => updateBranding("logoDark", event.target.value)} className="admin-input" /></Field>
+      <Field label="Основной цвет"><input value={settings.branding.primaryColor} onChange={(event) => updateBranding("primaryColor", event.target.value)} className="admin-input" /></Field>
+      <Field label="Акцентный цвет"><input value={settings.branding.accentColor} onChange={(event) => updateBranding("accentColor", event.target.value)} className="admin-input" /></Field>
     </div>
   );
 }

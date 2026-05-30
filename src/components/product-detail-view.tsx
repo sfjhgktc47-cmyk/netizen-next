@@ -98,7 +98,7 @@ function saveFavoriteSlugs(slugs: string[]) {
 
 function ProductMainImage({ src, alt }: { src: string; alt: string }) {
   return (
-    <div className="relative mx-auto flex aspect-square w-full max-w-[360px] items-center justify-center overflow-hidden rounded-[22px] bg-white text-muted-soft sm:max-w-[520px] sm:aspect-[3/4] sm:rounded-[30px]">
+    <div className="relative mx-auto flex aspect-[3/4] w-full max-w-[520px] items-center justify-center overflow-hidden rounded-[22px] bg-white text-muted-soft sm:rounded-[30px]">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}
@@ -112,7 +112,7 @@ function ProductMainImage({ src, alt }: { src: string; alt: string }) {
 
 function ProductImagePlaceholder() {
   return (
-    <div className="mx-auto flex aspect-square w-full max-w-[360px] items-center justify-center overflow-hidden rounded-[22px] border border-theme bg-blue-soft text-muted-soft sm:max-w-[520px] sm:aspect-[3/4] sm:rounded-[30px]">
+    <div className="mx-auto flex aspect-[3/4] w-full max-w-[520px] items-center justify-center overflow-hidden rounded-[30px] border border-theme bg-blue-soft text-muted-soft">
       Фото товара
     </div>
   );
@@ -178,7 +178,6 @@ export function ProductDetailView({
   // До выбора конфигурации остаётся фото материнской карточки, чтобы
   // разные комплектации не смешивались в галерее.
   const previewPosition = activePosition ?? selectedPosition;
-  const detailsPosition = previewPosition ?? positions[0];
   const mediaImages =
     previewPosition?.images && previewPosition.images.length > 0
       ? previewPosition.images
@@ -419,11 +418,11 @@ export function ProductDetailView({
   }
 
   return (
-    <main className="min-h-screen bg-page px-3 py-4 text-main transition-colors duration-700 sm:px-5 sm:py-6">
+    <main className="min-h-screen bg-page px-3 py-3 text-main transition-colors duration-700 sm:px-6 sm:py-6">
       <div className="mx-auto max-w-[1440px]">
         <SiteHeader />
 
-        <div className="mt-4 sm:mt-10">
+        <div className="mt-6 sm:mt-10">
           <Link
             href="/catalog"
             className="text-sm text-blue-500 transition-colors hover:text-blue-400"
@@ -432,8 +431,8 @@ export function ProductDetailView({
           </Link>
         </div>
 
-        <section className="mt-4 grid gap-4 lg:mt-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-start lg:gap-10">
-          <div className="card rounded-[22px] p-2.5 sm:rounded-[36px] sm:p-6">
+        <section className="mt-6 grid gap-5 sm:mt-8 sm:gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
+          <div className="card rounded-[26px] p-3 sm:rounded-[36px] sm:p-6">
             <div
               className="relative cursor-grab touch-pan-y select-none active:cursor-grabbing"
               role="region"
@@ -458,7 +457,7 @@ export function ProductDetailView({
                   <button
                     type="button"
                     onClick={showPreviousImage}
-                    className="absolute left-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl border border-theme bg-card/90 text-main shadow-soft backdrop-blur transition-colors hover:border-blue-500/50 hover:bg-blue-soft sm:left-4 sm:h-11 sm:w-11 sm:rounded-2xl"
+                    className="absolute left-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-2xl border border-theme bg-card/90 text-main shadow-soft backdrop-blur transition-colors hover:border-blue-500/50 hover:bg-blue-soft"
                     aria-label="Предыдущее фото"
                   >
                     ←
@@ -466,7 +465,7 @@ export function ProductDetailView({
                   <button
                     type="button"
                     onClick={showNextImage}
-                    className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl border border-theme bg-card/90 text-main shadow-soft backdrop-blur transition-colors hover:border-blue-500/50 hover:bg-blue-soft sm:right-4 sm:h-11 sm:w-11 sm:rounded-2xl"
+                    className="absolute right-4 top-1/2 flex h-11 w-11 -translate-y-1/2 items-center justify-center rounded-2xl border border-theme bg-card/90 text-main shadow-soft backdrop-blur transition-colors hover:border-blue-500/50 hover:bg-blue-soft"
                     aria-label="Следующее фото"
                   >
                     →
@@ -475,7 +474,7 @@ export function ProductDetailView({
               )}
             </div>
 
-            <div className="mx-auto mt-2 grid max-w-[360px] grid-cols-4 gap-2 sm:mt-6 sm:max-w-[520px] sm:gap-4">
+            <div className="mx-auto mt-4 grid max-w-[520px] grid-cols-4 gap-2 sm:mt-6 sm:gap-4">
               {(mediaImages.length > 0
                 ? mediaImages.slice(0, 8)
                 : Array.from({ length: 4 })
@@ -486,7 +485,7 @@ export function ProductDetailView({
                   onClick={() =>
                     typeof image === "string" && setActiveImageIndex(index)
                   }
-                  className={`flex aspect-square items-center justify-center overflow-hidden rounded-xl border bg-white text-xs text-muted-soft transition-all sm:aspect-[3/4] sm:rounded-2xl ${
+                  className={`flex aspect-[3/4] items-center justify-center overflow-hidden rounded-2xl border bg-white text-xs text-muted-soft transition-all ${
                     activeImageIndex === index && typeof image === "string"
                       ? "border-blue-500 ring-2 ring-blue-500/20"
                       : "border-theme hover:border-blue-500/50"
@@ -510,22 +509,22 @@ export function ProductDetailView({
           </div>
 
           <div className="lg:sticky lg:top-6">
-            <div className="card rounded-[22px] p-4 sm:rounded-[36px] sm:p-8">
+            <div className="card rounded-[26px] p-4 sm:rounded-[36px] sm:p-8">
               <div className="text-sm text-muted">{product.brand}</div>
 
-              <h1 className="mt-1.5 text-[26px] font-bold leading-[1.05] tracking-[-0.055em] sm:mt-2 sm:text-5xl">
+              <h1 className="mt-2 text-3xl font-bold tracking-[-0.055em] sm:text-5xl">
                 {product.name}
               </h1>
 
-              <p className="mt-2 max-w-[620px] text-sm leading-relaxed text-muted sm:mt-4">
+              <p className="mt-4 max-w-[620px] text-sm leading-relaxed text-muted">
                 {product.shortDescription}
               </p>
 
-              <div className="mt-4 sm:mt-5">
+              <div className="mt-5">
                 <button
                   type="button"
                   onClick={toggleFavorite}
-                  className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors sm:px-5 sm:py-3 ${
+                  className={`rounded-xl border px-5 py-3 text-sm font-medium transition-colors ${
                     isFavorite
                       ? "border-blue-500 bg-blue-500/10 text-blue-500 hover:bg-blue-500/15"
                       : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
@@ -536,12 +535,12 @@ export function ProductDetailView({
               </div>
 
               {!activePosition && (
-                <div className="mt-5 rounded-[22px] border border-blue-500/30 bg-blue-soft p-4 sm:mt-7 sm:rounded-3xl sm:p-5">
+                <div className="mt-7 rounded-3xl border border-blue-500/30 bg-blue-soft p-5">
                   <div className="text-sm text-blue-500">
                     Соберите конфигурацию
                   </div>
 
-                  <h2 className="mt-2 text-lg font-bold sm:text-xl">
+                  <h2 className="mt-2 text-xl font-bold">
                     Выберите цвет, память и SIM
                   </h2>
 
@@ -568,7 +567,7 @@ export function ProductDetailView({
                     </div>
                   </div>
 
-                  <p className="mt-3 text-sm leading-relaxed text-muted sm:mt-4">
+                  <p className="mt-4 text-sm leading-relaxed text-muted">
                     После выбора всех параметров появится конкретная позиция,
                     SKU, наличие и итоговая цена.
                   </p>
@@ -576,12 +575,12 @@ export function ProductDetailView({
               )}
 
               {activePosition && (
-                <div className="mt-5 rounded-[22px] border border-blue-500/30 bg-blue-soft p-4 sm:mt-7 sm:rounded-3xl sm:p-5">
+                <div className="mt-7 rounded-3xl border border-blue-500/30 bg-blue-soft p-5">
                   <div className="text-sm text-blue-500">
                     Выбранная конфигурация
                   </div>
 
-                  <h2 className="mt-2 text-lg font-bold sm:text-xl">
+                  <h2 className="mt-2 text-xl font-bold">
                     {activePosition.title}
                   </h2>
 
@@ -617,10 +616,10 @@ export function ProductDetailView({
                 </div>
               )}
 
-              <div className="mt-5 sm:mt-8">
+              <div className="mt-8">
                 <div className="text-sm font-semibold">Цвет</div>
 
-                <div className="mt-2 flex flex-wrap gap-2 sm:mt-3 sm:gap-3">
+                <div className="mt-3 flex flex-wrap gap-3">
                   {colorOptions.map((position) => {
                     const isActive = selectedColor === position.color;
                     const isDisabled =
@@ -633,7 +632,7 @@ export function ProductDetailView({
                         type="button"
                         disabled={isDisabled}
                         onClick={() => selectColor(position.color)}
-                        className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm transition-all duration-300 sm:gap-3 sm:px-4 sm:py-3 ${
+                        className={`flex items-center gap-3 rounded-xl border px-4 py-3 text-sm transition-all duration-300 ${
                           isActive
                             ? "border-blue-500 bg-blue-500/10 text-blue-500"
                             : isDisabled
@@ -642,7 +641,7 @@ export function ProductDetailView({
                         }`}
                       >
                         <span
-                          className="h-4 w-4 rounded-full border border-theme sm:h-5 sm:w-5"
+                          className="h-5 w-5 rounded-full border border-theme"
                           style={{ backgroundColor: position.colorHex }}
                         />
 
@@ -653,10 +652,10 @@ export function ProductDetailView({
                 </div>
               </div>
 
-              <div className="mt-4 sm:mt-7">
+              <div className="mt-7">
                 <div className="text-sm font-semibold">Память</div>
 
-                <div className="mt-2 flex flex-wrap gap-2 sm:mt-3 sm:gap-3">
+                <div className="mt-3 flex flex-wrap gap-3">
                   {memoryOptions.map((position) => {
                     const isActive = selectedMemory === position.memory;
                     const isDisabled =
@@ -669,7 +668,7 @@ export function ProductDetailView({
                         type="button"
                         disabled={isDisabled}
                         onClick={() => selectMemory(position.memory)}
-                        className={`rounded-xl border px-3 py-2 text-sm transition-all duration-300 sm:px-5 sm:py-3 ${
+                        className={`rounded-xl border px-5 py-3 text-sm transition-all duration-300 ${
                           isActive
                             ? "border-blue-500 bg-blue-500/10 text-blue-500"
                             : isDisabled
@@ -684,10 +683,10 @@ export function ProductDetailView({
                 </div>
               </div>
 
-              <div className="mt-4 sm:mt-7">
+              <div className="mt-7">
                 <div className="text-sm font-semibold">SIM</div>
 
-                <div className="mt-2 flex flex-wrap gap-2 sm:mt-3 sm:gap-3">
+                <div className="mt-3 flex flex-wrap gap-3">
                   {simOptions.map((position) => {
                     const isActive = selectedSim === position.sim;
                     const isDisabled =
@@ -700,7 +699,7 @@ export function ProductDetailView({
                         type="button"
                         disabled={isDisabled}
                         onClick={() => selectSim(position.sim)}
-                        className={`rounded-xl border px-3 py-2 text-sm transition-all duration-300 sm:px-5 sm:py-3 ${
+                        className={`rounded-xl border px-5 py-3 text-sm transition-all duration-300 ${
                           isActive
                             ? "border-blue-500 bg-blue-500/10 text-blue-500"
                             : isDisabled
@@ -716,24 +715,24 @@ export function ProductDetailView({
               </div>
 
               {!activePosition && (
-                <div className="mt-5 border-t border-theme pt-5 sm:mt-8 sm:pt-7">
+                <div className="mt-8 border-t border-theme pt-7">
                   <div className="text-sm text-muted">Цена</div>
 
-                  <div className="mt-1 text-[28px] font-bold tracking-[-0.045em] sm:text-4xl">
+                  <div className="mt-1 text-3xl font-bold tracking-[-0.045em] sm:text-4xl">
                     {priceRange}
                   </div>
 
-                  <p className="mt-3 text-sm leading-relaxed text-muted sm:mt-4">
+                  <p className="mt-4 text-sm leading-relaxed text-muted">
                     {hasInvalidCompleteConfiguration
                       ? "Такой конфигурации нет. Выберите другую комбинацию параметров."
                       : "Итоговая цена и наличие появятся после выбора цвета, памяти и SIM."}
                   </p>
 
-                  <div className="mt-4 grid gap-3 sm:mt-6 sm:grid-cols-2">
+                  <div className="mt-6 grid gap-3 sm:grid-cols-2">
                     <button
                       type="button"
                       disabled
-                      className="flex cursor-not-allowed justify-center rounded-xl bg-blue-600/50 px-5 py-3 text-sm font-medium text-white sm:px-7 sm:py-4"
+                      className="flex cursor-not-allowed justify-center rounded-xl bg-blue-600/50 px-7 py-4 text-sm font-medium text-white"
                     >
                       Купить сейчас →
                     </button>
@@ -741,7 +740,7 @@ export function ProductDetailView({
                     <button
                       type="button"
                       disabled
-                      className="flex cursor-not-allowed justify-center rounded-xl border border-theme px-5 py-3 text-sm font-medium text-muted-soft sm:px-7 sm:py-4"
+                      className="flex cursor-not-allowed justify-center rounded-xl border border-theme px-7 py-4 text-sm font-medium text-muted-soft"
                     >
                       В корзину
                     </button>
@@ -749,7 +748,7 @@ export function ProductDetailView({
 
                   <Link
                     href="/help"
-                    className="mt-3 flex justify-center rounded-xl border border-theme bg-transparent px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-7 sm:py-4"
+                    className="mt-3 flex justify-center rounded-xl border border-theme bg-transparent px-7 py-4 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
                   >
                     Задать вопрос
                   </Link>
@@ -757,7 +756,7 @@ export function ProductDetailView({
               )}
 
               {activePosition && (
-                <div className="mt-5 border-t border-theme pt-5 sm:mt-8 sm:pt-7">
+                <div className="mt-8 border-t border-theme pt-7">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                     <div>
                       {activePosition.oldPrice && (
@@ -766,7 +765,7 @@ export function ProductDetailView({
                         </div>
                       )}
 
-                      <div className="mt-1 text-[28px] font-bold tracking-[-0.045em] sm:text-4xl">
+                      <div className="mt-1 text-3xl font-bold tracking-[-0.045em] sm:text-4xl">
                         {activePosition.price}
                       </div>
                     </div>
@@ -783,7 +782,7 @@ export function ProductDetailView({
                     )}
                   </div>
 
-                  <div className="mt-4 sm:mt-7">
+                  <div className="mt-7">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <div className="text-sm font-semibold">Количество</div>
@@ -792,12 +791,12 @@ export function ProductDetailView({
                           <button
                             type="button"
                             onClick={decreaseQuantity}
-                            className="flex h-full w-10 items-center justify-center text-lg transition-colors hover:bg-blue-soft sm:w-12"
+                            className="flex h-full w-12 items-center justify-center text-lg transition-colors hover:bg-blue-soft"
                           >
                             −
                           </button>
 
-                          <div className="flex h-full w-12 items-center justify-center border-x border-theme text-sm font-bold sm:w-14">
+                          <div className="flex h-full w-14 items-center justify-center border-x border-theme text-sm font-bold">
                             {quantity}
                           </div>
 
@@ -805,7 +804,7 @@ export function ProductDetailView({
                             type="button"
                             onClick={increaseQuantity}
                             disabled={activePosition.stock <= 0}
-                            className="flex h-full w-10 items-center justify-center text-lg transition-colors hover:bg-blue-soft disabled:cursor-not-allowed disabled:opacity-40 sm:w-12"
+                            className="flex h-full w-12 items-center justify-center text-lg transition-colors hover:bg-blue-soft disabled:cursor-not-allowed disabled:opacity-40"
                           >
                             +
                           </button>
@@ -823,12 +822,12 @@ export function ProductDetailView({
                       )}
                     </div>
 
-                    <div className="mt-4 grid gap-3 sm:mt-6 sm:grid-cols-2">
+                    <div className="mt-6 grid gap-3 sm:grid-cols-2">
                       {activePosition.stock > 0 ? (
                         <Link
                           href="/cart"
                           onClick={saveSelectedPositionToCart}
-                          className="flex justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500 sm:px-7 sm:py-4"
+                          className="flex justify-center rounded-xl bg-blue-600 px-7 py-4 text-sm font-medium text-white transition-colors hover:bg-blue-500"
                         >
                           Купить сейчас →
                         </Link>
@@ -836,7 +835,7 @@ export function ProductDetailView({
                         <button
                           type="button"
                           disabled
-                          className="flex cursor-not-allowed justify-center rounded-xl bg-blue-600/50 px-5 py-3 text-sm font-medium text-white sm:px-7 sm:py-4"
+                          className="flex cursor-not-allowed justify-center rounded-xl bg-blue-600/50 px-7 py-4 text-sm font-medium text-white"
                         >
                           Купить сейчас →
                         </button>
@@ -846,7 +845,7 @@ export function ProductDetailView({
                         type="button"
                         onClick={handleAddToCart}
                         disabled={activePosition.stock <= 0}
-                        className={`flex justify-center rounded-xl border px-5 py-3 text-sm font-medium transition-colors sm:px-7 sm:py-4 ${
+                        className={`flex justify-center rounded-xl border px-7 py-4 text-sm font-medium transition-colors ${
                           activePosition.stock > 0
                             ? "border-theme bg-transparent hover:border-blue-500/40 hover:bg-blue-soft"
                             : "cursor-not-allowed border-theme bg-transparent text-muted-soft"
@@ -858,7 +857,7 @@ export function ProductDetailView({
 
                     <Link
                       href="/help"
-                      className="mt-3 flex justify-center rounded-xl border border-theme bg-transparent px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-7 sm:py-4"
+                      className="mt-3 flex justify-center rounded-xl border border-theme bg-transparent px-7 py-4 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
                     >
                       Задать вопрос
                     </Link>
@@ -878,25 +877,27 @@ export function ProductDetailView({
         {hasProductStory(product) ? <ProductStory product={product} /> : null}
 
         <section className="mt-6 sm:mt-10">
-          <ProductTabs
-            productName={product.name}
-            brand={product.brand}
-            category={categoryName}
-            memory={detailsPosition?.memory || "Не выбрано"}
-            color={detailsPosition?.color || "Не выбрано"}
-            sim={detailsPosition?.sim || "Не выбрано"}
-            sku={detailsPosition?.sku || "Будет выбран после конфигурации"}
-            description={product.description}
-            shortDescription={product.shortDescription}
-            benefits={benefits}
-          />
+          {previewPosition && (
+            <ProductTabs
+              productName={product.name}
+              brand={product.brand}
+              category={categoryName}
+              memory={previewPosition.memory}
+              color={previewPosition.color}
+              sim={previewPosition.sim}
+              sku={previewPosition.sku}
+              description={product.description}
+              shortDescription={product.shortDescription}
+              benefits={benefits}
+            />
+          )}
         </section>
 
         <section className="mt-6 sm:mt-10">
           <ProductStrip title="С этим товаром покупают" />
         </section>
 
-        <section className="mb-8 mt-6 sm:mb-10 sm:mt-10">
+        <section className="mb-10 mt-10">
           <ProductStrip title="Похожие товары" />
         </section>
       </div>
@@ -909,14 +910,14 @@ function ProductStory({ product }: { product: ProductCard }) {
 
   if (blocks.length === 0 && product.description.trim()) {
     return (
-      <section className="mt-6 rounded-[24px] border border-theme bg-card p-4 text-main shadow-soft sm:mt-10 sm:rounded-[38px] sm:p-8 lg:p-12">
+      <section className="mt-10 rounded-[38px] border border-theme bg-card p-8 text-main shadow-soft lg:p-12">
         <div className="text-sm font-semibold uppercase tracking-[0.24em] text-blue-500">
           Описание
         </div>
-        <h2 className="mt-2 text-2xl font-bold tracking-[-0.05em] sm:mt-3 sm:text-4xl lg:text-5xl">
+        <h2 className="mt-3 text-4xl font-bold tracking-[-0.05em] lg:text-5xl">
           {product.name}
         </h2>
-        <p className="mt-3 max-w-[860px] whitespace-pre-line text-sm leading-relaxed text-muted sm:mt-5 sm:text-base lg:text-lg">
+        <p className="mt-5 max-w-[860px] whitespace-pre-line text-base leading-relaxed text-muted lg:text-lg">
           {product.description}
         </p>
       </section>
@@ -924,7 +925,7 @@ function ProductStory({ product }: { product: ProductCard }) {
   }
 
   return (
-    <section className="mt-6 space-y-4 sm:mt-10 sm:space-y-5">
+    <section className="mt-10 space-y-5">
       {blocks.map((block, index) => {
         const hasImage = Boolean(block.image);
         const imageFirst = block.imageSide === "left";
@@ -933,15 +934,15 @@ function ProductStory({ product }: { product: ProductCard }) {
         return (
           <article
             key={block.id || `${block.title}-${index}`}
-            className={`overflow-hidden rounded-[24px] border shadow-soft sm:rounded-[38px] ${
+            className={`overflow-hidden rounded-[38px] border shadow-soft ${
               isDark
                 ? "border-white/10 bg-[#050914] text-white"
                 : "border-theme bg-card text-main"
             }`}
           >
-            <div className="grid min-h-[260px] lg:min-h-[360px] lg:grid-cols-2">
+            <div className="grid min-h-[360px] lg:grid-cols-2">
               <div
-                className={`flex flex-col justify-center p-4 sm:p-8 lg:p-12 ${imageFirst ? "lg:order-2" : ""}`}
+                className={`flex flex-col justify-center p-8 lg:p-12 ${imageFirst ? "lg:order-2" : ""}`}
               >
                 {block.eyebrow ? (
                   <div className="text-xs font-semibold uppercase tracking-[0.24em] text-blue-500">
@@ -950,14 +951,14 @@ function ProductStory({ product }: { product: ProductCard }) {
                 ) : null}
 
                 {block.title ? (
-                  <h2 className="mt-3 text-2xl font-bold tracking-[-0.055em] sm:mt-4 sm:text-4xl lg:text-6xl">
+                  <h2 className="mt-4 text-4xl font-bold tracking-[-0.055em] lg:text-6xl">
                     {block.title}
                   </h2>
                 ) : null}
 
                 {block.text ? (
                   <p
-                    className={`mt-3 whitespace-pre-line text-sm leading-relaxed sm:mt-5 sm:text-base lg:text-lg ${isDark ? "text-white/65" : "text-muted"}`}
+                    className={`mt-5 whitespace-pre-line text-base leading-relaxed lg:text-lg ${isDark ? "text-white/65" : "text-muted"}`}
                   >
                     {block.text}
                   </p>
@@ -965,7 +966,7 @@ function ProductStory({ product }: { product: ProductCard }) {
               </div>
 
               <div
-                className={`flex min-h-[220px] items-center justify-center sm:min-h-[320px] ${imageFirst ? "lg:order-1" : ""} ${isDark ? "bg-white/[0.03]" : "bg-blue-soft"}`}
+                className={`flex min-h-[320px] items-center justify-center ${imageFirst ? "lg:order-1" : ""} ${isDark ? "bg-white/[0.03]" : "bg-blue-soft"}`}
               >
                 {hasImage ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -989,14 +990,14 @@ function ProductStory({ product }: { product: ProductCard }) {
 function ProductStrip({ title }: { title: string }) {
   return (
     <section>
-      <h2 className="text-2xl font-bold tracking-[-0.04em] sm:text-3xl">{title}</h2>
+      <h2 className="text-3xl font-bold tracking-[-0.04em]">{title}</h2>
 
-      <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-5 sm:gap-5 md:grid-cols-3 xl:grid-cols-5">
+      <div className="mt-5 grid grid-cols-1 gap-5 md:grid-cols-3 xl:grid-cols-5">
         {Array.from({ length: 5 }).map((_, index) => (
           <Link
             key={index}
             href="/catalog"
-            className="card group rounded-[20px] p-3 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/35 hover:bg-blue-soft sm:rounded-3xl sm:p-4"
+            className="card group rounded-3xl p-4 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/35 hover:bg-blue-soft"
           >
             <div className="soft-box flex aspect-[3/4] items-center justify-center rounded-2xl text-sm text-muted-soft">
               Фото
@@ -1011,7 +1012,7 @@ function ProductStrip({ title }: { title: string }) {
 
               <p className="mt-1 text-sm text-muted">от 9 990 ₽</p>
 
-              <div className="mt-3 flex items-center justify-center rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white transition-colors group-hover:bg-blue-500 sm:mt-4 sm:py-3">
+              <div className="mt-4 flex items-center justify-center rounded-xl bg-blue-600 py-3 text-sm font-medium text-white transition-colors group-hover:bg-blue-500">
                 Смотреть →
               </div>
             </div>

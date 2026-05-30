@@ -6,13 +6,6 @@ export type SiteBrandingSettings = {
   storeName: string;
   logoLight: string;
   logoDark: string;
-  mobileLogo: string;
-  favicon: string;
-  navIconHome: string;
-  navIconCatalog: string;
-  navIconNew: string;
-  navIconSupport: string;
-  navIconCart: string;
   defaultTheme: "system" | "light" | "dark";
   accentColor: string;
   primaryColor: string;
@@ -177,13 +170,6 @@ export const defaultSiteEditorSettings: SiteEditorSettings = {
     storeName: "Netizen",
     logoLight: "/logo-light.png",
     logoDark: "/logo-dark.png",
-    mobileLogo: "",
-    favicon: "/favicon.ico",
-    navIconHome: "⌂",
-    navIconCatalog: "▦",
-    navIconNew: "✦",
-    navIconSupport: "?",
-    navIconCart: "🛒",
     defaultTheme: "system",
     accentColor: "#2563eb",
     primaryColor: "#020814",
@@ -345,13 +331,6 @@ function normalizeBranding(value: unknown): SiteBrandingSettings {
     storeName: stringValue(raw.storeName, defaultSiteEditorSettings.branding.storeName),
     logoLight: stringValue(raw.logoLight, defaultSiteEditorSettings.branding.logoLight),
     logoDark: stringValue(raw.logoDark, defaultSiteEditorSettings.branding.logoDark),
-    mobileLogo: stringValue(raw.mobileLogo, defaultSiteEditorSettings.branding.mobileLogo),
-    favicon: stringValue(raw.favicon, defaultSiteEditorSettings.branding.favicon),
-    navIconHome: stringValue(raw.navIconHome, defaultSiteEditorSettings.branding.navIconHome),
-    navIconCatalog: stringValue(raw.navIconCatalog, defaultSiteEditorSettings.branding.navIconCatalog),
-    navIconNew: stringValue(raw.navIconNew, defaultSiteEditorSettings.branding.navIconNew),
-    navIconSupport: stringValue(raw.navIconSupport, defaultSiteEditorSettings.branding.navIconSupport),
-    navIconCart: stringValue(raw.navIconCart, defaultSiteEditorSettings.branding.navIconCart),
     defaultTheme: defaultTheme === "light" || defaultTheme === "dark" ? defaultTheme : "system",
     accentColor: stringValue(raw.accentColor, defaultSiteEditorSettings.branding.accentColor),
     primaryColor: stringValue(raw.primaryColor, defaultSiteEditorSettings.branding.primaryColor),
