@@ -820,7 +820,7 @@ export default function CartPage() {
               </div>
             </section>
 
-            <section className="grid grid-cols-2 gap-2 sm:gap-3">
+            <section className="grid grid-cols-1 gap-2 sm:grid-cols-2 sm:gap-3">
               {!isRegistered && (
                 <CheckoutCard
                   title="Данные клиента"
@@ -843,7 +843,7 @@ export default function CartPage() {
                 isComplete={hasDelivery}
                 action={hasDelivery ? "Изменить →" : "Доставка →"}
                 onClick={() => setActiveModal("delivery")}
-                className={isRegistered ? "col-span-2" : ""}
+                className={isRegistered ? "sm:col-span-2" : ""}
               />
             </section>
           </div>
@@ -1219,13 +1219,13 @@ function CheckoutCard({
     <button
       type="button"
       onClick={onClick}
-      className={`card flex min-h-[116px] flex-col justify-between rounded-[18px] p-3 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500/35 hover:bg-blue-soft sm:min-h-[132px] sm:rounded-[24px] sm:p-4 ${className}`}
+      className={`card flex min-h-[120px] w-full flex-col justify-between rounded-[18px] p-3 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500/35 hover:bg-blue-soft sm:min-h-[132px] sm:rounded-[24px] sm:p-4 ${className}`}
     >
-      <div>
-        <div className="flex items-start justify-between gap-2">
-          <div className="text-sm font-bold leading-tight sm:text-lg">{title}</div>
+      <div className="w-full min-w-0">
+        <div className="flex items-start justify-between gap-1.5">
+          <div className="min-w-0 flex-1 text-[13px] font-bold leading-tight sm:text-lg">{title}</div>
           <span
-            className={`shrink-0 rounded-full border px-2 py-0.5 text-[10px] sm:px-2.5 sm:py-1 sm:text-[11px] ${
+            className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] leading-tight sm:px-2.5 sm:py-1 sm:text-[11px] ${
               isComplete
                 ? "border-green-500/30 bg-green-500/10 text-green-500"
                 : "border-orange-500/30 bg-orange-500/10 text-orange-500"
@@ -1235,7 +1235,7 @@ function CheckoutCard({
           </span>
         </div>
 
-        <p className="mt-2 line-clamp-3 text-[11px] leading-relaxed text-muted sm:text-xs">{text}</p>
+        <p className="mt-1.5 line-clamp-2 text-[10px] leading-relaxed text-muted sm:mt-2 sm:line-clamp-3 sm:text-xs">{text}</p>
       </div>
 
       <div className="mt-2 text-[11px] font-medium text-blue-500 sm:text-xs">{action}</div>
