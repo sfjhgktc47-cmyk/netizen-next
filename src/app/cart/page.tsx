@@ -264,15 +264,24 @@ export default function CartPage() {
 
   useEffect(() => {
     const profile = getSavedProfile();
-    const registered = Boolean(profile);
 
     setItems(getStoredCartItems());
-    setIsRegistered(registered);
     setCustomer(getStoredCustomer(profile));
     setDelivery(getStoredDelivery());
     setSavedAddresses(getStoredAddresses(profile));
     setComment(localStorage.getItem("netizen-checkout-comment") ?? "");
-    setIsCartLoaded(true);
+
+    fetch("/api/auth/me")
+      .then((res) => res.json())
+      .then((data: { authenticated?: boolean }) => {
+        setIsRegistered(Boolean(data.authenticated));
+      })
+      .catch(() => {
+        setIsRegistered(false);
+      })
+      .finally(() => {
+        setIsCartLoaded(true);
+      });
   }, []);
 
   useEffect(() => {
