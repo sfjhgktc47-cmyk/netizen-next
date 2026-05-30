@@ -820,16 +820,17 @@ export default function CartPage() {
               </div>
             </section>
 
-            <section className="grid gap-5 md:grid-cols-2">
-              <CheckoutCard
-                title="Ваши данные"
-                text={contactSummary}
-                status={isRegistered || hasGuestContacts ? "Заполнено" : "Нужно заполнить"}
-                isComplete={isRegistered || hasGuestContacts}
-                action={isRegistered ? "Данные из профиля" : hasGuestContacts ? "Изменить контакты →" : "Заполнить контакты →"}
-                disabled={isRegistered}
-                onClick={() => setActiveModal("contacts")}
-              />
+            <section className={`grid gap-5 ${isRegistered ? "md:grid-cols-1" : "md:grid-cols-2"}`}>
+              {!isRegistered && (
+                <CheckoutCard
+                  title="Ваши данные"
+                  text={contactSummary}
+                  status={hasGuestContacts ? "Заполнено" : "Нужно заполнить"}
+                  isComplete={hasGuestContacts}
+                  action={hasGuestContacts ? "Изменить контакты →" : "Заполнить контакты →"}
+                  onClick={() => setActiveModal("contacts")}
+                />
+              )}
 
               <CheckoutCard
                 title="Доставка"
@@ -1198,7 +1199,6 @@ function CheckoutCard({
   status,
   isComplete,
   action,
-  disabled = false,
   onClick,
 }: {
   title: string;
@@ -1206,19 +1206,18 @@ function CheckoutCard({
   status: string;
   isComplete: boolean;
   action: string;
-  disabled?: boolean;
   onClick: () => void;
 }) {
   return (
-    <article className="card rounded-[28px] p-5 sm:p-6 md:p-8">
+    <button
+      type="button"
+      onClick={onClick}
+      className="card rounded-[28px] p-8 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500/35 hover:bg-blue-soft"
+    >
       <div className="flex items-start justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-bold tracking-[-0.02em] md:text-2xl">{title}</h2>
-          <p className="mt-3 min-h-[40px] text-sm leading-relaxed text-muted">{text}</p>
-        </div>
-
+        <div className="text-2xl font-bold">{title}</div>
         <span
-          className={`shrink-0 rounded-full border px-3 py-1 text-[11px] font-medium md:text-xs ${
+          className={`shrink-0 rounded-full border px-3 py-1 text-xs ${
             isComplete
               ? "border-green-500/30 bg-green-500/10 text-green-500"
               : "border-orange-500/30 bg-orange-500/10 text-orange-500"
@@ -1228,19 +1227,10 @@ function CheckoutCard({
         </span>
       </div>
 
-      <button
-        type="button"
-        onClick={onClick}
-        disabled={disabled}
-        className={`mt-5 inline-flex rounded-full px-4 py-2 text-sm font-medium transition-colors ${
-          disabled
-            ? "cursor-default border border-green-500/20 bg-green-500/10 text-green-600"
-            : "border border-orange-500/35 bg-orange-500/10 text-orange-500 hover:bg-orange-500/15"
-        }`}
-      >
-        {action}
-      </button>
-    </article>
+      <p className="mt-3 min-h-[40px] text-sm leading-relaxed text-muted">{text}</p>
+
+      <div className="mt-6 text-sm font-medium text-blue-500">{action}</div>
+    </button>
   );
 }
 
