@@ -880,13 +880,13 @@ export function CatalogView({
   }
 
   return (
-    <main className="min-h-screen bg-page px-3 py-3 text-main transition-colors duration-700 sm:px-6 sm:py-6 xl:px-8">
+    <main className="min-h-screen bg-page px-4 py-6 text-main transition-colors duration-700 sm:px-6 xl:px-8">
       <div className="w-full">
         <div className="mx-auto max-w-[1440px]">
           <SiteHeader />
         </div>
 
-        <section className="mt-6 sm:mt-10">
+        <section className="mt-10">
           <Link
             href="/"
             className="text-sm text-blue-500 transition-colors hover:text-blue-400"
@@ -894,9 +894,9 @@ export function CatalogView({
             ← На главную
           </Link>
 
-          <div className="mt-4 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div className="mt-5 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <div className="-mx-3 flex gap-2 overflow-x-auto px-3 pb-2 sm:mx-0 sm:flex-wrap sm:gap-3 sm:overflow-visible sm:px-0 sm:pb-0">
+              <div className="flex flex-wrap items-center gap-3">
                 <span className="inline-flex rounded-full border border-blue-500/40 bg-blue-500/10 px-4 py-2 text-xs font-medium text-blue-500">
                   Каталог
                 </span>
@@ -906,20 +906,20 @@ export function CatalogView({
                 ) : null}
               </div>
 
-              <h1 className="mt-3 text-4xl font-bold tracking-[-0.055em] sm:mt-4 md:text-6xl">
+              <h1 className="mt-4 text-5xl font-bold tracking-[-0.055em] md:text-6xl">
                 {pageTitle}
               </h1>
 
-              <p className="mt-3 max-w-[760px] text-sm leading-relaxed text-muted sm:mt-4 sm:text-base">
+              <p className="mt-4 max-w-[760px] text-base leading-relaxed text-muted">
                 {pageDescription}
               </p>
             </div>
 
-            <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-wrap">
+            <div className="flex flex-wrap gap-3">
               <button
                 type="button"
                 onClick={() => setIsFilterOpen((prev) => !prev)}
-                className={`rounded-xl border px-4 py-3 text-sm font-medium transition-all duration-300 sm:px-6 sm:py-4 ${
+                className={`rounded-xl border px-6 py-4 text-sm font-medium transition-all duration-300 ${
                   isFilterOpen
                     ? "border-blue-500 bg-blue-600 text-white"
                     : "border-theme bg-transparent hover:border-blue-500/40 hover:bg-blue-soft"
@@ -941,12 +941,12 @@ export function CatalogView({
           </div>
         </section>
 
-        <section className="mt-5 sm:mt-8">
+        <section className="mt-8">
           <div className="flex flex-wrap items-center gap-3">
             <Link
               href="/catalog"
               onClick={handleResetCatalogState}
-              className={`shrink-0 rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-300 sm:px-5 sm:py-3 ${
+              className={`rounded-full border px-5 py-3 text-sm font-medium transition-all duration-300 ${
                 !onlyPopular && !categoryId && !selectedBrand && !hasSpecificationFilters
                   ? "border-blue-500 bg-blue-600 text-white"
                   : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
@@ -965,7 +965,7 @@ export function CatalogView({
                 resetSpecificationFilters();
                 setSortMode("popular");
               }}
-              className={`shrink-0 rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-300 sm:px-5 sm:py-3 ${
+              className={`rounded-full border px-5 py-3 text-sm font-medium transition-all duration-300 ${
                 onlyPopular && !categoryId && !selectedBrand && !hasSpecificationFilters
                   ? "border-blue-500 bg-blue-600 text-white"
                   : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
@@ -983,7 +983,7 @@ export function CatalogView({
                     key={category.id}
                     href={category.href}
                     onClick={handleResetCatalogState}
-                    className={`shrink-0 rounded-full border px-4 py-2.5 text-sm font-medium transition-all duration-300 sm:px-5 sm:py-3 ${
+                    className={`rounded-full border px-5 py-3 text-sm font-medium transition-all duration-300 ${
                       isActive
                         ? "border-blue-500 bg-blue-600 text-white"
                         : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
@@ -999,7 +999,7 @@ export function CatalogView({
               <button
                 type="button"
                 onClick={() => setIsCategoriesOpen((prev) => !prev)}
-                className="shrink-0 rounded-full border border-theme bg-transparent px-4 py-2.5 text-sm font-medium text-blue-500 transition-all duration-300 hover:border-blue-500/40 hover:bg-blue-soft sm:px-5 sm:py-3"
+                className="rounded-full border border-theme bg-transparent px-5 py-3 text-sm font-medium text-blue-500 transition-all duration-300 hover:border-blue-500/40 hover:bg-blue-soft"
               >
                 {isCategoriesOpen ? "Свернуть" : "Развернуть"}
               </button>
@@ -1025,11 +1025,11 @@ export function CatalogView({
         )}
 
         <section
-          className="mt-5 flex flex-col gap-5 sm:mt-8 xl:flex-row xl:items-start"
+          className="mt-8 flex flex-col gap-6 xl:flex-row xl:items-start"
           id="catalog-products"
         >
           {isFilterOpen && (
-            <div className="fixed inset-0 z-50 overflow-y-auto bg-black/45 px-3 py-4 pb-24 backdrop-blur-sm xl:sticky xl:top-6 xl:inset-auto xl:w-[320px] xl:shrink-0 xl:overflow-visible xl:bg-transparent xl:p-0 xl:backdrop-blur-0">
+            <div className="fixed inset-0 z-50 overflow-y-auto bg-black/45 px-4 py-5 backdrop-blur-sm xl:sticky xl:top-6 xl:inset-auto xl:w-[320px] xl:shrink-0 xl:overflow-visible xl:bg-transparent xl:p-0 xl:backdrop-blur-0">
               <div className="mx-auto max-w-[430px] xl:mx-0 xl:max-h-[calc(100vh-48px)] xl:overflow-y-auto xl:pr-1 xl:pb-4">
                 <FilterPanel
                   onClose={() => setIsFilterOpen(false)}
@@ -1126,7 +1126,7 @@ function SortControl({
       <button
         type="button"
         onClick={onToggle}
-        className={`w-full rounded-xl border px-4 py-3 text-sm font-medium transition-colors sm:w-auto sm:px-6 sm:py-4 ${
+        className={`rounded-xl border px-6 py-4 text-sm font-medium transition-colors ${
           isOpen
             ? "border-blue-500/40 bg-blue-500/10 text-blue-500"
             : "border-theme bg-transparent hover:border-blue-500/40 hover:bg-blue-soft"
@@ -1136,7 +1136,7 @@ function SortControl({
       </button>
 
       {isOpen && (
-        <div className="absolute right-0 top-[calc(100%+10px)] z-30 w-[min(260px,calc(100vw-24px))] rounded-2xl border border-theme bg-page p-2 shadow-[0_24px_90px_rgba(15,23,42,0.22)]">
+        <div className="absolute right-0 top-[calc(100%+10px)] z-30 w-[260px] rounded-2xl border border-theme bg-page p-2 shadow-[0_24px_90px_rgba(15,23,42,0.22)]">
           {sortModeOptions.map((option) => {
             const isActive = option.value === sortMode;
 
@@ -1212,7 +1212,7 @@ function ActiveFilterSummary({
   ].filter(Boolean) as string[];
 
   return (
-    <section className="mt-5 rounded-[24px] border border-blue-500/30 bg-blue-500/10 p-4 sm:mt-8 sm:rounded-[28px] sm:p-5">
+    <section className="mt-8 rounded-[28px] border border-blue-500/30 bg-blue-500/10 p-5">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <div className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-500">
@@ -1269,7 +1269,7 @@ function PositionGrid({
         </div>
       </div>
 
-      <div className="mt-4 grid grid-cols-1 gap-4 sm:mt-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+      <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
         {positions.map((position) => (
           <PositionProductCard key={position.sku} position={position} dark={dark} />
         ))}
@@ -1288,7 +1288,7 @@ function PositionProductCard({
   return (
     <Link
       href={`/product/${position.modelSlug}?sku=${encodeURIComponent(position.sku)}`}
-      className={`group block h-full rounded-[26px] border p-3 transition-all duration-500 hover:-translate-y-1 sm:rounded-3xl sm:p-4 ${
+      className={`group block h-full rounded-3xl border p-4 transition-all duration-500 hover:-translate-y-1 ${
         dark
           ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
           : "border-black/10 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)] hover:border-blue-500/35"
@@ -1308,7 +1308,7 @@ function PositionProductCard({
           <img
             src={position.images?.[0] ?? getModelImage(position.product)}
             alt={position.title}
-            className="h-full w-full object-contain p-2 sm:p-3"
+            className="h-full w-full object-contain p-3"
           />
         ) : (
           "Фото товара"
@@ -1450,14 +1450,14 @@ function FilterPanel({
     : modelOptions;
 
   return (
-    <aside className="card min-h-0 rounded-[28px] p-4 shadow-[0_30px_120px_rgba(37,99,235,0.18)] sm:min-h-[560px] sm:rounded-[30px] sm:p-5">
+    <aside className="card min-h-[560px] rounded-[30px] p-5 shadow-[0_30px_120px_rgba(37,99,235,0.18)]">
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="text-xs font-medium uppercase tracking-[0.2em] text-blue-500">
             Фильтры
           </div>
 
-          <h3 className="mt-2 text-2xl font-bold tracking-[-0.045em] sm:mt-3 sm:text-3xl">
+          <h3 className="mt-3 text-3xl font-bold tracking-[-0.045em]">
             Уточнить выбор
           </h3>
         </div>
@@ -1471,7 +1471,7 @@ function FilterPanel({
         </button>
       </div>
 
-      <div className="mt-5 space-y-5 sm:mt-7 sm:space-y-7">
+      <div className="mt-7 space-y-7">
         <div>
           <div className="mb-3 text-sm font-semibold">Бренд</div>
 

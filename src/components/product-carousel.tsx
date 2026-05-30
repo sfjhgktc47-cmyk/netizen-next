@@ -138,10 +138,10 @@ export function ProductCarousel({
   }
 
   return (
-    <section className="mt-8 sm:mt-12">
+    <section className="mt-12">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <h2 className="text-2xl font-bold tracking-[-0.04em] sm:text-3xl">{title}</h2>
+          <h2 className="text-3xl font-bold tracking-[-0.04em]">{title}</h2>
 
           {subtitle && (
             <p className={`mt-2 text-sm ${mutedTextClass(dark)}`}>
@@ -207,17 +207,17 @@ export function ProductCarousel({
         onPointerCancel={handlePointerUp}
         onPointerLeave={handlePointerUp}
         onClickCapture={handleClickCapture}
-        className="-mx-4 mt-4 cursor-grab select-none overflow-x-auto px-4 py-2 active:cursor-grabbing sm:mx-0 sm:mt-5 sm:px-1 [&::-webkit-scrollbar]:hidden"
+        className="mt-5 cursor-grab select-none overflow-x-auto px-1 py-2 active:cursor-grabbing [&::-webkit-scrollbar]:hidden"
         style={{
           scrollbarWidth: "none",
           msOverflowStyle: "none",
         }}
       >
-        <div className="flex gap-4 sm:gap-5">
+        <div className="flex gap-5">
           {products.map((product) => (
             <div
               key={product.slug}
-              className="w-[72vw] max-w-[280px] shrink-0 sm:w-[270px] lg:w-[280px]"
+              className="w-[250px] shrink-0 sm:w-[270px] lg:w-[280px]"
             >
               <CarouselProductCard product={product} dark={dark} />
             </div>
@@ -258,7 +258,7 @@ function CarouselProductCard({
     <Link
       href={`/product/${product.slug}`}
       draggable={false}
-      className={`group block h-full rounded-[26px] border p-3 transition-all duration-500 hover:-translate-y-1 sm:rounded-3xl sm:p-4 ${
+      className={`group block h-full rounded-3xl border p-4 transition-all duration-500 hover:-translate-y-1 ${
         dark
           ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
           : "border-black/10 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)] hover:border-blue-500/35"
@@ -275,7 +275,7 @@ function CarouselProductCard({
             src={image}
             alt={product.name}
             draggable={false}
-            className="h-full w-full object-contain p-2 transition-transform duration-700 group-hover:scale-105 sm:p-3"
+            className="h-full w-full object-contain p-3 transition-transform duration-700 group-hover:scale-105"
           />
         ) : (
           "Фото товара"
@@ -309,7 +309,7 @@ function CarouselProductCard({
           ))}
         </div>
 
-        <div className="mt-4 w-full rounded-xl bg-blue-600 py-3 text-center text-sm font-medium text-white transition-all duration-300 group-hover:bg-blue-500 sm:mt-5">
+        <div className="mt-5 w-full rounded-xl bg-blue-600 py-3 text-center text-sm font-medium text-white transition-all duration-300 group-hover:bg-blue-500">
           Перейти →
         </div>
       </div>
