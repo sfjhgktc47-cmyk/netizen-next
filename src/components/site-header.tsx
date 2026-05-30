@@ -137,9 +137,8 @@ export function SiteHeader() {
   const storeName = siteSettings?.branding?.storeName?.trim() || "Нетизен";
 
   return (
-    <>
     <header
-      className={`sticky top-3 z-40 flex min-h-[64px] items-center justify-between rounded-[24px] border px-3 py-2 backdrop-blur-xl transition-all duration-700 sm:min-h-[76px] sm:px-5 lg:px-8 ${
+      className={`flex h-[76px] items-center justify-between rounded-2xl border px-8 transition-all duration-700 ${
         dark
           ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)]"
           : "border-black/10 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)]"
@@ -147,7 +146,7 @@ export function SiteHeader() {
     >
       <Link
         href="/"
-        className="relative flex h-11 w-[118px] items-center justify-start overflow-hidden sm:h-12 sm:w-[150px]"
+        className="relative flex h-12 w-[150px] items-center justify-start overflow-hidden"
       >
         <Image
           src={dark ? logoLight : logoDark}
@@ -155,7 +154,7 @@ export function SiteHeader() {
           width={150}
           height={48}
           priority
-          className="h-auto max-h-8 w-auto object-contain transition-opacity duration-700 sm:max-h-9"
+          className="h-auto max-h-9 w-auto object-contain transition-opacity duration-700"
         />
       </Link>
 
@@ -177,7 +176,7 @@ export function SiteHeader() {
         ))}
       </nav>
 
-      <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
+      <div className="flex items-center gap-4">
         <div
           className={`hidden h-11 w-[300px] items-center rounded-xl border px-4 text-sm transition-all duration-700 md:flex ${
             dark
@@ -192,15 +191,15 @@ export function SiteHeader() {
           type="button"
           onClick={toggleTheme}
           aria-label="Переключить тему"
-          className={`relative h-10 w-12 rounded-xl border transition-all duration-700 sm:h-11 sm:w-16 ${
+          className={`relative h-11 w-16 rounded-xl border transition-all duration-700 ${
             dark
               ? "border-white/10 bg-blue-600/15"
               : "border-black/10 bg-blue-50"
           }`}
         >
           <span
-            className={`absolute top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-lg bg-blue-600 text-xs text-white transition-all duration-500 ease-in-out sm:h-8 sm:w-8 sm:text-sm ${
-              dark ? "left-4 sm:left-7" : "left-1"
+            className={`absolute top-1/2 flex h-8 w-8 -translate-y-1/2 items-center justify-center rounded-lg bg-blue-600 text-sm text-white transition-all duration-500 ease-in-out ${
+              dark ? "left-7" : "left-1"
             }`}
           >
             {dark ? "☾" : "☀"}
@@ -209,7 +208,7 @@ export function SiteHeader() {
 
         <Link
           href="/cart"
-          className={`relative flex h-10 w-10 items-center justify-center rounded-xl border text-sm transition-all duration-300 sm:h-11 sm:w-11 sm:text-base ${
+          className={`relative flex h-11 w-11 items-center justify-center rounded-xl border transition-all duration-300 ${
             dark
               ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
               : "border-black/10 bg-white text-[#07111f] hover:border-blue-500/40 hover:bg-blue-50"
@@ -230,7 +229,7 @@ export function SiteHeader() {
               href={accountHref}
               aria-label={accountLabel}
               title={accountLabel}
-              className={`flex h-10 w-10 items-center justify-center rounded-xl border text-sm font-bold transition-all duration-300 sm:h-11 sm:w-11 ${
+              className={`flex h-11 w-11 items-center justify-center rounded-xl border text-sm font-bold transition-all duration-300 ${
                 dark
                   ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
                   : "border-black/10 bg-white text-[#07111f] hover:border-blue-500/40 hover:bg-blue-50"
@@ -260,7 +259,7 @@ export function SiteHeader() {
               setAuthMode("login");
               setIsAuthModalOpen(true);
             }}
-            className="rounded-xl border border-theme bg-transparent px-3 py-2.5 text-xs font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-5 sm:py-3 sm:text-sm"
+            className="rounded-xl border border-theme bg-transparent px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
           >
             Войти
           </button>
@@ -275,47 +274,5 @@ export function SiteHeader() {
         />
       )}
     </header>
-
-    <MobileMarketplaceNav cartCount={cartCount} dark={dark} />
-    </>
-  );
-}
-
-function MobileMarketplaceNav({
-  cartCount,
-  dark,
-}: {
-  cartCount: number;
-  dark: boolean;
-}) {
-  const items = [
-    { href: "/", label: "Главная", icon: "⌂" },
-    { href: "/catalog", label: "Каталог", icon: "▦" },
-    { href: "/catalog?popular=1", label: "Топ", icon: "★" },
-    { href: "/cart", label: "Корзина", icon: "🛒", badge: cartCount },
-  ];
-
-  return (
-    <nav
-      className={`fixed inset-x-3 bottom-3 z-50 grid grid-cols-4 rounded-[26px] border p-1.5 shadow-[0_18px_60px_rgba(15,23,42,0.22)] backdrop-blur-2xl lg:hidden ${
-        dark ? "border-white/10 bg-[#07111f]/88 text-white" : "border-black/10 bg-white/92 text-[#07111f]"
-      }`}
-    >
-      {items.map((item) => (
-        <Link
-          key={item.href}
-          href={item.href}
-          className="relative flex min-h-[52px] flex-col items-center justify-center gap-0.5 rounded-[20px] text-[11px] font-semibold transition-colors active:bg-blue-500/10"
-        >
-          <span className="text-lg leading-none">{item.icon}</span>
-          <span>{item.label}</span>
-          {item.badge ? (
-            <span className="absolute right-4 top-1.5 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[10px] font-bold text-white">
-              {item.badge}
-            </span>
-          ) : null}
-        </Link>
-      ))}
-    </nav>
   );
 }

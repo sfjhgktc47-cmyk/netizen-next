@@ -33,7 +33,6 @@ type DeliveryMethod = "courier" | "pickup" | null;
 
 type CustomerData = {
   name: string;
-  lastName: string;
   phone: string;
   email: string;
 };
@@ -70,22 +69,6 @@ type DeliveryOption = {
 type StoredProfile = Partial<CustomerData> & {
   addresses?: string[];
   deliveryAddresses?: string[];
-};
-
-type ProfileAddress = {
-  id: string;
-  value: string;
-};
-
-type ProfilePayload = {
-  ok?: boolean;
-  profile?: {
-    name?: string;
-    lastName?: string;
-    phone?: string;
-    email?: string;
-  };
-  addresses?: ProfileAddress[];
 };
 
 const FALLBACK_PICKUP_POINT = {
@@ -200,7 +183,7 @@ function getSavedProfile(): StoredProfile | undefined {
   ].filter(Boolean) as StoredProfile[];
 
   return possibleProfiles.find((profile) =>
-    Boolean(profile.name || profile.lastName || profile.phone || profile.email)
+    Boolean(profile.name || profile.phone || profile.email)
   );
 }
 
@@ -229,7 +212,6 @@ function getStoredCustomer(profile?: StoredProfile): CustomerData {
 
   return {
     name: profile?.name ?? savedCustomer?.name ?? "",
-    lastName: profile?.lastName ?? savedCustomer?.lastName ?? "",
     phone: profile?.phone ?? savedCustomer?.phone ?? "",
     email: profile?.email ?? savedCustomer?.email ?? "",
   };
@@ -257,7 +239,6 @@ export default function CartPage() {
   const [isRegistered, setIsRegistered] = useState(false);
   const [customer, setCustomer] = useState<CustomerData>({
     name: "",
-    lastName: "",
     phone: "",
     email: "",
   });
@@ -279,12 +260,9 @@ export default function CartPage() {
   const [orderNumber, setOrderNumber] = useState("");
   const [isOrderSubmitting, setIsOrderSubmitting] = useState(false);
   const [orderError, setOrderError] = useState("");
-  const [contactSaveError, setContactSaveError] = useState("");
-  const [isContactSaving, setIsContactSaving] = useState(false);
   const [recentlyAddedSku, setRecentlyAddedSku] = useState("");
 
   useEffect(() => {
-    let isMounted = true;
     const profile = getSavedProfile();
     const registered = Boolean(profile);
 
@@ -295,35 +273,6 @@ export default function CartPage() {
     setSavedAddresses(getStoredAddresses(profile));
     setComment(localStorage.getItem("netizen-checkout-comment") ?? "");
     setIsCartLoaded(true);
-
-    async function loadProfileFromDb() {
-      const response = await fetch("/api/auth/profile").catch(() => null);
-
-      if (!response?.ok) {
-        return;
-      }
-
-      const payload = (await response.json().catch(() => null)) as ProfilePayload | null;
-
-      if (!isMounted || !payload?.ok || !payload.profile) {
-        return;
-      }
-
-      setIsRegistered(true);
-      setCustomer({
-        name: payload.profile.name ?? "",
-        lastName: payload.profile.lastName ?? "",
-        phone: payload.profile.phone ?? "",
-        email: payload.profile.email ?? "",
-      });
-      setSavedAddresses((payload.addresses ?? []).map((address) => address.value).filter(Boolean));
-    }
-
-    void loadProfileFromDb();
-
-    return () => {
-      isMounted = false;
-    };
   }, []);
 
   useEffect(() => {
@@ -353,10 +302,8 @@ export default function CartPage() {
       return;
     }
 
-    if (!isRegistered) {
-      localStorage.setItem("netizen-checkout-customer", JSON.stringify(customer));
-    }
-  }, [customer, isCartLoaded, isRegistered]);
+    localStorage.setItem("netizen-checkout-customer", JSON.stringify(customer));
+  }, [customer, isCartLoaded]);
 
   useEffect(() => {
     if (!isCartLoaded) {
@@ -409,19 +356,20 @@ export default function CartPage() {
   }, [items]);
 
   const hasItems = items.length > 0;
-  const customerNameForOrder = [customer.name.trim(), customer.lastName.trim()].filter(Boolean).join(" ");
-  const hasCustomerContacts = customerNameForOrder.length > 0 && customer.phone.trim().length > 0;
+  const hasGuestContacts = customer.name.trim().length > 0 && customer.phone.trim().length > 0;
   const hasCourierAddress = isRegistered
     ? delivery.savedAddress.trim().length > 0 || delivery.address.trim().length > 0
     : delivery.city.trim().length > 0 && delivery.address.trim().length > 0;
   const hasPickupAddress = delivery.method === "pickup" && delivery.address.trim().length > 0;
   const hasDelivery = hasPickupAddress || (delivery.method === "courier" && hasCourierAddress);
-  const canPlaceOrder = hasItems && hasDelivery && hasCustomerContacts;
+  const canPlaceOrder = hasItems && hasDelivery && (isRegistered || hasGuestContacts);
 
   const deliverySummary = getDeliverySummary(delivery, isRegistered);
-  const contactSummary = hasCustomerContacts
-    ? [customerNameForOrder, customer.phone, customer.email].filter(Boolean).join(" · ")
-    : "Укажите имя и телефон";
+  const contactSummary = isRegistered
+    ? "Контакты взяты из профиля"
+    : hasGuestContacts
+      ? `${customer.name}, ${customer.phone}`
+      : "Укажите имя и телефон";
 
   function updateItems(nextItems: CartItem[]) {
     setItems(nextItems);
@@ -542,88 +490,20 @@ export default function CartPage() {
     }));
   }
 
-  async function addSavedAddress() {
+  function addSavedAddress() {
     const normalizedAddress = newAddress.trim();
 
     if (!normalizedAddress) {
       return;
     }
 
-    if (isRegistered) {
-      const response = await fetch("/api/auth/profile", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "add-address", address: normalizedAddress }),
-      }).catch(() => null);
-      const payload = (await response?.json().catch(() => null)) as ProfilePayload | null;
+    const nextAddresses = Array.from(new Set([...savedAddresses, normalizedAddress]));
 
-      if (response?.ok && payload?.ok) {
-        const nextAddresses = (payload.addresses ?? [])
-          .map((address) => address.value)
-          .filter(Boolean);
-
-        setSavedAddresses(nextAddresses);
-      }
-    } else {
-      const nextAddresses = Array.from(new Set([...savedAddresses, normalizedAddress]));
-
-      setSavedAddresses(nextAddresses);
-      saveAddresses(nextAddresses);
-    }
-
+    setSavedAddresses(nextAddresses);
+    saveAddresses(nextAddresses);
     setNewAddress("");
     setIsAddingAddress(false);
     selectSavedAddress(normalizedAddress);
-  }
-
-  async function saveCustomerContacts() {
-    if (!hasCustomerContacts || isContactSaving) {
-      return;
-    }
-
-    setContactSaveError("");
-
-    if (!isRegistered) {
-      setActiveModal(null);
-      return;
-    }
-
-    setIsContactSaving(true);
-
-    try {
-      const response = await fetch("/api/auth/profile", {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          firstName: customer.name,
-          lastName: customer.lastName,
-          phone: customer.phone,
-          email: customer.email,
-        }),
-      });
-      const payload = (await response.json().catch(() => null)) as
-        | { ok?: boolean; message?: string; user?: { profile?: CustomerData } }
-        | null;
-
-      if (!response.ok || !payload?.ok) {
-        throw new Error(payload?.message || "Не удалось сохранить данные клиента.");
-      }
-
-      if (payload.user?.profile) {
-        setCustomer({
-          name: payload.user.profile.name ?? "",
-          lastName: payload.user.profile.lastName ?? "",
-          phone: payload.user.profile.phone ?? "",
-          email: payload.user.profile.email ?? "",
-        });
-      }
-
-      setActiveModal(null);
-    } catch (error) {
-      setContactSaveError(error instanceof Error ? error.message : "Не удалось сохранить данные клиента.");
-    } finally {
-      setIsContactSaving(false);
-    }
   }
 
   async function placeOrder() {
@@ -641,12 +521,9 @@ export default function CartPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          customer: {
-            name: customerNameForOrder,
-            phone: customer.phone,
-            email: customer.email,
-            source: isRegistered ? "profile" : "guest",
-          },
+          customer: isRegistered
+            ? { ...customer, source: "profile" }
+            : { ...customer, source: "guest" },
           delivery: {
             ...delivery,
             title: delivery.deliveryTitle || (delivery.method === "pickup" ? "ПВЗ / самовывоз" : "Курьерская доставка"),
@@ -669,12 +546,9 @@ export default function CartPage() {
       const order = {
         number: result.order.publicId,
         createdAt: new Date().toISOString(),
-        customer: {
-          name: customerNameForOrder,
-          phone: customer.phone,
-          email: customer.email,
-          source: isRegistered ? "profile" : "guest",
-        },
+        customer: isRegistered
+          ? { ...customer, source: "profile" }
+          : { ...customer, source: "guest" },
         delivery: {
           ...delivery,
           title: delivery.deliveryTitle || (delivery.method === "pickup" ? "ПВЗ / самовывоз" : "Курьерская доставка"),
@@ -708,7 +582,7 @@ export default function CartPage() {
 
   if (isOrderSent) {
     return (
-      <main className="min-h-screen bg-page px-4 py-4 text-main transition-colors duration-700 sm:px-6 sm:py-6">
+      <main className="min-h-screen bg-page px-3 py-3 pb-24 text-main transition-colors duration-700 sm:px-6 sm:py-6">
         <div className="mx-auto max-w-[1440px]">
           <SiteHeader />
 
@@ -749,7 +623,7 @@ export default function CartPage() {
 
   if (!hasItems) {
     return (
-      <main className="min-h-screen bg-page px-4 py-4 text-main transition-colors duration-700 sm:px-6 sm:py-6">
+      <main className="min-h-screen bg-page px-3 py-3 pb-24 text-main transition-colors duration-700 sm:px-6 sm:py-6">
         <div className="mx-auto max-w-[1440px]">
           <SiteHeader />
 
@@ -789,11 +663,11 @@ export default function CartPage() {
   }
 
   return (
-    <main className="min-h-screen bg-page px-4 py-4 text-main transition-colors duration-700 sm:px-6 sm:py-6">
+    <main className="min-h-screen bg-page px-3 py-3 pb-24 text-main transition-colors duration-700 sm:px-6 sm:py-6">
       <div className="mx-auto max-w-[1440px]">
         <SiteHeader />
 
-        <div className="mt-6">
+        <div className="mt-4 sm:mt-6">
           <Link
             href="/catalog"
             className="text-sm text-blue-500 transition-colors hover:text-blue-400"
@@ -802,24 +676,24 @@ export default function CartPage() {
           </Link>
         </div>
 
-        <div className="mt-6 grid items-start gap-8 lg:grid-cols-[1fr_420px]">
-          <div className="space-y-6">
-            <section className="card rounded-[32px] p-6 md:p-8">
-              <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
+        <div className="mt-4 grid items-start gap-4 sm:mt-6 sm:gap-8 lg:grid-cols-[1fr_420px]">
+          <div className="space-y-4 sm:space-y-6">
+            <section className="card rounded-[22px] p-4 sm:rounded-[32px] sm:p-6 md:p-8">
+              <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
                 <div>
-                  <h1 className="text-5xl font-bold tracking-[-0.04em]">
+                  <h1 className="text-3xl font-bold tracking-[-0.04em] sm:text-5xl">
                     Корзина
                   </h1>
 
-                  <p className="mt-2 text-muted">
+                  <p className="mt-1 text-sm text-muted sm:mt-2 sm:text-base">
                     {totalQuantity} {totalQuantity === 1 ? "товар" : "товара"} в заказе
                   </p>
                 </div>
 
-                <div className="flex flex-wrap gap-3">
+                <div className="flex gap-2 overflow-x-auto pb-1 sm:flex-wrap sm:gap-3 sm:overflow-visible sm:pb-0">
                   <Link
                     href="/catalog"
-                    className="rounded-xl border border-theme bg-transparent px-5 py-3 text-sm transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
+                    className="shrink-0 rounded-xl border border-theme bg-transparent px-4 py-2.5 text-xs transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-5 sm:py-3 sm:text-sm"
                   >
                     Продолжить покупки
                   </Link>
@@ -827,14 +701,14 @@ export default function CartPage() {
                   <button
                     type="button"
                     onClick={clearCart}
-                    className="rounded-xl border border-theme bg-transparent px-5 py-3 text-sm text-muted transition-colors hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-500"
+                    className="shrink-0 rounded-xl border border-theme bg-transparent px-4 py-2.5 text-xs text-muted transition-colors hover:border-red-500/40 hover:bg-red-500/10 hover:text-red-500 sm:px-5 sm:py-3 sm:text-sm"
                   >
                     Очистить корзину
                   </button>
                 </div>
               </div>
 
-              <div className="mt-8 space-y-4">
+              <div className="mt-4 space-y-3 sm:mt-8 sm:space-y-4">
                 {items.map((item) => {
                   const stock = getItemStock(item);
                   const status = getItemStatus(item);
@@ -844,47 +718,47 @@ export default function CartPage() {
                   return (
                     <article
                       key={item.sku}
-                      className="rounded-3xl border border-theme bg-blue-soft p-5"
+                      className="rounded-2xl border border-theme bg-blue-soft p-3 sm:rounded-3xl sm:p-5"
                     >
-                      <div className="grid gap-5 md:grid-cols-[140px_1fr_auto] md:items-center">
+                      <div className="grid grid-cols-[76px_1fr] gap-3 sm:grid-cols-[112px_1fr] sm:gap-4 md:grid-cols-[140px_1fr_auto] md:items-center md:gap-5">
                         <Link
                           href={productHref}
-                          className="soft-box flex h-[140px] items-center justify-center rounded-2xl text-sm text-muted-soft"
+                          className="soft-box flex h-[76px] items-center justify-center rounded-xl text-xs text-muted-soft sm:h-[112px] sm:rounded-2xl sm:text-sm md:h-[140px]"
                         >
                           Фото
                         </Link>
 
                         <div>
-                          <div className="text-sm text-muted-soft">{item.brand}</div>
+                          <div className="text-xs text-muted-soft sm:text-sm">{item.brand}</div>
 
                           <Link
                             href={productHref}
-                            className="mt-1 block text-xl font-bold transition-colors hover:text-blue-500"
+                            className="mt-0.5 line-clamp-2 block text-sm font-bold leading-snug transition-colors hover:text-blue-500 sm:mt-1 sm:text-xl"
                           >
                             {item.title || item.productName}
                           </Link>
 
-                          <p className="mt-2 text-sm text-muted">
+                          <p className="mt-1 line-clamp-1 text-xs text-muted sm:mt-2 sm:text-sm">
                             {item.memory} · {item.color} · {item.sim}
                           </p>
 
-                          <div className="mt-3 flex flex-wrap gap-2">
-                            <span className="inline-flex rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs text-blue-500">
+                          <div className="mt-2 flex flex-wrap gap-1.5 sm:mt-3 sm:gap-2">
+                            <span className="hidden rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs text-blue-500 sm:inline-flex">
                               Код товара: {item.sku}
                             </span>
 
                             <span
                               className={`inline-flex rounded-full border px-3 py-1 text-xs ${
                                 stock > 0
-                                  ? "border-green-500/30 bg-green-500/10 text-green-500"
-                                  : "border-orange-500/30 bg-orange-500/10 text-orange-500"
+                                  ? "border-green-500/30 bg-green-500/10 px-2 py-0.5 text-[11px] text-green-500 sm:px-3 sm:py-1 sm:text-xs"
+                                  : "border-orange-500/30 bg-orange-500/10 px-2 py-0.5 text-[11px] text-orange-500 sm:px-3 sm:py-1 sm:text-xs"
                               }`}
                             >
                               {getStatusName(status, stock)}{stock > 0 ? ` · ${stock} шт.` : ""}
                             </span>
                           </div>
 
-                          <div className="mt-5 flex flex-wrap gap-3 text-sm text-muted-soft">
+                          <div className="mt-2 flex flex-wrap gap-2 text-xs text-muted-soft sm:mt-5 sm:gap-3 sm:text-sm">
                             <button className="transition-colors hover:text-blue-500">
                               В избранное
                             </button>
@@ -899,17 +773,17 @@ export default function CartPage() {
                           </div>
                         </div>
 
-                        <div className="flex items-center justify-between gap-6 md:flex-col md:items-end">
-                          <div className="flex items-center gap-3">
+                        <div className="col-span-2 flex items-center justify-between gap-3 border-t border-theme pt-3 md:col-span-1 md:flex-col md:items-end md:border-t-0 md:pt-0">
+                          <div className="flex items-center gap-2 sm:gap-3">
                             <button
                               type="button"
                               onClick={() => updateQuantity(item.sku, item.quantity - 1)}
-                              className="flex h-9 w-9 items-center justify-center rounded-xl border border-theme bg-transparent text-lg transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
+                              className="flex h-8 w-8 items-center justify-center rounded-lg border border-theme bg-transparent text-base transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:h-9 sm:w-9 sm:rounded-xl sm:text-lg"
                             >
                               −
                             </button>
 
-                            <span className="w-7 text-center font-semibold">
+                            <span className="w-6 text-center text-sm font-semibold sm:w-7 sm:text-base">
                               {item.quantity}
                             </span>
 
@@ -917,24 +791,24 @@ export default function CartPage() {
                               type="button"
                               disabled={!canIncrease}
                               onClick={() => updateQuantity(item.sku, item.quantity + 1)}
-                              className="flex h-9 w-9 items-center justify-center rounded-xl border border-theme bg-transparent text-lg transition-colors hover:border-blue-500/40 hover:bg-blue-soft disabled:cursor-not-allowed disabled:opacity-40"
+                              className="flex h-8 w-8 items-center justify-center rounded-lg border border-theme bg-transparent text-base transition-colors hover:border-blue-500/40 hover:bg-blue-soft disabled:cursor-not-allowed disabled:opacity-40 sm:h-9 sm:w-9 sm:rounded-xl sm:text-lg"
                             >
                               +
                             </button>
                           </div>
 
-                          <div className="text-right">
+                          <div className="text-right leading-tight">
                             {item.oldPrice && (
-                              <div className="text-sm text-muted-soft line-through">
+                              <div className="text-xs text-muted-soft line-through sm:text-sm">
                                 {item.oldPrice}
                               </div>
                             )}
 
-                            <div className="text-xl font-bold">
+                            <div className="text-lg font-bold sm:text-xl">
                               {formatPrice(getItemLineTotal(item))}
                             </div>
 
-                            <div className="mt-1 text-sm text-muted-soft">
+                            <div className="mt-0.5 text-[11px] text-muted-soft sm:mt-1 sm:text-sm">
                               {item.price} за 1 шт.
                             </div>
                           </div>
@@ -946,31 +820,33 @@ export default function CartPage() {
               </div>
             </section>
 
-            <section className="grid gap-4 md:grid-cols-2 md:gap-5">
-              <CheckoutCard
-                title="Данные клиента"
-                text={contactSummary}
-                status={hasCustomerContacts ? "Заполнено" : "Заполнить"}
-                isComplete={hasCustomerContacts}
-                action={hasCustomerContacts ? "Изменить данные →" : "Контакты →"}
-                onClick={() => setActiveModal("contacts")}
-              />
-
+            <section className={`grid gap-5 ${isRegistered ? "md:grid-cols-1" : "md:grid-cols-2"}`}>
               <CheckoutCard
                 title="Доставка"
                 text={deliverySummary}
-                status={hasDelivery ? "Выбрано" : "Выбрать"}
+                status={hasDelivery ? "Заполнено" : "Нужно выбрать"}
                 isComplete={hasDelivery}
-                action={hasDelivery ? "Изменить доставку →" : "Доставка →"}
+                action={hasDelivery ? "Изменить доставку →" : "Выбрать доставку →"}
                 onClick={() => setActiveModal("delivery")}
               />
+
+              {!isRegistered && (
+                <CheckoutCard
+                  title="Контакты"
+                  text={contactSummary}
+                  status={hasGuestContacts ? "Заполнено" : "Нужно заполнить"}
+                  isComplete={hasGuestContacts}
+                  action={hasGuestContacts ? "Изменить контакты →" : "Заполнить контакты →"}
+                  onClick={() => setActiveModal("contacts")}
+                />
+              )}
             </section>
           </div>
 
-          <aside className="card h-fit rounded-[32px] p-8 lg:sticky lg:top-6">
-            <h2 className="text-2xl font-bold">Итого</h2>
+          <aside className="card h-fit rounded-[22px] p-4 sm:rounded-[32px] sm:p-8 lg:sticky lg:top-6">
+            <h2 className="text-xl font-bold sm:text-2xl">Итого</h2>
 
-            <div className="mt-6 space-y-4 text-muted">
+            <div className="mt-4 space-y-3 text-sm text-muted sm:mt-6 sm:space-y-4 sm:text-base">
               <div className="flex justify-between gap-4">
                 <span>Товары</span>
                 <span className="text-main">{formatPrice(subtotal)}</span>
@@ -986,10 +862,12 @@ export default function CartPage() {
                 <span className="max-w-[190px] text-right text-main">{hasDelivery ? deliverySummary : "не выбрана"}</span>
               </div>
 
-              <div className="flex justify-between gap-4">
-                <span>Контакты</span>
-                <span className="max-w-[190px] text-right text-main">{hasCustomerContacts ? customer.phone : "не указаны"}</span>
-              </div>
+              {!isRegistered && (
+                <div className="flex justify-between gap-4">
+                  <span>Контакты</span>
+                  <span className="max-w-[190px] text-right text-main">{hasGuestContacts ? customer.phone : "не указаны"}</span>
+                </div>
+              )}
 
               <div className="flex justify-between gap-4">
                 <span>Оплата</span>
@@ -997,21 +875,21 @@ export default function CartPage() {
               </div>
             </div>
 
-            <div className="mt-6 border-t border-theme pt-6">
-              <div className="flex justify-between gap-4 text-xl font-bold">
+            <div className="mt-4 border-t border-theme pt-4 sm:mt-6 sm:pt-6">
+              <div className="flex justify-between gap-4 text-lg font-bold sm:text-xl">
                 <span>К оплате</span>
                 <span>{formatPrice(subtotal)}</span>
               </div>
             </div>
 
             {!canPlaceOrder && (
-              <div className="mt-5 rounded-2xl border border-orange-500/30 bg-orange-500/10 p-4 text-sm text-orange-500">
-                {getMissingText(hasDelivery, hasCustomerContacts)}
+              <div className="mt-4 rounded-2xl border border-orange-500/30 bg-orange-500/10 p-3 text-xs text-orange-500 sm:mt-5 sm:p-4 sm:text-sm">
+                {getMissingText(hasDelivery, isRegistered, hasGuestContacts)}
               </div>
             )}
 
             {orderError && (
-              <div className="mt-5 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-500">
+              <div className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-3 text-xs text-red-500 sm:mt-5 sm:p-4 sm:text-sm">
                 {orderError}
               </div>
             )}
@@ -1020,19 +898,19 @@ export default function CartPage() {
               type="button"
               disabled={!canPlaceOrder || isOrderSubmitting}
               onClick={placeOrder}
-              className="mt-6 flex w-full justify-center rounded-xl bg-blue-600 px-7 py-4 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-600/40 disabled:text-white/60"
+              className="mt-4 flex w-full justify-center rounded-xl bg-blue-600 px-5 py-3.5 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-600/40 disabled:text-white/60 sm:mt-6 sm:px-7 sm:py-4"
             >
               {isOrderSubmitting ? "Отправляем заявку..." : "Оформить заказ →"}
             </button>
 
-            <p className="mt-4 text-xs leading-relaxed text-muted-soft">
+            <p className="mt-3 text-xs leading-relaxed text-muted-soft sm:mt-4">
               Оплата только наличными при получении. Менеджер подтвердит наличие,
               доставку и итоговую стоимость заказа.
             </p>
           </aside>
         </div>
 
-        <div className="mt-10 space-y-12">
+        <div className="mt-6 space-y-8 sm:mt-10 sm:space-y-12">
           <RecommendationStrip
             title="С этим товаром покупают"
             items={recommendationPositions}
@@ -1133,7 +1011,7 @@ export default function CartPage() {
                             setIsAddingAddress(false);
                             setNewAddress("");
                           }}
-                          className="rounded-xl border border-theme bg-transparent px-5 py-3 text-sm transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
+                          className="shrink-0 rounded-xl border border-theme bg-transparent px-4 py-2.5 text-xs transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-5 sm:py-3 sm:text-sm"
                         >
                           Отмена
                         </button>
@@ -1195,39 +1073,33 @@ export default function CartPage() {
         </Modal>
       )}
 
-      {activeModal === "contacts" && (
-        <Modal title="Данные клиента" onClose={() => setActiveModal(null)}>
+      {activeModal === "contacts" && !isRegistered && (
+        <Modal title="Контакты для заказа" onClose={() => setActiveModal(null)}>
           <p className="text-sm text-muted">
-            Эти данные сохраняются в заказе. Для авторизованного клиента они берутся из профиля и сохраняются через уже существующий API профиля.
+            Контакты нужны только для гостевого заказа. У зарегистрированного клиента
+            этот блок скрыт, потому что данные берутся из профиля.
           </p>
 
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
+          <div className="mt-5 grid gap-3 md:grid-cols-2">
             <input
               value={customer.name}
               onChange={(event) => setCustomer((current) => ({ ...current, name: event.target.value }))}
-              placeholder="Имя"
-              className="h-12 rounded-xl border border-theme bg-transparent px-4 text-base outline-none placeholder:text-muted-soft focus:border-blue-500/50"
-            />
-
-            <input
-              value={customer.lastName}
-              onChange={(event) => setCustomer((current) => ({ ...current, lastName: event.target.value }))}
-              placeholder="Фамилия"
-              className="h-12 rounded-xl border border-theme bg-transparent px-4 text-base outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+              placeholder="Ваше имя"
+              className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
             />
 
             <input
               value={customer.phone}
               onChange={(event) => setCustomer((current) => ({ ...current, phone: event.target.value }))}
               placeholder="Телефон"
-              className="h-12 rounded-xl border border-theme bg-transparent px-4 text-base outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+              className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
             />
 
             <input
               value={customer.email}
               onChange={(event) => setCustomer((current) => ({ ...current, email: event.target.value }))}
               placeholder="E-mail, если удобно"
-              className="h-12 rounded-xl border border-theme bg-transparent px-4 text-base outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+              className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50 md:col-span-2"
             />
           </div>
 
@@ -1236,23 +1108,17 @@ export default function CartPage() {
             onChange={(event) => setComment(event.target.value)}
             placeholder="Комментарий к заказу"
             rows={4}
-            className="mt-3 w-full rounded-xl border border-theme bg-transparent px-4 py-3 text-base outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+            className="mt-3 w-full rounded-xl border border-theme bg-transparent px-4 py-3 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
           />
-
-          {contactSaveError && (
-            <div className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-500">
-              {contactSaveError}
-            </div>
-          )}
 
           <div className="mt-6 flex justify-end">
             <button
               type="button"
-              onClick={saveCustomerContacts}
-              disabled={!hasCustomerContacts || isContactSaving}
-              className="w-full rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-600/40 disabled:text-white/60 sm:w-auto"
+              onClick={() => setActiveModal(null)}
+              disabled={!hasGuestContacts}
+              className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-600/40 disabled:text-white/60"
             >
-              {isContactSaving ? "Сохраняем..." : "Сохранить данные"}
+              Сохранить контакты
             </button>
           </div>
         </Modal>
@@ -1307,16 +1173,20 @@ function getDeliverySummary(delivery: DeliveryData, isRegistered: boolean) {
   return "Выберите курьера или ПВЗ";
 }
 
-function getMissingText(hasDelivery: boolean, hasCustomerContacts: boolean) {
-  if (!hasDelivery && !hasCustomerContacts) {
-    return "Чтобы оформить заказ, выберите доставку и заполните данные клиента.";
+function getMissingText(
+  hasDelivery: boolean,
+  isRegistered: boolean,
+  hasGuestContacts: boolean
+) {
+  if (!hasDelivery && !isRegistered && !hasGuestContacts) {
+    return "Чтобы оформить заказ, выберите доставку и заполните контакты.";
   }
 
   if (!hasDelivery) {
     return "Чтобы оформить заказ, выберите способ получения заказа.";
   }
 
-  if (!hasCustomerContacts) {
+  if (!isRegistered && !hasGuestContacts) {
     return "Чтобы оформить заказ, укажите имя и телефон.";
   }
 
@@ -1342,10 +1212,10 @@ function CheckoutCard({
     <button
       type="button"
       onClick={onClick}
-      className="card rounded-[24px] p-5 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500/35 hover:bg-blue-soft sm:rounded-[28px] sm:p-8"
+      className="card rounded-[28px] p-8 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500/35 hover:bg-blue-soft"
     >
       <div className="flex items-start justify-between gap-4">
-        <div className="text-lg font-bold sm:text-2xl">{title}</div>
+        <div className="text-2xl font-bold">{title}</div>
         <span
           className={`shrink-0 rounded-full border px-3 py-1 text-xs ${
             isComplete
@@ -1357,9 +1227,9 @@ function CheckoutCard({
         </span>
       </div>
 
-      <p className="mt-2 min-h-[34px] text-sm leading-relaxed text-muted sm:mt-3 sm:min-h-[40px]">{text}</p>
+      <p className="mt-3 min-h-[40px] text-sm leading-relaxed text-muted">{text}</p>
 
-      <div className="mt-4 text-sm font-medium text-blue-500 sm:mt-6">{action}</div>
+      <div className="mt-6 text-sm font-medium text-blue-500">{action}</div>
     </button>
   );
 }
@@ -1375,9 +1245,9 @@ function Modal({
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 px-4 py-4 backdrop-blur-sm md:items-center md:px-6">
-      <div className="card max-h-[92vh] w-full max-w-[720px] overflow-y-auto rounded-[24px] p-5 shadow-[0_30px_120px_rgba(0,102,255,0.25)] sm:rounded-[28px] md:p-8">
+      <div className="card max-h-[92vh] w-full max-w-[720px] overflow-y-auto rounded-[28px] p-6 shadow-[0_30px_120px_rgba(0,102,255,0.25)] md:p-8">
         <div className="flex items-start justify-between gap-4">
-          <h2 className="text-2xl font-bold tracking-[-0.04em] sm:text-3xl">{title}</h2>
+          <h2 className="text-3xl font-bold tracking-[-0.04em]">{title}</h2>
 
           <button
             type="button"
@@ -1389,7 +1259,7 @@ function Modal({
           </button>
         </div>
 
-        <div className="mt-6">{children}</div>
+        <div className="mt-4 sm:mt-6">{children}</div>
       </div>
     </div>
   );
