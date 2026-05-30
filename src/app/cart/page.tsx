@@ -820,17 +820,26 @@ export default function CartPage() {
               </div>
             </section>
 
-            <section className={`grid gap-5 ${isRegistered ? "md:grid-cols-1" : "md:grid-cols-2"}`}>
-              {!isRegistered && (
-                <CheckoutCard
-                  title="Ваши данные"
-                  text={contactSummary}
-                  status={hasGuestContacts ? "Заполнено" : "Нужно заполнить"}
-                  isComplete={hasGuestContacts}
-                  action={hasGuestContacts ? "Изменить контакты →" : "Заполнить контакты →"}
-                  onClick={() => setActiveModal("contacts")}
-                />
-              )}
+            <section className="grid gap-5 md:grid-cols-2">
+              <CheckoutCard
+                title="Ваши данные"
+                text={contactSummary}
+                status={isRegistered || hasGuestContacts ? "Заполнено" : "Нужно заполнить"}
+                isComplete={isRegistered || hasGuestContacts}
+                action={
+                  isRegistered
+                    ? "Данные из профиля"
+                    : hasGuestContacts
+                      ? "Изменить контакты →"
+                      : "Заполнить контакты →"
+                }
+                actionTone={isRegistered ? "green" : "orange"}
+                onClick={() => {
+                  if (!isRegistered) {
+                    setActiveModal("contacts");
+                  }
+                }}
+              />
 
               <CheckoutCard
                 title="Доставка"
@@ -838,6 +847,7 @@ export default function CartPage() {
                 status={hasDelivery ? "Заполнено" : "Нужно выбрать"}
                 isComplete={hasDelivery}
                 action={hasDelivery ? "Изменить доставку →" : "Выбрать доставку →"}
+                actionTone="orange"
                 onClick={() => setActiveModal("delivery")}
               />
             </section>
@@ -1199,6 +1209,7 @@ function CheckoutCard({
   status,
   isComplete,
   action,
+  actionTone = "orange",
   onClick,
 }: {
   title: string;
@@ -1206,8 +1217,14 @@ function CheckoutCard({
   status: string;
   isComplete: boolean;
   action: string;
+  actionTone?: "orange" | "green";
   onClick: () => void;
 }) {
+  const actionClass =
+    actionTone === "green"
+      ? "border-green-500/30 bg-green-500/10 text-green-600"
+      : "border-orange-500/35 bg-orange-500/10 text-orange-500";
+
   return (
     <button
       type="button"
@@ -1229,7 +1246,9 @@ function CheckoutCard({
 
       <p className="mt-3 min-h-[40px] text-sm leading-relaxed text-muted">{text}</p>
 
-      <div className="mt-6 text-sm font-medium text-blue-500">{action}</div>
+      <span className={`mt-6 inline-flex rounded-full border px-4 py-2 text-sm font-medium ${actionClass}`}>
+        {action}
+      </span>
     </button>
   );
 }
