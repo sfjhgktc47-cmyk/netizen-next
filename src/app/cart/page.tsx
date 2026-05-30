@@ -33,6 +33,7 @@ type DeliveryMethod = "courier" | "pickup" | null;
 
 type CustomerData = {
   name: string;
+  lastName: string;
   phone: string;
   email: string;
 };
@@ -69,6 +70,22 @@ type DeliveryOption = {
 type StoredProfile = Partial<CustomerData> & {
   addresses?: string[];
   deliveryAddresses?: string[];
+};
+
+type ProfileAddress = {
+  id: string;
+  value: string;
+};
+
+type ProfilePayload = {
+  ok?: boolean;
+  profile?: {
+    name?: string;
+    lastName?: string;
+    phone?: string;
+    email?: string;
+  };
+  addresses?: ProfileAddress[];
 };
 
 const FALLBACK_PICKUP_POINT = {
@@ -183,7 +200,7 @@ function getSavedProfile(): StoredProfile | undefined {
   ].filter(Boolean) as StoredProfile[];
 
   return possibleProfiles.find((profile) =>
-    Boolean(profile.name || profile.phone || profile.email)
+    Boolean(profile.name || profile.lastName || profile.phone || profile.email)
   );
 }
 
@@ -212,6 +229,7 @@ function getStoredCustomer(profile?: StoredProfile): CustomerData {
 
   return {
     name: profile?.name ?? savedCustomer?.name ?? "",
+    lastName: profile?.lastName ?? savedCustomer?.lastName ?? "",
     phone: profile?.phone ?? savedCustomer?.phone ?? "",
     email: profile?.email ?? savedCustomer?.email ?? "",
   };
@@ -239,6 +257,7 @@ export default function CartPage() {
   const [isRegistered, setIsRegistered] = useState(false);
   const [customer, setCustomer] = useState<CustomerData>({
     name: "",
+    lastName: "",
     phone: "",
     email: "",
   });
@@ -260,9 +279,12 @@ export default function CartPage() {
   const [orderNumber, setOrderNumber] = useState("");
   const [isOrderSubmitting, setIsOrderSubmitting] = useState(false);
   const [orderError, setOrderError] = useState("");
+  const [contactSaveError, setContactSaveError] = useState("");
+  const [isContactSaving, setIsContactSaving] = useState(false);
   const [recentlyAddedSku, setRecentlyAddedSku] = useState("");
 
   useEffect(() => {
+    let isMounted = true;
     const profile = getSavedProfile();
     const registered = Boolean(profile);
 
@@ -273,6 +295,35 @@ export default function CartPage() {
     setSavedAddresses(getStoredAddresses(profile));
     setComment(localStorage.getItem("netizen-checkout-comment") ?? "");
     setIsCartLoaded(true);
+
+    async function loadProfileFromDb() {
+      const response = await fetch("/api/auth/profile").catch(() => null);
+
+      if (!response?.ok) {
+        return;
+      }
+
+      const payload = (await response.json().catch(() => null)) as ProfilePayload | null;
+
+      if (!isMounted || !payload?.ok || !payload.profile) {
+        return;
+      }
+
+      setIsRegistered(true);
+      setCustomer({
+        name: payload.profile.name ?? "",
+        lastName: payload.profile.lastName ?? "",
+        phone: payload.profile.phone ?? "",
+        email: payload.profile.email ?? "",
+      });
+      setSavedAddresses((payload.addresses ?? []).map((address) => address.value).filter(Boolean));
+    }
+
+    void loadProfileFromDb();
+
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   useEffect(() => {
@@ -302,8 +353,10 @@ export default function CartPage() {
       return;
     }
 
-    localStorage.setItem("netizen-checkout-customer", JSON.stringify(customer));
-  }, [customer, isCartLoaded]);
+    if (!isRegistered) {
+      localStorage.setItem("netizen-checkout-customer", JSON.stringify(customer));
+    }
+  }, [customer, isCartLoaded, isRegistered]);
 
   useEffect(() => {
     if (!isCartLoaded) {
@@ -356,20 +409,19 @@ export default function CartPage() {
   }, [items]);
 
   const hasItems = items.length > 0;
-  const hasGuestContacts = customer.name.trim().length > 0 && customer.phone.trim().length > 0;
+  const customerNameForOrder = [customer.name.trim(), customer.lastName.trim()].filter(Boolean).join(" ");
+  const hasCustomerContacts = customerNameForOrder.length > 0 && customer.phone.trim().length > 0;
   const hasCourierAddress = isRegistered
     ? delivery.savedAddress.trim().length > 0 || delivery.address.trim().length > 0
     : delivery.city.trim().length > 0 && delivery.address.trim().length > 0;
   const hasPickupAddress = delivery.method === "pickup" && delivery.address.trim().length > 0;
   const hasDelivery = hasPickupAddress || (delivery.method === "courier" && hasCourierAddress);
-  const canPlaceOrder = hasItems && hasDelivery && (isRegistered || hasGuestContacts);
+  const canPlaceOrder = hasItems && hasDelivery && hasCustomerContacts;
 
   const deliverySummary = getDeliverySummary(delivery, isRegistered);
-  const contactSummary = isRegistered
-    ? "Контакты взяты из профиля"
-    : hasGuestContacts
-      ? `${customer.name}, ${customer.phone}`
-      : "Укажите имя и телефон";
+  const contactSummary = hasCustomerContacts
+    ? [customerNameForOrder, customer.phone, customer.email].filter(Boolean).join(" · ")
+    : "Укажите имя и телефон";
 
   function updateItems(nextItems: CartItem[]) {
     setItems(nextItems);
@@ -490,20 +542,88 @@ export default function CartPage() {
     }));
   }
 
-  function addSavedAddress() {
+  async function addSavedAddress() {
     const normalizedAddress = newAddress.trim();
 
     if (!normalizedAddress) {
       return;
     }
 
-    const nextAddresses = Array.from(new Set([...savedAddresses, normalizedAddress]));
+    if (isRegistered) {
+      const response = await fetch("/api/auth/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "add-address", address: normalizedAddress }),
+      }).catch(() => null);
+      const payload = (await response?.json().catch(() => null)) as ProfilePayload | null;
 
-    setSavedAddresses(nextAddresses);
-    saveAddresses(nextAddresses);
+      if (response?.ok && payload?.ok) {
+        const nextAddresses = (payload.addresses ?? [])
+          .map((address) => address.value)
+          .filter(Boolean);
+
+        setSavedAddresses(nextAddresses);
+      }
+    } else {
+      const nextAddresses = Array.from(new Set([...savedAddresses, normalizedAddress]));
+
+      setSavedAddresses(nextAddresses);
+      saveAddresses(nextAddresses);
+    }
+
     setNewAddress("");
     setIsAddingAddress(false);
     selectSavedAddress(normalizedAddress);
+  }
+
+  async function saveCustomerContacts() {
+    if (!hasCustomerContacts || isContactSaving) {
+      return;
+    }
+
+    setContactSaveError("");
+
+    if (!isRegistered) {
+      setActiveModal(null);
+      return;
+    }
+
+    setIsContactSaving(true);
+
+    try {
+      const response = await fetch("/api/auth/profile", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          firstName: customer.name,
+          lastName: customer.lastName,
+          phone: customer.phone,
+          email: customer.email,
+        }),
+      });
+      const payload = (await response.json().catch(() => null)) as
+        | { ok?: boolean; message?: string; user?: { profile?: CustomerData } }
+        | null;
+
+      if (!response.ok || !payload?.ok) {
+        throw new Error(payload?.message || "Не удалось сохранить данные клиента.");
+      }
+
+      if (payload.user?.profile) {
+        setCustomer({
+          name: payload.user.profile.name ?? "",
+          lastName: payload.user.profile.lastName ?? "",
+          phone: payload.user.profile.phone ?? "",
+          email: payload.user.profile.email ?? "",
+        });
+      }
+
+      setActiveModal(null);
+    } catch (error) {
+      setContactSaveError(error instanceof Error ? error.message : "Не удалось сохранить данные клиента.");
+    } finally {
+      setIsContactSaving(false);
+    }
   }
 
   async function placeOrder() {
@@ -521,9 +641,12 @@ export default function CartPage() {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          customer: isRegistered
-            ? { ...customer, source: "profile" }
-            : { ...customer, source: "guest" },
+          customer: {
+            name: customerNameForOrder,
+            phone: customer.phone,
+            email: customer.email,
+            source: isRegistered ? "profile" : "guest",
+          },
           delivery: {
             ...delivery,
             title: delivery.deliveryTitle || (delivery.method === "pickup" ? "ПВЗ / самовывоз" : "Курьерская доставка"),
@@ -546,9 +669,12 @@ export default function CartPage() {
       const order = {
         number: result.order.publicId,
         createdAt: new Date().toISOString(),
-        customer: isRegistered
-          ? { ...customer, source: "profile" }
-          : { ...customer, source: "guest" },
+        customer: {
+          name: customerNameForOrder,
+          phone: customer.phone,
+          email: customer.email,
+          source: isRegistered ? "profile" : "guest",
+        },
         delivery: {
           ...delivery,
           title: delivery.deliveryTitle || (delivery.method === "pickup" ? "ПВЗ / самовывоз" : "Курьерская доставка"),
@@ -582,7 +708,7 @@ export default function CartPage() {
 
   if (isOrderSent) {
     return (
-      <main className="min-h-screen bg-page px-6 py-6 text-main transition-colors duration-700">
+      <main className="min-h-screen bg-page px-4 py-4 text-main transition-colors duration-700 sm:px-6 sm:py-6">
         <div className="mx-auto max-w-[1440px]">
           <SiteHeader />
 
@@ -623,7 +749,7 @@ export default function CartPage() {
 
   if (!hasItems) {
     return (
-      <main className="min-h-screen bg-page px-6 py-6 text-main transition-colors duration-700">
+      <main className="min-h-screen bg-page px-4 py-4 text-main transition-colors duration-700 sm:px-6 sm:py-6">
         <div className="mx-auto max-w-[1440px]">
           <SiteHeader />
 
@@ -663,7 +789,7 @@ export default function CartPage() {
   }
 
   return (
-    <main className="min-h-screen bg-page px-6 py-6 text-main transition-colors duration-700">
+    <main className="min-h-screen bg-page px-4 py-4 text-main transition-colors duration-700 sm:px-6 sm:py-6">
       <div className="mx-auto max-w-[1440px]">
         <SiteHeader />
 
@@ -820,26 +946,24 @@ export default function CartPage() {
               </div>
             </section>
 
-            <section className={`grid gap-5 ${isRegistered ? "md:grid-cols-1" : "md:grid-cols-2"}`}>
+            <section className="grid gap-4 md:grid-cols-2 md:gap-5">
+              <CheckoutCard
+                title="Данные клиента"
+                text={contactSummary}
+                status={hasCustomerContacts ? "Заполнено" : "Заполнить"}
+                isComplete={hasCustomerContacts}
+                action={hasCustomerContacts ? "Изменить данные →" : "Контакты →"}
+                onClick={() => setActiveModal("contacts")}
+              />
+
               <CheckoutCard
                 title="Доставка"
                 text={deliverySummary}
-                status={hasDelivery ? "Заполнено" : "Нужно выбрать"}
+                status={hasDelivery ? "Выбрано" : "Выбрать"}
                 isComplete={hasDelivery}
-                action={hasDelivery ? "Изменить доставку →" : "Выбрать доставку →"}
+                action={hasDelivery ? "Изменить доставку →" : "Доставка →"}
                 onClick={() => setActiveModal("delivery")}
               />
-
-              {!isRegistered && (
-                <CheckoutCard
-                  title="Контакты"
-                  text={contactSummary}
-                  status={hasGuestContacts ? "Заполнено" : "Нужно заполнить"}
-                  isComplete={hasGuestContacts}
-                  action={hasGuestContacts ? "Изменить контакты →" : "Заполнить контакты →"}
-                  onClick={() => setActiveModal("contacts")}
-                />
-              )}
             </section>
           </div>
 
@@ -862,12 +986,10 @@ export default function CartPage() {
                 <span className="max-w-[190px] text-right text-main">{hasDelivery ? deliverySummary : "не выбрана"}</span>
               </div>
 
-              {!isRegistered && (
-                <div className="flex justify-between gap-4">
-                  <span>Контакты</span>
-                  <span className="max-w-[190px] text-right text-main">{hasGuestContacts ? customer.phone : "не указаны"}</span>
-                </div>
-              )}
+              <div className="flex justify-between gap-4">
+                <span>Контакты</span>
+                <span className="max-w-[190px] text-right text-main">{hasCustomerContacts ? customer.phone : "не указаны"}</span>
+              </div>
 
               <div className="flex justify-between gap-4">
                 <span>Оплата</span>
@@ -884,7 +1006,7 @@ export default function CartPage() {
 
             {!canPlaceOrder && (
               <div className="mt-5 rounded-2xl border border-orange-500/30 bg-orange-500/10 p-4 text-sm text-orange-500">
-                {getMissingText(hasDelivery, isRegistered, hasGuestContacts)}
+                {getMissingText(hasDelivery, hasCustomerContacts)}
               </div>
             )}
 
@@ -1073,33 +1195,39 @@ export default function CartPage() {
         </Modal>
       )}
 
-      {activeModal === "contacts" && !isRegistered && (
-        <Modal title="Контакты для заказа" onClose={() => setActiveModal(null)}>
+      {activeModal === "contacts" && (
+        <Modal title="Данные клиента" onClose={() => setActiveModal(null)}>
           <p className="text-sm text-muted">
-            Контакты нужны только для гостевого заказа. У зарегистрированного клиента
-            этот блок скрыт, потому что данные берутся из профиля.
+            Эти данные сохраняются в заказе. Для авторизованного клиента они берутся из профиля и сохраняются через уже существующий API профиля.
           </p>
 
-          <div className="mt-5 grid gap-3 md:grid-cols-2">
+          <div className="mt-5 grid gap-3 sm:grid-cols-2">
             <input
               value={customer.name}
               onChange={(event) => setCustomer((current) => ({ ...current, name: event.target.value }))}
-              placeholder="Ваше имя"
-              className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+              placeholder="Имя"
+              className="h-12 rounded-xl border border-theme bg-transparent px-4 text-base outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+            />
+
+            <input
+              value={customer.lastName}
+              onChange={(event) => setCustomer((current) => ({ ...current, lastName: event.target.value }))}
+              placeholder="Фамилия"
+              className="h-12 rounded-xl border border-theme bg-transparent px-4 text-base outline-none placeholder:text-muted-soft focus:border-blue-500/50"
             />
 
             <input
               value={customer.phone}
               onChange={(event) => setCustomer((current) => ({ ...current, phone: event.target.value }))}
               placeholder="Телефон"
-              className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+              className="h-12 rounded-xl border border-theme bg-transparent px-4 text-base outline-none placeholder:text-muted-soft focus:border-blue-500/50"
             />
 
             <input
               value={customer.email}
               onChange={(event) => setCustomer((current) => ({ ...current, email: event.target.value }))}
               placeholder="E-mail, если удобно"
-              className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50 md:col-span-2"
+              className="h-12 rounded-xl border border-theme bg-transparent px-4 text-base outline-none placeholder:text-muted-soft focus:border-blue-500/50"
             />
           </div>
 
@@ -1108,17 +1236,23 @@ export default function CartPage() {
             onChange={(event) => setComment(event.target.value)}
             placeholder="Комментарий к заказу"
             rows={4}
-            className="mt-3 w-full rounded-xl border border-theme bg-transparent px-4 py-3 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+            className="mt-3 w-full rounded-xl border border-theme bg-transparent px-4 py-3 text-base outline-none placeholder:text-muted-soft focus:border-blue-500/50"
           />
+
+          {contactSaveError && (
+            <div className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-500">
+              {contactSaveError}
+            </div>
+          )}
 
           <div className="mt-6 flex justify-end">
             <button
               type="button"
-              onClick={() => setActiveModal(null)}
-              disabled={!hasGuestContacts}
-              className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-600/40 disabled:text-white/60"
+              onClick={saveCustomerContacts}
+              disabled={!hasCustomerContacts || isContactSaving}
+              className="w-full rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-600/40 disabled:text-white/60 sm:w-auto"
             >
-              Сохранить контакты
+              {isContactSaving ? "Сохраняем..." : "Сохранить данные"}
             </button>
           </div>
         </Modal>
@@ -1173,20 +1307,16 @@ function getDeliverySummary(delivery: DeliveryData, isRegistered: boolean) {
   return "Выберите курьера или ПВЗ";
 }
 
-function getMissingText(
-  hasDelivery: boolean,
-  isRegistered: boolean,
-  hasGuestContacts: boolean
-) {
-  if (!hasDelivery && !isRegistered && !hasGuestContacts) {
-    return "Чтобы оформить заказ, выберите доставку и заполните контакты.";
+function getMissingText(hasDelivery: boolean, hasCustomerContacts: boolean) {
+  if (!hasDelivery && !hasCustomerContacts) {
+    return "Чтобы оформить заказ, выберите доставку и заполните данные клиента.";
   }
 
   if (!hasDelivery) {
     return "Чтобы оформить заказ, выберите способ получения заказа.";
   }
 
-  if (!isRegistered && !hasGuestContacts) {
+  if (!hasCustomerContacts) {
     return "Чтобы оформить заказ, укажите имя и телефон.";
   }
 
@@ -1212,10 +1342,10 @@ function CheckoutCard({
     <button
       type="button"
       onClick={onClick}
-      className="card rounded-[28px] p-8 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500/35 hover:bg-blue-soft"
+      className="card rounded-[24px] p-5 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500/35 hover:bg-blue-soft sm:rounded-[28px] sm:p-8"
     >
       <div className="flex items-start justify-between gap-4">
-        <div className="text-2xl font-bold">{title}</div>
+        <div className="text-lg font-bold sm:text-2xl">{title}</div>
         <span
           className={`shrink-0 rounded-full border px-3 py-1 text-xs ${
             isComplete
@@ -1227,9 +1357,9 @@ function CheckoutCard({
         </span>
       </div>
 
-      <p className="mt-3 min-h-[40px] text-sm leading-relaxed text-muted">{text}</p>
+      <p className="mt-2 min-h-[34px] text-sm leading-relaxed text-muted sm:mt-3 sm:min-h-[40px]">{text}</p>
 
-      <div className="mt-6 text-sm font-medium text-blue-500">{action}</div>
+      <div className="mt-4 text-sm font-medium text-blue-500 sm:mt-6">{action}</div>
     </button>
   );
 }
@@ -1245,9 +1375,9 @@ function Modal({
 }) {
   return (
     <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 px-4 py-4 backdrop-blur-sm md:items-center md:px-6">
-      <div className="card max-h-[92vh] w-full max-w-[720px] overflow-y-auto rounded-[28px] p-6 shadow-[0_30px_120px_rgba(0,102,255,0.25)] md:p-8">
+      <div className="card max-h-[92vh] w-full max-w-[720px] overflow-y-auto rounded-[24px] p-5 shadow-[0_30px_120px_rgba(0,102,255,0.25)] sm:rounded-[28px] md:p-8">
         <div className="flex items-start justify-between gap-4">
-          <h2 className="text-3xl font-bold tracking-[-0.04em]">{title}</h2>
+          <h2 className="text-2xl font-bold tracking-[-0.04em] sm:text-3xl">{title}</h2>
 
           <button
             type="button"
