@@ -245,6 +245,7 @@ type CatalogUrlFilters = {
   selectedStatus: string | null;
   priceFrom: string;
   priceTo: string;
+  searchQuery: string;
   sortMode: SortMode;
   onlyPopular: boolean;
 };
@@ -258,6 +259,7 @@ const defaultUrlFilters: CatalogUrlFilters = {
   selectedStatus: null,
   priceFrom: "",
   priceTo: "",
+  searchQuery: "",
   sortMode: "popular",
   onlyPopular: false,
 };
@@ -283,6 +285,7 @@ function parseCatalogUrlFilters(params: URLSearchParams): CatalogUrlFilters {
     selectedStatus: getUrlValue(params, "availability") ?? getUrlValue(params, "status"),
     priceFrom: params.get("priceFrom") ?? "",
     priceTo: params.get("priceTo") ?? "",
+    searchQuery: params.get("search") ?? params.get("q") ?? "",
     sortMode: isSortMode(sort) ? sort : "popular",
     onlyPopular: params.get("popular") === "1",
   };
@@ -314,6 +317,8 @@ function writeCatalogUrlFiltersToWindow(filters: CatalogUrlFilters) {
     "status",
     "priceFrom",
     "priceTo",
+    "search",
+    "q",
     "sort",
     "popular",
   ].forEach((key) => params.delete(key));
@@ -326,6 +331,7 @@ function writeCatalogUrlFiltersToWindow(filters: CatalogUrlFilters) {
   if (filters.selectedStatus) params.set("availability", filters.selectedStatus);
   if (filters.priceFrom) params.set("priceFrom", filters.priceFrom);
   if (filters.priceTo) params.set("priceTo", filters.priceTo);
+  if (filters.searchQuery.trim()) params.set("search", filters.searchQuery.trim());
   if (filters.sortMode !== "popular") params.set("sort", filters.sortMode);
   if (filters.onlyPopular) params.set("popular", "1");
 
@@ -367,6 +373,20 @@ function getAvailabilityBadgeClass(position: CatalogPosition) {
   }
 
   return "bg-orange-500/10 text-orange-500";
+}
+
+function normalizeSearchText(value: string) {
+  return value.toLowerCase().replace(/ё/g, "е").trim();
+}
+
+function includesSearchQuery(values: Array<string | undefined | null>, query: string) {
+  const normalizedQuery = normalizeSearchText(query);
+
+  if (!normalizedQuery) {
+    return true;
+  }
+
+  return values.some((value) => normalizeSearchText(value ?? "").includes(normalizedQuery));
 }
 
 type SpecificationKey = "memory" | "color" | "sim" | "status";
@@ -443,6 +463,7 @@ export function CatalogView({
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [priceFrom, setPriceFrom] = useState("");
   const [priceTo, setPriceTo] = useState("");
+  const [searchQuery, setSearchQuery] = useState("");
   const [sortMode, setSortMode] = useState<SortMode>("popular");
   const [onlyPopular, setOnlyPopular] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
@@ -465,6 +486,7 @@ export function CatalogView({
       setSelectedStatus(filters.selectedStatus);
       setPriceFrom(filters.priceFrom);
       setPriceTo(filters.priceTo);
+      setSearchQuery(filters.searchQuery);
       setSortMode(filters.sortMode);
       setOnlyPopular(filters.onlyPopular);
     }
@@ -476,6 +498,8 @@ export function CatalogView({
 
     return () => window.removeEventListener("popstate", syncFiltersFromUrl);
   }, []);
+
+  const normalizedSearchQuery = searchQuery.trim();
 
   useEffect(() => {
     if (!isUrlSyncReady.current) {
@@ -496,6 +520,7 @@ export function CatalogView({
       selectedStatus,
       priceFrom,
       priceTo,
+      searchQuery,
       sortMode,
       onlyPopular,
     });
@@ -503,6 +528,7 @@ export function CatalogView({
     onlyPopular,
     priceFrom,
     priceTo,
+    searchQuery,
     selectedBrand,
     selectedColor,
     selectedMemory,
@@ -557,6 +583,7 @@ export function CatalogView({
     (product) => product.slug === selectedModelSlug
   );
 
+
   const effectiveCategoryId = activeCategory?.id ?? selectedModel?.category;
   const showSpecificationFilters = Boolean(effectiveCategoryId);
   const memoryLabel = getMemoryLabel(effectiveCategoryId);
@@ -572,9 +599,19 @@ export function CatalogView({
           return false;
         }
 
+        if (
+          normalizedSearchQuery &&
+          !includesSearchQuery(
+            [product.name, product.brand, product.category, product.shortDescription, product.price],
+            normalizedSearchQuery
+          )
+        ) {
+          return false;
+        }
+
         return true;
       }),
-    [allProducts, categoryId, onlyPopular]
+    [allProducts, categoryId, normalizedSearchQuery, onlyPopular]
   );
 
   const visibleModelProducts = useMemo(
@@ -755,12 +792,32 @@ export function CatalogView({
         return false;
       }
 
+      if (
+        normalizedSearchQuery &&
+        !includesSearchQuery(
+          [
+            position.title,
+            position.productName,
+            position.brand,
+            position.sku,
+            position.memory,
+            position.color,
+            position.sim,
+            position.product.shortDescription,
+          ],
+          normalizedSearchQuery
+        )
+      ) {
+        return false;
+      }
+
       return true;
     });
   }, [
     categoryId,
     enrichedPositions,
     onlyPopular,
+    normalizedSearchQuery,
     priceFrom,
     priceTo,
     selectedBrand,
@@ -810,13 +867,16 @@ export function CatalogView({
       priceTo
   );
 
-  const shouldShowPositionResults = Boolean(hasSpecificationFilters);
-  const hasActiveFilters = Boolean(onlyPopular || selectedBrand || hasSpecificationFilters);
+  const hasSearchQuery = Boolean(normalizedSearchQuery);
+  const shouldShowPositionResults = Boolean(hasSpecificationFilters || hasSearchQuery);
+  const hasActiveFilters = Boolean(onlyPopular || selectedBrand || hasSpecificationFilters || hasSearchQuery);
   const resultCount = shouldShowPositionResults
     ? positionResults.length
     : visibleModelProducts.length;
 
-  const pageTitle = selectedModel
+  const pageTitle = normalizedSearchQuery
+    ? `Поиск: ${normalizedSearchQuery}`
+    : selectedModel
     ? selectedModel.name
     : selectedBrand
       ? activeCategory
@@ -828,7 +888,9 @@ export function CatalogView({
           ? "Популярные товары"
           : "Каталог техники";
 
-  const pageDescription = onlyPopular
+  const pageDescription = normalizedSearchQuery
+    ? "Показали товары и конкретные SKU, которые совпадают с поисковым запросом."
+    : onlyPopular
     ? "Показаны модели, отмеченные в админке как популярные. Можно открыть карточку товара или уточнить подборку фильтрами."
     : shouldShowPositionResults
       ? "Показаны конкретные позиции / SKU из базы: фото, конфигурация, цена и наличие. Можно сразу открыть нужную комплектацию."
@@ -865,6 +927,7 @@ export function CatalogView({
   function handleResetCatalogState() {
     setOnlyPopular(false);
     setSelectedBrand(null);
+    setSearchQuery("");
     resetSpecificationFilters();
     setSortMode("popular");
   }
@@ -880,13 +943,13 @@ export function CatalogView({
   }
 
   return (
-    <main className="min-h-screen bg-page px-4 py-6 text-main transition-colors duration-700 sm:px-6 xl:px-8">
+    <main className="min-h-screen bg-page px-3 py-4 text-main transition-colors duration-700 sm:px-5 sm:py-6 xl:px-8">
       <div className="w-full">
         <div className="mx-auto max-w-[1440px]">
           <SiteHeader />
         </div>
 
-        <section className="mt-10">
+        <section className="mt-4 sm:mt-8 lg:mt-10">
           <Link
             href="/"
             className="text-sm text-blue-500 transition-colors hover:text-blue-400"
@@ -894,10 +957,10 @@ export function CatalogView({
             ← На главную
           </Link>
 
-          <div className="mt-5 flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div className="mt-3 flex flex-col gap-3 sm:mt-4 sm:gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
-              <div className="flex flex-wrap items-center gap-3">
-                <span className="inline-flex rounded-full border border-blue-500/40 bg-blue-500/10 px-4 py-2 text-xs font-medium text-blue-500">
+              <div className="-mx-3 flex snap-x flex-nowrap items-center gap-2 overflow-x-auto px-3 pb-2 sm:mx-0 sm:flex-wrap sm:gap-3 sm:overflow-visible sm:px-0 sm:pb-0">
+                <span className="inline-flex rounded-full border border-blue-500/40 bg-blue-500/10 px-3 py-1.5 text-xs font-medium text-blue-500">
                   Каталог
                 </span>
 
@@ -906,20 +969,20 @@ export function CatalogView({
                 ) : null}
               </div>
 
-              <h1 className="mt-4 text-5xl font-bold tracking-[-0.055em] md:text-6xl">
+              <h1 className="mt-2 text-[30px] font-bold leading-[1.02] tracking-[-0.055em] sm:mt-3 sm:text-4xl md:text-5xl lg:text-6xl">
                 {pageTitle}
               </h1>
 
-              <p className="mt-4 max-w-[760px] text-base leading-relaxed text-muted">
+              <p className="mt-2 max-w-[760px] text-sm leading-relaxed text-muted sm:mt-3 sm:text-base">
                 {pageDescription}
               </p>
             </div>
 
-            <div className="flex flex-wrap gap-3">
+            <div className="flex flex-wrap gap-2 sm:gap-3">
               <button
                 type="button"
                 onClick={() => setIsFilterOpen((prev) => !prev)}
-                className={`rounded-xl border px-6 py-4 text-sm font-medium transition-all duration-300 ${
+                className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-300 sm:px-6 sm:py-4 ${
                   isFilterOpen
                     ? "border-blue-500 bg-blue-600 text-white"
                     : "border-theme bg-transparent hover:border-blue-500/40 hover:bg-blue-soft"
@@ -941,12 +1004,12 @@ export function CatalogView({
           </div>
         </section>
 
-        <section className="mt-8">
-          <div className="flex flex-wrap items-center gap-3">
+        <section className="mt-4 sm:mt-8">
+          <div className="-mx-3 flex snap-x flex-nowrap items-center gap-2 overflow-x-auto px-3 pb-2 sm:mx-0 sm:flex-wrap sm:gap-3 sm:overflow-visible sm:px-0 sm:pb-0">
             <Link
               href="/catalog"
               onClick={handleResetCatalogState}
-              className={`rounded-full border px-5 py-3 text-sm font-medium transition-all duration-300 ${
+              className={`snap-start whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-medium transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
                 !onlyPopular && !categoryId && !selectedBrand && !hasSpecificationFilters
                   ? "border-blue-500 bg-blue-600 text-white"
                   : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
@@ -965,7 +1028,7 @@ export function CatalogView({
                 resetSpecificationFilters();
                 setSortMode("popular");
               }}
-              className={`rounded-full border px-5 py-3 text-sm font-medium transition-all duration-300 ${
+              className={`snap-start whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-medium transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
                 onlyPopular && !categoryId && !selectedBrand && !hasSpecificationFilters
                   ? "border-blue-500 bg-blue-600 text-white"
                   : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
@@ -983,7 +1046,7 @@ export function CatalogView({
                     key={category.id}
                     href={category.href}
                     onClick={handleResetCatalogState}
-                    className={`rounded-full border px-5 py-3 text-sm font-medium transition-all duration-300 ${
+                    className={`snap-start whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-medium transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
                       isActive
                         ? "border-blue-500 bg-blue-600 text-white"
                         : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
@@ -999,7 +1062,7 @@ export function CatalogView({
               <button
                 type="button"
                 onClick={() => setIsCategoriesOpen((prev) => !prev)}
-                className="rounded-full border border-theme bg-transparent px-5 py-3 text-sm font-medium text-blue-500 transition-all duration-300 hover:border-blue-500/40 hover:bg-blue-soft"
+                className="snap-start whitespace-nowrap rounded-full border border-theme bg-transparent px-4 py-2.5 text-xs font-medium text-blue-500 transition-all duration-300 hover:border-blue-500/40 hover:bg-blue-soft sm:px-5 sm:py-3 sm:text-sm"
               >
                 {isCategoriesOpen ? "Свернуть" : "Развернуть"}
               </button>
@@ -1016,6 +1079,7 @@ export function CatalogView({
             selectedColor={selectedColor}
             selectedSim={selectedSim}
             selectedStatus={selectedStatus}
+            searchQuery={normalizedSearchQuery}
             priceFrom={priceFrom}
             priceTo={priceTo}
             showPositionResults={shouldShowPositionResults}
@@ -1025,11 +1089,11 @@ export function CatalogView({
         )}
 
         <section
-          className="mt-8 flex flex-col gap-6 xl:flex-row xl:items-start"
+          className="mt-4 flex flex-col gap-4 sm:mt-6 xl:flex-row xl:items-start"
           id="catalog-products"
         >
           {isFilterOpen && (
-            <div className="fixed inset-0 z-50 overflow-y-auto bg-black/45 px-4 py-5 backdrop-blur-sm xl:sticky xl:top-6 xl:inset-auto xl:w-[320px] xl:shrink-0 xl:overflow-visible xl:bg-transparent xl:p-0 xl:backdrop-blur-0">
+            <div className="fixed inset-0 z-50 overflow-y-auto bg-black/45 px-3 py-4 backdrop-blur-sm xl:sticky xl:top-6 xl:inset-auto xl:w-[320px] xl:shrink-0 xl:overflow-visible xl:bg-transparent xl:p-0 xl:backdrop-blur-0">
               <div className="mx-auto max-w-[430px] xl:mx-0 xl:max-h-[calc(100vh-48px)] xl:overflow-y-auto xl:pr-1 xl:pb-4">
                 <FilterPanel
                   onClose={() => setIsFilterOpen(false)}
@@ -1075,7 +1139,9 @@ export function CatalogView({
                 <PositionGrid
                   positions={sortedPositionResults}
                   title={
-                    selectedModel?.name ?? selectedBrand ?? activeCategory?.name ?? "Позиции / SKU"
+                    normalizedSearchQuery
+                      ? `Найдено по запросу “${normalizedSearchQuery}”`
+                      : selectedModel?.name ?? selectedBrand ?? activeCategory?.name ?? "Позиции / SKU"
                   }
                   subtitle={`${positionResults.length} конкретных позиций в подборке`}
                   dark={dark}
@@ -1126,7 +1192,7 @@ function SortControl({
       <button
         type="button"
         onClick={onToggle}
-        className={`rounded-xl border px-6 py-4 text-sm font-medium transition-colors ${
+        className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors sm:px-6 sm:py-4 ${
           isOpen
             ? "border-blue-500/40 bg-blue-500/10 text-blue-500"
             : "border-theme bg-transparent hover:border-blue-500/40 hover:bg-blue-soft"
@@ -1180,6 +1246,7 @@ function ActiveFilterSummary({
   selectedColor,
   selectedSim,
   selectedStatus,
+  searchQuery,
   priceFrom,
   priceTo,
   showPositionResults,
@@ -1193,6 +1260,7 @@ function ActiveFilterSummary({
   selectedColor: string | null;
   selectedSim: string | null;
   selectedStatus: string | null;
+  searchQuery: string;
   priceFrom: string;
   priceTo: string;
   showPositionResults: boolean;
@@ -1207,30 +1275,31 @@ function ActiveFilterSummary({
     selectedColor ? `Цвет: ${selectedColor}` : null,
     selectedSim ? `SIM: ${selectedSim}` : null,
     selectedStatus ? `Статус: ${getStatusName(selectedStatus)}` : null,
+    searchQuery ? `Поиск: ${searchQuery}` : null,
     priceFrom ? `Цена от: ${priceFrom}` : null,
     priceTo ? `Цена до: ${priceTo}` : null,
   ].filter(Boolean) as string[];
 
   return (
-    <section className="mt-8 rounded-[28px] border border-blue-500/30 bg-blue-500/10 p-5">
-      <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <section className="mt-4 rounded-[20px] border border-blue-500/30 bg-blue-500/10 p-3 sm:mt-8 sm:rounded-[28px] sm:p-5">
+      <div className="flex flex-col gap-3 sm:gap-4 md:flex-row md:items-center md:justify-between">
         <div>
           <div className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-500">
             Активные фильтры
           </div>
 
-          <div className="mt-3 flex flex-wrap gap-2">
+          <div className="mt-2 flex flex-wrap gap-1.5 sm:mt-3 sm:gap-2">
             {filterTags.map((tag) => (
               <span
                 key={tag}
-                className="rounded-full border border-blue-500/25 bg-blue-500/10 px-3 py-2 text-sm font-medium text-blue-500"
+                className="rounded-full border border-blue-500/25 bg-blue-500/10 px-2.5 py-1.5 text-xs font-medium text-blue-500 sm:px-3 sm:py-2 sm:text-sm"
               >
                 {tag}
               </span>
             ))}
           </div>
 
-          <p className="mt-3 text-sm text-muted">
+          <p className="mt-2 text-sm text-muted sm:mt-3">
             {showPositionResults
               ? `Показаны позиции / SKU: ${resultCount}.`
               : `Показаны модели товаров: ${resultCount}.`}
@@ -1240,7 +1309,7 @@ function ActiveFilterSummary({
         <button
           type="button"
           onClick={onReset}
-          className="w-full rounded-xl border border-theme bg-transparent px-5 py-4 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft md:w-auto"
+          className="w-full rounded-xl border border-theme bg-transparent px-4 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft md:w-auto"
         >
           Сбросить параметры
         </button>
@@ -1264,12 +1333,12 @@ function PositionGrid({
     <section>
       <div className="flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-[-0.04em]">{title}</h2>
-          <p className="mt-2 text-sm text-muted">{subtitle}</p>
+          <h2 className="text-xl font-bold tracking-[-0.04em] sm:text-3xl">{title}</h2>
+          <p className="mt-1 text-sm text-muted sm:mt-2">{subtitle}</p>
         </div>
       </div>
 
-      <div className="mt-5 grid gap-5 sm:grid-cols-2 lg:grid-cols-3 2xl:grid-cols-4">
+      <div className="mt-3 grid grid-cols-2 gap-2.5 sm:mt-5 sm:gap-5 lg:grid-cols-3 2xl:grid-cols-4">
         {positions.map((position) => (
           <PositionProductCard key={position.sku} position={position} dark={dark} />
         ))}
@@ -1288,14 +1357,14 @@ function PositionProductCard({
   return (
     <Link
       href={`/product/${position.modelSlug}?sku=${encodeURIComponent(position.sku)}`}
-      className={`group block h-full rounded-3xl border p-4 transition-all duration-500 hover:-translate-y-1 ${
+      className={`group block h-full rounded-[18px] border p-2 transition-all duration-500 hover:-translate-y-1 sm:rounded-3xl sm:p-4 ${
         dark
           ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
           : "border-black/10 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)] hover:border-blue-500/35"
       }`}
     >
       <div
-        className={`flex aspect-[3/4] w-full items-center justify-center overflow-hidden rounded-2xl transition-colors duration-700 ${
+        className={`flex aspect-square w-full items-center justify-center overflow-hidden rounded-[14px] transition-colors duration-700 sm:rounded-2xl sm:aspect-[3/4] ${
           position.images?.[0] || getModelImage(position.product)
             ? "bg-white text-slate-400"
             : dark
@@ -1308,23 +1377,23 @@ function PositionProductCard({
           <img
             src={position.images?.[0] ?? getModelImage(position.product)}
             alt={position.title}
-            className="h-full w-full object-contain p-3"
+            className="h-full w-full object-contain p-2 sm:p-3"
           />
         ) : (
           "Фото товара"
         )}
       </div>
 
-      <div className="px-1 pb-1 pt-4">
-        <div className="text-xs text-muted">
+      <div className="px-0.5 pb-0.5 pt-2 sm:px-1 sm:pb-1 sm:pt-4">
+        <div className="truncate text-[11px] text-muted sm:text-xs">
           {position.brand} · {position.productName}
         </div>
 
-        <h3 className="mt-1 text-lg font-bold leading-tight">
+        <h3 className="mt-1 line-clamp-2 text-[13px] font-bold leading-tight sm:text-lg">
           {position.title}
         </h3>
 
-        <div className="mt-3 flex flex-wrap gap-2 text-xs text-muted">
+        <div className="mt-2 hidden flex-wrap gap-2 text-xs text-muted sm:flex">
           {position.memory !== emptyValue && (
             <span className="rounded-full border border-theme px-2 py-1">
               {position.memory}
@@ -1346,7 +1415,7 @@ function PositionProductCard({
           </span>
         </div>
 
-        <div className="mt-4 flex items-end justify-between gap-3">
+        <div className="mt-2 flex flex-col gap-1.5 sm:mt-4 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
           <div>
             {position.oldPrice && (
               <div className="text-xs text-muted line-through">
@@ -1354,13 +1423,13 @@ function PositionProductCard({
               </div>
             )}
 
-            <p className="text-lg font-bold tracking-[-0.03em]">
+            <p className="text-sm font-bold tracking-[-0.03em] sm:text-lg">
               {position.price}
             </p>
           </div>
 
           <div
-            className={`rounded-full px-3 py-1 text-xs font-medium ${getAvailabilityBadgeClass(
+            className={`w-fit rounded-full px-2.5 py-1 text-[11px] font-medium sm:px-3 sm:text-xs ${getAvailabilityBadgeClass(
               position
             )}`}
           >
@@ -1368,9 +1437,9 @@ function PositionProductCard({
           </div>
         </div>
 
-        <div className="mt-2 text-xs text-muted-soft">Код товара: {position.sku}</div>
+        <div className="mt-2 hidden text-xs text-muted-soft sm:block">Код товара: {position.sku}</div>
 
-        <div className="mt-5 w-full rounded-xl bg-blue-600 py-3 text-center text-sm font-medium text-white transition-all duration-300 group-hover:bg-blue-500">
+        <div className="mt-2 w-full rounded-xl bg-blue-600 py-2 text-center text-xs font-medium text-white transition-all duration-300 group-hover:bg-blue-500 sm:mt-5 sm:py-3 sm:text-sm">
           Открыть товар →
         </div>
       </div>
@@ -1450,14 +1519,14 @@ function FilterPanel({
     : modelOptions;
 
   return (
-    <aside className="card min-h-[560px] rounded-[30px] p-5 shadow-[0_30px_120px_rgba(37,99,235,0.18)]">
+    <aside className="card min-h-0 rounded-[24px] p-4 shadow-[0_30px_120px_rgba(37,99,235,0.18)] sm:rounded-[30px] sm:p-5">
       <div className="flex items-start justify-between gap-4">
         <div>
           <div className="text-xs font-medium uppercase tracking-[0.2em] text-blue-500">
             Фильтры
           </div>
 
-          <h3 className="mt-3 text-3xl font-bold tracking-[-0.045em]">
+          <h3 className="mt-2 text-2xl font-bold tracking-[-0.045em] sm:mt-3 sm:text-3xl">
             Уточнить выбор
           </h3>
         </div>
@@ -1465,13 +1534,13 @@ function FilterPanel({
         <button
           type="button"
           onClick={onClose}
-          className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-lg text-white transition-colors hover:bg-blue-500"
+          className="flex h-9 w-9 items-center justify-center rounded-xl bg-blue-600 text-lg text-white transition-colors hover:bg-blue-500 sm:h-11 sm:w-11"
         >
           ×
         </button>
       </div>
 
-      <div className="mt-7 space-y-7">
+      <div className="mt-5 space-y-5 sm:mt-7 sm:space-y-7">
         <div>
           <div className="mb-3 text-sm font-semibold">Бренд</div>
 
@@ -1509,7 +1578,7 @@ function FilterPanel({
 
         {visibleModelOptions.length > 0 && (
           <div>
-            <div className="mb-3 text-sm font-semibold">Модель</div>
+            <div className="mb-2 text-sm font-semibold">Модель</div>
 
             <div className="grid gap-2">
               {visibleModelOptions.map((product) => {
@@ -1564,7 +1633,7 @@ function FilterPanel({
 
               {colorOptions.length > 0 && (
                 <div>
-                  <div className="mb-3 text-sm font-semibold">Цвет</div>
+                  <div className="mb-2 text-sm font-semibold">Цвет</div>
 
                   <div className="flex flex-wrap gap-2">
                     {colorOptions.map((color) => {
@@ -1681,7 +1750,7 @@ function FilterPanel({
       <button
         type="button"
         onClick={onClose}
-        className="mt-7 w-full rounded-xl bg-blue-600 px-5 py-4 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+        className="mt-5 w-full rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500 sm:mt-7 sm:py-4"
       >
         Показать товары
       </button>
@@ -1746,8 +1815,8 @@ function EmptyCatalogState({
 }) {
   return (
     <div className="transition-all duration-300">
-      <div className="card rounded-[34px] p-12 text-center">
-        <h2 className="text-4xl font-bold tracking-[-0.04em]">
+      <div className="card rounded-[24px] p-6 text-center sm:rounded-[34px] sm:p-12">
+        <h2 className="text-2xl font-bold tracking-[-0.04em] sm:text-4xl">
           Ничего не найдено
         </h2>
 

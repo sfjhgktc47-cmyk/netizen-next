@@ -305,7 +305,7 @@ export default function ProfilePage() {
 
   if (!isAuthenticated) {
     return (
-      <main className="min-h-screen bg-page px-6 py-6 text-main transition-colors duration-700">
+      <main className="min-h-screen bg-page px-3 py-4 text-main transition-colors duration-700 sm:px-5 sm:py-6">
         <div className="mx-auto max-w-[1440px]">
           <SiteHeader />
 
@@ -338,7 +338,7 @@ export default function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => openAuthModal("login")}
-                  className="rounded-xl bg-blue-600 px-6 py-3.5 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+                  className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-500 sm:px-6 sm:py-3.5"
                 >
                   Войти →
                 </button>
@@ -346,7 +346,7 @@ export default function ProfilePage() {
                 <button
                   type="button"
                   onClick={() => openAuthModal("register")}
-                  className="rounded-xl border border-theme bg-transparent px-6 py-3.5 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
+                  className="rounded-xl border border-theme bg-transparent px-4 py-2.5 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-6 sm:py-3.5"
                 >
                   Зарегистрироваться
                 </button>
@@ -359,11 +359,11 @@ export default function ProfilePage() {
   }
 
   return (
-    <main className="min-h-screen bg-page px-6 py-6 text-main transition-colors duration-700">
+    <main className="min-h-screen bg-page px-3 py-4 text-main transition-colors duration-700 sm:px-5 sm:py-6">
       <div className="mx-auto max-w-[1440px]">
         <SiteHeader />
 
-        <div className="mt-6">
+        <div className="mt-4 sm:mt-6">
           <Link
             href="/"
             className="text-sm text-blue-500 transition-colors hover:text-blue-400"
@@ -372,18 +372,18 @@ export default function ProfilePage() {
           </Link>
         </div>
 
-        <section className="mt-6 grid gap-8 lg:grid-cols-[1fr_360px] lg:items-start">
-          <div className="space-y-8">
-            <section className="card rounded-[28px] p-6">
-              <div className="inline-flex rounded-full border border-blue-500/35 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-500">
+        <section className="mt-4 grid gap-5 lg:mt-6 lg:grid-cols-[1fr_360px] lg:items-start lg:gap-8">
+          <div className="space-y-5 sm:space-y-8">
+            <section className="card rounded-[22px] p-4 sm:rounded-[28px] sm:p-6">
+              <div className="inline-flex rounded-full border border-blue-500/35 bg-blue-500/10 px-3 py-1.5 text-xs font-medium text-blue-500 sm:px-4 sm:py-2 sm:text-sm">
                 Личный кабинет
               </div>
 
-              <h1 className="mt-4 max-w-[760px] text-4xl font-bold tracking-[-0.05em]">
+              <h1 className="mt-3 max-w-[760px] text-3xl font-bold tracking-[-0.05em] sm:mt-4 sm:text-4xl">
                 Ваши заказы, данные и обращения
               </h1>
 
-              <p className="mt-4 max-w-[620px] text-sm leading-relaxed text-muted">
+              <p className="mt-3 max-w-[620px] text-sm leading-relaxed text-muted sm:mt-4">
                 Здесь показываются только реальные данные клиента из базы: заявки,
                 адреса доставки, избранные товары и обращения.
               </p>
@@ -394,17 +394,17 @@ export default function ProfilePage() {
                 </div>
               )}
 
-              <div className="mt-6 flex flex-wrap gap-4">
+              <div className="mt-4 flex flex-wrap gap-2 sm:mt-6 sm:gap-4">
                 <Link
                   href="/catalog"
-                  className="rounded-xl bg-blue-600 px-6 py-3.5 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+                  className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-500 sm:px-6 sm:py-3.5"
                 >
                   Перейти в каталог →
                 </Link>
 
                 <Link
                   href="/help"
-                  className="rounded-xl border border-theme bg-transparent px-6 py-3.5 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
+                  className="rounded-xl border border-theme bg-transparent px-4 py-2.5 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-6 sm:py-3.5"
                 >
                   Написать в поддержку
                 </Link>
@@ -412,21 +412,21 @@ export default function ProfilePage() {
                 <button
                   type="button"
                   onClick={logout}
-                  className="rounded-xl border border-red-500/30 bg-red-500/10 px-6 py-3.5 text-sm font-medium text-red-500 transition-colors hover:bg-red-500/15"
+                  className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm font-medium text-red-500 transition-colors hover:bg-red-500/15 sm:px-6 sm:py-3.5"
                 >
                   Выйти
                 </button>
               </div>
             </section>
 
-            <section className="card rounded-[34px] p-8">
+            <section className="card rounded-[24px] p-4 sm:rounded-[34px] sm:p-8">
               <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
-                  <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-500">
+                  <div className="text-xs font-medium uppercase tracking-[0.18em] text-blue-500 sm:text-sm sm:tracking-[0.2em]">
                     Заказы
                   </div>
 
-                  <h2 className="mt-3 text-4xl font-bold tracking-[-0.045em]">
+                  <h2 className="mt-2 text-2xl font-bold tracking-[-0.045em] sm:mt-3 sm:text-4xl">
                     Мои заявки
                   </h2>
                 </div>
@@ -440,17 +440,17 @@ export default function ProfilePage() {
               </div>
 
               {orders.length > 0 ? (
-                <div className="mt-8 grid gap-4">
+                <div className="mt-5 grid gap-3 sm:mt-8 sm:gap-4">
                   {orders.map((order) => (
                     <article
                       key={order.id}
-                      className="rounded-2xl border border-theme bg-blue-soft p-5"
+                      className="rounded-2xl border border-theme bg-blue-soft p-4 sm:p-5"
                     >
                       <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
                         <div>
                           <div className="text-sm text-muted">{order.publicId}</div>
 
-                          <h3 className="mt-1 text-xl font-bold">
+                          <h3 className="mt-1 text-lg font-bold sm:text-xl">
                             {getOrderTitle(order)}
                           </h3>
 
@@ -484,14 +484,14 @@ export default function ProfilePage() {
               )}
             </section>
 
-            <section id="favorites" className="card rounded-[34px] p-8">
+            <section id="favorites" className="card rounded-[24px] p-4 sm:rounded-[34px] sm:p-8">
               <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
                 <div>
-                  <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-500">
+                  <div className="text-xs font-medium uppercase tracking-[0.18em] text-blue-500 sm:text-sm sm:tracking-[0.2em]">
                     Избранное
                   </div>
 
-                  <h2 className="mt-3 text-4xl font-bold tracking-[-0.045em]">
+                  <h2 className="mt-2 text-2xl font-bold tracking-[-0.045em] sm:mt-3 sm:text-4xl">
                     Избранные товары
                   </h2>
                 </div>
@@ -505,14 +505,14 @@ export default function ProfilePage() {
               </div>
 
               {favorites.length > 0 ? (
-                <div className="mt-8 grid gap-4 md:grid-cols-2">
+                <div className="mt-5 grid gap-3 sm:mt-8 md:grid-cols-2 md:gap-4">
                   {favorites.map((favorite) => (
                     <article
                       key={favorite.id}
-                      className="rounded-2xl border border-theme bg-transparent p-5 transition-colors hover:border-blue-500/35 hover:bg-blue-soft"
+                      className="rounded-2xl border border-theme bg-transparent p-3 transition-colors hover:border-blue-500/35 hover:bg-blue-soft sm:p-5"
                     >
-                      <div className="flex gap-5">
-                        <div className="soft-box flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white text-xs text-muted-soft">
+                      <div className="flex gap-3 sm:gap-5">
+                        <div className="soft-box flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white text-xs text-muted-soft sm:h-24 sm:w-24">
                           {favorite.product.image ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
@@ -527,7 +527,7 @@ export default function ProfilePage() {
 
                         <div className="flex min-w-0 flex-1 flex-col">
                           <div className="text-sm text-muted">{favorite.product.brand}</div>
-                          <h3 className="mt-1 text-lg font-bold leading-tight">
+                          <h3 className="mt-1 line-clamp-2 text-sm font-bold leading-tight sm:text-lg">
                             {favorite.product.name}
                           </h3>
 
@@ -554,26 +554,26 @@ export default function ProfilePage() {
               )}
             </section>
 
-            <section className="card rounded-[34px] p-8">
+            <section className="card rounded-[24px] p-4 sm:rounded-[34px] sm:p-8">
               <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-500">
                 Поддержка
               </div>
 
-              <h2 className="mt-3 text-4xl font-bold tracking-[-0.045em]">
+              <h2 className="mt-2 text-2xl font-bold tracking-[-0.045em] sm:mt-3 sm:text-4xl">
                 Обращения
               </h2>
 
               {supportRequests.length > 0 ? (
-                <div className="mt-8 grid gap-4">
+                <div className="mt-5 grid gap-3 sm:mt-8 sm:gap-4">
                   {supportRequests.map((request) => (
                     <article
                       key={request.id}
-                      className="rounded-2xl border border-theme bg-transparent p-5"
+                      className="rounded-2xl border border-theme bg-transparent p-4 sm:p-5"
                     >
                       <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
                         <div>
                           <div className="text-sm text-muted">{request.publicId}</div>
-                          <h3 className="mt-1 text-xl font-bold">{request.topic}</h3>
+                          <h3 className="mt-1 text-lg font-bold sm:text-xl">{request.topic}</h3>
 
                           <p className="mt-2 text-sm leading-relaxed text-muted">
                             {request.message}
@@ -598,22 +598,22 @@ export default function ProfilePage() {
             </section>
           </div>
 
-          <aside className="space-y-8 lg:sticky lg:top-6">
-            <section className="card rounded-[28px] p-7">
+          <aside className="space-y-5 sm:space-y-8 lg:sticky lg:top-6">
+            <section className="card rounded-[22px] p-4 sm:rounded-[28px] sm:p-7">
               <div className="flex items-center gap-4">
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-blue-600 text-2xl font-bold text-white">
+                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-xl font-bold text-white sm:h-16 sm:w-16 sm:text-2xl">
                   {getInitialLetter(profile)}
                 </div>
 
                 <div>
                   <div className="text-sm text-muted">Профиль</div>
-                  <h2 className="text-2xl font-bold">
+                  <h2 className="text-xl font-bold sm:text-2xl">
                     {getFullName(profile) || "Клиент Нетизен"}
                   </h2>
                 </div>
               </div>
 
-              <div className="mt-7 space-y-4">
+              <div className="mt-5 space-y-3 sm:mt-7 sm:space-y-4">
                 <ProfileField label="Имя" value={profile.name || "Не указано"} />
                 <ProfileField label="Фамилия" value={profile.lastName || "Не указана"} />
                 <ProfileField label="Телефон" value={profile.phone || "Не указан"} />
@@ -626,7 +626,7 @@ export default function ProfilePage() {
                   setDraftProfile(profile);
                   setActiveModal("profile");
                 }}
-                className="mt-7 w-full rounded-xl bg-blue-600 px-6 py-4 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+                className="mt-5 w-full rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500 sm:mt-7 sm:px-6 sm:py-4"
               >
                 Редактировать данные
               </button>
@@ -634,7 +634,7 @@ export default function ProfilePage() {
               <button
                 type="button"
                 onClick={logout}
-                className="mt-3 w-full rounded-xl border border-red-500/30 bg-red-500/10 px-6 py-4 text-sm font-medium text-red-500 transition-colors hover:bg-red-500/15"
+                className="mt-3 w-full rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-3 text-sm font-medium text-red-500 transition-colors hover:bg-red-500/15 sm:px-6 sm:py-4"
               >
                 Выйти из аккаунта
               </button>
@@ -646,12 +646,12 @@ export default function ProfilePage() {
               )}
             </section>
 
-            <section className="card rounded-[34px] p-8">
+            <section className="card rounded-[24px] p-4 sm:rounded-[34px] sm:p-8">
               <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-500">
                 Доставка
               </div>
 
-              <h2 className="mt-3 text-3xl font-bold tracking-[-0.04em]">
+              <h2 className="mt-2 text-2xl font-bold tracking-[-0.04em] sm:mt-3 sm:text-3xl">
                 Адреса
               </h2>
 
@@ -681,12 +681,12 @@ export default function ProfilePage() {
               </button>
             </section>
 
-            <section className="card rounded-[34px] p-8">
+            <section className="card rounded-[24px] p-4 sm:rounded-[34px] sm:p-8">
               <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-500">
                 Быстро
               </div>
 
-              <h2 className="mt-3 text-3xl font-bold tracking-[-0.04em]">
+              <h2 className="mt-2 text-2xl font-bold tracking-[-0.04em] sm:mt-3 sm:text-3xl">
                 Действия
               </h2>
 
@@ -900,7 +900,7 @@ function Modal({
           </button>
         </div>
 
-        <div className="mt-6">{children}</div>
+        <div className="mt-4 sm:mt-6">{children}</div>
       </div>
     </div>
   );
