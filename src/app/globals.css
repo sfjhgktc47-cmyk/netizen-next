@@ -83,63 +83,35 @@ a {
 .bg-blue-soft {
   background: var(--blue-soft);
 }
-/* Admin light theme readability fix */
-[data-admin-theme="light"] .admin-theme-scope {
-  color-scheme: light;
+
+html,
+body {
+  width: 100%;
+  overflow-x: hidden;
 }
 
-[data-admin-theme="light"] .admin-theme-scope :where(
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6,
-  p,
-  span,
-  div,
-  label,
-  th,
-  td,
-  li,
-  dt,
-  dd,
-  strong,
-  small
-) {
-  color: #0f172a !important;
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
 }
 
-[data-admin-theme="light"] .admin-theme-scope :where(
-  [class*="text-white/"],
-  [class*="text-slate-100"],
-  [class*="text-slate-200"],
-  [class*="text-zinc-100"],
-  [class*="text-zinc-200"],
-  [class*="text-neutral-100"],
-  [class*="text-neutral-200"]
-) {
-  color: rgba(15, 23, 42, 0.64) !important;
-}
+@media (max-width: 767px) {
+  body {
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
+    padding-bottom: calc(86px + env(safe-area-inset-bottom));
+  }
 
-[data-admin-theme="light"] .admin-theme-scope :where(
-  a:not([class*="bg-blue-"]):not([class*="bg-red-"]):not([class*="bg-green-"]):not([class*="bg-amber-"]),
-  button:not([class*="bg-blue-"]):not([class*="bg-red-"]):not([class*="bg-green-"]):not([class*="bg-amber-"])
-) {
-  color: #0f172a !important;
-}
+  input,
+  select,
+  textarea {
+    font-size: 16px;
+  }
 
-[data-admin-theme="light"] .admin-theme-scope :where(
-  [class*="bg-blue-"],
-  [class*="bg-red-"],
-  [class*="bg-green-"],
-  [class*="bg-amber-"]
-),
-[data-admin-theme="light"] .admin-theme-scope :where(
-  [class*="bg-blue-"],
-  [class*="bg-red-"],
-  [class*="bg-green-"],
-  [class*="bg-amber-"]
-) * {
-  color: #ffffff !important;
+  button,
+  a {
+    -webkit-tap-highlight-color: transparent;
+  }
 }

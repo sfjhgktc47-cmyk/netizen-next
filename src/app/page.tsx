@@ -212,7 +212,7 @@ export default function Home() {
           : "min-h-screen bg-[#f6f8fb] text-[#0b1220] transition-colors duration-700 ease-in-out"
       }
     >
-      <div className="mx-auto max-w-[1440px] px-3 py-3 sm:px-6 sm:py-6">
+      <div className="mx-auto max-w-[1440px] px-3 py-3 sm:px-5 sm:py-5 lg:px-6 lg:py-6">
         <SiteHeader />
 
         {visibleHomeBlocks.map((block) => (
@@ -480,7 +480,7 @@ function Hero({ dark }: { dark: boolean }) {
   }, [slides.length, isHeroHovered]);
 
   return (
-    <section className="relative mt-4 overflow-hidden rounded-[26px] sm:mt-6 sm:rounded-[34px]">
+    <section className="relative mt-6 overflow-hidden rounded-[34px]">
       <div
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
@@ -490,7 +490,7 @@ function Hero({ dark }: { dark: boolean }) {
         }}
         onMouseEnter={() => setIsHeroHovered(true)}
         onMouseLeave={() => setIsHeroHovered(false)}
-        className={`relative min-h-[520px] cursor-grab select-none overflow-hidden rounded-[26px] transition-all duration-700 active:cursor-grabbing sm:h-[560px] sm:min-h-0 sm:rounded-[34px] ${
+        className={`relative min-h-[590px] cursor-grab select-none overflow-hidden rounded-[30px] transition-all duration-700 active:cursor-grabbing sm:h-[560px] sm:min-h-0 sm:rounded-[34px] ${
           dark ? "bg-[#020814]" : "bg-white"
         }`}
       >
@@ -509,35 +509,35 @@ function Hero({ dark }: { dark: boolean }) {
           }`}
         />
 
-        <div className="relative z-10 flex min-h-[520px] items-end px-5 py-8 sm:h-full sm:min-h-0 sm:items-center sm:px-12 sm:py-12 lg:px-16">
+        <div className="relative z-10 flex min-h-[590px] items-end px-5 pb-8 pt-24 sm:h-full sm:min-h-0 sm:items-center sm:px-12 sm:py-12 lg:px-16">
           <div className="max-w-[650px]">
-            <div className="mb-5 inline-flex rounded-full border border-blue-500/50 bg-blue-500/10 px-3 py-2 text-xs font-medium text-blue-500 sm:mb-7 sm:px-4 sm:text-sm">
+            <div className="mb-5 inline-flex max-w-full rounded-full border border-blue-500/50 bg-blue-500/10 px-3 py-2 text-xs font-medium text-blue-500 sm:mb-7 sm:px-4 sm:text-sm">
               {slide.badge}
             </div>
 
-            <h1 className="max-w-[620px] text-[34px] font-bold leading-[1.08] tracking-[-0.055em] sm:min-h-[220px] sm:text-[54px] lg:text-[64px]">
+            <h1 className="max-w-[620px] text-[34px] font-bold leading-[1.02] tracking-[-0.06em] sm:min-h-[220px] sm:text-[54px] sm:leading-[1.12] lg:text-[64px]">
               {slide.title}
             </h1>
 
             <p
-              className={`mt-6 max-w-[470px] text-base leading-relaxed lg:text-lg ${mutedTextClass(
+              className={`mt-4 max-w-[470px] text-sm leading-relaxed sm:mt-6 sm:text-base lg:text-lg ${mutedTextClass(
                 dark
               )}`}
             >
               {slide.text}
             </p>
 
-            <div className="mt-7 flex flex-col gap-3 sm:mt-8 sm:flex-row sm:flex-wrap sm:gap-4">
+            <div className="mt-6 grid grid-cols-1 gap-3 sm:mt-8 sm:flex sm:flex-wrap sm:gap-4">
               <Link
                 href={slide.primaryHref}
-                className="inline-flex w-full items-center justify-center rounded-xl bg-blue-600 px-7 py-4 text-sm font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500 sm:w-auto"
+                className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-7 py-4 text-sm font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500"
               >
                 {slide.primaryLabel} →
               </Link>
 
               <Link
                 href={slide.secondaryHref}
-                className={`inline-flex w-full items-center justify-center rounded-xl border px-7 py-4 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 sm:w-auto ${
+                className={`inline-flex items-center justify-center rounded-xl border px-7 py-4 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 ${
                   dark
                     ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
                     : "border-black/10 bg-white text-black hover:border-blue-500/40 hover:bg-blue-50"
@@ -653,7 +653,7 @@ function Categories({
   showButton?: boolean;
 }) {
   return (
-    <section className="py-12 sm:py-20">
+    <section className="py-10 sm:py-16 lg:py-20">
       <div className="flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-[-0.04em] sm:text-4xl">
@@ -666,7 +666,7 @@ function Categories({
         </div>
       </div>
 
-      <div className="mt-6 grid grid-cols-1 auto-rows-fr gap-4 sm:mt-8 sm:grid-cols-2 sm:gap-5 lg:grid-cols-4">
+      <div className="mt-6 grid grid-cols-2 auto-rows-fr gap-3 sm:mt-8 sm:gap-5 lg:grid-cols-4">
         {categories.map((category) => {
           const image = category.image?.trim() ?? "";
 
@@ -674,20 +674,20 @@ function Categories({
             <Link
               key={category.id || category.slug}
               href={category.href || `/catalog/${category.slug}`}
-              className={`group relative min-h-[150px] overflow-hidden rounded-2xl border p-4 transition-all duration-500 hover:-translate-y-1 sm:h-[160px] sm:p-5 ${
+              className={`group relative h-[138px] overflow-hidden rounded-[22px] border p-4 transition-all duration-500 hover:-translate-y-1 sm:h-[160px] sm:p-5 ${
                 dark
                   ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
                   : "border-black/10 bg-white shadow-[0_20px_70px_rgba(15,23,42,0.08)] hover:border-blue-500/35 hover:shadow-[0_28px_90px_rgba(15,23,42,0.12)]"
               }`}
             >
               <div className="relative z-10 flex h-full min-h-0 flex-col justify-between">
-                <div className="max-w-[58%]">
-                  <h3 className="text-lg font-bold leading-tight">
+                <div className="max-w-[64%] sm:max-w-[58%]">
+                  <h3 className="text-sm font-bold leading-tight sm:text-lg">
                     {category.name}
                   </h3>
 
                   <p
-                    className={`mt-2 line-clamp-2 text-xs leading-relaxed ${mutedTextClass(
+                    className={`mt-1 line-clamp-2 text-[11px] leading-relaxed sm:mt-2 sm:text-xs ${mutedTextClass(
                       dark
                     )}`}
                   >
@@ -706,7 +706,7 @@ function Categories({
                 </div>
               </div>
 
-              <div className="absolute right-5 top-1/2 flex h-[92px] w-[92px] -translate-y-1/2 items-center justify-center overflow-hidden rounded-2xl">
+              <div className="absolute right-2 top-1/2 flex h-[78px] w-[78px] -translate-y-1/2 items-center justify-center overflow-hidden rounded-2xl sm:right-5 sm:h-[92px] sm:w-[92px]">
                 {image ? (
                   <div
                     className="h-full w-full bg-contain bg-center bg-no-repeat opacity-95 transition-transform duration-500 group-hover:scale-105"
@@ -853,7 +853,7 @@ function PopularProducts({
 
   if (products.length === 0) {
     return (
-      <section className="pb-20">
+      <section className="pb-12 sm:pb-20">
         <div>
           <h2 className="text-3xl font-bold leading-none tracking-[-0.04em] sm:text-[42px] lg:text-[52px]">
             {title}
@@ -878,7 +878,7 @@ function PopularProducts({
   }
 
   return (
-    <section className="pb-20">
+    <section className="pb-12 sm:pb-20">
       <div className="flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
         <div>
           <h2 className="text-3xl font-bold leading-none tracking-[-0.04em] sm:text-[42px] lg:text-[52px]">
@@ -928,17 +928,17 @@ function PopularProducts({
         onPointerCancel={handleProductsPointerUp}
         onPointerLeave={handleProductsPointerUp}
         onClickCapture={handleProductsClickCapture}
-        className="mt-8 cursor-grab select-none overflow-x-auto px-1 py-2 active:cursor-grabbing [&::-webkit-scrollbar]:hidden"
+        className="-mx-3 mt-6 cursor-grab select-none overflow-x-auto px-3 py-2 active:cursor-grabbing sm:mx-0 sm:mt-8 sm:px-1 [&::-webkit-scrollbar]:hidden"
         style={{
           scrollbarWidth: "none",
           msOverflowStyle: "none",
         }}
       >
-        <div className="flex gap-6">
+        <div className="flex gap-4 sm:gap-6">
           {products.map((product) => (
             <div
               key={product.slug}
-              className="w-[82vw] max-w-[310px] shrink-0 sm:w-[300px] lg:w-[310px]"
+              className="w-[78vw] max-w-[310px] shrink-0 sm:w-[300px] lg:w-[310px]"
             >
               <ProductCard product={product} dark={dark} />
             </div>
@@ -965,7 +965,7 @@ function PopularProducts({
         <div className="mt-8 flex justify-center">
           <Link
             href={buttonHref}
-            className={`w-full max-w-[320px] rounded-xl border px-6 py-4 text-center text-sm font-medium transition-all duration-500 hover:-translate-y-0.5 sm:px-10 ${
+            className={`min-w-[320px] rounded-xl border px-10 py-4 text-center text-sm font-medium transition-all duration-500 hover:-translate-y-0.5 ${
               dark
                 ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
                 : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
@@ -1000,7 +1000,7 @@ function ProductCard({
       }`}
     >
       <div
-        className={`flex h-[230px] items-center justify-center overflow-hidden rounded-2xl transition-colors duration-700 ${
+        className={`flex h-[210px] items-center justify-center overflow-hidden rounded-2xl transition-colors duration-700 sm:h-[230px] ${
           image
             ? "bg-white"
             : dark
@@ -1026,7 +1026,7 @@ function ProductCard({
           <p className={`mb-1 text-xs ${mutedTextClass(dark)}`}>{product.brand}</p>
         ) : null}
 
-        <h3 className="text-lg font-bold leading-tight">{product.name}</h3>
+        <h3 className="text-sm font-bold leading-tight sm:text-lg">{product.name}</h3>
 
         <p className={`mt-1 text-sm ${mutedTextClass(dark)}`}>
           {product.price}
@@ -1070,7 +1070,7 @@ function NewArrivals({
 
   if (!mainItem) {
     return (
-      <section className="pb-20">
+      <section className="pb-12 sm:pb-20">
         <div className="mb-8">
           <h2 className="text-3xl font-bold leading-none tracking-[-0.04em] sm:text-[42px] lg:text-[52px]">
             {title}
@@ -1095,7 +1095,7 @@ function NewArrivals({
   }
 
   return (
-    <section className="pb-20">
+    <section className="pb-12 sm:pb-20">
       <div className="mb-8">
         <h2 className="text-3xl font-bold leading-none tracking-[-0.04em] sm:text-[42px] lg:text-[52px]">
           {title}
@@ -1246,7 +1246,7 @@ function PromoBanner({
   const textSize = banner?.textSize || getBlockText(settings, "textSize", "md");
 
   return (
-    <section className="pb-20">
+    <section className="pb-12 sm:pb-20">
       <Link
         href={buttonHref}
         className={`group grid min-h-[260px] overflow-hidden rounded-[34px] border transition-all duration-500 hover:-translate-y-1 lg:grid-cols-[0.95fr_1.05fr] ${
@@ -1294,7 +1294,7 @@ function TextImageModule({
   const imageSide = getBlockText(settings, "imageSide", "right");
 
   return (
-    <section className="pb-20">
+    <section className="pb-12 sm:pb-20">
       <div
         className={`grid overflow-hidden rounded-[34px] border lg:grid-cols-2 ${
           dark

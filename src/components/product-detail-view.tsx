@@ -98,7 +98,7 @@ function saveFavoriteSlugs(slugs: string[]) {
 
 function ProductMainImage({ src, alt }: { src: string; alt: string }) {
   return (
-    <div className="relative mx-auto flex aspect-[3/4] w-full max-w-[520px] items-center justify-center overflow-hidden rounded-[22px] bg-white text-muted-soft sm:rounded-[30px]">
+    <div className="relative mx-auto flex aspect-[3/4] w-full max-w-[520px] items-center justify-center overflow-hidden rounded-[24px] bg-white text-muted-soft sm:rounded-[30px]">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}
@@ -112,7 +112,7 @@ function ProductMainImage({ src, alt }: { src: string; alt: string }) {
 
 function ProductImagePlaceholder() {
   return (
-    <div className="mx-auto flex aspect-[3/4] w-full max-w-[520px] items-center justify-center overflow-hidden rounded-[30px] border border-theme bg-blue-soft text-muted-soft">
+    <div className="mx-auto flex aspect-[3/4] w-full max-w-[520px] items-center justify-center overflow-hidden rounded-[24px] border border-theme bg-blue-soft text-muted-soft sm:rounded-[30px]">
       Фото товара
     </div>
   );
@@ -431,8 +431,8 @@ export function ProductDetailView({
           </Link>
         </div>
 
-        <section className="mt-6 grid gap-5 sm:mt-8 sm:gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
-          <div className="card rounded-[26px] p-3 sm:rounded-[36px] sm:p-6">
+        <section className="mt-5 grid gap-5 sm:mt-8 sm:gap-10 lg:grid-cols-[1.05fr_0.95fr] lg:items-start">
+          <div className="card rounded-[28px] p-3 sm:rounded-[36px] sm:p-6">
             <div
               className="relative cursor-grab touch-pan-y select-none active:cursor-grabbing"
               role="region"
@@ -474,7 +474,7 @@ export function ProductDetailView({
               )}
             </div>
 
-            <div className="mx-auto mt-4 grid max-w-[520px] grid-cols-4 gap-2 sm:mt-6 sm:gap-4">
+            <div className="mx-auto mt-3 grid max-w-[520px] grid-cols-4 gap-2 sm:mt-6 sm:gap-4">
               {(mediaImages.length > 0
                 ? mediaImages.slice(0, 8)
                 : Array.from({ length: 4 })
@@ -509,7 +509,7 @@ export function ProductDetailView({
           </div>
 
           <div className="lg:sticky lg:top-6">
-            <div className="card rounded-[26px] p-4 sm:rounded-[36px] sm:p-8">
+            <div className="card rounded-[28px] p-4 sm:rounded-[36px] sm:p-8">
               <div className="text-sm text-muted">{product.brand}</div>
 
               <h1 className="mt-2 text-3xl font-bold tracking-[-0.055em] sm:text-5xl">
@@ -535,7 +535,7 @@ export function ProductDetailView({
               </div>
 
               {!activePosition && (
-                <div className="mt-7 rounded-3xl border border-blue-500/30 bg-blue-soft p-5">
+                <div className="mt-5 rounded-[24px] border border-blue-500/30 bg-blue-soft p-4 sm:mt-7 sm:rounded-3xl sm:p-5">
                   <div className="text-sm text-blue-500">
                     Соберите конфигурацию
                   </div>
@@ -575,7 +575,7 @@ export function ProductDetailView({
               )}
 
               {activePosition && (
-                <div className="mt-7 rounded-3xl border border-blue-500/30 bg-blue-soft p-5">
+                <div className="mt-5 rounded-[24px] border border-blue-500/30 bg-blue-soft p-4 sm:mt-7 sm:rounded-3xl sm:p-5">
                   <div className="text-sm text-blue-500">
                     Выбранная конфигурация
                   </div>
@@ -652,7 +652,7 @@ export function ProductDetailView({
                 </div>
               </div>
 
-              <div className="mt-7">
+              <div className="mt-5 sm:mt-7">
                 <div className="text-sm font-semibold">Память</div>
 
                 <div className="mt-3 flex flex-wrap gap-3">
@@ -683,7 +683,7 @@ export function ProductDetailView({
                 </div>
               </div>
 
-              <div className="mt-7">
+              <div className="mt-5 sm:mt-7">
                 <div className="text-sm font-semibold">SIM</div>
 
                 <div className="mt-3 flex flex-wrap gap-3">
@@ -782,7 +782,7 @@ export function ProductDetailView({
                     )}
                   </div>
 
-                  <div className="mt-7">
+                  <div className="mt-5 sm:mt-7">
                     <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                       <div>
                         <div className="text-sm font-semibold">Количество</div>
