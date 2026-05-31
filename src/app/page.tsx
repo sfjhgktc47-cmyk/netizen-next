@@ -491,14 +491,25 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
             : "border-black/10 bg-white shadow-[0_18px_55px_rgba(15,23,42,0.08)]"
         }`}
       >
-        {(image || mobileImage) ? (
-          <picture className="absolute inset-0 h-full w-full">
-            <source media="(max-width: 639px)" srcSet={mobileImage || image || ""} />
+        {image ? (
+          <picture className="absolute inset-0 hidden h-full w-full sm:block">
             <img
-              src={image || mobileImage || ""}
+              src={image}
               alt=""
               aria-hidden="true"
-              className="h-full w-full object-cover object-center transition-transform duration-700"
+              className="h-full w-full object-contain object-right transition-transform duration-700"
+              draggable={false}
+            />
+          </picture>
+        ) : null}
+
+        {mobileImage ? (
+          <picture className="absolute inset-y-0 right-0 block h-full w-[60%] sm:hidden">
+            <img
+              src={mobileImage}
+              alt=""
+              aria-hidden="true"
+              className="h-full w-full object-contain object-right p-1.5"
               draggable={false}
             />
           </picture>
@@ -899,10 +910,17 @@ function PopularProducts({
         </div>
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-2 sm:hidden">
-        {products.slice(0, 4).map((product) => (
-          <ProductCard key={product.slug} product={product} dark={dark} />
-        ))}
+      <div
+        className="mt-3 overflow-x-auto sm:hidden [&::-webkit-scrollbar]:hidden"
+        style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+      >
+        <div className="flex gap-2 pb-1">
+          {products.map((product) => (
+            <div key={product.slug} className="w-[85px] shrink-0">
+              <MiniProductCard product={product} dark={dark} />
+            </div>
+          ))}
+        </div>
       </div>
 
       <div
@@ -953,6 +971,60 @@ function PopularProducts({
   );
 }
 
+
+function MiniProductCard({
+  product,
+  dark,
+}: {
+  product: HomeProduct;
+  dark: boolean;
+}) {
+  const image = getProductImage(product);
+  const href = product.slug === "catalog" ? "/catalog" : `/product/${product.slug}`;
+
+  return (
+    <Link
+      href={href}
+      draggable={false}
+      className={`group block h-full rounded-[12px] border p-1.5 transition-all duration-300 ${
+        dark
+          ? "border-white/10 bg-white/[0.035] hover:border-blue-500/35"
+          : "border-black/10 bg-white shadow-sm hover:border-blue-500/35"
+      }`}
+    >
+      <div
+        className={`relative flex h-[70px] w-full items-center justify-center overflow-hidden rounded-[8px] ${
+          image ? "bg-white" : dark ? "bg-white/[0.045]" : "bg-slate-100"
+        }`}
+      >
+        {product.isNew ? (
+          <span className="absolute left-1 top-1 rounded-full bg-blue-600 px-1 py-0.5 text-[7px] font-semibold text-white leading-none">
+            Новинка
+          </span>
+        ) : null}
+        {image ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={image}
+            alt={product.name}
+            draggable={false}
+            className="h-full w-full object-contain p-1"
+          />
+        ) : (
+          <span className={`text-[8px] ${dark ? "text-white/25" : "text-black/25"}`}>Фото</span>
+        )}
+      </div>
+
+      <div className="pt-1.5">
+        <h3 className="line-clamp-2 text-[9px] font-bold leading-tight">{product.name}</h3>
+        <p className="mt-1 text-[9px] font-bold text-blue-600 leading-none">{product.price}</p>
+        <div className="mt-1.5 w-full rounded-lg bg-blue-600 py-1 text-center text-[8px] font-medium text-white transition-colors group-hover:bg-blue-500">
+          Перейти →
+        </div>
+      </div>
+    </Link>
+  );
+}
 
 function ProductCard({
   product,
