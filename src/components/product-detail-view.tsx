@@ -135,6 +135,7 @@ export function ProductDetailView({
   const [quantity, setQuantity] = useState(1);
   const [addedToCart, setAddedToCart] = useState(false);
   const [isFavorite, setIsFavorite] = useState(false);
+  const [showConfigEditor, setShowConfigEditor] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
   const galleryDragStartRef = useRef<{
     x: number;
@@ -150,6 +151,8 @@ export function ProductDetailView({
 
   const isConfigurationComplete =
     Boolean(selectedColor) && Boolean(selectedMemory) && Boolean(selectedSim);
+
+  useEffect(() => { if (activePosition) setShowConfigEditor(false); }, [activePosition]);
 
   const activePosition = useMemo(() => {
     if (!isConfigurationComplete) {
@@ -629,6 +632,47 @@ export function ProductDetailView({
                 </div>
               )}
 
+              {/* Mobile: compact horizontal chips when config complete */}
+              {activePosition && !showConfigEditor && (
+                <div className="mt-2 flex flex-wrap items-center gap-1.5 sm:hidden">
+                  <button
+                    type="button"
+                    onClick={() => setShowConfigEditor(true)}
+                    className="flex items-center gap-1 rounded-lg border border-blue-500 bg-blue-500/10 px-2 py-1 text-[11px] text-blue-500"
+                  >
+                    <span
+                      className="h-3 w-3 rounded-full border border-blue-500/20"
+                      style={{ backgroundColor: colorOptions.find((c) => c.color === selectedColor)?.colorHex }}
+                    />
+                    {selectedColor}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowConfigEditor(true)}
+                    className="rounded-lg border border-blue-500 bg-blue-500/10 px-2 py-1 text-[11px] text-blue-500"
+                  >
+                    {selectedMemory}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowConfigEditor(true)}
+                    className="rounded-lg border border-blue-500 bg-blue-500/10 px-2 py-1 text-[11px] text-blue-500"
+                  >
+                    {selectedSim}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setShowConfigEditor(true)}
+                    className="rounded-lg border border-blue-500/30 bg-transparent px-2 py-1 text-[11px] text-muted"
+                  >
+                    Изменить →
+                  </button>
+                </div>
+              )}
+
+              {/* Full vertical selectors — always desktop, mobile only when not complete or editing */}
+              <div className={activePosition && !showConfigEditor ? "hidden sm:block" : ""}>
+
               <div className="mt-2 sm:mt-8">
                 <div className="text-[11px] font-semibold text-muted sm:text-sm sm:text-main">Цвет</div>
 
@@ -726,6 +770,8 @@ export function ProductDetailView({
                   })}
                 </div>
               </div>
+
+              </div>{/* end config editor wrapper */}
 
               {!activePosition && (
                 <div className="mt-5 border-t border-theme pt-5 sm:mt-8 sm:pt-7">
