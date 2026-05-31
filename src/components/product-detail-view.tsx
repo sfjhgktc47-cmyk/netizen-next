@@ -98,7 +98,7 @@ function saveFavoriteSlugs(slugs: string[]) {
 
 function ProductMainImage({ src, alt }: { src: string; alt: string }) {
   return (
-    <div className="relative mx-auto flex aspect-square w-full items-center justify-center overflow-hidden rounded-[16px] bg-white text-muted-soft sm:max-w-[520px] sm:aspect-[3/4] sm:rounded-[30px]">
+    <div className="relative mx-auto flex h-full min-h-[180px] w-full items-center justify-center overflow-hidden rounded-[16px] border border-theme bg-slate-50 text-muted-soft sm:h-auto sm:min-h-0 sm:aspect-[3/4] sm:max-w-[520px] sm:rounded-[30px] sm:border-0 sm:bg-white">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}
@@ -112,7 +112,7 @@ function ProductMainImage({ src, alt }: { src: string; alt: string }) {
 
 function ProductImagePlaceholder() {
   return (
-    <div className="mx-auto flex aspect-square w-full items-center justify-center overflow-hidden rounded-[16px] border border-theme bg-blue-soft text-muted-soft sm:max-w-[520px] sm:aspect-[3/4] sm:rounded-[30px]">
+    <div className="mx-auto flex h-full min-h-[180px] w-full items-center justify-center overflow-hidden rounded-[16px] border border-theme bg-blue-soft text-muted-soft sm:h-auto sm:min-h-0 sm:aspect-[3/4] sm:max-w-[520px] sm:rounded-[30px]">
       Фото товара
     </div>
   );
@@ -435,8 +435,8 @@ export function ProductDetailView({
           </Link>
         </div>
 
-        <section className="mt-4 grid grid-cols-[44%_1fr] items-start gap-3 lg:mt-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
-          <div className="sm:card sm:rounded-[36px] sm:p-6">
+        <section className="mt-4 grid grid-cols-[52%_1fr] items-start gap-3 lg:mt-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
+          <div className="h-full sm:card sm:rounded-[36px] sm:p-6">
             <div
               className="relative cursor-grab touch-pan-y select-none active:cursor-grabbing"
               role="region"
