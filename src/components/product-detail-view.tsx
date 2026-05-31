@@ -152,8 +152,6 @@ export function ProductDetailView({
   const isConfigurationComplete =
     Boolean(selectedColor) && Boolean(selectedMemory) && Boolean(selectedSim);
 
-  useEffect(() => { if (activePosition) setShowConfigEditor(false); }, [activePosition]);
-
   const activePosition = useMemo(() => {
     if (!isConfigurationComplete) {
       return undefined;
@@ -172,6 +170,8 @@ export function ProductDetailView({
     selectedMemory,
     selectedSim,
   ]);
+
+  useEffect(() => { if (activePosition) setShowConfigEditor(false); }, [activePosition]);
 
   const hasInvalidCompleteConfiguration =
     isConfigurationComplete && !activePosition;
