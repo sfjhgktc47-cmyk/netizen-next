@@ -93,6 +93,7 @@ export default async function AdminCategoriesPage() {
             <div>Описание</div>
             <div>Товаров</div>
             <div>Статус</div>
+            <div>Порядок</div>
             <div className="text-right">Действия</div>
           </div>
 
@@ -105,7 +106,7 @@ export default async function AdminCategoriesPage() {
               categories.map((category) => (
                 <div
                   key={category.id}
-                  className="grid gap-5 bg-white/[0.015] p-5 transition-colors hover:bg-blue-500/[0.04] lg:grid-cols-[1fr_0.75fr_1.25fr_0.55fr_0.65fr_150px] lg:items-center"
+                  className="grid gap-5 bg-white/[0.015] p-5 transition-colors hover:bg-blue-500/[0.04] lg:grid-cols-[1fr_0.75fr_1.25fr_0.55fr_0.55fr_0.45fr_160px] lg:items-center"
                 >
                   <div>
                     <div className="text-lg font-bold">{category.name}</div>
