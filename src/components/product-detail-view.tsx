@@ -588,7 +588,7 @@ export function ProductDetailView({
               )}
 
               {activePosition && (
-                <div className="mt-5 rounded-[22px] border border-blue-500/30 bg-blue-soft p-4 sm:mt-7 sm:rounded-3xl sm:p-5">
+                <div className="mt-5 hidden rounded-[22px] border border-blue-500/30 bg-blue-soft p-4 sm:mt-7 sm:block sm:rounded-3xl sm:p-5">
                   <div className="text-sm text-blue-500">
                     Выбранная конфигурация
                   </div>
