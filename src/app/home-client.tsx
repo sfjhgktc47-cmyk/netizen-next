@@ -500,7 +500,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
         }`}
       >
         {image ? (
-          <picture className="absolute inset-0 hidden h-full w-full sm:block">
+          <picture className="absolute inset-0 hidden h-full w-full p-4 sm:block">
             <img
               src={image}
               alt=""
@@ -539,7 +539,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
               </div>
             ) : null}
 
-            <h1 className="max-w-[620px] text-[20px] font-bold leading-[1.02] tracking-[-0.055em] sm:text-[38px] lg:text-[60px]">
+            <h1 className="max-w-[620px] whitespace-pre-line text-[20px] font-bold leading-[1.02] tracking-[-0.055em] sm:text-[38px] lg:text-[60px]">
               {slide.title}
             </h1>
 
@@ -1232,7 +1232,7 @@ function PromoBanner({
       >
         <div className="flex flex-col items-start justify-center p-4 sm:p-8 lg:p-10">
           <div className="text-xs font-bold uppercase tracking-[0.18em] text-blue-500">{label}</div>
-          <h2 className={`mt-4 max-w-[520px] font-bold leading-[1.05] tracking-[-0.05em] ${bannerTitleSizeClass(titleSize)}`}>
+          <h2 className={`mt-4 max-w-[520px] whitespace-pre-line font-bold leading-[1.05] tracking-[-0.05em] ${bannerTitleSizeClass(titleSize)}`}>
             {title}
           </h2>
           <p className={`mt-4 max-w-[430px] leading-relaxed ${bannerTextSizeClass(textSize)} ${mutedTextClass(dark)}`}>
