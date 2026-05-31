@@ -1228,13 +1228,13 @@ function CheckoutCard({
     <button
       type="button"
       onClick={onClick}
-      className={`card flex min-h-[120px] w-full flex-col justify-between rounded-[18px] p-3 text-left transition-all duration-300 hover:-translate-y-0.5 hover:border-blue-500/35 hover:bg-blue-soft sm:min-h-[132px] sm:rounded-[24px] sm:p-4 ${className}`}
+      className={`card flex min-h-[110px] w-full flex-col justify-between rounded-[20px] p-4 text-left transition-all duration-200 hover:-translate-y-0.5 hover:border-blue-500/30 hover:bg-blue-soft ${className}`}
     >
       <div className="w-full min-w-0">
-        <div className="flex items-start justify-between gap-1.5">
-          <div className="min-w-0 flex-1 text-[13px] font-bold leading-tight sm:text-lg">{title}</div>
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0 flex-1 truncate text-[15px] font-bold leading-snug">{title}</div>
           <span
-            className={`shrink-0 rounded-full border px-1.5 py-0.5 text-[9px] leading-tight sm:px-2.5 sm:py-1 sm:text-[11px] ${
+            className={`shrink-0 rounded-full border px-2.5 py-0.5 text-[11px] font-medium leading-5 ${
               isComplete
                 ? "border-green-500/30 bg-green-500/10 text-green-500"
                 : "border-orange-500/30 bg-orange-500/10 text-orange-500"
@@ -1244,10 +1244,10 @@ function CheckoutCard({
           </span>
         </div>
 
-        <p className="mt-1.5 line-clamp-2 text-[10px] leading-relaxed text-muted sm:mt-2 sm:line-clamp-3 sm:text-xs">{text}</p>
+        <p className="mt-2 line-clamp-2 text-[13px] leading-relaxed text-muted">{text}</p>
       </div>
 
-      <div className="mt-2 text-[11px] font-medium text-blue-500 sm:text-xs">{action}</div>
+      <div className="mt-3 text-[13px] font-medium text-blue-500">{action}</div>
     </button>
   );
 }
