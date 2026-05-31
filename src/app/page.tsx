@@ -38,7 +38,6 @@ type HomeProduct = {
   colors: string[];
   isNew?: boolean;
   isPopular?: boolean;
-  priceMax?: string;
 };
 
 type HomePageBlock = {
