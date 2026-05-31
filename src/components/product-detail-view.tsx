@@ -98,7 +98,7 @@ function saveFavoriteSlugs(slugs: string[]) {
 
 function ProductMainImage({ src, alt }: { src: string; alt: string }) {
   return (
-    <div className="relative mx-auto flex aspect-square w-full max-w-[360px] items-center justify-center overflow-hidden rounded-[22px] bg-white text-muted-soft sm:max-w-[520px] sm:aspect-[3/4] sm:rounded-[30px]">
+    <div className="relative mx-auto flex aspect-square w-full items-center justify-center overflow-hidden rounded-[16px] bg-white text-muted-soft sm:max-w-[520px] sm:aspect-[3/4] sm:rounded-[30px]">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src={src}
@@ -112,7 +112,7 @@ function ProductMainImage({ src, alt }: { src: string; alt: string }) {
 
 function ProductImagePlaceholder() {
   return (
-    <div className="mx-auto flex aspect-square w-full max-w-[360px] items-center justify-center overflow-hidden rounded-[22px] border border-theme bg-blue-soft text-muted-soft sm:max-w-[520px] sm:aspect-[3/4] sm:rounded-[30px]">
+    <div className="mx-auto flex aspect-square w-full items-center justify-center overflow-hidden rounded-[16px] border border-theme bg-blue-soft text-muted-soft sm:max-w-[520px] sm:aspect-[3/4] sm:rounded-[30px]">
       Фото товара
     </div>
   );
@@ -432,8 +432,8 @@ export function ProductDetailView({
           </Link>
         </div>
 
-        <section className="mt-4 grid gap-4 lg:mt-8 lg:grid-cols-[1.05fr_0.95fr] lg:items-start lg:gap-10">
-          <div className="card rounded-[22px] p-2.5 sm:rounded-[36px] sm:p-6">
+        <section className="mt-4 grid grid-cols-[44%_1fr] items-start gap-3 lg:mt-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
+          <div className="sm:card sm:rounded-[36px] sm:p-6">
             <div
               className="relative cursor-grab touch-pan-y select-none active:cursor-grabbing"
               role="region"
@@ -458,7 +458,7 @@ export function ProductDetailView({
                   <button
                     type="button"
                     onClick={showPreviousImage}
-                    className="absolute left-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl border border-theme bg-card/90 text-main shadow-soft backdrop-blur transition-colors hover:border-blue-500/50 hover:bg-blue-soft sm:left-4 sm:h-11 sm:w-11 sm:rounded-2xl"
+                    className="absolute left-2 top-1/2 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl border border-theme bg-card/90 text-main shadow-soft backdrop-blur transition-colors hover:border-blue-500/50 hover:bg-blue-soft sm:flex sm:left-4 sm:h-11 sm:w-11 sm:rounded-2xl"
                     aria-label="Предыдущее фото"
                   >
                     ←
@@ -466,7 +466,7 @@ export function ProductDetailView({
                   <button
                     type="button"
                     onClick={showNextImage}
-                    className="absolute right-2 top-1/2 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl border border-theme bg-card/90 text-main shadow-soft backdrop-blur transition-colors hover:border-blue-500/50 hover:bg-blue-soft sm:right-4 sm:h-11 sm:w-11 sm:rounded-2xl"
+                    className="absolute right-2 top-1/2 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl border border-theme bg-card/90 text-main shadow-soft backdrop-blur transition-colors hover:border-blue-500/50 hover:bg-blue-soft sm:flex sm:right-4 sm:h-11 sm:w-11 sm:rounded-2xl"
                     aria-label="Следующее фото"
                   >
                     →
@@ -475,7 +475,19 @@ export function ProductDetailView({
               )}
             </div>
 
-            <div className="mx-auto mt-2 grid max-w-[360px] grid-cols-4 gap-2 sm:mt-6 sm:max-w-[520px] sm:gap-4">
+            <div className="mx-auto mt-1.5 flex justify-center gap-1 sm:hidden">
+              {mediaImages.slice(0, 7).map((_, dotIndex) => (
+                <button
+                  key={dotIndex}
+                  type="button"
+                  onClick={() => setActiveImageIndex(dotIndex)}
+                  className={`h-1 rounded-full transition-all duration-300 ${
+                    activeImageIndex === dotIndex ? "w-4 bg-blue-500" : "w-1.5 bg-black/20"
+                  }`}
+                />
+              ))}
+            </div>
+            <div className="hidden sm:grid mx-auto mt-6 max-w-[520px] grid-cols-4 gap-4">
               {(mediaImages.length > 0
                 ? mediaImages.slice(0, 8)
                 : Array.from({ length: 4 })
@@ -510,14 +522,14 @@ export function ProductDetailView({
           </div>
 
           <div className="lg:sticky lg:top-6">
-            <div className="card rounded-[22px] p-4 sm:rounded-[36px] sm:p-8">
-              <div className="text-sm text-muted">{product.brand}</div>
+            <div className="card rounded-[22px] p-3 sm:rounded-[36px] sm:p-8">
+              <div className="text-[11px] sm:text-sm text-muted">{product.brand}</div>
 
-              <h1 className="mt-1.5 text-[26px] font-bold leading-[1.05] tracking-[-0.055em] sm:mt-2 sm:text-5xl">
+              <h1 className="mt-1 text-[15px] font-bold leading-tight tracking-[-0.03em] sm:mt-2 sm:text-5xl">
                 {product.name}
               </h1>
 
-              <p className="mt-2 max-w-[620px] text-sm leading-relaxed text-muted sm:mt-4">
+              <p className="mt-2 hidden max-w-[620px] text-sm leading-relaxed text-muted sm:mt-4 sm:block">
                 {product.shortDescription}
               </p>
 
@@ -525,7 +537,7 @@ export function ProductDetailView({
                 <button
                   type="button"
                   onClick={toggleFavorite}
-                  className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors sm:px-5 sm:py-3 ${
+                  className={`rounded-xl border px-3 py-2 text-xs font-medium transition-colors sm:px-5 sm:py-3 sm:text-sm ${
                     isFavorite
                       ? "border-blue-500 bg-blue-500/10 text-blue-500 hover:bg-blue-500/15"
                       : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
@@ -536,16 +548,16 @@ export function ProductDetailView({
               </div>
 
               {!activePosition && (
-                <div className="mt-5 rounded-[22px] border border-blue-500/30 bg-blue-soft p-4 sm:mt-7 sm:rounded-3xl sm:p-5">
+                <div className="mt-3 rounded-[18px] border border-blue-500/30 bg-blue-soft p-3 sm:mt-7 sm:rounded-3xl sm:p-5">
                   <div className="text-sm text-blue-500">
                     Соберите конфигурацию
                   </div>
 
-                  <h2 className="mt-2 text-lg font-bold sm:text-xl">
+                  <h2 className="mt-1.5 text-[14px] font-bold sm:text-xl sm:mt-2">
                     Выберите цвет, память и SIM
                   </h2>
 
-                  <div className="mt-4 grid gap-3 text-sm text-muted sm:grid-cols-3">
+                  <div className="mt-3 grid grid-cols-3 gap-2 text-xs text-muted sm:gap-3 sm:text-sm">
                     <div>
                       <div className="text-muted-soft">Цвет</div>
                       <div className="mt-1 font-semibold text-main">
@@ -617,8 +629,8 @@ export function ProductDetailView({
                 </div>
               )}
 
-              <div className="mt-5 sm:mt-8">
-                <div className="text-sm font-semibold">Цвет</div>
+              <div className="mt-3 sm:mt-8">
+                <div className="text-xs font-semibold sm:text-sm">Цвет</div>
 
                 <div className="mt-2 flex flex-wrap gap-2 sm:mt-3 sm:gap-3">
                   {colorOptions.map((position) => {
@@ -633,7 +645,7 @@ export function ProductDetailView({
                         type="button"
                         disabled={isDisabled}
                         onClick={() => selectColor(position.color)}
-                        className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm transition-all duration-300 sm:gap-3 sm:px-4 sm:py-3 ${
+                        className={`flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 text-xs transition-all duration-300 sm:gap-3 sm:px-4 sm:py-3 sm:text-sm ${
                           isActive
                             ? "border-blue-500 bg-blue-500/10 text-blue-500"
                             : isDisabled
@@ -653,8 +665,8 @@ export function ProductDetailView({
                 </div>
               </div>
 
-              <div className="mt-4 sm:mt-7">
-                <div className="text-sm font-semibold">Память</div>
+              <div className="mt-3 sm:mt-7">
+                <div className="text-xs font-semibold sm:text-sm">Память</div>
 
                 <div className="mt-2 flex flex-wrap gap-2 sm:mt-3 sm:gap-3">
                   {memoryOptions.map((position) => {
@@ -669,7 +681,7 @@ export function ProductDetailView({
                         type="button"
                         disabled={isDisabled}
                         onClick={() => selectMemory(position.memory)}
-                        className={`rounded-xl border px-3 py-2 text-sm transition-all duration-300 sm:px-5 sm:py-3 ${
+                        className={`rounded-xl border px-2.5 py-1.5 text-xs transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
                           isActive
                             ? "border-blue-500 bg-blue-500/10 text-blue-500"
                             : isDisabled
@@ -684,8 +696,8 @@ export function ProductDetailView({
                 </div>
               </div>
 
-              <div className="mt-4 sm:mt-7">
-                <div className="text-sm font-semibold">SIM</div>
+              <div className="mt-3 sm:mt-7">
+                <div className="text-xs font-semibold sm:text-sm">SIM</div>
 
                 <div className="mt-2 flex flex-wrap gap-2 sm:mt-3 sm:gap-3">
                   {simOptions.map((position) => {
@@ -700,7 +712,7 @@ export function ProductDetailView({
                         type="button"
                         disabled={isDisabled}
                         onClick={() => selectSim(position.sim)}
-                        className={`rounded-xl border px-3 py-2 text-sm transition-all duration-300 sm:px-5 sm:py-3 ${
+                        className={`rounded-xl border px-2.5 py-1.5 text-xs transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
                           isActive
                             ? "border-blue-500 bg-blue-500/10 text-blue-500"
                             : isDisabled
