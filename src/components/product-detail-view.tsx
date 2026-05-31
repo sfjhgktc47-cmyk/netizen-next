@@ -548,7 +548,7 @@ export function ProductDetailView({
               </div>
 
               {!activePosition && (
-                <div className="mt-3 rounded-[18px] border border-blue-500/30 bg-blue-soft p-3 sm:mt-7 sm:rounded-3xl sm:p-5">
+                <div className="mt-3 hidden rounded-[18px] border border-blue-500/30 bg-blue-soft p-3 sm:mt-7 sm:block sm:rounded-3xl sm:p-5">
                   <div className="text-sm text-blue-500">
                     Соберите конфигурацию
                   </div>
@@ -629,10 +629,10 @@ export function ProductDetailView({
                 </div>
               )}
 
-              <div className="mt-3 sm:mt-8">
-                <div className="text-xs font-semibold sm:text-sm">Цвет</div>
+              <div className="mt-2 sm:mt-8">
+                <div className="text-[11px] font-semibold text-muted sm:text-sm sm:text-main">Цвет</div>
 
-                <div className="mt-2 flex flex-wrap gap-2 sm:mt-3 sm:gap-3">
+                <div className="mt-1.5 flex flex-wrap gap-1.5 sm:mt-3 sm:gap-3">
                   {colorOptions.map((position) => {
                     const isActive = selectedColor === position.color;
                     const isDisabled =
@@ -645,7 +645,7 @@ export function ProductDetailView({
                         type="button"
                         disabled={isDisabled}
                         onClick={() => selectColor(position.color)}
-                        className={`flex items-center gap-1.5 rounded-xl border px-2.5 py-1.5 text-xs transition-all duration-300 sm:gap-3 sm:px-4 sm:py-3 sm:text-sm ${
+                        className={`flex items-center gap-1 rounded-lg border px-2 py-1 text-[11px] transition-all duration-300 sm:gap-3 sm:px-4 sm:py-3 sm:text-sm ${
                           isActive
                             ? "border-blue-500 bg-blue-500/10 text-blue-500"
                             : isDisabled
@@ -654,7 +654,7 @@ export function ProductDetailView({
                         }`}
                       >
                         <span
-                          className="h-4 w-4 rounded-full border border-theme sm:h-5 sm:w-5"
+                          className="h-3 w-3 rounded-full border border-theme sm:h-5 sm:w-5"
                           style={{ backgroundColor: position.colorHex }}
                         />
 
@@ -665,10 +665,10 @@ export function ProductDetailView({
                 </div>
               </div>
 
-              <div className="mt-3 sm:mt-7">
-                <div className="text-xs font-semibold sm:text-sm">Память</div>
+              <div className="mt-2 sm:mt-7">
+                <div className="text-[11px] font-semibold text-muted sm:text-sm sm:text-main">Память</div>
 
-                <div className="mt-2 flex flex-wrap gap-2 sm:mt-3 sm:gap-3">
+                <div className="mt-1.5 flex flex-wrap gap-1.5 sm:mt-3 sm:gap-3">
                   {memoryOptions.map((position) => {
                     const isActive = selectedMemory === position.memory;
                     const isDisabled =
@@ -681,7 +681,7 @@ export function ProductDetailView({
                         type="button"
                         disabled={isDisabled}
                         onClick={() => selectMemory(position.memory)}
-                        className={`rounded-xl border px-2.5 py-1.5 text-xs transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
+                        className={`rounded-lg border px-2 py-1 text-[11px] transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
                           isActive
                             ? "border-blue-500 bg-blue-500/10 text-blue-500"
                             : isDisabled
@@ -696,10 +696,10 @@ export function ProductDetailView({
                 </div>
               </div>
 
-              <div className="mt-3 sm:mt-7">
-                <div className="text-xs font-semibold sm:text-sm">SIM</div>
+              <div className="mt-2 sm:mt-7">
+                <div className="text-[11px] font-semibold text-muted sm:text-sm sm:text-main">SIM</div>
 
-                <div className="mt-2 flex flex-wrap gap-2 sm:mt-3 sm:gap-3">
+                <div className="mt-1.5 flex flex-wrap gap-1.5 sm:mt-3 sm:gap-3">
                   {simOptions.map((position) => {
                     const isActive = selectedSim === position.sim;
                     const isDisabled =
@@ -712,7 +712,7 @@ export function ProductDetailView({
                         type="button"
                         disabled={isDisabled}
                         onClick={() => selectSim(position.sim)}
-                        className={`rounded-xl border px-2.5 py-1.5 text-xs transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
+                        className={`rounded-lg border px-2 py-1 text-[11px] transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
                           isActive
                             ? "border-blue-500 bg-blue-500/10 text-blue-500"
                             : isDisabled
