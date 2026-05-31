@@ -30,6 +30,7 @@ type HomeProduct = {
   category?: string;
   categoryName?: string;
   price: string;
+  priceMax?: string;
   shortDescription?: string;
   image?: string;
   promoImage?: string;
@@ -37,6 +38,7 @@ type HomeProduct = {
   colors: string[];
   isNew?: boolean;
   isPopular?: boolean;
+  priceMax?: string;
 };
 
 type HomePageBlock = {
@@ -506,8 +508,8 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
         <div
           className={`absolute inset-0 transition-all duration-700 ${
             dark
-              ? "bg-gradient-to-r from-[#06101f]/98 via-[#06101f]/85 to-[#06101f]/40 sm:from-[#020814]/95 sm:via-[#020814]/60 sm:to-[#020814]/10"
-              : "bg-gradient-to-r from-white/98 via-white/90 to-white/40 sm:from-white/95 sm:via-white/65 sm:to-white/15"
+              ? "bg-gradient-to-r from-[#06101f]/88 via-[#06101f]/45 to-transparent sm:from-[#020814]/90 sm:via-[#020814]/50 sm:to-transparent"
+              : "bg-gradient-to-r from-white/85 via-white/45 to-transparent sm:from-white/88 sm:via-white/45 sm:to-transparent"
           }`}
         />
 
@@ -898,8 +900,8 @@ function PopularProducts({
         </div>
       </div>
 
-      <div className="mt-2 grid grid-cols-2 gap-1.5 sm:hidden">
-        {products.slice(0, 6).map((product) => (
+      <div className="mt-3 grid grid-cols-2 gap-2 sm:hidden">
+        {products.slice(0, 4).map((product) => (
           <ProductCard key={product.slug} product={product} dark={dark} />
         ))}
       </div>
@@ -1008,12 +1010,12 @@ function ProductCard({
 
         <h3 className="line-clamp-2 min-h-[27px] text-[11px] font-bold leading-tight sm:min-h-0 sm:text-lg">{product.name}</h3>
 
-        <div className="mt-1.5 flex items-end justify-between gap-1.5 sm:mt-5">
-          <p className="min-w-0 text-[12px] font-bold text-blue-600 sm:text-lg">{product.price}</p>
+        <p className="mt-1.5 min-w-0 text-[12px] font-bold text-blue-600 sm:mt-3 sm:text-lg">
+          {product.price}
+        </p>
 
-          <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg border border-blue-500/30 bg-blue-600 text-[12px] text-white transition-all duration-300 group-hover:bg-blue-500 sm:h-11 sm:w-11 sm:rounded-xl sm:text-lg">
-            🛒
-          </span>
+        <div className="mt-2 w-full rounded-xl bg-blue-600 py-2 text-center text-[11px] font-medium text-white transition-all duration-300 group-hover:bg-blue-500 sm:mt-4 sm:py-3 sm:text-sm">
+          Перейти →
         </div>
       </div>
     </Link>

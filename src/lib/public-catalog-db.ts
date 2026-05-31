@@ -151,7 +151,7 @@ function getPriceRange(variants: ProductWithVariants["variants"]) {
     return formatPrice(minPrice);
   }
 
-  return `от ${formatPrice(minPrice)}`;
+  return `от ${formatPrice(minPrice)} до ${formatPrice(maxPrice)}`;
 }
 
 function toPublicProduct(product: ProductWithVariants): PublicProductModel {

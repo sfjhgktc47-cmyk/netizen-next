@@ -217,7 +217,7 @@ export function ProductCarousel({
           {products.map((product) => (
             <div
               key={product.slug}
-              className="w-[calc(50vw-24px)] max-w-[200px] shrink-0 sm:w-[220px] md:w-[240px] lg:w-[280px]"
+              className="w-[calc(25vw-10px)] min-w-[80px] shrink-0 sm:w-[210px] md:w-[240px] lg:w-[280px]"
             >
               <CarouselProductCard product={product} dark={dark} />
             </div>
@@ -258,15 +258,15 @@ function CarouselProductCard({
     <Link
       href={`/product/${product.slug}`}
       draggable={false}
-      className={`group block h-full rounded-[20px] border p-2.5 transition-all duration-500 hover:-translate-y-1 sm:rounded-3xl sm:p-4 ${
+      className={`group relative block h-full rounded-[14px] border p-1.5 transition-all duration-500 hover:-translate-y-1 sm:rounded-3xl sm:p-4 ${
         dark
           ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
           : "border-black/10 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)] hover:border-blue-500/35"
       }`}
     >
       <div
-        className={`flex aspect-square w-full items-center justify-center overflow-hidden rounded-[16px] transition-colors duration-700 sm:rounded-2xl sm:aspect-[4/5] ${
-          image ? "bg-white text-slate-400" : dark ? "bg-white/[0.045] text-white/25" : "bg-slate-100 text-black/25"
+        className={`flex aspect-square w-full items-center justify-center overflow-hidden rounded-[10px] transition-colors duration-700 sm:rounded-2xl sm:aspect-[4/5] ${
+          image ? "bg-slate-50" : dark ? "bg-white/[0.045] text-white/25" : "bg-slate-100 text-black/25"
         }`}
       >
         {image ? (
@@ -275,41 +275,64 @@ function CarouselProductCard({
             src={image}
             alt={product.name}
             draggable={false}
-            className="h-full w-full object-contain p-2 transition-transform duration-700 group-hover:scale-105 sm:p-3"
+            className="h-full w-full object-contain p-1 transition-transform duration-700 group-hover:scale-105 sm:p-3"
           />
         ) : (
-          "Фото товара"
+          <span className="text-[9px] sm:text-xs">Фото</span>
         )}
       </div>
 
-      <div className="px-1 pb-1 pt-2.5 sm:px-1 sm:pb-1 sm:pt-4">
+      {/* Mobile mini layout */}
+      <div className="px-0.5 pb-0.5 pt-1.5 sm:hidden">
+        <h3 className={`line-clamp-2 text-[10px] font-bold leading-tight ${dark ? "text-white" : "text-black"}`}>
+          {product.name}
+        </h3>
+        <p className="mt-0.5 text-[10px] font-semibold text-blue-600">
+          {product.price}
+        </p>
+        <div className="mt-1.5 flex items-center justify-between gap-1">
+          <div className="flex gap-1">
+            {product.colors.slice(0, 3).map((color) => (
+              <span
+                key={color}
+                className={`h-2.5 w-2.5 rounded-full border ${dark ? "border-white/15" : "border-black/10"}`}
+                style={{ backgroundColor: color }}
+              />
+            ))}
+          </div>
+          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-blue-600 text-[10px] text-white transition-colors group-hover:bg-blue-500">
+            →
+          </div>
+        </div>
+      </div>
+
+      {/* Desktop full layout */}
+      <div className="hidden px-1 pb-1 pt-4 sm:block">
         {product.brand && (
-          <div className={`truncate text-[11px] sm:text-xs ${mutedTextClass(dark)}`}>
+          <div className={`truncate text-xs ${mutedTextClass(dark)}`}>
             {product.brand}
           </div>
         )}
 
-        <h3 className="mt-1 line-clamp-2 text-[13px] font-bold leading-tight sm:text-base lg:text-[15px]">
+        <h3 className="mt-1 line-clamp-2 text-base font-bold leading-tight lg:text-[15px]">
           {product.name}
         </h3>
 
-        <p className={`mt-1 text-sm font-semibold sm:font-normal ${mutedTextClass(dark)}`}>
+        <p className={`mt-1 text-sm ${mutedTextClass(dark)}`}>
           {product.price}
         </p>
 
-        <div className="mt-2 flex gap-1.5 sm:mt-4 sm:gap-2">
+        <div className="mt-4 flex gap-2">
           {product.colors.map((color) => (
             <span
               key={color}
-              className={`h-3.5 w-3.5 rounded-full border sm:h-4 sm:w-4 ${
-                dark ? "border-white/15" : "border-black/10"
-              }`}
+              className={`h-4 w-4 rounded-full border ${dark ? "border-white/15" : "border-black/10"}`}
               style={{ backgroundColor: color }}
             />
           ))}
         </div>
 
-        <div className="mt-2 w-full rounded-xl bg-blue-600 py-2 text-center text-xs font-medium text-white transition-all duration-300 group-hover:bg-blue-500 sm:mt-5 sm:py-3 sm:text-sm">
+        <div className="mt-5 w-full rounded-xl bg-blue-600 py-3 text-center text-sm font-medium text-white transition-all duration-300 group-hover:bg-blue-500">
           Перейти →
         </div>
       </div>
