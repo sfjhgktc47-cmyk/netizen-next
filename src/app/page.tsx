@@ -490,10 +490,11 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
             : "border-black/10 bg-white shadow-[0_18px_55px_rgba(15,23,42,0.08)]"
         }`}
       >
-        {image ? (
-          <picture className="absolute inset-0 hidden h-full w-full sm:block">
+        {(image || mobileImage) ? (
+          <picture className="absolute inset-0 h-full w-full">
+            <source media="(max-width: 639px)" srcSet={mobileImage || image || ""} />
             <img
-              src={image}
+              src={image || mobileImage || ""}
               alt=""
               aria-hidden="true"
               className="h-full w-full object-cover object-center transition-transform duration-700"
@@ -502,23 +503,11 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
           </picture>
         ) : null}
 
-        {mobileImage ? (
-          <picture className="absolute inset-y-0 right-0 block h-full w-[64%] sm:hidden">
-            <img
-              src={mobileImage}
-              alt=""
-              aria-hidden="true"
-              className="h-full w-full object-contain object-right-bottom p-1.5"
-              draggable={false}
-            />
-          </picture>
-        ) : null}
-
         <div
           className={`absolute inset-0 transition-all duration-700 ${
             dark
-              ? "bg-gradient-to-r from-[#06101f]/96 via-[#06101f]/72 to-[#06101f]/8 sm:from-[#020814]/95 sm:via-[#020814]/60 sm:to-[#020814]/10"
-              : "bg-gradient-to-r from-white via-white/84 to-white/10 sm:from-white/95 sm:via-white/65 sm:to-white/15"
+              ? "bg-gradient-to-r from-[#06101f]/98 via-[#06101f]/85 to-[#06101f]/40 sm:from-[#020814]/95 sm:via-[#020814]/60 sm:to-[#020814]/10"
+              : "bg-gradient-to-r from-white/98 via-white/90 to-white/40 sm:from-white/95 sm:via-white/65 sm:to-white/15"
           }`}
         />
 
@@ -611,10 +600,10 @@ function Benefits({
         <p className={`mt-0.5 text-[11px] sm:mt-2 sm:text-sm ${mutedTextClass(dark)}`}>{subtitle}</p>
       </div>
 
-      <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-6 sm:grid-cols-2 md:grid-cols-5 md:gap-4">
+      <div className="mt-3 flex gap-2 overflow-x-auto pb-1 sm:mt-6 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0 md:grid-cols-5 md:gap-4 [&::-webkit-scrollbar]:hidden" style={{scrollbarWidth:"none"}}>
         {items.map((item) => {
           const card = (
-            <div className={`flex min-h-[68px] items-start gap-2 rounded-2xl border p-2.5 sm:min-h-0 sm:gap-4 sm:border-0 sm:p-0 ${
+            <div className={`flex min-h-[68px] w-[200px] shrink-0 items-start gap-2 rounded-2xl border p-2.5 sm:min-h-0 sm:w-auto sm:gap-4 sm:border-0 sm:p-0 ${
               dark ? "border-white/10 bg-white/[0.025]" : "border-black/10 bg-slate-50/80 sm:bg-transparent"
             }`}>
               <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-blue-500/30 text-xs text-blue-500 sm:h-12 sm:w-12 sm:text-base">

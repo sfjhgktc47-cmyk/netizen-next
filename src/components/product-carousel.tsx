@@ -217,7 +217,7 @@ export function ProductCarousel({
           {products.map((product) => (
             <div
               key={product.slug}
-              className="w-[148px] shrink-0 sm:w-[240px] md:w-[270px] lg:w-[280px]"
+              className="w-[calc(50vw-24px)] max-w-[200px] shrink-0 sm:w-[220px] md:w-[240px] lg:w-[280px]"
             >
               <CarouselProductCard product={product} dark={dark} />
             </div>
@@ -258,14 +258,14 @@ function CarouselProductCard({
     <Link
       href={`/product/${product.slug}`}
       draggable={false}
-      className={`group block h-full rounded-[18px] border p-2 transition-all duration-500 hover:-translate-y-1 sm:rounded-3xl sm:p-4 ${
+      className={`group block h-full rounded-[20px] border p-2.5 transition-all duration-500 hover:-translate-y-1 sm:rounded-3xl sm:p-4 ${
         dark
           ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
           : "border-black/10 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)] hover:border-blue-500/35"
       }`}
     >
       <div
-        className={`flex aspect-square w-full items-center justify-center overflow-hidden rounded-[14px] transition-colors duration-700 sm:rounded-2xl sm:aspect-[3/4] ${
+        className={`flex aspect-square w-full items-center justify-center overflow-hidden rounded-[16px] transition-colors duration-700 sm:rounded-2xl sm:aspect-[4/5] ${
           image ? "bg-white text-slate-400" : dark ? "bg-white/[0.045] text-white/25" : "bg-slate-100 text-black/25"
         }`}
       >
@@ -282,14 +282,14 @@ function CarouselProductCard({
         )}
       </div>
 
-      <div className="px-0.5 pb-0.5 pt-2 sm:px-1 sm:pb-1 sm:pt-4">
+      <div className="px-1 pb-1 pt-2.5 sm:px-1 sm:pb-1 sm:pt-4">
         {product.brand && (
           <div className={`truncate text-[11px] sm:text-xs ${mutedTextClass(dark)}`}>
             {product.brand}
           </div>
         )}
 
-        <h3 className="mt-1 line-clamp-2 text-[13px] font-bold leading-tight sm:text-base">
+        <h3 className="mt-1 line-clamp-2 text-[13px] font-bold leading-tight sm:text-base lg:text-[15px]">
           {product.name}
         </h3>
 
