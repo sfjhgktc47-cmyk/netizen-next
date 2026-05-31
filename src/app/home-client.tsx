@@ -924,8 +924,8 @@ function PopularProducts({
       >
         <div className="flex gap-2 pb-1">
           {products.map((product) => (
-            <div key={product.slug} className="w-[85px] shrink-0">
-              <MiniProductCard product={product} dark={dark} />
+            <div key={product.slug} className="w-[30vw] max-w-[130px] shrink-0">
+              <ProductCard product={product} dark={dark} />
             </div>
           ))}
         </div>
