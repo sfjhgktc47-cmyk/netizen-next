@@ -3,11 +3,21 @@ import * as XLSX from "xlsx";
 
 import { prisma } from "@/lib/db";
 
-type VariantStatus = "active" | "draft" | "hidden" | "out_of_stock";
-
+type EntityStatus = "active" | "draft" | "hidden" | "out_of_stock";
 type ImportRow = Record<string, unknown>;
 
-const allowedStatuses = new Set<VariantStatus>(["active", "draft", "hidden", "out_of_stock"]);
+type ProductMatch = {
+  id: string;
+  slug: string;
+  name: string;
+  brand: string;
+  categorySlug: string;
+  image: string;
+  images: string[];
+  colors: string[];
+};
+
+const allowedStatuses = new Set<EntityStatus>(["active", "draft", "hidden", "out_of_stock"]);
 
 function normalizeKey(value: string) {
   return value
@@ -48,7 +58,10 @@ function toIntCell(row: ImportRow, keys: string[]) {
     return undefined;
   }
 
-  const cleaned = String(value).replace(/[^0-9.,-]/g, "").replace(",", ".");
+  const cleaned = String(value)
+    .replace(/\s+/g, "")
+    .replace(/[^0-9.,-]/g, "")
+    .replace(",", ".");
   const numberValue = Number(cleaned);
 
   if (!Number.isFinite(numberValue)) {
@@ -58,30 +71,48 @@ function toIntCell(row: ImportRow, keys: string[]) {
   return Math.max(0, Math.round(numberValue));
 }
 
-function normalizeStatus(value: string, stock?: number): VariantStatus | undefined {
-  const normalized = value.trim().toLowerCase();
+function toBooleanCell(row: ImportRow, keys: string[]) {
+  const value = toStringCell(row, keys).toLowerCase().replace(/\s+/g, "");
+
+  if (!value) {
+    return undefined;
+  }
+
+  if (["1", "true", "yes", "да", "новинка", "популярный", "hit", "хит"].includes(value)) {
+    return true;
+  }
+
+  if (["0", "false", "no", "нет", "не"].includes(value)) {
+    return false;
+  }
+
+  return undefined;
+}
+
+function normalizeStatus(value: string, stock?: number): EntityStatus | undefined {
+  const normalized = value.trim().toLowerCase().replace(/\s+/g, "");
 
   if (!normalized) {
     return stock !== undefined ? (stock > 0 ? "active" : "out_of_stock") : undefined;
   }
 
-  if (allowedStatuses.has(normalized as VariantStatus)) {
-    return normalized as VariantStatus;
+  if (allowedStatuses.has(normalized as EntityStatus)) {
+    return normalized as EntityStatus;
   }
 
-  if (["active", "активна", "активный", "впродаже", "продажа", "sale"].includes(normalized.replace(/\s+/g, ""))) {
+  if (["active", "активна", "активный", "впродаже", "продажа", "sale", "вналичии"].includes(normalized)) {
     return "active";
   }
 
-  if (["draft", "черновик", "подзаказ", "order"].includes(normalized.replace(/\s+/g, ""))) {
+  if (["draft", "черновик", "подзаказ", "order"].includes(normalized)) {
     return "draft";
   }
 
-  if (["hidden", "скрыта", "скрыт", "hide"].includes(normalized.replace(/\s+/g, ""))) {
+  if (["hidden", "скрыта", "скрыт", "hide"].includes(normalized)) {
     return "hidden";
   }
 
-  if (["out_of_stock", "нетвналичии", "нет", "outofstock"].includes(normalized.replace(/\s+/g, ""))) {
+  if (["outofstock", "out_of_stock", "нетвналичии", "нет", "закончился"].includes(normalized)) {
     return "out_of_stock";
   }
 
@@ -89,17 +120,30 @@ function normalizeStatus(value: string, stock?: number): VariantStatus | undefin
 }
 
 function slugify(value: string) {
-  return value
+  const slug = value
     .toLowerCase()
     .trim()
     .replace(/ё/g, "e")
     .replace(/й/g, "i")
     .replace(/[^a-z0-9а-я]+/gi, "-")
     .replace(/^-+|-+$/g, "");
+
+  return slug || "item";
 }
 
 function normalizeSku(value: string) {
   return value.trim().toUpperCase().replace(/\s+/g, "-");
+}
+
+function splitList(value: string) {
+  return value
+    .split(/[\n,;|]+/g)
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function uniqueList(values: string[]) {
+  return Array.from(new Set(values.map((value) => value.trim()).filter(Boolean)));
 }
 
 function getErrorMessage(error: unknown) {
@@ -108,6 +152,167 @@ function getErrorMessage(error: unknown) {
   }
 
   return "Неизвестная ошибка.";
+}
+
+async function getUniqueProductSlug(baseValue: string) {
+  const baseSlug = slugify(baseValue);
+  let slug = baseSlug;
+  let index = 2;
+
+  while (await prisma.product.findUnique({ where: { slug }, select: { id: true } })) {
+    slug = `${baseSlug}-${index}`;
+    index += 1;
+  }
+
+  return slug;
+}
+
+async function getUniqueVariantSlug(productId: string, baseValue: string) {
+  const baseSlug = slugify(baseValue);
+  let slug = baseSlug;
+  let index = 2;
+
+  while (
+    await prisma.productVariant.findUnique({
+      where: { productId_slug: { productId, slug } },
+      select: { id: true },
+    })
+  ) {
+    slug = `${baseSlug}-${index}`;
+    index += 1;
+  }
+
+  return slug;
+}
+
+async function findOrCreateCategory(row: ImportRow) {
+  const categoryValue = toStringCell(row, [
+    "categorySlug",
+    "category",
+    "категория",
+    "раздел",
+    "тип",
+  ]);
+
+  if (!categoryValue) {
+    return null;
+  }
+
+  const categorySlug = slugify(categoryValue);
+  const category = await prisma.category.findFirst({
+    where: {
+      OR: [{ slug: categorySlug }, { name: categoryValue }],
+    },
+    select: { id: true, slug: true },
+  });
+
+  if (category) {
+    return category;
+  }
+
+  return prisma.category.create({
+    data: {
+      slug: categorySlug,
+      name: categoryValue,
+      status: "active",
+      sortOrder: toIntCell(row, ["categorySortOrder", "порядок категории"]) ?? 100,
+    },
+    select: { id: true, slug: true },
+  });
+}
+
+async function findProduct(row: ImportRow): Promise<ProductMatch | null> {
+  const productId = toStringCell(row, ["productId", "id товара", "id карточки"]);
+  const productSlug = toStringCell(row, ["productSlug", "modelSlug", "slug модели", "slug товара"]);
+  const modelName = toStringCell(row, ["model", "product", "модель", "карточка", "товар", "название модели"]);
+  const brand = toStringCell(row, ["brand", "бренд", "производитель"]);
+
+  if (productId) {
+    const product = await prisma.product.findUnique({ where: { id: productId } });
+    if (product) {
+      return product;
+    }
+  }
+
+  if (productSlug) {
+    const product = await prisma.product.findFirst({
+      where: {
+        OR: [{ slug: productSlug }, { slug: slugify(productSlug) }, { name: productSlug }],
+      },
+    });
+
+    if (product) {
+      return product;
+    }
+  }
+
+  if (modelName) {
+    const product = await prisma.product.findFirst({
+      where: {
+        AND: [
+          {
+            OR: [{ name: modelName }, { slug: slugify(modelName) }],
+          },
+          ...(brand ? [{ brand }] : []),
+        ],
+      },
+    });
+
+    if (product) {
+      return product;
+    }
+  }
+
+  return null;
+}
+
+async function findOrCreateProduct(row: ImportRow): Promise<{ product: ProductMatch | null; createdProduct: boolean }> {
+  const existingProduct = await findProduct(row);
+
+  if (existingProduct) {
+    return { product: existingProduct, createdProduct: false };
+  }
+
+  const modelName = toStringCell(row, ["model", "product", "модель", "карточка", "товар", "название модели"]);
+  const brand = toStringCell(row, ["brand", "бренд", "производитель"]);
+  const price = toIntCell(row, ["price", "цена", "цена продажи"]);
+
+  if (!modelName || !brand || price === undefined) {
+    return { product: null, createdProduct: false };
+  }
+
+  const category = await findOrCreateCategory(row);
+
+  if (!category) {
+    return { product: null, createdProduct: false };
+  }
+
+  const variantImages = splitList(toStringCell(row, ["images", "image", "фото", "картинки", "изображения"]));
+  const productImage = toStringCell(row, ["productImage", "фото модели", "главное фото", "главная картинка"]) || variantImages[0] || "";
+  const color = toStringCell(row, ["color", "цвет"]);
+  const productSlug = await getUniqueProductSlug(toStringCell(row, ["productSlug", "modelSlug", "slug модели"]) || modelName);
+
+  const product = await prisma.product.create({
+    data: {
+      slug: productSlug,
+      name: modelName,
+      brand,
+      categoryId: category.id,
+      categorySlug: category.slug,
+      description: toStringCell(row, ["description", "описание модели", "описание"]),
+      shortDescription: toStringCell(row, ["shortDescription", "короткое описание"]),
+      image: productImage,
+      promoImage: toStringCell(row, ["promoImage", "промо фото"]),
+      images: uniqueList([productImage, ...variantImages]),
+      colors: uniqueList([color]),
+      status: normalizeStatus(toStringCell(row, ["productStatus", "статус модели", "статус товара"])) ?? "active",
+      isNew: toBooleanCell(row, ["isNew", "новинка"] ) ?? false,
+      isPopular: toBooleanCell(row, ["isPopular", "популярный", "хит"] ) ?? false,
+      sortOrder: toIntCell(row, ["productSortOrder", "порядок модели", "порядок товара", "порядок"]) ?? 100,
+    },
+  });
+
+  return { product, createdProduct: true };
 }
 
 export async function POST(request: NextRequest) {
@@ -133,6 +338,7 @@ export async function POST(request: NextRequest) {
     let created = 0;
     let updated = 0;
     let skipped = 0;
+    let productsCreated = 0;
     const errors: string[] = [];
 
     for (const [index, rawRow] of rawRows.entries()) {
@@ -150,7 +356,16 @@ export async function POST(request: NextRequest) {
       const oldPrice = toIntCell(row, ["oldPrice", "old price", "старая цена", "цена до акции", "до акции"]);
       const stock = toIntCell(row, ["stock", "остаток", "наличие", "qty", "quantity", "количество"]);
       const status = normalizeStatus(toStringCell(row, ["status", "статус"]), stock);
-      const existing = await prisma.productVariant.findUnique({ where: { sku } });
+      const title = toStringCell(row, ["name", "title", "название", "позиция", "название позиции"]);
+      const color = toStringCell(row, ["color", "цвет"]);
+      const colorHex = toStringCell(row, ["colorHex", "hex", "цвет hex"]);
+      const memory = toStringCell(row, ["memory", "память", "объем", "объём"]);
+      const sim = toStringCell(row, ["sim", "сим", "sim card"]);
+      const images = splitList(toStringCell(row, ["images", "image", "фото", "картинки", "изображения"]));
+      const existing = await prisma.productVariant.findUnique({
+        where: { sku },
+        include: { product: true },
+      });
 
       if (existing) {
         await prisma.productVariant.update({
@@ -160,52 +375,54 @@ export async function POST(request: NextRequest) {
             ...(oldPrice !== undefined ? { oldPrice } : {}),
             ...(stock !== undefined ? { stock } : {}),
             ...(status ? { status } : {}),
-            ...(toStringCell(row, ["name", "title", "название", "позиция"]) ? { title: toStringCell(row, ["name", "title", "название", "позиция"]) } : {}),
-            ...(toStringCell(row, ["color", "цвет"]) ? { color: toStringCell(row, ["color", "цвет"]) } : {}),
-            ...(toStringCell(row, ["colorHex", "hex", "цвет hex"]) ? { colorHex: toStringCell(row, ["colorHex", "hex", "цвет hex"]) } : {}),
-            ...(toStringCell(row, ["memory", "память"]) ? { memory: toStringCell(row, ["memory", "память"]) } : {}),
-            ...(toStringCell(row, ["sim", "сим"]) ? { sim: toStringCell(row, ["sim", "сим"]) } : {}),
+            ...(title ? { title } : {}),
+            ...(color ? { color } : {}),
+            ...(colorHex ? { colorHex } : {}),
+            ...(memory ? { memory } : {}),
+            ...(sim ? { sim } : {}),
+            ...(images.length ? { images } : {}),
             ...(toStringCell(row, ["seoTitle", "seo title", "сео заголовок"]) ? { seoTitle: toStringCell(row, ["seoTitle", "seo title", "сео заголовок"]) } : {}),
             ...(toStringCell(row, ["seoDescription", "seo description", "сео описание"]) ? { seoDescription: toStringCell(row, ["seoDescription", "seo description", "сео описание"]) } : {}),
             ...(toStringCell(row, ["seoKeywords", "seo keywords", "ключи", "сео ключи"]) ? { seoKeywords: toStringCell(row, ["seoKeywords", "seo keywords", "ключи", "сео ключи"]) } : {}),
           },
         });
+
+        if (color && !existing.product.colors.includes(color)) {
+          await prisma.product.update({
+            where: { id: existing.productId },
+            data: { colors: uniqueList([...existing.product.colors, color]) },
+          });
+        }
+
         updated += 1;
         continue;
       }
 
-      const productSlug = toStringCell(row, ["productSlug", "modelSlug", "model", "product", "модель", "карточка"]);
-      const product = productSlug
-        ? await prisma.product.findFirst({
-            where: {
-              OR: [{ slug: productSlug }, { name: productSlug }],
-            },
-          })
-        : null;
+      const { product, createdProduct } = await findOrCreateProduct(row);
 
-      const title = toStringCell(row, ["name", "title", "название", "позиция"]);
-
-      if (!product || price === undefined || !title) {
+      if (!product || price === undefined) {
         skipped += 1;
         errors.push(
-          `Строка ${rowNumber}: SKU ${sku} не найден. Для создания новой позиции нужны model/productSlug, name/title и price.`,
+          `Строка ${rowNumber}: SKU ${sku} не найден. Для создания нужны sku, price/цена, model/модель, brand/бренд и category/категория.`,
         );
         continue;
       }
 
       const newStock = stock ?? 0;
+      const variantTitle = title || [product.name, memory, color, sim].filter(Boolean).join(" ").trim() || product.name;
+      const variantSlug = await getUniqueVariantSlug(product.id, toStringCell(row, ["slug", "slug позиции"]) || sku);
 
       await prisma.productVariant.create({
         data: {
           productId: product.id,
           sku,
-          slug: slugify(sku),
-          title,
-          memory: toStringCell(row, ["memory", "память"]),
-          color: toStringCell(row, ["color", "цвет"]),
-          colorHex: toStringCell(row, ["colorHex", "hex", "цвет hex"]),
-          sim: toStringCell(row, ["sim", "сим"]),
-          images: [],
+          slug: variantSlug,
+          title: variantTitle,
+          memory,
+          color,
+          colorHex,
+          sim,
+          images,
           price,
           oldPrice: oldPrice ?? null,
           stock: newStock,
@@ -215,10 +432,29 @@ export async function POST(request: NextRequest) {
           seoKeywords: toStringCell(row, ["seoKeywords", "seo keywords", "ключи", "сео ключи"]),
         },
       });
+
+      if (color && !product.colors.includes(color)) {
+        await prisma.product.update({
+          where: { id: product.id },
+          data: { colors: uniqueList([...product.colors, color]) },
+        });
+      }
+
+      if (images.length && product.images.length === 0) {
+        await prisma.product.update({
+          where: { id: product.id },
+          data: { image: images[0], images },
+        });
+      }
+
+      if (createdProduct) {
+        productsCreated += 1;
+      }
+
       created += 1;
     }
 
-    return NextResponse.json({ ok: true, created, updated, skipped, errors });
+    return NextResponse.json({ ok: true, created, updated, skipped, productsCreated, errors });
   } catch (error) {
     return NextResponse.json(
       {

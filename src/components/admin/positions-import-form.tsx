@@ -9,8 +9,10 @@ type ImportResult = {
   created?: number;
   updated?: number;
   skipped?: number;
+  productsCreated?: number;
   errors?: string[];
   error?: string;
+  details?: string;
 };
 
 export function PositionsImportForm() {
@@ -68,11 +70,17 @@ export function PositionsImportForm() {
         <div>
           <h2 className="text-2xl font-bold tracking-[-0.035em] text-white">Импорт позиций</h2>
           <p className="mt-3 max-w-[980px] text-sm leading-relaxed text-white/55">
-            Excel обновляет SKU-позиции по колонке <span className="font-semibold text-white">sku</span>. Для быстрой загрузки достаточно колонок: <span className="text-white">sku, price, oldPrice, stock</span>. Дополнительно можно передать model/productSlug, name, color, memory, sim, status, seoTitle, seoDescription и seoKeywords.
+            Excel обновляет существующие SKU по колонке <span className="font-semibold text-white">sku</span> и теперь может создавать новые позиции. Для обновления цены/наличия достаточно: <span className="text-white">sku, price, stock</span>. Для новой позиции добавьте: <span className="text-white">model, brand, category, name</span>. Если модели или категории ещё нет, импорт создаст их автоматически.
           </p>
         </div>
 
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center">
+          <a
+            href="/api/admin/positions/template"
+            className="rounded-xl border border-white/10 bg-black/20 px-5 py-3 text-center text-sm font-medium text-white transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
+          >
+            Скачать шаблон
+          </a>
           <label className="cursor-pointer rounded-xl border border-white/10 bg-black/20 px-5 py-3 text-center text-sm font-medium text-white transition-colors hover:border-blue-500/40 hover:bg-blue-500/10">
             {fileName || "Выбрать XLSX"}
             <input ref={fileRef} type="file" accept=".xlsx,.xls" onChange={handleFileChange} className="hidden" />
@@ -93,7 +101,7 @@ export function PositionsImportForm() {
             result.error
           ) : (
             <>
-              Готово: обновлено {result.updated ?? 0}, создано {result.created ?? 0}, пропущено {result.skipped ?? 0}.
+              Готово: обновлено {result.updated ?? 0}, создано позиций {result.created ?? 0}, создано моделей {result.productsCreated ?? 0}, пропущено {result.skipped ?? 0}.
               {result.errors?.length ? (
                 <ul className="mt-2 list-disc space-y-1 pl-5 text-red-100/80">
                   {result.errors.slice(0, 6).map((error) => (
