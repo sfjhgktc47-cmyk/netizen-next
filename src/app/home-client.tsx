@@ -419,6 +419,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
       imageDark: banner.imageDark || banner.imageLight || banner.imageMobile,
       imageLight: banner.imageLight || banner.imageDark || banner.imageMobile,
       imageMobile: banner.imageMobile || banner.imageLight || banner.imageDark,
+      titleSize: banner.titleSize,
     }))
     .filter((slide) => slide.title || slide.text || slide.imageDark || slide.imageLight);
 
@@ -500,7 +501,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
         }`}
       >
         {image ? (
-          <picture className="absolute inset-0 hidden h-full w-full p-4 sm:block">
+          <picture className="absolute inset-0 hidden h-full w-full sm:block">
             <img
               src={image}
               alt=""
@@ -526,8 +527,8 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
         <div
           className={`absolute inset-0 transition-all duration-700 ${
             dark
-              ? "bg-gradient-to-r from-[#06101f]/88 via-[#06101f]/45 to-transparent sm:from-[#020814]/90 sm:via-[#020814]/50 sm:to-transparent"
-              : "bg-gradient-to-r from-white/85 via-white/45 to-transparent sm:from-white/88 sm:via-white/45 sm:to-transparent"
+              ? "bg-gradient-to-r from-[#06101f]/85 via-[#06101f]/30 to-transparent sm:from-[#020814]/85 sm:via-[#020814]/35 sm:to-transparent"
+              : "bg-gradient-to-r from-white/80 via-white/25 to-transparent sm:from-white/80 sm:via-white/25 sm:to-transparent"
           }`}
         />
 
@@ -539,7 +540,11 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
               </div>
             ) : null}
 
-            <h1 className="max-w-[620px] whitespace-pre-line text-[20px] font-bold leading-[1.02] tracking-[-0.055em] sm:text-[38px] lg:text-[60px]">
+            <h1 className={`max-w-[620px] whitespace-pre-line font-bold leading-[1.02] tracking-[-0.055em] ${
+              slide.titleSize === "md" ? "text-[18px] sm:text-[30px] lg:text-[44px]"
+                : slide.titleSize === "xl" ? "text-[24px] sm:text-[48px] lg:text-[72px]"
+                : "text-[20px] sm:text-[38px] lg:text-[60px]"
+            }`}>
               {slide.title}
             </h1>
 
@@ -711,7 +716,7 @@ function Categories({
                   : "border-black/10 bg-white shadow-[0_20px_70px_rgba(15,23,42,0.08)] hover:border-blue-500/35 hover:shadow-[0_28px_90px_rgba(15,23,42,0.12)]"
               }`}
             >
-              <div className="relative z-10 order-2 w-full sm:order-none sm:max-w-[62%]">
+              <div className="relative z-10 order-2 w-full sm:order-none sm:max-w-[58%]">
                 <h3 className="line-clamp-2 text-[10px] font-bold leading-tight sm:text-lg">
                   {category.name}
                 </h3>
@@ -721,11 +726,14 @@ function Categories({
                 </p>
               </div>
 
-              <div className="relative z-10 order-1 flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl sm:absolute sm:right-5 sm:top-1/2 sm:h-[92px] sm:w-[92px] sm:-translate-y-1/2 sm:rounded-2xl">
+              <div className="relative z-10 order-1 flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl sm:absolute sm:right-4 sm:top-1/2 sm:h-[130px] sm:w-[130px] sm:-translate-y-1/2 sm:rounded-2xl">
                 {image ? (
-                  <div
-                    className="h-full w-full bg-contain bg-center bg-no-repeat opacity-95 transition-transform duration-500 group-hover:scale-105"
-                    style={{ backgroundImage: `url(${image})` }}
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={image}
+                    alt=""
+                    draggable={false}
+                    className="h-full w-full object-contain"
                   />
                 ) : (
                   <div className={`h-full w-full rounded-xl sm:rounded-2xl ${dark ? "bg-white/[0.04]" : "bg-slate-100"}`} />
@@ -742,7 +750,7 @@ function Categories({
                 →
               </div>
 
-              <div className={`pointer-events-none absolute inset-y-0 right-0 hidden w-[45%] sm:block ${dark ? "bg-gradient-to-l from-blue-500/5 to-transparent" : "bg-gradient-to-l from-slate-50/80 to-transparent"}`} />
+              <div className={`pointer-events-none absolute inset-y-0 right-0 hidden w-[30%] sm:block ${dark ? "bg-gradient-to-l from-blue-500/5 to-transparent" : "bg-gradient-to-l from-white/30 to-transparent"}`} />
             </Link>
           );
         })}
