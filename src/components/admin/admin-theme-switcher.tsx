@@ -121,10 +121,18 @@ function AdminThemeStyle() {
         color: #d97706 !important;
       }
 
-      [data-admin-theme="light"] .admin-theme-scope [class*="bg-blue-"] *,
-      [data-admin-theme="light"] .admin-theme-scope [class*="bg-red-"] *,
-      [data-admin-theme="light"] .admin-theme-scope [class*="bg-green-"] *,
-      [data-admin-theme="light"] .admin-theme-scope [class*="bg-amber-"] * {
+      [data-admin-theme="light"] .admin-theme-scope [class*="bg-blue-6"],
+      [data-admin-theme="light"] .admin-theme-scope [class*="bg-blue-6"] *,
+      [data-admin-theme="light"] .admin-theme-scope [class*="bg-blue-500"]:not([class*="bg-blue-500/"]):not([class*="bg-blue-500\\5b"]),
+      [data-admin-theme="light"] .admin-theme-scope [class*="bg-blue-500"]:not([class*="bg-blue-500/"]):not([class*="bg-blue-500\\5b"]) *,
+      [data-admin-theme="light"] .admin-theme-scope [class*="bg-red-6"],
+      [data-admin-theme="light"] .admin-theme-scope [class*="bg-red-6"] *,
+      [data-admin-theme="light"] .admin-theme-scope [class*="bg-red-500"]:not([class*="bg-red-500/"]),
+      [data-admin-theme="light"] .admin-theme-scope [class*="bg-red-500"]:not([class*="bg-red-500/"]) *,
+      [data-admin-theme="light"] .admin-theme-scope [class*="bg-green-6"],
+      [data-admin-theme="light"] .admin-theme-scope [class*="bg-green-6"] *,
+      [data-admin-theme="light"] .admin-theme-scope [class*="bg-green-500"]:not([class*="bg-green-500/"]),
+      [data-admin-theme="light"] .admin-theme-scope [class*="bg-green-500"]:not([class*="bg-green-500/"]) * {
         color: #ffffff !important;
       }
 
@@ -187,15 +195,9 @@ function AdminThemeStyle() {
         color: #101828 !important;
       }
 
-      [data-admin-theme="light"] .admin-theme-scope [class*="bg-blue-"] {
-        color: #ffffff !important;
-      }
 
-      [data-admin-theme="light"] .admin-theme-scope [class*="bg-red-"],
-      [data-admin-theme="light"] .admin-theme-scope [class*="bg-green-"],
-      [data-admin-theme="light"] .admin-theme-scope [class*="bg-amber-"] {
-        color: inherit;
-      }
+
+
 
       [data-admin-theme="light"] .admin-theme-scope,
       [data-admin-theme="light"] .admin-theme-scope * {
@@ -207,10 +209,7 @@ function AdminThemeStyle() {
         color: #101828 !important;
       }
 
-      [data-admin-theme="light"] .admin-theme-scope [class*="bg-blue-"] *,
-      [data-admin-theme="light"] .admin-theme-scope button[class*="bg-blue-"] {
-        color: #ffffff !important;
-      }
+
 
       [data-admin-theme="light"] .admin-theme-scope input::placeholder,
       [data-admin-theme="light"] .admin-theme-scope textarea::placeholder {

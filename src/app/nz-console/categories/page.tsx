@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { CategoryStatusToggle } from "@/components/admin/category-status-toggle";
+import { SortOrderInput } from "@/components/admin/sort-order-input";
 
 import {
   getAdminCategoriesDetailed,
@@ -138,7 +139,7 @@ export default async function AdminCategoriesPage() {
                   </AdminCell>
 
                   <AdminCell label="Порядок">
-                    <span className="text-white/55">{category.sortOrder}</span>
+                    <SortOrderInput id={category.id} value={category.sortOrder} apiPath="/api/admin/categories" />
                   </AdminCell>
 
                   <div className="flex flex-wrap gap-2 lg:justify-end">

@@ -221,7 +221,7 @@ export default function Home({ initialData = {} }: { initialData?: HomePayload }
           : "min-h-screen bg-[#f6f8fb] text-[#0b1220] transition-colors duration-700 ease-in-out"
       }
     >
-      <div className="mx-auto max-w-[1440px] px-2 pb-28 pt-2.5 sm:px-5 sm:py-6 lg:px-6">
+      <div className="mx-auto max-w-[1440px] px-2 pb-12 pt-2.5 sm:px-5 sm:py-6 lg:px-6">
         <SiteHeader />
 
         {visibleHomeBlocks.map((block) => (
@@ -614,13 +614,8 @@ function Benefits({
   const items = benefits;
 
   return (
-    <section className={`mt-3 rounded-2xl border p-3 transition-all duration-700 sm:mt-10 sm:p-6 ${panelClass(dark)}`}>
-      <div>
-        <h2 className="text-lg font-bold tracking-[-0.04em] sm:text-3xl">{title}</h2>
-        <p className={`mt-0.5 text-[11px] sm:mt-2 sm:text-sm ${mutedTextClass(dark)}`}>{subtitle}</p>
-      </div>
-
-      <div className="mt-3 flex gap-2 overflow-x-auto pb-1 sm:mt-6 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0 md:grid-cols-5 md:gap-4 [&::-webkit-scrollbar]:hidden" style={{scrollbarWidth:"none"}}>
+    <section className={`mt-3 rounded-2xl border p-3 transition-all duration-700 sm:mt-6 sm:p-5 ${panelClass(dark)}`}>
+      <div className="flex gap-2 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0 md:grid-cols-5 md:gap-4 [&::-webkit-scrollbar]:hidden" style={{scrollbarWidth:"none"}}>
         {items.map((item) => {
           const card = (
             <div className={`flex min-h-[68px] w-[200px] shrink-0 items-start gap-2 rounded-2xl border p-2.5 sm:min-h-0 sm:w-auto sm:gap-4 sm:border-0 sm:p-0 ${
@@ -680,7 +675,7 @@ function Categories({
   }
 
   return (
-    <section className="py-4 sm:py-14 lg:py-20">
+    <section className="py-3 sm:py-8 lg:py-10">
       <div className="flex items-end justify-between gap-3">
         <div className="min-w-0">
           <h2 className="text-[20px] font-bold leading-tight tracking-[-0.04em] sm:text-3xl lg:text-4xl">
@@ -871,7 +866,7 @@ function PopularProducts({
   }
 
   return (
-    <section className="pb-4 sm:pb-16 lg:pb-20">
+    <section className="pb-3 sm:pb-8 lg:pb-10">
       <div className="flex items-end justify-between gap-3">
         <div className="min-w-0">
           <h2 className="text-[20px] font-bold leading-tight tracking-[-0.04em] sm:text-[36px] lg:text-[52px]">
@@ -1065,7 +1060,7 @@ function NewArrivals({
 
   if (!mainItem) {
     return (
-      <section className="pb-5 sm:pb-16 lg:pb-20">
+      <section className="pb-3 sm:pb-8 lg:pb-10">
         <div className="mb-8">
           <h2 className="text-[23px] font-bold leading-none tracking-[-0.04em] sm:text-[36px] lg:text-[52px]">
             {title}
@@ -1090,9 +1085,9 @@ function NewArrivals({
   }
 
   return (
-    <section className="pb-5 sm:pb-16 lg:pb-20">
-      <div className="mb-8">
-        <h2 className="text-[28px] font-bold leading-none tracking-[-0.04em] sm:text-[36px] lg:text-[52px]">
+    <section className="pb-3 sm:pb-8 lg:pb-10">
+      <div className="mb-5 sm:mb-8">
+        <h2 className="text-[24px] font-bold leading-none tracking-[-0.04em] sm:text-[36px] lg:text-[52px]">
           {title}
         </h2>
 
@@ -1137,10 +1132,10 @@ function NewArrivalCard({
   return (
     <Link
       href={href}
-      className={`group relative grid min-h-[132px] grid-cols-[minmax(0,1fr)_120px] overflow-hidden rounded-2xl border transition-all duration-500 hover:-translate-y-1 sm:min-h-[250px] sm:rounded-3xl ${
+      className={`group relative grid min-h-[120px] grid-cols-[minmax(0,1fr)_110px] overflow-hidden rounded-2xl border transition-all duration-500 hover:-translate-y-1 sm:min-h-[200px] sm:rounded-3xl ${
         featured
-          ? "lg:min-h-[340px] lg:grid-cols-[minmax(0,0.95fr)_minmax(340px,1.1fr)]"
-          : "lg:min-h-[240px] lg:grid-cols-[minmax(0,0.95fr)_minmax(260px,1fr)]"
+          ? "lg:min-h-[280px] lg:grid-cols-[minmax(0,0.95fr)_minmax(280px,1.1fr)]"
+          : "lg:min-h-[190px] lg:grid-cols-[minmax(0,0.95fr)_minmax(220px,1fr)]"
       } ${
         dark
           ? "border-white/10 bg-white/[0.035] shadow-[0_24px_90px_rgba(0,60,255,0.09)] hover:border-blue-500/35"
@@ -1152,7 +1147,7 @@ function NewArrivalCard({
           Новинка
         </div>
 
-        <h3 className={`mt-2 max-w-[420px] font-bold leading-[1.05] tracking-[-0.045em] sm:mt-4 ${featured ? "text-[18px] sm:text-4xl lg:text-5xl" : "text-[17px] sm:text-2xl lg:text-3xl"}`}>
+        <h3 className={`mt-2 max-w-[420px] font-bold leading-[1.05] tracking-[-0.045em] sm:mt-3 ${featured ? "text-[17px] sm:text-3xl lg:text-4xl" : "text-[16px] sm:text-xl lg:text-2xl"}`}>
           {item.name}
         </h3>
 
@@ -1169,7 +1164,7 @@ function NewArrivalCard({
         </div>
       </div>
 
-      <div className={`relative min-h-full overflow-hidden ${dark ? "bg-white/[0.025]" : "bg-slate-50"}`}>
+      <div className={`relative min-h-full overflow-hidden ${dark ? "bg-white/[0.025]" : "bg-white"}`}>
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element
           <img
@@ -1221,7 +1216,7 @@ function PromoBanner({
   const textSize = banner?.textSize || getBlockText(settings, "textSize", "md");
 
   return (
-    <section className="pb-5 sm:pb-16 lg:pb-20">
+    <section className="pb-3 sm:pb-8 lg:pb-10">
       <Link
         href={buttonHref}
         className={`group grid overflow-hidden rounded-[22px] border transition-all duration-500 hover:-translate-y-1 sm:min-h-[260px] sm:rounded-[34px] lg:grid-cols-[0.95fr_1.05fr] ${
@@ -1269,7 +1264,7 @@ function TextImageModule({
   const imageSide = getBlockText(settings, "imageSide", "right");
 
   return (
-    <section className="pb-5 sm:pb-16 lg:pb-20">
+    <section className="pb-3 sm:pb-8 lg:pb-10">
       <div
         className={`grid overflow-hidden rounded-[34px] border lg:grid-cols-2 ${
           dark
@@ -1333,7 +1328,7 @@ function SupportBlock({ dark }: { dark: boolean }) {
   ];
 
   return (
-    <section className={`mb-24 rounded-[22px] border p-3 transition-all duration-700 sm:mb-20 sm:rounded-[32px] sm:p-8 md:p-10 ${panelClass(dark)}`}>
+    <section className={`mb-10 rounded-[22px] border p-3 transition-all duration-700 sm:mb-20 sm:rounded-[32px] sm:p-8 md:p-10 ${panelClass(dark)}`}>
       <h2 className="text-xl font-bold tracking-[-0.04em] sm:text-4xl md:text-5xl">
         Сервис и поддержка Нетизен
       </h2>
