@@ -175,16 +175,6 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
               />
             </Field>
 
-            <Field label="Порядок в каталоге">
-              <input
-                type="number"
-                value={sortOrder}
-                onChange={(event) => setSortOrder(event.target.value)}
-                placeholder="100"
-                className={inputClass}
-              />
-            </Field>
-
             <Field label="Статус карточки">
               <select
                 value={status}
@@ -195,6 +185,16 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
                 <option value="draft">Черновик</option>
                 <option value="hidden">Скрыта</option>
               </select>
+            </Field>
+
+            <Field label="Порядок в каталоге">
+              <input
+                type="number"
+                value={sortOrder}
+                onChange={(event) => setSortOrder(event.target.value)}
+                placeholder="100"
+                className={inputClass}
+              />
             </Field>
 
             <div className="grid gap-3 rounded-2xl border border-white/10 bg-black/20 p-4">

@@ -39,10 +39,10 @@ export type AdminProductListItem = {
   images: string[];
   isNew: boolean;
   isPopular: boolean;
-  sortOrder: number;
   variantsCount: number;
   minPrice: number | null;
   stockTotal: number;
+  sortOrder: number;
   source: "db";
 };
 
@@ -157,10 +157,10 @@ function toAdminProduct(product: any): AdminProductListItem {
     images: normalizeProductImages(product),
     isNew: Boolean(product.isNew),
     isPopular: Boolean(product.isPopular),
-    sortOrder: Number(product.sortOrder ?? 100),
     variantsCount: variants.length,
     minPrice: prices.length > 0 ? Math.min(...prices) : null,
     stockTotal: variants.reduce((sum: number, variant: any) => sum + Number(variant.stock ?? 0), 0),
+    sortOrder: Number(product.sortOrder ?? 100),
     source: "db",
   };
 }

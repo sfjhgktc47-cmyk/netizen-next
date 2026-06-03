@@ -70,7 +70,7 @@ export function PositionsImportForm() {
         <div>
           <h2 className="text-2xl font-bold tracking-[-0.035em] text-white">Импорт позиций</h2>
           <p className="mt-3 max-w-[980px] text-sm leading-relaxed text-white/55">
-            Excel обновляет существующие SKU по колонке <span className="font-semibold text-white">sku</span> и теперь может создавать новые позиции. Для обновления цены/наличия достаточно: <span className="text-white">sku, price, stock</span>. Для новой позиции добавьте: <span className="text-white">model, brand, category, name</span>. Если модели или категории ещё нет, импорт создаст их автоматически.
+            Excel обновляет существующие SKU по колонке <span className="font-semibold text-white">sku</span> и может создавать новые позиции. Шаблон теперь полный: материнская карточка, категория, порядок, SKU, название, память, цвет, HEX, SIM, цена, старая цена, остаток, статус, SEO и фото. Пустые ячейки не затирают уже заполненные данные.
           </p>
         </div>
 
@@ -79,7 +79,7 @@ export function PositionsImportForm() {
             href="/api/admin/positions/template"
             className="rounded-xl border border-white/10 bg-black/20 px-5 py-3 text-center text-sm font-medium text-white transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
           >
-            Скачать шаблон
+            Скачать полный шаблон
           </a>
           <label className="cursor-pointer rounded-xl border border-white/10 bg-black/20 px-5 py-3 text-center text-sm font-medium text-white transition-colors hover:border-blue-500/40 hover:bg-blue-500/10">
             {fileName || "Выбрать XLSX"}

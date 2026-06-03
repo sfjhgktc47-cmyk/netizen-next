@@ -620,13 +620,13 @@ function Benefits({
 
   return (
     <section className={`mt-3 rounded-2xl border p-3 transition-all duration-700 sm:mt-6 sm:p-5 ${panelClass(dark)}`}>
-      <div className="flex gap-2 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0 md:grid-cols-5 md:gap-4 [&::-webkit-scrollbar]:hidden" style={{scrollbarWidth:"none"}}>
+      <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
         {items.map((item) => {
           const card = (
-            <div className={`flex min-h-[68px] w-[200px] shrink-0 items-start gap-2 rounded-2xl border p-2.5 sm:min-h-0 sm:w-auto sm:gap-4 sm:border-0 sm:p-0 ${
-              dark ? "border-white/10 bg-white/[0.025]" : "border-black/10 bg-slate-50/80 sm:bg-transparent"
+            <div className={`flex h-full min-h-[82px] w-full items-start gap-3 rounded-2xl border p-3 sm:min-h-[94px] sm:gap-4 sm:p-4 ${
+              dark ? "border-white/10 bg-white/[0.025]" : "border-black/10 bg-slate-50/80"
             }`}>
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-blue-500/30 text-xs text-blue-500 sm:h-12 sm:w-12 sm:text-base">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-blue-500/30 text-sm text-blue-500 sm:h-11 sm:w-11 sm:text-base">
                 {item.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={item.image} alt="" className="h-full w-full object-cover" />
@@ -635,21 +635,25 @@ function Benefits({
                 )}
               </div>
 
-              <div className="min-w-0">
-                <div className="line-clamp-2 text-[12px] font-semibold leading-tight sm:text-base">{item.title}</div>
-                <div className={`mt-0.5 line-clamp-2 text-[10px] leading-snug sm:mt-1 sm:text-sm ${mutedTextClass(dark)}`}>
-                  {item.description}
-                </div>
+              <div className="min-w-0 flex-1">
+                <div className="break-words text-[12px] font-semibold leading-snug sm:text-sm">{item.title}</div>
+                {item.description ? (
+                  <div className={`mt-1 break-words text-[10px] leading-snug sm:text-xs ${mutedTextClass(dark)}`}>
+                    {item.description}
+                  </div>
+                ) : null}
               </div>
             </div>
           );
 
+          const itemClass = "w-full min-w-[220px] flex-1 sm:basis-[240px] lg:max-w-[260px]";
+
           return item.href ? (
-            <Link key={item.id} href={item.href} className="rounded-xl transition-opacity hover:opacity-80">
+            <Link key={item.id} href={item.href} className={`${itemClass} rounded-2xl transition-opacity hover:opacity-80`}>
               {card}
             </Link>
           ) : (
-            <div key={item.id}>{card}</div>
+            <div key={item.id} className={itemClass}>{card}</div>
           );
         })}
       </div>

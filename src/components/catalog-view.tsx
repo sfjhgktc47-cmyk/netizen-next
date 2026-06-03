@@ -30,6 +30,7 @@ type ProductModel = CatalogProductBase & {
   images?: string[];
   shortDescription?: string;
   status?: string;
+  isNew?: boolean;
   isPopular?: boolean;
   sortOrder?: number;
   price: string;
@@ -83,7 +84,6 @@ const sortModeOptions: { value: SortMode; label: string; description: string }[]
   },
 ];
 
-const filterBrands = ["Apple", "Samsung", "Dyson", "Sony", "JBL", "PlayStation"];
 const emptyValue = "—";
 
 function uniqueValues(values: string[]) {
@@ -197,25 +197,25 @@ function getProductPriceStats(
 }
 
 function getProductSortOrder(product: ProductModel) {
-  const value = Number(product.sortOrder ?? 100);
-  return Number.isFinite(value) ? value : 100;
+  const order = Number(product.sortOrder);
+  return Number.isFinite(order) ? order : 100;
 }
 
 function sortProductModels(items: ProductModel[], sortMode: SortMode) {
-  if (sortMode === "popular") {
-    return [...items].sort((a, b) => getProductSortOrder(a) - getProductSortOrder(b));
-  }
-
   return [...items].sort((a, b) => {
     if (sortMode === "price_asc") {
-      return a.minPrice - b.minPrice;
+      return a.minPrice - b.minPrice || getProductSortOrder(a) - getProductSortOrder(b);
     }
 
     if (sortMode === "price_desc") {
-      return b.maxPrice - a.maxPrice;
+      return b.maxPrice - a.maxPrice || getProductSortOrder(a) - getProductSortOrder(b);
     }
 
-    return b.slug.localeCompare(a.slug);
+    if (sortMode === "new") {
+      return Number(Boolean(b.isNew)) - Number(Boolean(a.isNew)) || getProductSortOrder(a) - getProductSortOrder(b);
+    }
+
+    return getProductSortOrder(a) - getProductSortOrder(b);
   });
 }
 
@@ -620,12 +620,22 @@ export function CatalogView({
     [allProducts, categoryId, normalizedSearchQuery, onlyPopular]
   );
 
+  const orderedCategoryProducts = useMemo(
+    () => sortProductModels(categoryProducts, "popular"),
+    [categoryProducts]
+  );
+
+  const filterBrandOptions = useMemo(
+    () => uniqueValues(orderedCategoryProducts.map((product) => product.brand)),
+    [orderedCategoryProducts]
+  );
+
   const visibleModelProducts = useMemo(
     () =>
       selectedBrand
-        ? categoryProducts.filter((product) => product.brand === selectedBrand)
-        : categoryProducts,
-    [categoryProducts, selectedBrand]
+        ? orderedCategoryProducts.filter((product) => product.brand === selectedBrand)
+        : orderedCategoryProducts,
+    [orderedCategoryProducts, selectedBrand]
   );
 
   const modelOptions = useMemo(() => {
@@ -845,32 +855,25 @@ export function CatalogView({
   );
 
   const productsByBrand = useMemo(() => {
-    const grouped = visibleModelProducts.reduce<Record<string, ProductModel[]>>(
+    const grouped = visibleModelProducts.reduce<Map<string, ProductModel[]>>(
       (acc, product) => {
-        if (!acc[product.brand]) {
-          acc[product.brand] = [];
-        }
-
-        acc[product.brand].push(product);
+        const current = acc.get(product.brand) ?? [];
+        current.push(product);
+        acc.set(product.brand, current);
         return acc;
       },
-      {}
+      new Map<string, ProductModel[]>()
     );
 
-    return Object.entries(grouped)
+    return Array.from(grouped.entries())
       .map(([brand, brandProducts]) => [
         brand,
         sortProductModels(brandProducts, sortMode),
       ] as [string, ProductModel[]])
-      .sort(([, aProducts], [, bProducts]) => {
-        const aOrder = Math.min(...aProducts.map(getProductSortOrder));
-        const bOrder = Math.min(...bProducts.map(getProductSortOrder));
-
-        if (aOrder !== bOrder) {
-          return aOrder - bOrder;
-        }
-
-        return (aProducts[0]?.brand ?? "").localeCompare(bProducts[0]?.brand ?? "", "ru");
+      .sort((a, b) => {
+        const aOrder = Math.min(...a[1].map(getProductSortOrder));
+        const bOrder = Math.min(...b[1].map(getProductSortOrder));
+        return aOrder - bOrder || a[0].localeCompare(b[0], "ru");
       });
   }, [sortMode, visibleModelProducts]);
 
@@ -1135,6 +1138,7 @@ export function CatalogView({
                   disabledSimOptions={disabledSimOptions}
                   disabledStatusOptions={disabledStatusOptions}
                   resultCount={resultCount}
+                  brandOptions={filterBrandOptions}
                   onSelectBrand={handleSelectBrand}
                   onResetBrand={handleResetBrand}
                   onSelectModel={handleSelectModel}
@@ -1487,6 +1491,7 @@ function FilterPanel({
   disabledSimOptions,
   disabledStatusOptions,
   resultCount,
+  brandOptions,
   onSelectBrand,
   onResetBrand,
   onSelectModel,
@@ -1520,6 +1525,7 @@ function FilterPanel({
   disabledSimOptions: string[];
   disabledStatusOptions: string[];
   resultCount: number;
+  brandOptions: string[];
   onSelectBrand: (brand: string) => void;
   onResetBrand: () => void;
   onSelectModel: (modelSlug: string) => void;
@@ -1562,7 +1568,7 @@ function FilterPanel({
           <div className="mb-3 text-sm font-semibold">Бренд</div>
 
           <div className="flex flex-wrap gap-2">
-            {filterBrands.map((brand) => {
+            {brandOptions.map((brand) => {
               const isActive = brand === selectedBrand;
 
               return (

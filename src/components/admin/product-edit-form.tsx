@@ -188,15 +188,6 @@ export function ProductEditForm({ product, categories }: Props) {
           <input value={brand} onChange={(event) => setBrand(event.target.value)} className={inputClass} />
         </Field>
 
-        <Field label="Порядок в каталоге">
-          <input
-            type="number"
-            value={sortOrder}
-            onChange={(event) => setSortOrder(event.target.value)}
-            className={inputClass}
-          />
-        </Field>
-
         <Field label="Статус">
           <select value={status} onChange={(event) => setStatus(event.target.value)} className={inputClass}>
             <option value="active">Активна</option>
@@ -204,6 +195,16 @@ export function ProductEditForm({ product, categories }: Props) {
             <option value="hidden">Скрыта</option>
             <option value="out_of_stock">Нет в наличии</option>
           </select>
+        </Field>
+
+        <Field label="Порядок в каталоге">
+          <input
+            type="number"
+            value={sortOrder}
+            onChange={(event) => setSortOrder(event.target.value)}
+            className={inputClass}
+            placeholder="100"
+          />
         </Field>
 
         <div className="md:col-span-2 xl:col-span-2">

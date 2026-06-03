@@ -1,5 +1,4 @@
 import { NextRequest, NextResponse } from "next/server";
-import type { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
 
@@ -90,25 +89,6 @@ export async function PATCH(
   const { id } = await params;
   const body = await request.json();
 
-  if (body?.action === "set-sort-order") {
-    try {
-      const product = await prisma.product.update({
-        where: { id },
-        data: { sortOrder: toSortOrder(body?.sortOrder) },
-      });
-
-      return NextResponse.json({ product });
-    } catch (error) {
-      return NextResponse.json(
-        {
-          error: "Не удалось обновить порядок карточки.",
-          details: getErrorMessage(error),
-        },
-        { status: 500 },
-      );
-    }
-  }
-
   if (body?.action === "set-status") {
     try {
       const product = await prisma.product.update({
@@ -123,6 +103,27 @@ export async function PATCH(
       return NextResponse.json(
         {
           error: "Не удалось обновить статус карточки.",
+          details: getErrorMessage(error),
+        },
+        { status: 500 },
+      );
+    }
+  }
+
+  if (body?.action === "set-sort-order") {
+    try {
+      const product = await prisma.product.update({
+        where: { id },
+        data: {
+          sortOrder: toSortOrder(body?.sortOrder),
+        },
+      });
+
+      return NextResponse.json({ product });
+    } catch (error) {
+      return NextResponse.json(
+        {
+          error: "Не удалось обновить порядок карточки.",
           details: getErrorMessage(error),
         },
         { status: 500 },
@@ -157,61 +158,29 @@ export async function PATCH(
     );
   }
 
-  const hasImages = Object.prototype.hasOwnProperty.call(body, "images");
-  const hasImage = Object.prototype.hasOwnProperty.call(body, "image");
-  const images = hasImages ? toStringArrayValue(body?.images) : [];
+  const images = toStringArrayValue(body?.images);
+  const mainImage = images[0] ?? toStringValue(body?.image);
 
   try {
-    const data: Prisma.ProductUncheckedUpdateInput = {
-      name,
-      slug,
-      brand,
-      categorySlug,
-      categoryId: category?.id ?? null,
-    };
-
-    if (Object.prototype.hasOwnProperty.call(body, "shortDescription")) {
-      data.shortDescription = toStringValue(body?.shortDescription);
-    }
-
-    if (Object.prototype.hasOwnProperty.call(body, "description")) {
-      data.description = toStringValue(body?.description);
-    }
-
-    if (Object.prototype.hasOwnProperty.call(body, "descriptionBlocks")) {
-      data.descriptionBlocks = normalizeDescriptionBlocks(body?.descriptionBlocks) as Prisma.InputJsonValue;
-    }
-
-    if (hasImages) {
-      data.images = images;
-      data.image = images[0] ?? (hasImage ? toStringValue(body?.image) : "");
-    } else if (hasImage) {
-      data.image = toStringValue(body?.image);
-    }
-
-    if (Object.prototype.hasOwnProperty.call(body, "promoImage")) {
-      data.promoImage = toStringValue(body?.promoImage).trim();
-    }
-
-    if (Object.prototype.hasOwnProperty.call(body, "status")) {
-      data.status = normalizeStatus(body?.status);
-    }
-
-    if (Object.prototype.hasOwnProperty.call(body, "isNew")) {
-      data.isNew = toBooleanValue(body?.isNew);
-    }
-
-    if (Object.prototype.hasOwnProperty.call(body, "isPopular")) {
-      data.isPopular = toBooleanValue(body?.isPopular);
-    }
-
-    if (Object.prototype.hasOwnProperty.call(body, "sortOrder")) {
-      data.sortOrder = toSortOrder(body?.sortOrder);
-    }
-
     const product = await prisma.product.update({
       where: { id },
-      data,
+      data: {
+        name,
+        slug,
+        brand,
+        categorySlug,
+        categoryId: category?.id ?? null,
+        shortDescription: toStringValue(body?.shortDescription),
+        description: toStringValue(body?.description),
+        descriptionBlocks: normalizeDescriptionBlocks(body?.descriptionBlocks),
+        image: mainImage,
+        promoImage: toStringValue(body?.promoImage).trim(),
+        images,
+        status: normalizeStatus(body?.status),
+        isNew: toBooleanValue(body?.isNew),
+        isPopular: toBooleanValue(body?.isPopular),
+        sortOrder: toSortOrder(body?.sortOrder),
+      },
     });
 
     return NextResponse.json({ product });
