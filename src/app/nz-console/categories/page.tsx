@@ -139,7 +139,7 @@ export default async function AdminCategoriesPage() {
                   </AdminCell>
 
                   <AdminCell label="Порядок">
-                    <SortOrderInput id={category.id} value={category.sortOrder} apiPath="/api/admin/categories" />
+                    <SortOrderInput id={category.id} value={category.sortOrder} apiPath="/api/admin/categories" extraBody={{ name: category.name, slug: category.slug }} />
                   </AdminCell>
 
                   <div className="flex flex-wrap gap-2 lg:justify-end">

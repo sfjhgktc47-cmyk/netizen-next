@@ -7,10 +7,12 @@ export function SortOrderInput({
   id,
   value,
   apiPath,
+  extraBody = {},
 }: {
   id: string;
   value: number;
   apiPath: string;
+  extraBody?: Record<string, unknown>;
 }) {
   const router = useRouter();
   const [order, setOrder] = useState(String(value));
@@ -23,16 +25,21 @@ export function SortOrderInput({
 
     setSaving(true);
     try {
-      await fetch(`${apiPath}/${id}`, {
-        method: "PUT",
+      const res = await fetch(`${apiPath}/${id}`, {
+        method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ sortOrder: num }),
+        body: JSON.stringify({ ...extraBody, sortOrder: num }),
       });
-      setSaved(true);
-      setTimeout(() => setSaved(false), 1500);
-      router.refresh();
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        console.error("Sort save error:", data);
+      } else {
+        setSaved(true);
+        setTimeout(() => setSaved(false), 1500);
+        router.refresh();
+      }
     } catch {
-      alert("Ошибка");
+      alert("Ошибка при сохранении");
     } finally {
       setSaving(false);
     }
