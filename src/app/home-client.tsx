@@ -1087,7 +1087,7 @@ function NewArrivals({
   return (
     <section className="pb-3 sm:pb-8 lg:pb-10">
       <div className="mb-5 sm:mb-8">
-        <h2 className="text-[24px] font-bold leading-none tracking-[-0.04em] sm:text-[36px] lg:text-[52px]">
+        <h2 className="text-[22px] font-bold leading-none tracking-[-0.04em] sm:text-[36px] lg:text-[52px]">
           {title}
         </h2>
 
@@ -1096,11 +1096,11 @@ function NewArrivals({
         </p>
       </div>
 
-      <div className="grid gap-4">
+      <div className="grid gap-3">
         <NewArrivalCard item={mainItem} dark={dark} featured />
 
         {secondaryItems.length > 0 ? (
-          <div className="grid gap-4 lg:grid-cols-2">
+          <div className="grid gap-3 lg:grid-cols-2">
             {secondaryItems.map((item) => (
               <NewArrivalCard key={`${item.slug}-${item.name}`} item={item} dark={dark} />
             ))}
@@ -1132,31 +1132,31 @@ function NewArrivalCard({
   return (
     <Link
       href={href}
-      className={`group relative grid min-h-[120px] grid-cols-[minmax(0,1fr)_110px] overflow-hidden rounded-2xl border transition-all duration-500 hover:-translate-y-1 sm:min-h-[200px] sm:rounded-3xl ${
+      className={`group relative grid min-h-[110px] grid-cols-[minmax(0,1fr)_100px] overflow-hidden rounded-2xl border transition-all duration-500 hover:-translate-y-1 sm:min-h-[140px] sm:rounded-3xl ${
         featured
-          ? "lg:min-h-[280px] lg:grid-cols-[minmax(0,0.95fr)_minmax(280px,1.1fr)]"
-          : "lg:min-h-[190px] lg:grid-cols-[minmax(0,0.95fr)_minmax(220px,1fr)]"
+          ? "lg:min-h-[200px] lg:max-h-[320px] lg:grid-cols-[minmax(0,1fr)_minmax(240px,0.9fr)]"
+          : "lg:min-h-[150px] lg:max-h-[240px] lg:grid-cols-[minmax(0,1fr)_minmax(180px,0.85fr)]"
       } ${
         dark
           ? "border-white/10 bg-white/[0.035] shadow-[0_24px_90px_rgba(0,60,255,0.09)] hover:border-blue-500/35"
           : "border-black/10 bg-white shadow-[0_18px_55px_rgba(15,23,42,0.08)] hover:border-blue-500/35"
       }`}
     >
-      <div className="relative z-10 flex flex-col items-start justify-center p-4 sm:p-8 lg:p-10">
+      <div className="relative z-10 flex flex-col items-start justify-center p-4 sm:p-6 lg:p-8">
         <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-500 sm:text-xs">
           Новинка
         </div>
 
-        <h3 className={`mt-2 max-w-[420px] font-bold leading-[1.05] tracking-[-0.045em] sm:mt-3 ${featured ? "text-[17px] sm:text-3xl lg:text-4xl" : "text-[16px] sm:text-xl lg:text-2xl"}`}>
+        <h3 className={`mt-1.5 max-w-[420px] font-bold leading-[1.05] tracking-[-0.045em] sm:mt-2 ${featured ? "text-[16px] sm:text-2xl lg:text-3xl" : "text-[15px] sm:text-lg lg:text-xl"}`}>
           {item.name}
         </h3>
 
-        <p className={`mt-2 line-clamp-2 max-w-[360px] text-[11px] leading-snug sm:mt-4 sm:text-sm lg:text-base ${mutedTextClass(dark)}`}>
+        <p className={`mt-1.5 hidden line-clamp-2 max-w-[360px] text-[11px] leading-snug sm:mt-2 sm:block sm:text-xs lg:text-sm ${mutedTextClass(dark)}`}>
           {description}
         </p>
 
-        <div className="mt-3 flex flex-wrap items-center gap-2 sm:mt-6 sm:gap-4">
-          <span className="inline-flex h-9 items-center justify-center rounded-xl bg-blue-600 px-3 text-[11px] font-medium text-white transition-colors group-hover:bg-blue-500 sm:h-11 sm:px-5 sm:text-sm">
+        <div className="mt-2 flex flex-wrap items-center gap-2 sm:mt-3 sm:gap-3">
+          <span className="inline-flex h-8 items-center justify-center rounded-xl bg-blue-600 px-3 text-[11px] font-medium text-white transition-colors group-hover:bg-blue-500 sm:h-9 sm:px-4 sm:text-xs">
             Подробнее →
           </span>
 
@@ -1171,7 +1171,7 @@ function NewArrivalCard({
             src={image}
             alt={item.name}
             draggable={false}
-            className="h-full w-full object-contain p-3 transition-transform duration-700 group-hover:scale-[1.03] sm:p-6"
+            className="h-full w-full object-contain p-2 transition-transform duration-700 group-hover:scale-[1.03] sm:p-4"
           />
         ) : (
           <div className={`absolute inset-4 rounded-2xl border border-dashed sm:inset-6 sm:rounded-[28px] ${dark ? "border-white/10 bg-white/[0.025]" : "border-black/10 bg-white"}`} />
