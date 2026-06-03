@@ -225,6 +225,8 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
               label="Фотографии карточки"
               hint="Перетащите несколько общих фото модели. Первое фото будет главным до выбора конкретной позиции/SKU."
               maxImages={10}
+              recommendedWidth={1200}
+              recommendedHeight={1200}
             />
 
             <ImageLibraryField
@@ -233,6 +235,8 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
               label="Фото для блока «Новинки»"
               hint="Отдельное широкое промо-фото для главной. Лучше загружать баннер 16:9 или широкий PNG/WebP."
               maxImages={1}
+              recommendedWidth={1600}
+              recommendedHeight={900}
             />
           </div>
 

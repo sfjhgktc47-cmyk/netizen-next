@@ -8,16 +8,28 @@ type Props = {
   onChange: (value: string) => void;
   label?: string;
   hint?: string;
+  recommendedWidth?: number;
+  recommendedHeight?: number;
 };
 
 const MAX_IMAGE_SIZE_MB = 2;
 const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
+
+function formatImageRequirements(width?: number, height?: number) {
+  if (!width || !height) {
+    return `PNG / JPG / WEBP до ${MAX_IMAGE_SIZE_MB} МБ`;
+  }
+
+  return `PNG / JPG / WEBP до ${MAX_IMAGE_SIZE_MB} МБ · рекомендовано ${width} × ${height} px`;
+}
 
 export function ImageDropZone({
   value,
   onChange,
   label = "Фото товара",
   hint = "Перетащите фото сюда или нажмите, чтобы выбрать файл.",
+  recommendedWidth,
+  recommendedHeight,
 }: Props) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -62,6 +74,8 @@ export function ImageDropZone({
     }
   }
 
+  const requirementsText = formatImageRequirements(recommendedWidth, recommendedHeight);
+
   return (
     <div className="grid gap-2">
       <div className="text-sm font-medium text-white/70">{label}</div>
@@ -84,7 +98,7 @@ export function ImageDropZone({
         {value ? (
           <div className="grid gap-4 sm:grid-cols-[150px_1fr] sm:items-center">
             <div
-              className="h-32 rounded-2xl border border-white/10 bg-cover bg-center bg-no-repeat"
+              className="h-32 rounded-2xl border border-white/10 bg-contain bg-center bg-no-repeat"
               style={{ backgroundImage: `url(${value})` }}
               aria-label="Превью фото товара"
             />
@@ -96,7 +110,7 @@ export function ImageDropZone({
               </p>
 
               <span className="mt-3 inline-flex rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs text-blue-300">
-                Изображение сохранится в карточку
+                {requirementsText}
               </span>
             </div>
           </div>
@@ -105,7 +119,7 @@ export function ImageDropZone({
             <div className="text-sm font-semibold text-white">Перетащите фото товара</div>
             <p className="mt-2 max-w-[420px] text-sm leading-relaxed text-white/45">{hint}</p>
             <span className="mt-3 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-white/45">
-              PNG / JPG / WEBP до {MAX_IMAGE_SIZE_MB} МБ
+              {requirementsText}
             </span>
           </div>
         )}

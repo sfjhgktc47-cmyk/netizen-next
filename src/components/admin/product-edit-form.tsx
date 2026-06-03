@@ -214,6 +214,8 @@ export function ProductEditForm({ product, categories }: Props) {
             label="Фотографии карточки"
             hint="Перетащите несколько общих фото модели. Эти фото показываются до выбора конкретной позиции/SKU."
             maxImages={10}
+            recommendedWidth={1200}
+            recommendedHeight={1200}
           />
         </div>
 
@@ -224,6 +226,8 @@ export function ProductEditForm({ product, categories }: Props) {
             label="Фото для блока «Новинки»"
             hint="Отдельное широкое промо-фото для главной. Используется только в промо-блоке новинок."
             maxImages={1}
+            recommendedWidth={1600}
+            recommendedHeight={900}
           />
         </div>
 

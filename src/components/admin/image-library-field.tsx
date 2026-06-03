@@ -9,6 +9,8 @@ type Props = {
   label?: string;
   hint?: string;
   maxImages?: number;
+  recommendedWidth?: number;
+  recommendedHeight?: number;
 };
 
 const MAX_IMAGE_SIZE_MB = 2;
@@ -18,12 +20,24 @@ function uniqueImages(images: string[]) {
   return Array.from(new Set(images.filter(Boolean)));
 }
 
+function formatImageRequirements(maxImages: number, width?: number, height?: number) {
+  const base = `PNG / JPG / WEBP до ${MAX_IMAGE_SIZE_MB} МБ · максимум ${maxImages} фото`;
+
+  if (!width || !height) {
+    return base;
+  }
+
+  return `${base} · рекомендовано ${width} × ${height} px`;
+}
+
 export function ImageLibraryField({
   value,
   onChange,
   label = "Фотографии позиции",
   hint = "Перетащите сюда несколько фото или нажмите, чтобы выбрать файлы.",
   maxImages = 12,
+  recommendedWidth,
+  recommendedHeight,
 }: Props) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -82,8 +96,8 @@ export function ImageLibraryField({
 
               reader.onerror = () => reject(new Error("Не удалось прочитать фото."));
               reader.readAsDataURL(file);
-            })
-        )
+            }),
+        ),
       );
 
       applyImages([...value, ...images]);
@@ -126,6 +140,8 @@ export function ImageLibraryField({
     setUrlValue("");
   }
 
+  const requirementsText = formatImageRequirements(maxImages, recommendedWidth, recommendedHeight);
+
   return (
     <div className="grid gap-3">
       <div>
@@ -154,7 +170,7 @@ export function ImageLibraryField({
           <div className="text-sm font-semibold text-white">Перетащите фото позиции</div>
           <p className="mt-2 max-w-[520px] text-sm leading-relaxed text-white/45">{hint}</p>
           <span className="mt-3 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-white/45">
-            PNG / JPG / WEBP до {MAX_IMAGE_SIZE_MB} МБ · максимум {maxImages} фото
+            {requirementsText}
           </span>
         </div>
       </button>
@@ -203,6 +219,8 @@ export function ImageLibraryField({
                 <span className="w-fit rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-white/50">
                   {index === 0 ? "Главное" : `Фото ${index + 1}`}
                 </span>
+
+                <div className="text-[11px] leading-relaxed text-white/40">{requirementsText}</div>
 
                 <div className="grid gap-2">
                   {index > 0 ? (

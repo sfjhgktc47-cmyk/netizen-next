@@ -307,7 +307,7 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
         </div>
 
         <div className="mt-8">
-          <ImageLibraryField value={images} onChange={setImages} />
+          <ImageLibraryField value={images} onChange={setImages} recommendedWidth={1200} recommendedHeight={1200} />
         </div>
 
         <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-xs leading-relaxed text-white/45">

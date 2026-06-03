@@ -403,6 +403,9 @@ function mutedTextClass(dark: boolean) {
   return dark ? "text-white/55" : "text-black/55";
 }
 
+function withoutTrailingArrow(label: string) {
+  return label.replace(/\s*[→➜➡]+\s*$/, "").trim();
+}
 
 function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
   const slides = banners
@@ -554,23 +557,23 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
               </p>
             ) : null}
 
-            <div className="mt-3 flex flex-wrap gap-2 sm:mt-8 sm:gap-4">
+            <div className="mt-6 flex flex-wrap gap-2 sm:mt-10 sm:gap-4 lg:mt-12">
               <Link
                 href={slide.primaryHref}
-                className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-3 py-2 text-[11px] font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500 sm:px-7 sm:py-4 sm:text-sm"
+                className="inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-[11px] font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500 sm:min-h-12 sm:px-7 sm:py-4 sm:text-sm"
               >
-                {slide.primaryLabel} →
+                {withoutTrailingArrow(slide.primaryLabel)}
               </Link>
 
               <Link
                 href={slide.secondaryHref}
-                className={`hidden items-center justify-center rounded-xl border px-3 py-2 text-[11px] font-medium transition-all duration-300 hover:-translate-y-0.5 min-[390px]:inline-flex sm:px-7 sm:py-4 sm:text-sm ${
+                className={`hidden min-h-11 items-center justify-center rounded-xl border px-4 py-2.5 text-[11px] font-medium transition-all duration-300 hover:-translate-y-0.5 min-[390px]:inline-flex sm:min-h-12 sm:px-7 sm:py-4 sm:text-sm ${
                   dark
                     ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
                     : "border-black/10 bg-white text-black hover:border-blue-500/40 hover:bg-blue-50"
                 }`}
               >
-                {slide.secondaryLabel} →
+                {withoutTrailingArrow(slide.secondaryLabel)}
               </Link>
             </div>
 
@@ -620,25 +623,28 @@ function Benefits({
 
   return (
     <section className={`mt-3 rounded-2xl border p-3 transition-all duration-700 sm:mt-6 sm:p-5 ${panelClass(dark)}`}>
-      <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
+      <div className="mx-auto grid w-full justify-center gap-3 sm:gap-4 [grid-template-columns:repeat(auto-fit,minmax(240px,260px))]">
         {items.map((item) => {
+          const hasImage = Boolean(item.image);
           const card = (
-            <div className={`flex h-full min-h-[82px] w-full items-start gap-3 rounded-2xl border p-3 sm:min-h-[94px] sm:gap-4 sm:p-4 ${
+            <div className={`flex h-full min-h-[96px] w-full items-start gap-3 rounded-2xl border p-3 sm:min-h-[104px] sm:gap-4 sm:p-4 ${
               dark ? "border-white/10 bg-white/[0.025]" : "border-black/10 bg-slate-50/80"
             }`}>
-              <div className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-full border border-blue-500/30 text-sm text-blue-500 sm:h-11 sm:w-11 sm:text-base">
-                {item.image ? (
+              <div className={`flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden text-sm text-blue-500 sm:h-12 sm:w-12 sm:text-base ${
+                hasImage ? "" : "rounded-full border border-blue-500/30"
+              }`}>
+                {hasImage ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.image} alt="" className="h-full w-full object-cover" />
+                  <img src={item.image} alt="" className="max-h-full max-w-full object-contain" />
                 ) : (
                   item.icon || "✓"
                 )}
               </div>
 
               <div className="min-w-0 flex-1">
-                <div className="break-words text-[12px] font-semibold leading-snug sm:text-sm">{item.title}</div>
+                <div className="truncate whitespace-nowrap text-[13px] font-semibold leading-snug sm:text-[15px]">{item.title}</div>
                 {item.description ? (
-                  <div className={`mt-1 break-words text-[10px] leading-snug sm:text-xs ${mutedTextClass(dark)}`}>
+                  <div className={`mt-1 break-words text-[11px] leading-snug sm:text-xs ${mutedTextClass(dark)}`}>
                     {item.description}
                   </div>
                 ) : null}
@@ -646,7 +652,7 @@ function Benefits({
             </div>
           );
 
-          const itemClass = "w-full min-w-[220px] flex-1 sm:basis-[240px] lg:max-w-[260px]";
+          const itemClass = "w-full max-w-[260px]";
 
           return item.href ? (
             <Link key={item.id} href={item.href} className={`${itemClass} rounded-2xl transition-opacity hover:opacity-80`}>
@@ -704,7 +710,7 @@ function Categories({
       </div>
 
       <div
-        className="mt-3 flex gap-2 overflow-x-auto pb-1 sm:mt-8 sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:pb-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden"
+        className="mt-3 flex gap-2 overflow-x-auto pb-1 sm:mt-8 sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:pb-0 lg:grid-cols-3 xl:grid-cols-4 [&::-webkit-scrollbar]:hidden"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {categories.map((category) => {
@@ -714,14 +720,14 @@ function Categories({
             <Link
               key={category.id || category.slug}
               href={category.href || `/catalog/${category.slug}`}
-              className={`group relative flex h-[92px] w-[78px] shrink-0 flex-col items-center justify-between overflow-hidden rounded-2xl border p-2 text-center transition-all duration-500 hover:-translate-y-1 sm:h-[160px] sm:w-auto sm:items-start sm:p-5 sm:text-left ${
+              className={`group relative flex h-[92px] w-[78px] shrink-0 flex-col items-center justify-between overflow-hidden rounded-2xl border p-2 text-center transition-all duration-500 hover:-translate-y-1 sm:min-h-[178px] sm:w-auto sm:items-start sm:p-6 sm:text-left ${
                 dark
                   ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
                   : "border-black/10 bg-white shadow-[0_20px_70px_rgba(15,23,42,0.08)] hover:border-blue-500/35 hover:shadow-[0_28px_90px_rgba(15,23,42,0.12)]"
               }`}
             >
-              <div className="relative z-10 order-2 w-full sm:order-none sm:max-w-[58%]">
-                <h3 className="line-clamp-2 text-[10px] font-bold leading-tight sm:text-lg">
+              <div className="relative z-10 order-2 flex w-full flex-1 flex-col sm:order-none sm:max-w-[56%]">
+                <h3 className="line-clamp-2 text-[10px] font-bold leading-tight sm:text-xl">
                   {category.name}
                 </h3>
 
@@ -730,7 +736,7 @@ function Categories({
                 </p>
               </div>
 
-              <div className="relative z-10 order-1 flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl sm:absolute sm:right-4 sm:top-1/2 sm:h-[130px] sm:w-[130px] sm:-translate-y-1/2 sm:rounded-2xl">
+              <div className="relative z-10 order-1 flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl sm:absolute sm:right-5 sm:top-1/2 sm:h-[138px] sm:w-[138px] sm:-translate-y-1/2 sm:rounded-2xl">
                 {image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -745,7 +751,7 @@ function Categories({
               </div>
 
               <div
-                className={`relative z-10 mt-5 hidden h-10 w-10 items-center justify-center rounded-xl border text-base font-bold transition-all duration-300 group-hover:translate-x-1 sm:flex ${
+                className={`relative z-10 mt-5 hidden h-11 w-11 items-center justify-center rounded-xl border text-base font-bold transition-all duration-300 group-hover:translate-x-1 sm:flex ${
                   dark
                     ? "border-blue-500/35 bg-blue-500/10 text-blue-400 group-hover:bg-blue-600 group-hover:text-white"
                     : "border-black/10 bg-white text-black shadow-sm group-hover:border-blue-500 group-hover:bg-blue-600 group-hover:text-white"

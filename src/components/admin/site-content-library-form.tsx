@@ -297,18 +297,24 @@ function BannerEditor({ banner, disabled, updateBanner, saveBanner, deleteBanner
             hint="Загрузите фото баннера для светлой темы или вставьте ссылку ниже."
             value={banner.imageLight}
             onChange={(value) => updateBanner(banner.id, { imageLight: value })}
+            recommendedWidth={1600}
+            recommendedHeight={900}
           />
           <ImageDropZone
             label="Фото тёмная тема"
             hint="Можно загрузить отдельную картинку для тёмной темы."
             value={banner.imageDark}
             onChange={(value) => updateBanner(banner.id, { imageDark: value })}
+            recommendedWidth={1600}
+            recommendedHeight={900}
           />
           <ImageDropZone
             label="Фото для телефона"
             hint="Вертикальная или компактная версия для мобильного экрана."
             value={banner.imageMobile}
             onChange={(value) => updateBanner(banner.id, { imageMobile: value })}
+            recommendedWidth={900}
+            recommendedHeight={1200}
           />
         </div>
       </div>
@@ -334,6 +340,8 @@ function BenefitEditor({ benefit, disabled, updateBenefit, saveBenefit, deleteBe
             hint="Можно загрузить PNG/JPG/WebP. Если фото пустое, покажется текстовая иконка."
             value={benefit.image}
             onChange={(value) => updateBenefit(benefit.id, { image: value })}
+            recommendedWidth={256}
+            recommendedHeight={256}
           />
         </div>
         <LibraryField label="Ссылка, если нужна"><input value={benefit.href} onChange={(event) => updateBenefit(benefit.id, { href: event.target.value })} className="admin-input" /></LibraryField>
