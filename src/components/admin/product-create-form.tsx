@@ -57,6 +57,7 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
   const [status, setStatus] = useState("active");
   const [isNew, setIsNew] = useState(true);
   const [isPopular, setIsPopular] = useState(false);
+  const [sortOrder, setSortOrder] = useState("100");
   const [images, setImages] = useState<string[]>([]);
   const [promoImages, setPromoImages] = useState<string[]>([]);
 
@@ -94,6 +95,7 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
           status,
           isNew,
           isPopular,
+          sortOrder: Number(sortOrder),
         }),
       });
 
@@ -169,6 +171,16 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
                 value={brand}
                 onChange={(event) => setBrand(event.target.value)}
                 placeholder="Apple"
+                className={inputClass}
+              />
+            </Field>
+
+            <Field label="Порядок в каталоге">
+              <input
+                type="number"
+                value={sortOrder}
+                onChange={(event) => setSortOrder(event.target.value)}
+                placeholder="100"
                 className={inputClass}
               />
             </Field>

@@ -28,7 +28,7 @@ export function SortOrderInput({
       const res = await fetch(`${apiPath}/${id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ ...extraBody, sortOrder: num }),
+        body: JSON.stringify({ ...extraBody, action: "set-sort-order", sortOrder: num }),
       });
       if (!res.ok) {
         const data = await res.json().catch(() => ({}));

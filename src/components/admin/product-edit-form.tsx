@@ -32,6 +32,7 @@ type ProductForEdit = {
   images?: string[];
   isNew: boolean;
   isPopular: boolean;
+  sortOrder?: number;
 };
 
 type Props = {
@@ -78,6 +79,7 @@ export function ProductEditForm({ product, categories }: Props) {
   const [promoImages, setPromoImages] = useState<string[]>(product.promoImage ? [product.promoImage] : []);
   const [isNew, setIsNew] = useState(product.isNew);
   const [isPopular, setIsPopular] = useState(product.isPopular);
+  const [sortOrder, setSortOrder] = useState(String(product.sortOrder ?? 100));
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -114,6 +116,7 @@ export function ProductEditForm({ product, categories }: Props) {
           status: statusOverride ?? status,
           isNew,
           isPopular,
+          sortOrder: Number(sortOrder),
         }),
       });
 
@@ -183,6 +186,15 @@ export function ProductEditForm({ product, categories }: Props) {
 
         <Field label="Бренд">
           <input value={brand} onChange={(event) => setBrand(event.target.value)} className={inputClass} />
+        </Field>
+
+        <Field label="Порядок в каталоге">
+          <input
+            type="number"
+            value={sortOrder}
+            onChange={(event) => setSortOrder(event.target.value)}
+            className={inputClass}
+          />
         </Field>
 
         <Field label="Статус">

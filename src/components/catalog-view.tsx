@@ -31,6 +31,7 @@ type ProductModel = CatalogProductBase & {
   shortDescription?: string;
   status?: string;
   isPopular?: boolean;
+  sortOrder?: number;
   price: string;
   minPrice: number;
   maxPrice: number;
@@ -195,9 +196,14 @@ function getProductPriceStats(
   };
 }
 
+function getProductSortOrder(product: ProductModel) {
+  const value = Number(product.sortOrder ?? 100);
+  return Number.isFinite(value) ? value : 100;
+}
+
 function sortProductModels(items: ProductModel[], sortMode: SortMode) {
   if (sortMode === "popular") {
-    return items;
+    return [...items].sort((a, b) => getProductSortOrder(a) - getProductSortOrder(b));
   }
 
   return [...items].sort((a, b) => {
@@ -851,10 +857,21 @@ export function CatalogView({
       {}
     );
 
-    return Object.entries(grouped).map(([brand, brandProducts]) => [
-      brand,
-      sortProductModels(brandProducts, sortMode),
-    ] as [string, ProductModel[]]);
+    return Object.entries(grouped)
+      .map(([brand, brandProducts]) => [
+        brand,
+        sortProductModels(brandProducts, sortMode),
+      ] as [string, ProductModel[]])
+      .sort(([, aProducts], [, bProducts]) => {
+        const aOrder = Math.min(...aProducts.map(getProductSortOrder));
+        const bOrder = Math.min(...bProducts.map(getProductSortOrder));
+
+        if (aOrder !== bOrder) {
+          return aOrder - bOrder;
+        }
+
+        return (aProducts[0]?.brand ?? "").localeCompare(bProducts[0]?.brand ?? "", "ru");
+      });
   }, [sortMode, visibleModelProducts]);
 
   const hasSpecificationFilters = Boolean(

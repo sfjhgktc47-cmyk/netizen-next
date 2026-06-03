@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { ProductVisibilityButton } from "@/components/admin/product-visibility-button";
+import { SortOrderInput } from "@/components/admin/sort-order-input";
 import {
   getAdminProducts,
   getAdminStatusClass,
@@ -364,7 +365,7 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
               {products.map((product) => (
                 <div
                   key={`${product.source}-${product.id}`}
-                  className="grid gap-5 bg-white/[0.015] p-5 transition-colors hover:bg-blue-500/[0.04] xl:grid-cols-[90px_1.3fr_0.8fr_0.7fr_0.6fr_0.7fr_0.7fr_220px] xl:items-center"
+                  className="grid gap-5 bg-white/[0.015] p-5 transition-colors hover:bg-blue-500/[0.04] xl:grid-cols-[90px_1.3fr_0.8fr_0.7fr_0.45fr_0.6fr_0.7fr_0.7fr_220px] xl:items-center"
                 >
                   <Link
                     href={`/product/${product.slug}`}
@@ -402,6 +403,15 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
                   </AdminCell>
 
                   <AdminCell label="Бренд">{product.brand}</AdminCell>
+
+                  <AdminCell label="Порядок">
+                    <SortOrderInput
+                      id={product.id}
+                      value={product.sortOrder}
+                      apiPath="/api/admin/products"
+                      extraBody={{ name: product.name, slug: product.slug, brand: product.brand, categorySlug: product.categorySlug }}
+                    />
+                  </AdminCell>
 
                   <AdminCell label="SKU">
                     <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-sm text-blue-400">

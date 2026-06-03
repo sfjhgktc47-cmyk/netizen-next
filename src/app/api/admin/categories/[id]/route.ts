@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import type { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
 
@@ -38,6 +39,25 @@ export async function PATCH(
   const { id } = await params;
   const body = await request.json();
 
+  if (body?.action === "set-sort-order") {
+    try {
+      const category = await prisma.category.update({
+        where: { id },
+        data: { sortOrder: toSortOrder(body?.sortOrder) },
+      });
+
+      return NextResponse.json({ category });
+    } catch (error) {
+      return NextResponse.json(
+        {
+          error: "Не удалось обновить порядок категории.",
+          details: getErrorMessage(error),
+        },
+        { status: 500 },
+      );
+    }
+  }
+
   const name = toStringValue(body?.name);
   const slug = toStringValue(body?.slug);
 
@@ -56,18 +76,38 @@ export async function PATCH(
       select: { slug: true },
     });
 
+    const data: Prisma.CategoryUpdateInput = {
+      name,
+      slug,
+    };
+
+    if (Object.prototype.hasOwnProperty.call(body, "description")) {
+      data.description = toStringValue(body?.description);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, "image")) {
+      data.image = toStringValue(body?.image);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, "status")) {
+      data.status = normalizeStatus(body?.status);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, "sortOrder")) {
+      data.sortOrder = toSortOrder(body?.sortOrder);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, "seoTitle")) {
+      data.seoTitle = toStringValue(body?.seoTitle);
+    }
+
+    if (Object.prototype.hasOwnProperty.call(body, "seoDescription")) {
+      data.seoDescription = toStringValue(body?.seoDescription);
+    }
+
     const category = await prisma.category.update({
       where: { id },
-      data: {
-        name,
-        slug,
-        description: toStringValue(body?.description),
-        image: toStringValue(body?.image),
-        status: normalizeStatus(body?.status),
-        sortOrder: toSortOrder(body?.sortOrder),
-        seoTitle: toStringValue(body?.seoTitle),
-        seoDescription: toStringValue(body?.seoDescription),
-      },
+      data,
     });
 
     if (previousCategory?.slug && previousCategory.slug !== slug) {
