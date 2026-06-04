@@ -32,6 +32,7 @@ type ProductModel = CatalogProductBase & {
   shortDescription?: string;
   status?: string;
   isPopular?: boolean;
+  sortOrder?: number;
   price: string;
   minPrice: number;
   maxPrice: number;
