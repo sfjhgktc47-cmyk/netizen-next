@@ -31,6 +31,7 @@ type ProductModel = CatalogProductBase & {
   images?: string[];
   shortDescription?: string;
   status?: string;
+  isNew?: boolean;
   isPopular?: boolean;
   sortOrder?: number;
   price: string;
