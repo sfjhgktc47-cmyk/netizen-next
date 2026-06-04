@@ -4,7 +4,7 @@ import { getPublicCatalogData } from "@/lib/public-catalog-db";
 import { getPublicPageBlocks } from "@/lib/page-builder-db";
 import { getSiteEditorSettings } from "@/lib/site-settings-db";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export async function GET() {
   try {
@@ -20,12 +20,19 @@ export async function GET() {
       ["new-arrivals", "promo-banner", "product-carousel", "support"].includes(block.type)
     );
 
-    return NextResponse.json({
-      products,
-      newArrivals: explicitNewArrivals.length > 0 ? explicitNewArrivals : products.slice(0, 12),
-      pageBlocks,
-      siteSettings,
-    });
+    return NextResponse.json(
+      {
+        products,
+        newArrivals: explicitNewArrivals.length > 0 ? explicitNewArrivals : products.slice(0, 12),
+        pageBlocks,
+        siteSettings,
+      },
+      {
+        headers: {
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
+        },
+      },
+    );
   } catch (error) {
     console.error("New arrivals data loading failed", error);
 

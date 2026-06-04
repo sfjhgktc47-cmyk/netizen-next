@@ -1,8 +1,12 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
+
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/product-pricing";
 import { getPublicCategoriesFromDb, type PublicCategory } from "@/lib/public-categories-db";
+
+const PUBLIC_CACHE_SECONDS = 60;
 
 export type ProductDescriptionBlock = {
   id: string;
@@ -60,8 +64,30 @@ export type PublicCatalogData = {
   categories: PublicCategory[];
 };
 
-type ProductWithVariants = Awaited<ReturnType<typeof getDbProductsForPublicCatalog>>[number];
+type ProductWithVariants = Awaited<ReturnType<typeof getDbProductsForPublicCatalogUncached>>[number];
 
+type PublicTransformOptions = {
+  includeAllImages?: boolean;
+  includeDescriptionBlocks?: boolean;
+};
+
+function firstCleanString(values: unknown[]) {
+  for (const value of values) {
+    if (typeof value === "string" && value.trim()) {
+      return value.trim();
+    }
+
+    if (Array.isArray(value)) {
+      const first = value.map(String).find((item) => item.trim());
+
+      if (first) {
+        return first.trim();
+      }
+    }
+  }
+
+  return "";
+}
 
 function normalizeDescriptionBlocks(value: unknown): ProductDescriptionBlock[] {
   if (!Array.isArray(value)) {
@@ -109,10 +135,26 @@ function getVariantStatus(status: string, stock: number) {
   return "active";
 }
 
-function getProductImages(product: ProductWithVariants) {
+function getProductImages(
+  product: ProductWithVariants,
+  options: PublicTransformOptions = {}
+) {
+  const includeAllImages = options.includeAllImages ?? true;
   const productImages = Array.isArray(product.images)
     ? product.images.map(String).filter(Boolean)
     : [];
+
+  if (!includeAllImages) {
+    const firstImage = firstCleanString([
+      product.image,
+      productImages,
+      product.variants.flatMap((variant) =>
+        Array.isArray(variant.images) ? variant.images : []
+      ),
+    ]);
+
+    return firstImage ? [firstImage] : [];
+  }
 
   if (productImages.length > 0) {
     return productImages;
@@ -126,6 +168,23 @@ function getProductImages(product: ProductWithVariants) {
     .flatMap((variant) => (Array.isArray(variant.images) ? variant.images : []))
     .map(String)
     .filter(Boolean);
+}
+
+function getVariantImages(
+  variant: ProductWithVariants["variants"][number],
+  options: PublicTransformOptions = {}
+) {
+  const images = Array.isArray(variant.images)
+    ? variant.images.map(String).filter(Boolean)
+    : [];
+
+  if (options.includeAllImages === false) {
+    const firstImage = firstCleanString([images]);
+
+    return firstImage ? [firstImage] : [];
+  }
+
+  return images;
 }
 
 function getProductColors(product: ProductWithVariants) {
@@ -155,7 +214,12 @@ function getPriceRange(variants: ProductWithVariants["variants"]) {
   return `от ${formatPrice(minPrice)} до ${formatPrice(maxPrice)}`;
 }
 
-function toPublicProduct(product: ProductWithVariants): PublicProductModel {
+function toPublicProduct(
+  product: ProductWithVariants,
+  options: PublicTransformOptions = {}
+): PublicProductModel {
+  const images = getProductImages(product, options);
+
   return {
     slug: product.slug,
     name: product.name,
@@ -165,10 +229,13 @@ function toPublicProduct(product: ProductWithVariants): PublicProductModel {
     price: getPriceRange(product.variants),
     description: product.description,
     shortDescription: product.shortDescription || product.description,
-    descriptionBlocks: normalizeDescriptionBlocks(product.descriptionBlocks),
-    image: getProductImages(product)[0] ?? "",
+    descriptionBlocks:
+      options.includeDescriptionBlocks === false
+        ? []
+        : normalizeDescriptionBlocks(product.descriptionBlocks),
+    image: images[0] ?? "",
     promoImage: String(product.promoImage ?? ""),
-    images: getProductImages(product),
+    images,
     colors: getProductColors(product),
     status: product.status,
     isNew: Boolean(product.isNew),
@@ -179,7 +246,8 @@ function toPublicProduct(product: ProductWithVariants): PublicProductModel {
 
 function toPublicPosition(
   variant: ProductWithVariants["variants"][number],
-  product: ProductWithVariants
+  product: ProductWithVariants,
+  options: PublicTransformOptions = {}
 ): PublicProductPosition {
   return {
     modelSlug: product.slug,
@@ -194,7 +262,7 @@ function toPublicPosition(
     oldPrice: variant.oldPrice ? formatPrice(variant.oldPrice) : "",
     stock: variant.stock,
     status: getVariantStatus(variant.status, variant.stock),
-    images: variant.images,
+    images: getVariantImages(variant, options),
     seoTitle: variant.seoTitle || `${variant.title} — купить в Netizen`,
     seoDescription:
       variant.seoDescription ||
@@ -202,18 +270,56 @@ function toPublicPosition(
   };
 }
 
-async function getDbProductsForPublicCatalog() {
+async function getDbProductsForPublicCatalogUncached() {
   return prisma.product.findMany({
     where: {
       status: "active",
     },
-    include: {
-      category: true,
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      brand: true,
+      categorySlug: true,
+      description: true,
+      shortDescription: true,
+      descriptionBlocks: true,
+      image: true,
+      promoImage: true,
+      images: true,
+      colors: true,
+      status: true,
+      isNew: true,
+      isPopular: true,
+      sortOrder: true,
+      createdAt: true,
+      category: {
+        select: {
+          name: true,
+        },
+      },
       variants: {
         where: {
           status: {
             in: ["active", "out_of_stock"],
           },
+        },
+        select: {
+          sku: true,
+          slug: true,
+          title: true,
+          memory: true,
+          color: true,
+          colorHex: true,
+          sim: true,
+          images: true,
+          price: true,
+          oldPrice: true,
+          stock: true,
+          status: true,
+          seoTitle: true,
+          seoDescription: true,
+          createdAt: true,
         },
         orderBy: [{ price: "asc" }, { createdAt: "asc" }],
       },
@@ -222,14 +328,33 @@ async function getDbProductsForPublicCatalog() {
   });
 }
 
+const getCachedDbProductsForPublicCatalog = unstable_cache(
+  getDbProductsForPublicCatalogUncached,
+  ["public-catalog-products-v2"],
+  {
+    revalidate: PUBLIC_CACHE_SECONDS,
+    tags: ["public-catalog"],
+  }
+);
+
+async function getDbProductsForPublicCatalog() {
+  return getCachedDbProductsForPublicCatalog();
+}
+
 export async function getPublicCatalogData(): Promise<PublicCatalogData> {
   const [dbProducts, categories] = await Promise.all([
     getDbProductsForPublicCatalog(),
     getPublicCategoriesFromDb(),
   ]);
-  const products = dbProducts.map(toPublicProduct);
+
+  const listOptions = {
+    includeAllImages: false,
+    includeDescriptionBlocks: false,
+  } satisfies PublicTransformOptions;
+
+  const products = dbProducts.map((product) => toPublicProduct(product, listOptions));
   const positions = dbProducts.flatMap((product) =>
-    product.variants.map((variant) => toPublicPosition(variant, product))
+    product.variants.map((variant) => toPublicPosition(variant, product, listOptions))
   );
 
   return {
@@ -240,16 +365,54 @@ export async function getPublicCatalogData(): Promise<PublicCatalogData> {
   };
 }
 
-export async function getPublicProductBySlug(slug: string) {
+async function getPublicProductBySlugUncached(slug: string) {
   const product = await prisma.product.findUnique({
     where: { slug },
-    include: {
-      category: true,
+    select: {
+      id: true,
+      slug: true,
+      name: true,
+      brand: true,
+      categorySlug: true,
+      description: true,
+      shortDescription: true,
+      descriptionBlocks: true,
+      image: true,
+      promoImage: true,
+      images: true,
+      colors: true,
+      status: true,
+      isNew: true,
+      isPopular: true,
+      sortOrder: true,
+      createdAt: true,
+      category: {
+        select: {
+          name: true,
+        },
+      },
       variants: {
         where: {
           status: {
             in: ["active", "out_of_stock"],
           },
+        },
+        select: {
+          sku: true,
+          slug: true,
+          title: true,
+          memory: true,
+          color: true,
+          colorHex: true,
+          sim: true,
+          images: true,
+          price: true,
+          oldPrice: true,
+          stock: true,
+          status: true,
+          seoTitle: true,
+          seoDescription: true,
+          createdAt: true,
         },
         orderBy: [{ price: "asc" }, { createdAt: "asc" }],
       },
@@ -261,9 +424,27 @@ export async function getPublicProductBySlug(slug: string) {
   }
 
   return {
-    product: toPublicProduct(product),
-    positions: product.variants.map((variant) => toPublicPosition(variant, product)),
+    product: toPublicProduct(product, {
+      includeAllImages: true,
+      includeDescriptionBlocks: true,
+    }),
+    positions: product.variants.map((variant) =>
+      toPublicPosition(variant, product, { includeAllImages: true })
+    ),
   };
+}
+
+export async function getPublicProductBySlug(slug: string) {
+  const cachedProductBySlug = unstable_cache(
+    getPublicProductBySlugUncached,
+    [`public-product-${slug}-v2`],
+    {
+      revalidate: PUBLIC_CACHE_SECONDS,
+      tags: ["public-catalog", `public-product-${slug}`],
+    }
+  );
+
+  return cachedProductBySlug(slug);
 }
 
 export async function getPublicProductSlugs() {

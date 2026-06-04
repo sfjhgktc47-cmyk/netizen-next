@@ -5,9 +5,7 @@ import { getPublicPageBlocks } from "@/lib/page-builder-db";
 import { getSiteEditorSettings } from "@/lib/site-settings-db";
 import { getSiteContentLibrary } from "@/lib/site-content-library-db";
 
-export const dynamic = "force-dynamic";
-export const revalidate = 0;
-export const fetchCache = "force-no-store";
+export const revalidate = 60;
 
 function cleanString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";
@@ -69,10 +67,7 @@ export async function GET() {
       },
       {
         headers: {
-          "Cache-Control":
-            "no-store, no-cache, must-revalidate, proxy-revalidate",
-          Pragma: "no-cache",
-          Expires: "0",
+          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
         },
       },
     );

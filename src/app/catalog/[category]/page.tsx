@@ -7,7 +7,7 @@ import {
   getPublicCategorySlugs,
 } from "@/lib/public-categories-db";
 
-export const dynamic = "force-dynamic";
+export const revalidate = 60;
 
 export async function generateStaticParams() {
   try {

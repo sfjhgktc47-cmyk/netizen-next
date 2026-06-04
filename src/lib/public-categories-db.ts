@@ -1,6 +1,10 @@
 import "server-only";
 
+import { unstable_cache } from "next/cache";
+
 import { prisma } from "@/lib/db";
+
+const PUBLIC_CACHE_SECONDS = 60;
 
 export type PublicCategory = {
   id: string;
@@ -40,7 +44,7 @@ function toPublicCategory(category: {
   };
 }
 
-export async function getPublicCategoriesFromDb(): Promise<PublicCategory[]> {
+async function getPublicCategoriesFromDbUncached(): Promise<PublicCategory[]> {
   const categories = await prisma.category.findMany({
     where: {
       status: "active",
@@ -61,7 +65,20 @@ export async function getPublicCategoriesFromDb(): Promise<PublicCategory[]> {
   return categories.map(toPublicCategory);
 }
 
-export async function getPublicCategoryBySlug(
+const getCachedPublicCategoriesFromDb = unstable_cache(
+  getPublicCategoriesFromDbUncached,
+  ["public-categories-v2"],
+  {
+    revalidate: PUBLIC_CACHE_SECONDS,
+    tags: ["public-categories", "public-catalog"],
+  },
+);
+
+export async function getPublicCategoriesFromDb(): Promise<PublicCategory[]> {
+  return getCachedPublicCategoriesFromDb();
+}
+
+async function getPublicCategoryBySlugUncached(
   slug: string,
 ): Promise<PublicCategory | null> {
   const category = await prisma.category.findFirst({
@@ -81,6 +98,21 @@ export async function getPublicCategoryBySlug(
   });
 
   return category ? toPublicCategory(category) : null;
+}
+
+export async function getPublicCategoryBySlug(
+  slug: string,
+): Promise<PublicCategory | null> {
+  const cachedCategoryBySlug = unstable_cache(
+    getPublicCategoryBySlugUncached,
+    [`public-category-${slug}-v2`],
+    {
+      revalidate: PUBLIC_CACHE_SECONDS,
+      tags: ["public-categories", "public-catalog", `public-category-${slug}`],
+    },
+  );
+
+  return cachedCategoryBySlug(slug);
 }
 
 export async function getPublicCategorySlugs() {

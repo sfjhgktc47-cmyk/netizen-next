@@ -68,7 +68,7 @@ export default function NewPage() {
   useEffect(() => {
     let mounted = true;
 
-    fetch("/api/new-arrivals", { cache: "no-store" })
+    fetch("/api/new-arrivals")
       .then((response) => (response.ok ? response.json() : Promise.reject()))
       .then((payload: NewArrivalsPayload) => {
         if (!mounted) return;

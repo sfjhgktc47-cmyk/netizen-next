@@ -623,11 +623,11 @@ function Benefits({
 
   return (
     <section className={`mt-3 rounded-2xl border p-3 transition-all duration-700 sm:mt-6 sm:p-5 ${panelClass(dark)}`}>
-      <div className="mx-auto flex w-full flex-wrap justify-center gap-x-4 gap-y-4 sm:gap-x-5">
+      <div className="flex w-full flex-wrap items-start gap-x-4 gap-y-4 sm:gap-x-5 lg:flex-nowrap">
         {items.map((item) => {
           const hasImage = Boolean(item.image);
           const card = (
-            <div className="flex h-full w-full items-start gap-3 px-2 py-1 sm:gap-4 sm:px-3">
+            <div className="flex h-full w-full items-start gap-3 px-1 py-1 sm:gap-3 sm:px-2 lg:gap-4">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-visible text-sm text-blue-500 sm:h-12 sm:w-12 sm:text-base">
                 {hasImage ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -638,7 +638,7 @@ function Benefits({
               </div>
 
               <div className="min-w-0 flex-1">
-                <div className="whitespace-nowrap text-[12px] font-semibold leading-snug sm:text-[13px] lg:text-[14px]">{item.title}</div>
+                <div className="whitespace-normal text-[12px] font-semibold leading-snug sm:whitespace-nowrap sm:text-[13px] lg:text-[14px]">{item.title}</div>
                 {item.description ? (
                   <div className={`mt-1 break-words text-[11px] leading-snug sm:text-xs ${mutedTextClass(dark)}`}>
                     {item.description}
@@ -648,7 +648,7 @@ function Benefits({
             </div>
           );
 
-          const itemClass = "w-full sm:w-auto sm:min-w-[235px] sm:max-w-[250px] sm:flex-[0_1_240px]";
+          const itemClass = "w-full min-w-[220px] flex-1 sm:min-w-[240px] lg:min-w-0";
 
           return item.href ? (
             <Link key={item.id} href={item.href} className={`${itemClass} rounded-2xl transition-opacity hover:opacity-80`}>
