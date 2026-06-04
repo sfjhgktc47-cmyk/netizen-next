@@ -403,6 +403,10 @@ function mutedTextClass(dark: boolean) {
   return dark ? "text-white/55" : "text-black/55";
 }
 
+function withoutTrailingArrow(label: string) {
+  return label.replace(/\s*[→➜➡]+\s*$/, "").trim();
+}
+
 
 function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
   const slides = banners
@@ -558,23 +562,23 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
               </p>
             ) : null}
 
-            <div className="mt-3 flex flex-wrap gap-2 sm:mt-8 sm:gap-4">
+            <div className="mt-7 flex flex-wrap gap-2 sm:mt-12 sm:gap-4 lg:mt-14">
               <Link
                 href={slide.primaryHref}
-                className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-3 py-2 text-[11px] font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500 sm:px-7 sm:py-4 sm:text-sm"
+                className="inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-[11px] font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500 sm:min-h-12 sm:px-7 sm:py-4 sm:text-sm"
               >
-                {slide.primaryLabel} →
+                {withoutTrailingArrow(slide.primaryLabel)}
               </Link>
 
               <Link
                 href={slide.secondaryHref}
-                className={`hidden items-center justify-center rounded-xl border px-3 py-2 text-[11px] font-medium transition-all duration-300 hover:-translate-y-0.5 min-[390px]:inline-flex sm:px-7 sm:py-4 sm:text-sm ${
+                className={`hidden min-h-11 items-center justify-center rounded-xl border px-4 py-2.5 text-[11px] font-medium transition-all duration-300 hover:-translate-y-0.5 min-[390px]:inline-flex sm:min-h-12 sm:px-7 sm:py-4 sm:text-sm ${
                   dark
                     ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
                     : "border-black/10 bg-white text-black hover:border-blue-500/40 hover:bg-blue-50"
                 }`}
               >
-                {slide.secondaryLabel} →
+                {withoutTrailingArrow(slide.secondaryLabel)}
               </Link>
             </div>
 
