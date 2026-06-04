@@ -14,13 +14,58 @@ type Props = {
 
 const MAX_IMAGE_SIZE_MB = 2;
 const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
+const OPTIMIZED_IMAGE_TYPE = "image/webp";
+const OPTIMIZED_IMAGE_QUALITY = 0.82;
+const FALLBACK_MAX_WIDTH = 1200;
+const FALLBACK_MAX_HEIGHT = 1200;
 
 function formatImageRequirements(width?: number, height?: number) {
+  const base = `PNG / JPG / WEBP до ${MAX_IMAGE_SIZE_MB} МБ`;
+
   if (!width || !height) {
-    return `PNG / JPG / WEBP до ${MAX_IMAGE_SIZE_MB} МБ`;
+    return `${base} · фото будет автоматически сжато`;
   }
 
-  return `PNG / JPG / WEBP до ${MAX_IMAGE_SIZE_MB} МБ · рекомендовано ${width} × ${height} px`;
+  return `${base} · рекомендовано ${width} × ${height} px · авто-сжатие`;
+}
+
+function getTargetSize(originalWidth: number, originalHeight: number, maxWidth: number, maxHeight: number) {
+  const ratio = Math.min(maxWidth / originalWidth, maxHeight / originalHeight, 1);
+
+  return {
+    width: Math.max(1, Math.round(originalWidth * ratio)),
+    height: Math.max(1, Math.round(originalHeight * ratio)),
+  };
+}
+
+async function optimizeImageFile(file: File, maxWidth: number, maxHeight: number) {
+  const source = URL.createObjectURL(file);
+
+  try {
+    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+      const img = new Image();
+
+      img.onload = () => resolve(img);
+      img.onerror = () => reject(new Error("Не удалось открыть изображение."));
+      img.src = source;
+    });
+
+    const { width, height } = getTargetSize(image.naturalWidth, image.naturalHeight, maxWidth, maxHeight);
+    const canvas = document.createElement("canvas");
+    const context = canvas.getContext("2d");
+
+    if (!context) {
+      throw new Error("Не удалось подготовить изображение.");
+    }
+
+    canvas.width = width;
+    canvas.height = height;
+    context.drawImage(image, 0, 0, width, height);
+
+    return canvas.toDataURL(OPTIMIZED_IMAGE_TYPE, OPTIMIZED_IMAGE_QUALITY);
+  } finally {
+    URL.revokeObjectURL(source);
+  }
 }
 
 export function ImageDropZone({
@@ -35,7 +80,7 @@ export function ImageDropZone({
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState("");
 
-  function readFile(file: File) {
+  async function readFile(file: File) {
     setError("");
 
     if (!file.type.startsWith("image/")) {
@@ -44,23 +89,21 @@ export function ImageDropZone({
     }
 
     if (file.size > MAX_IMAGE_SIZE_BYTES) {
-      setError(`Фото слишком большое. Для теста загрузите файл до ${MAX_IMAGE_SIZE_MB} МБ.`);
+      setError(`Фото слишком большое. Загрузите файл до ${MAX_IMAGE_SIZE_MB} МБ.`);
       return;
     }
 
-    const reader = new FileReader();
+    try {
+      const optimizedImage = await optimizeImageFile(
+        file,
+        recommendedWidth ?? FALLBACK_MAX_WIDTH,
+        recommendedHeight ?? FALLBACK_MAX_HEIGHT,
+      );
 
-    reader.onload = () => {
-      if (typeof reader.result === "string") {
-        onChange(reader.result);
-      }
-    };
-
-    reader.onerror = () => {
-      setError("Не удалось прочитать файл.");
-    };
-
-    reader.readAsDataURL(file);
+      onChange(optimizedImage);
+    } catch {
+      setError("Не удалось сжать изображение. Попробуйте другой файл.");
+    }
   }
 
   function handleDrop(event: DragEvent<HTMLButtonElement>) {
