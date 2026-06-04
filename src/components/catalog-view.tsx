@@ -196,21 +196,26 @@ function getProductPriceStats(
   };
 }
 
-function sortProductModels(items: ProductModel[], sortMode: SortMode) {
-  if (sortMode === "popular") {
-    return items;
-  }
+function getProductSortOrder(product: ProductModel) {
+  const order = Number(product.sortOrder);
+  return Number.isFinite(order) ? order : 100;
+}
 
+function sortProductModels(items: ProductModel[], sortMode: SortMode) {
   return [...items].sort((a, b) => {
     if (sortMode === "price_asc") {
-      return a.minPrice - b.minPrice;
+      return a.minPrice - b.minPrice || getProductSortOrder(a) - getProductSortOrder(b);
     }
 
     if (sortMode === "price_desc") {
-      return b.maxPrice - a.maxPrice;
+      return b.maxPrice - a.maxPrice || getProductSortOrder(a) - getProductSortOrder(b);
     }
 
-    return b.slug.localeCompare(a.slug);
+    if (sortMode === "new") {
+      return Number(Boolean(b.isNew)) - Number(Boolean(a.isNew)) || getProductSortOrder(a) - getProductSortOrder(b);
+    }
+
+    return getProductSortOrder(a) - getProductSortOrder(b);
   });
 }
 
@@ -852,10 +857,17 @@ export function CatalogView({
       {}
     );
 
-    return Object.entries(grouped).map(([brand, brandProducts]) => [
-      brand,
-      sortProductModels(brandProducts, sortMode),
-    ] as [string, ProductModel[]]);
+    return Object.entries(grouped)
+      .map(([brand, brandProducts]) => [
+        brand,
+        sortProductModels(brandProducts, sortMode),
+      ] as [string, ProductModel[]])
+      .sort(([, aProducts], [, bProducts]) => {
+        const aOrder = Math.min(...aProducts.map(getProductSortOrder));
+        const bOrder = Math.min(...bProducts.map(getProductSortOrder));
+
+        return aOrder - bOrder;
+      });
   }, [sortMode, visibleModelProducts]);
 
   const hasSpecificationFilters = Boolean(

@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { ProductVisibilityButton } from "@/components/admin/product-visibility-button";
+import { SortOrderInput } from "@/components/admin/sort-order-input";
 import {
   getAdminProducts,
   getAdminStatusClass,
@@ -415,6 +416,15 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
                     <span className={`rounded-full border px-3 py-1 text-sm ${getAdminStatusClass(product.status)}`}>
                       {getAdminStatusLabel(product.status)}
                     </span>
+                  </AdminCell>
+
+                  <AdminCell label="Порядок">
+                    <SortOrderInput
+                      id={product.id}
+                      value={product.sortOrder}
+                      apiPath="/api/admin/products"
+                      extraBody={{ action: "set-sort-order" }}
+                    />
                   </AdminCell>
 
                   <div className="flex flex-wrap gap-2 xl:justify-end">

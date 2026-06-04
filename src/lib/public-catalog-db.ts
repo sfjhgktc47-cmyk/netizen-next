@@ -32,6 +32,7 @@ export type PublicProductModel = {
   status: string;
   isNew: boolean;
   isPopular: boolean;
+  sortOrder: number;
 };
 
 export type PublicProductPosition = {
@@ -172,6 +173,7 @@ function toPublicProduct(product: ProductWithVariants): PublicProductModel {
     status: product.status,
     isNew: Boolean(product.isNew),
     isPopular: Boolean(product.isPopular),
+    sortOrder: Number(product.sortOrder ?? 100),
   };
 }
 
