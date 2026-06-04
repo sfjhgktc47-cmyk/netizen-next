@@ -226,7 +226,7 @@ export default function Home({ initialData = {} }: { initialData?: HomePayload }
         <SiteHeader />
 
         {visibleHomeBlocks.map((block) => {
-          const module = (
+          const renderedModule = (
             <HomeModule
               block={block}
               dark={dark}
@@ -240,12 +240,12 @@ export default function Home({ initialData = {} }: { initialData?: HomePayload }
           );
 
           if ((block.type || block.id) === "hero") {
-            return <div key={block.id}>{module}</div>;
+            return <div key={block.id}>{renderedModule}</div>;
           }
 
           return (
             <LazyHomeModule key={block.id} blockId={block.id}>
-              {module}
+              {renderedModule}
             </LazyHomeModule>
           );
         })}
