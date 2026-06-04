@@ -997,12 +997,27 @@ export function CatalogView({
         </div>
 
         <section className="mt-4 sm:mt-8 lg:mt-10">
-          <Link
-            href="/"
-            className="text-sm text-blue-500 transition-colors hover:text-blue-400"
-          >
-            ← На главную
-          </Link>
+          <nav className="flex flex-wrap items-center gap-1.5 text-xs text-muted sm:text-sm" aria-label="Хлебные крошки">
+            <Link href="/" className="transition-colors hover:text-blue-500">
+              Главная
+            </Link>
+            <span className="text-muted-soft">›</span>
+            <Link href="/catalog" className="transition-colors hover:text-blue-500">
+              Каталог
+            </Link>
+            {activeCategory ? (
+              <>
+                <span className="text-muted-soft">›</span>
+                <span className="text-main">{activeCategory.name}</span>
+              </>
+            ) : null}
+            {selectedBrand ? (
+              <>
+                <span className="text-muted-soft">›</span>
+                <span className="text-main">{selectedBrand}</span>
+              </>
+            ) : null}
+          </nav>
 
           <div className="mt-3 flex flex-col gap-3 sm:mt-4 sm:gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>

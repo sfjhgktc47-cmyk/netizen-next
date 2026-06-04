@@ -426,14 +426,25 @@ export function ProductDetailView({
       <div className="mx-auto max-w-[1440px]">
         <SiteHeader />
 
-        <div className="mt-4 sm:mt-10">
-          <Link
-            href="/catalog"
-            className="text-sm text-blue-500 transition-colors hover:text-blue-400"
-          >
-            ← Вернуться в каталог
+        <nav className="mt-4 flex flex-wrap items-center gap-1.5 text-xs text-muted sm:mt-10 sm:text-sm" aria-label="Хлебные крошки">
+          <Link href="/" className="transition-colors hover:text-blue-500">
+            Главная
           </Link>
-        </div>
+          <span className="text-muted-soft">›</span>
+          <Link href="/catalog" className="transition-colors hover:text-blue-500">
+            Каталог
+          </Link>
+          {product.category ? (
+            <>
+              <span className="text-muted-soft">›</span>
+              <Link href={`/catalog/${product.category}`} className="transition-colors hover:text-blue-500">
+                {categoryName}
+              </Link>
+            </>
+          ) : null}
+          <span className="text-muted-soft">›</span>
+          <span className="text-main">{product.name}</span>
+        </nav>
 
         <section className="mt-4 grid grid-cols-[52%_1fr] items-start gap-3 lg:mt-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
           <div className="h-full sm:card sm:rounded-[36px] sm:p-6">
