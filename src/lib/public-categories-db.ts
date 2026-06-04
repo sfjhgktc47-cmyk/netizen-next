@@ -1,6 +1,7 @@
 import "server-only";
 
 import { prisma } from "@/lib/db";
+import { publicImageUrl } from "@/lib/public-image-urls";
 
 export type PublicCategory = {
   id: string;

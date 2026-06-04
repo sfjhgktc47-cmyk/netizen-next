@@ -3,6 +3,7 @@ import "server-only";
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/product-pricing";
 import { getPublicCategoriesFromDb, type PublicCategory } from "@/lib/public-categories-db";
+import { publicImageUrl, publicImageUrls } from "@/lib/public-image-urls";
 
 export type ProductDescriptionBlock = {
   id: string;
@@ -61,6 +62,18 @@ export type PublicCatalogData = {
 };
 
 type ProductWithVariants = Awaited<ReturnType<typeof getDbProductsForPublicCatalog>>[number];
+
+
+function toPublicProductImageUrls(product: ProductWithVariants, images: string[]) {
+  return publicImageUrls("product", product.slug, "images", images);
+}
+
+function toPublicDescriptionBlocks(product: ProductWithVariants) {
+  return normalizeDescriptionBlocks(product.descriptionBlocks).map((block, index) => ({
+    ...block,
+    image: publicImageUrl("product", product.slug, `descriptionBlocks.${index}.image`, block.image),
+  }));
+}
 
 
 function normalizeDescriptionBlocks(value: unknown): ProductDescriptionBlock[] {
@@ -156,6 +169,9 @@ function getPriceRange(variants: ProductWithVariants["variants"]) {
 }
 
 function toPublicProduct(product: ProductWithVariants): PublicProductModel {
+  const images = getProductImages(product);
+  const publicImages = toPublicProductImageUrls(product, images);
+
   return {
     slug: product.slug,
     name: product.name,
@@ -165,10 +181,10 @@ function toPublicProduct(product: ProductWithVariants): PublicProductModel {
     price: getPriceRange(product.variants),
     description: product.description,
     shortDescription: product.shortDescription || product.description,
-    descriptionBlocks: normalizeDescriptionBlocks(product.descriptionBlocks),
-    image: getProductImages(product)[0] ?? "",
-    promoImage: String(product.promoImage ?? ""),
-    images: getProductImages(product),
+    descriptionBlocks: toPublicDescriptionBlocks(product),
+    image: publicImages[0] ?? "",
+    promoImage: publicImageUrl("product", product.slug, "promoImage", String(product.promoImage ?? "")),
+    images: publicImages,
     colors: getProductColors(product),
     status: product.status,
     isNew: Boolean(product.isNew),
@@ -194,7 +210,7 @@ function toPublicPosition(
     oldPrice: variant.oldPrice ? formatPrice(variant.oldPrice) : "",
     stock: variant.stock,
     status: getVariantStatus(variant.status, variant.stock),
-    images: variant.images,
+    images: publicImageUrls("variant", variant.sku, "images", Array.isArray(variant.images) ? variant.images : []),
     seoTitle: variant.seoTitle || `${variant.title} — купить в Netizen`,
     seoDescription:
       variant.seoDescription ||

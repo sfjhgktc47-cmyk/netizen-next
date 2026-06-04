@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db";
+import { publicImageUrl } from "@/lib/public-image-urls";
 
 export type SiteBanner = {
   id: string;
@@ -81,6 +82,9 @@ function toBanner(item: {
 }): SiteBanner {
   return {
     ...item,
+    imageLight: publicImageUrl("banner", item.id, "imageLight", item.imageLight),
+    imageDark: publicImageUrl("banner", item.id, "imageDark", item.imageDark),
+    imageMobile: publicImageUrl("banner", item.id, "imageMobile", item.imageMobile),
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString(),
   };
@@ -100,6 +104,7 @@ function toBenefit(item: {
 }): SiteBenefit {
   return {
     ...item,
+    image: publicImageUrl("benefit", item.id, "image", item.image),
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString(),
   };
