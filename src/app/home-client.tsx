@@ -8,6 +8,7 @@ import {
   useState,
   type MouseEvent,
   type PointerEvent,
+  type ReactNode,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { SiteHeader } from "@/components/site-header";
@@ -224,22 +225,81 @@ export default function Home({ initialData = {} }: { initialData?: HomePayload }
       <div className="mx-auto max-w-[1440px] px-2 pb-12 pt-2.5 sm:px-5 sm:py-6 lg:px-6">
         <SiteHeader />
 
-        {visibleHomeBlocks.map((block) => (
-          <HomeModule
-            key={block.id}
-            block={block}
-            dark={dark}
-            categories={visibleCategories}
-            popularProducts={popularProducts}
-            allProducts={popularProducts.length ? popularProducts : newArrivals}
-            newArrivals={newArrivals}
-            banners={banners}
-            benefits={benefits}
-          />
-        ))}
+        {visibleHomeBlocks.map((block) => {
+          const module = (
+            <HomeModule
+              block={block}
+              dark={dark}
+              categories={visibleCategories}
+              popularProducts={popularProducts}
+              allProducts={popularProducts.length ? popularProducts : newArrivals}
+              newArrivals={newArrivals}
+              banners={banners}
+              benefits={benefits}
+            />
+          );
+
+          if ((block.type || block.id) === "hero") {
+            return <div key={block.id}>{module}</div>;
+          }
+
+          return (
+            <LazyHomeModule key={block.id} blockId={block.id}>
+              {module}
+            </LazyHomeModule>
+          );
+        })}
         <Footer dark={dark} siteSettings={siteSettings} />
       </div>
     </main>
+  );
+}
+
+
+function LazyHomeModule({
+  blockId,
+  children,
+}: {
+  blockId: string;
+  children: ReactNode;
+}) {
+  const rootRef = useRef<HTMLDivElement | null>(null);
+  const [shouldRender, setShouldRender] = useState(false);
+
+  useEffect(() => {
+    const element = rootRef.current;
+
+    if (!element) {
+      return;
+    }
+
+    if (!("IntersectionObserver" in window)) {
+      setShouldRender(true);
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setShouldRender(true);
+          observer.disconnect();
+        }
+      },
+      {
+        rootMargin: "650px 0px",
+        threshold: 0.01,
+      },
+    );
+
+    observer.observe(element);
+
+    return () => observer.disconnect();
+  }, []);
+
+  return (
+    <div ref={rootRef} data-home-lazy-block={blockId} className={shouldRender ? "" : "min-h-[120px]"}>
+      {shouldRender ? children : null}
+    </div>
   );
 }
 
@@ -609,6 +669,39 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
 }
 
 
+function BenefitIcon({ image, icon }: { image?: string; icon?: string }) {
+  const [loaded, setLoaded] = useState(false);
+  const cleanImage = typeof image === "string" ? image.trim() : "";
+  const fallbackIcon = icon?.trim() || "✓";
+
+  return (
+    <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-visible text-sm text-blue-500 sm:h-12 sm:w-12 sm:text-base">
+      <span
+        className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${
+          cleanImage && loaded ? "opacity-0" : "opacity-100"
+        }`}
+      >
+        {fallbackIcon}
+      </span>
+
+      {cleanImage ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={cleanImage}
+          alt=""
+          loading="lazy"
+          decoding="async"
+          onLoad={() => setLoaded(true)}
+          className={`max-h-full max-w-full object-contain transition-opacity duration-300 ${
+            loaded ? "opacity-100" : "opacity-0"
+          }`}
+        />
+      ) : null}
+    </div>
+  );
+}
+
+
 function Benefits({
   dark,
   benefits,
@@ -630,17 +723,9 @@ function Benefits({
     <section className={`mt-3 rounded-2xl border p-3 transition-all duration-700 sm:mt-6 sm:p-5 ${panelClass(dark)}`}>
       <div className="grid w-full items-start gap-x-5 gap-y-4 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))] sm:gap-x-7">
         {items.map((item) => {
-          const hasImage = Boolean(item.image);
           const card = (
             <div className="flex h-full w-full items-start gap-3 px-1 py-1 sm:gap-4 sm:px-2">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-visible text-sm text-blue-500 sm:h-12 sm:w-12 sm:text-base">
-                {hasImage ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.image} alt="" className="max-h-full max-w-full object-contain" />
-                ) : (
-                  item.icon || "✓"
-                )}
-              </div>
+              <BenefitIcon image={item.image} icon={item.icon} />
 
               <div className="min-w-0 flex-1">
                 <div className="whitespace-normal text-[12px] font-semibold leading-snug sm:text-[13px] lg:text-[14px]">{item.title}</div>
@@ -691,7 +776,7 @@ function Categories({
 
   return (
     <section className="py-3 sm:py-8 lg:py-10">
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex items-end justify-between gap-4">
         <div className="min-w-0">
           <h2 className="text-[20px] font-bold leading-tight tracking-[-0.04em] sm:text-3xl lg:text-4xl">
             {title}
@@ -705,7 +790,7 @@ function Categories({
         {showButton ? (
           <Link
             href={buttonHref}
-            className={`hidden shrink-0 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 sm:inline-flex ${
+            className={`mt-4 hidden shrink-0 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 sm:inline-flex ${
               dark
                 ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
                 : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
@@ -891,7 +976,7 @@ function PopularProducts({
 
   return (
     <section className="pb-3 sm:pb-8 lg:pb-10">
-      <div className="flex items-end justify-between gap-3">
+      <div className="flex items-end justify-between gap-4">
         <div className="min-w-0">
           <h2 className="text-[20px] font-bold leading-tight tracking-[-0.04em] sm:text-[36px] lg:text-[52px]">
             {title}
@@ -902,7 +987,7 @@ function PopularProducts({
           </p>
         </div>
 
-        <div className="hidden items-center gap-3 sm:flex">
+        <div className="mt-5 hidden items-center gap-3 sm:flex">
           {showButton ? (
             <Link
               href={buttonHref}
@@ -1091,7 +1176,7 @@ function NewArrivals({
   if (!mainItem) {
     return (
       <section className="pb-3 sm:pb-8 lg:pb-10">
-        <div className="mb-8 flex items-start justify-between gap-4">
+        <div className="mb-8 flex items-end justify-between gap-4">
           <div className="min-w-0">
             <h2 className="text-[23px] font-bold leading-none tracking-[-0.04em] sm:text-[36px] lg:text-[52px]">
               {title}
@@ -1103,7 +1188,7 @@ function NewArrivals({
 
           <Link
             href="/new"
-            className={`hidden shrink-0 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 sm:inline-flex ${
+            className={`mt-4 hidden shrink-0 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 sm:inline-flex ${
               dark
                 ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
                 : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
@@ -1129,7 +1214,7 @@ function NewArrivals({
 
   return (
     <section className="pb-3 sm:pb-8 lg:pb-10">
-      <div className="mb-5 flex items-start justify-between gap-4 sm:mb-8">
+      <div className="mb-5 flex items-end justify-between gap-4 sm:mb-8">
         <div className="min-w-0">
           <h2 className="text-[22px] font-bold leading-none tracking-[-0.04em] sm:text-[36px] lg:text-[52px]">
             {title}
