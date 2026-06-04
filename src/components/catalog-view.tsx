@@ -453,7 +453,7 @@ export function CatalogView({
   const categories = categoriesData;
 
   const activeCategoryIndex = categories.findIndex(
-    (category) => category.id === categoryId
+    (category) => category.id === selectedCategoryId
   );
 
   const isUrlSyncReady = useRef(false);
@@ -463,6 +463,7 @@ export function CatalogView({
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(
     () => activeCategoryIndex >= 6
   );
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(categoryId ?? null);
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
   const [selectedModelSlug, setSelectedModelSlug] = useState<string | null>(null);
   const [selectedMemory, setSelectedMemory] = useState<string | null>(null);
@@ -475,6 +476,10 @@ export function CatalogView({
   const [sortMode, setSortMode] = useState<SortMode>("popular");
   const [onlyPopular, setOnlyPopular] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
+
+  useEffect(() => {
+    setSelectedCategoryId(categoryId ?? null);
+  }, [categoryId]);
 
   useEffect(() => {
     if (activeCategoryIndex >= 6) {
@@ -496,6 +501,10 @@ export function CatalogView({
       setPriceTo(filters.priceTo);
       setSearchQuery(filters.searchQuery);
       setSortMode(filters.sortMode);
+      const pathParts = window.location.pathname.split("/").filter(Boolean);
+      const urlCategory = pathParts[0] === "catalog" && pathParts[1] ? decodeURIComponent(pathParts[1]) : null;
+
+      setSelectedCategoryId(urlCategory);
       setOnlyPopular(filters.onlyPopular);
     }
 
@@ -584,7 +593,7 @@ export function CatalogView({
   );
 
   const activeCategory = categories.find(
-    (category) => category.id === categoryId
+    (category) => category.id === selectedCategoryId
   );
 
   const selectedModel = allProducts.find(
@@ -599,7 +608,7 @@ export function CatalogView({
   const categoryProducts = useMemo(
     () =>
       allProducts.filter((product) => {
-        if (categoryId && product.category !== categoryId) {
+        if (selectedCategoryId && product.category !== selectedCategoryId) {
           return false;
         }
 
@@ -619,7 +628,7 @@ export function CatalogView({
 
         return true;
       }),
-    [allProducts, categoryId, normalizedSearchQuery, onlyPopular]
+    [allProducts, normalizedSearchQuery, onlyPopular, selectedCategoryId]
   );
 
   const visibleModelProducts = useMemo(
@@ -664,7 +673,7 @@ export function CatalogView({
 
   const positionsForFilterOptions = useMemo(() => {
     return enrichedPositions.filter((position) => {
-      if (categoryId && position.category !== categoryId) {
+      if (selectedCategoryId && position.category !== selectedCategoryId) {
         return false;
       }
 
@@ -682,7 +691,7 @@ export function CatalogView({
 
       return true;
     });
-  }, [categoryId, enrichedPositions, onlyPopular, selectedBrand, selectedModelSlug]);
+  }, [enrichedPositions, onlyPopular, selectedBrand, selectedCategoryId, selectedModelSlug]);
 
   const memoryOptions = useMemo(
     () => uniqueValues(positionsForFilterOptions.map((position) => position.memory)),
@@ -760,7 +769,7 @@ export function CatalogView({
     return enrichedPositions.filter((position) => {
       const price = getPriceNumber(position.price);
 
-      if (categoryId && position.category !== categoryId) {
+      if (selectedCategoryId && position.category !== selectedCategoryId) {
         return false;
       }
 
@@ -822,8 +831,8 @@ export function CatalogView({
       return true;
     });
   }, [
-    categoryId,
     enrichedPositions,
+    selectedCategoryId,
     onlyPopular,
     normalizedSearchQuery,
     priceFrom,
@@ -939,12 +948,35 @@ export function CatalogView({
     resetSpecificationFilters();
   }
 
-  function handleResetCatalogState() {
+  function replaceCatalogUrl(nextCategoryId: string | null, popular = false) {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const nextPath = nextCategoryId ? `/catalog/${nextCategoryId}` : "/catalog";
+    const nextUrl = popular ? `${nextPath}?popular=1` : nextPath;
+
+    window.history.pushState({}, "", nextUrl);
+  }
+
+  function handleSelectCategory(nextCategoryId: string | null) {
+    setSelectedCategoryId(nextCategoryId);
     setOnlyPopular(false);
     setSelectedBrand(null);
     setSearchQuery("");
     resetSpecificationFilters();
     setSortMode("popular");
+    replaceCatalogUrl(nextCategoryId);
+  }
+
+  function handleResetCatalogState() {
+    setSelectedCategoryId(null);
+    setOnlyPopular(false);
+    setSelectedBrand(null);
+    setSearchQuery("");
+    resetSpecificationFilters();
+    setSortMode("popular");
+    replaceCatalogUrl(null);
   }
 
   function handleSelectModel(modelSlug: string) {
@@ -1021,46 +1053,49 @@ export function CatalogView({
 
         <section className="mt-4 sm:mt-8">
           <div className="-mx-3 flex snap-x flex-nowrap items-center gap-2 overflow-x-auto px-3 pb-2 sm:mx-0 sm:flex-wrap sm:gap-3 sm:overflow-visible sm:px-0 sm:pb-0">
-            <Link
-              href="/catalog"
+            <button
+              type="button"
               onClick={handleResetCatalogState}
               className={`snap-start whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-medium transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
-                !onlyPopular && !categoryId && !selectedBrand && !hasSpecificationFilters
+                !onlyPopular && !selectedCategoryId && !selectedBrand && !hasSpecificationFilters
                   ? "border-blue-500 bg-blue-600 text-white"
                   : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
               }`}
             >
               Все товары
-            </Link>
+            </button>
 
 
 
-            <Link
-              href="/catalog?popular=1"
+            <button
+              type="button"
               onClick={() => {
+                setSelectedCategoryId(null);
                 setOnlyPopular(true);
                 setSelectedBrand(null);
+                setSearchQuery("");
                 resetSpecificationFilters();
                 setSortMode("popular");
+                replaceCatalogUrl(null, true);
               }}
               className={`snap-start whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-medium transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
-                onlyPopular && !categoryId && !selectedBrand && !hasSpecificationFilters
+                onlyPopular && !selectedCategoryId && !selectedBrand && !hasSpecificationFilters
                   ? "border-blue-500 bg-blue-600 text-white"
                   : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
               }`}
             >
               Популярные
-            </Link>
+            </button>
 
             {(isCategoriesOpen ? categories : categories.slice(0, 6)).map(
               (category) => {
-                const isActive = category.id === categoryId && !hasActiveFilters;
+                const isActive = category.id === selectedCategoryId && !hasActiveFilters;
 
                 return (
-                  <Link
+                  <button
                     key={category.id}
-                    href={category.href}
-                    onClick={handleResetCatalogState}
+                    type="button"
+                    onClick={() => handleSelectCategory(category.id)}
                     className={`snap-start whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-medium transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
                       isActive
                         ? "border-blue-500 bg-blue-600 text-white"
@@ -1068,7 +1103,7 @@ export function CatalogView({
                     }`}
                   >
                     {category.name}
-                  </Link>
+                  </button>
                 );
               }
             )}
