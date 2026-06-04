@@ -199,8 +199,6 @@ export function CategoryForm({ category }: Props) {
               onChange={setImage}
               label="Фото категории"
               hint="Загрузите отдельное изображение для плитки категории на главной. Лучше горизонтальное или предмет на прозрачном/светлом фоне."
-              recommendedWidth={720}
-              recommendedHeight={720}
             />
           </div>
         </section>

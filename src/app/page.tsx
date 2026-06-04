@@ -6,10 +6,6 @@ import HomeClient from "./home-client";
 
 export const dynamic = "force-dynamic";
 
-function cleanString(value: unknown) {
-  return typeof value === "string" ? value.trim() : "";
-}
-
 export default async function Page() {
   try {
     const [catalog, siteSettings, pageBlocks, contentLibrary] = await Promise.all([
@@ -24,23 +20,16 @@ export default async function Page() {
     );
     const configuredProducts = allProducts.filter((p) => {
       const imgs = [p.image, ...(Array.isArray(p.images) ? p.images : [])]
-        .map((img) => cleanString(img))
+        .map((img) => String(img ?? "").trim())
         .filter(Boolean);
       return imgs.length > 0;
     });
     const explicitNew = allProducts.filter((p) => p.isNew);
 
     const initialData = {
-      categories: catalog.categories.map((category) => ({
-        ...category,
-        id: cleanString(category.id) || cleanString(category.slug),
-        slug: cleanString(category.slug),
-        name: cleanString(category.name),
-        description: cleanString(category.description),
-        image: cleanString(category.image),
-        href:
-          cleanString(category.href) ||
-          `/catalog/${cleanString(category.slug)}`,
+      categories: catalog.categories.map((c) => ({
+        ...c,
+        image: c.image || "",
       })),
       products: configuredProducts,
       popularProducts: configuredProducts.filter((p) => p.isPopular),

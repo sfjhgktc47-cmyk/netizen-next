@@ -277,7 +277,7 @@ export function ProductVariantEditForm({ productId, variant }: Props) {
       </div>
 
       <div className="mt-8">
-        <ImageLibraryField value={images} onChange={setImages} recommendedWidth={1200} recommendedHeight={1200} />
+        <ImageLibraryField value={images} onChange={setImages} />
       </div>
 
       {error ? <div className="mt-5 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">{error}</div> : null}

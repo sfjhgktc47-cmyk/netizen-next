@@ -233,8 +233,6 @@ export function ProductDescriptionBlocksEditor({ value, onChange }: Props) {
                   label="Картинка блока"
                   hint="Широкая или предметная картинка для секции описания. Лучше PNG/WebP без лишних рамок."
                   maxImages={1}
-                  recommendedWidth={1400}
-                  recommendedHeight={900}
                 />
 
                 <label className="grid gap-2 text-sm font-medium text-white/65">

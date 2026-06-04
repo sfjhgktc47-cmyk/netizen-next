@@ -29,7 +29,7 @@ export function AddToCartButton() {
         <Link
           href="/cart"
           className="flex min-w-[138px] flex-col items-center justify-center rounded-xl bg-emerald-600 px-6 py-3 text-sm font-bold leading-tight text-white transition-colors hover:bg-emerald-500"
-         prefetch={false}>
+        >
           <span>В корзине</span>
           <span className="mt-0.5 text-[11px] font-semibold opacity-90">
             Завтра

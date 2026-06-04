@@ -140,7 +140,7 @@ export default function HelpPage() {
         <SiteHeader />
 
         <section className="mt-3 sm:mt-10">
-          <Link href="/" className="text-xs text-blue-500 transition-colors hover:text-blue-400 sm:text-sm" prefetch={false}>
+          <Link href="/" className="text-xs text-blue-500 transition-colors hover:text-blue-400 sm:text-sm">
             ← На главную
           </Link>
 
@@ -338,14 +338,14 @@ export default function HelpPage() {
                 <Link
                   href="/faq"
                   className="block rounded-2xl border border-theme px-5 py-3 text-center text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
-                 prefetch={false}>
+                >
                   Открыть FAQ
                 </Link>
 
                 <Link
                   href="/cart"
                   className="block rounded-2xl bg-blue-600 px-5 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-blue-500"
-                 prefetch={false}>
+                >
                   Перейти в корзину
                 </Link>
               </aside>

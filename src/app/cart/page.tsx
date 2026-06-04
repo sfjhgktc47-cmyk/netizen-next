@@ -613,14 +613,14 @@ export default function CartPage() {
               <Link
                 href="/catalog"
                 className="inline-flex justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500 sm:px-7 sm:py-4"
-               prefetch={false}>
+              >
                 Продолжить покупки →
               </Link>
 
               <Link
                 href="/profile"
                 className="inline-flex justify-center rounded-xl border border-theme bg-transparent px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-7 sm:py-4"
-               prefetch={false}>
+              >
                 Перейти в профиль
               </Link>
             </div>
@@ -654,14 +654,14 @@ export default function CartPage() {
               <Link
                 href="/catalog"
                 className="inline-flex justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500 sm:px-7 sm:py-4"
-               prefetch={false}>
+              >
                 Перейти в каталог →
               </Link>
 
               <Link
                 href="/new"
                 className="inline-flex justify-center rounded-xl border border-theme bg-transparent px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-7 sm:py-4"
-               prefetch={false}>
+              >
                 Смотреть новинки
               </Link>
             </div>
@@ -680,7 +680,7 @@ export default function CartPage() {
           <Link
             href="/catalog"
             className="text-sm text-blue-500 transition-colors hover:text-blue-400"
-           prefetch={false}>
+          >
             ← Вернуться в каталог
           </Link>
         </div>
@@ -703,7 +703,7 @@ export default function CartPage() {
                   <Link
                     href="/catalog"
                     className="rounded-xl border border-theme bg-transparent px-3 py-2 text-center text-xs transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-5 sm:py-3 sm:text-sm"
-                   prefetch={false}>
+                  >
                     Продолжить покупки
                   </Link>
 
@@ -733,7 +733,7 @@ export default function CartPage() {
                         <Link
                           href={productHref}
                           className="soft-box flex h-[62px] items-center justify-center rounded-2xl text-[10px] text-muted-soft sm:h-[110px] md:h-[140px] md:text-sm"
-                         prefetch={false}>
+                        >
                           Фото
                         </Link>
 
@@ -743,7 +743,7 @@ export default function CartPage() {
                           <Link
                             href={productHref}
                             className="mt-0.5 line-clamp-2 block text-[12px] font-bold leading-tight transition-colors hover:text-blue-500 sm:mt-1 sm:text-xl"
-                           prefetch={false}>
+                          >
                             {item.title || item.productName}
                           </Link>
 
@@ -1378,7 +1378,7 @@ function ProductStrip({
             key={`${product.slug}-${index}`}
             href={`/product/${product.slug}`}
             className="card group rounded-[20px] p-3 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/35 hover:bg-blue-soft sm:rounded-3xl sm:p-4"
-           prefetch={false}>
+          >
             <div className="soft-box flex h-[108px] items-center justify-center rounded-2xl text-xs text-muted-soft sm:h-[150px] sm:text-sm">
               Фото
             </div>

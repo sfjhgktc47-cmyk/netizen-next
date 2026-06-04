@@ -20,19 +20,12 @@ export async function GET() {
       ["new-arrivals", "promo-banner", "product-carousel", "support"].includes(block.type)
     );
 
-    return NextResponse.json(
-      {
-        products,
-        newArrivals: explicitNewArrivals.length > 0 ? explicitNewArrivals : products.slice(0, 12),
-        pageBlocks,
-        siteSettings,
-      },
-      {
-        headers: {
-          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
-        },
-      },
-    );
+    return NextResponse.json({
+      products,
+      newArrivals: explicitNewArrivals.length > 0 ? explicitNewArrivals : products.slice(0, 12),
+      pageBlocks,
+      siteSettings,
+    });
   } catch (error) {
     console.error("New arrivals data loading failed", error);
 

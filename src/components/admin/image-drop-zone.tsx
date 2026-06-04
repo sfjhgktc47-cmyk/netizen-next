@@ -8,79 +8,22 @@ type Props = {
   onChange: (value: string) => void;
   label?: string;
   hint?: string;
-  recommendedWidth?: number;
-  recommendedHeight?: number;
 };
 
 const MAX_IMAGE_SIZE_MB = 2;
 const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
-const OPTIMIZED_IMAGE_TYPE = "image/webp";
-const OPTIMIZED_IMAGE_QUALITY = 0.82;
-const FALLBACK_MAX_WIDTH = 1200;
-const FALLBACK_MAX_HEIGHT = 1200;
-
-function formatImageRequirements(width?: number, height?: number) {
-  const base = `PNG / JPG / WEBP до ${MAX_IMAGE_SIZE_MB} МБ`;
-
-  if (!width || !height) {
-    return `${base} · фото будет автоматически сжато`;
-  }
-
-  return `${base} · рекомендовано ${width} × ${height} px · авто-сжатие`;
-}
-
-function getTargetSize(originalWidth: number, originalHeight: number, maxWidth: number, maxHeight: number) {
-  const ratio = Math.min(maxWidth / originalWidth, maxHeight / originalHeight, 1);
-
-  return {
-    width: Math.max(1, Math.round(originalWidth * ratio)),
-    height: Math.max(1, Math.round(originalHeight * ratio)),
-  };
-}
-
-async function optimizeImageFile(file: File, maxWidth: number, maxHeight: number) {
-  const source = URL.createObjectURL(file);
-
-  try {
-    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
-      const img = new Image();
-
-      img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error("Не удалось открыть изображение."));
-      img.src = source;
-    });
-
-    const { width, height } = getTargetSize(image.naturalWidth, image.naturalHeight, maxWidth, maxHeight);
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d");
-
-    if (!context) {
-      throw new Error("Не удалось подготовить изображение.");
-    }
-
-    canvas.width = width;
-    canvas.height = height;
-    context.drawImage(image, 0, 0, width, height);
-
-    return canvas.toDataURL(OPTIMIZED_IMAGE_TYPE, OPTIMIZED_IMAGE_QUALITY);
-  } finally {
-    URL.revokeObjectURL(source);
-  }
-}
 
 export function ImageDropZone({
   value,
   onChange,
   label = "Фото товара",
   hint = "Перетащите фото сюда или нажмите, чтобы выбрать файл.",
-  recommendedWidth,
-  recommendedHeight,
 }: Props) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
   const [error, setError] = useState("");
 
-  async function readFile(file: File) {
+  function readFile(file: File) {
     setError("");
 
     if (!file.type.startsWith("image/")) {
@@ -89,21 +32,23 @@ export function ImageDropZone({
     }
 
     if (file.size > MAX_IMAGE_SIZE_BYTES) {
-      setError(`Фото слишком большое. Загрузите файл до ${MAX_IMAGE_SIZE_MB} МБ.`);
+      setError(`Фото слишком большое. Для теста загрузите файл до ${MAX_IMAGE_SIZE_MB} МБ.`);
       return;
     }
 
-    try {
-      const optimizedImage = await optimizeImageFile(
-        file,
-        recommendedWidth ?? FALLBACK_MAX_WIDTH,
-        recommendedHeight ?? FALLBACK_MAX_HEIGHT,
-      );
+    const reader = new FileReader();
 
-      onChange(optimizedImage);
-    } catch {
-      setError("Не удалось сжать изображение. Попробуйте другой файл.");
-    }
+    reader.onload = () => {
+      if (typeof reader.result === "string") {
+        onChange(reader.result);
+      }
+    };
+
+    reader.onerror = () => {
+      setError("Не удалось прочитать файл.");
+    };
+
+    reader.readAsDataURL(file);
   }
 
   function handleDrop(event: DragEvent<HTMLButtonElement>) {
@@ -116,8 +61,6 @@ export function ImageDropZone({
       readFile(file);
     }
   }
-
-  const requirementsText = formatImageRequirements(recommendedWidth, recommendedHeight);
 
   return (
     <div className="grid gap-2">
@@ -141,7 +84,7 @@ export function ImageDropZone({
         {value ? (
           <div className="grid gap-4 sm:grid-cols-[150px_1fr] sm:items-center">
             <div
-              className="h-32 rounded-2xl border border-white/10 bg-contain bg-center bg-no-repeat"
+              className="h-32 rounded-2xl border border-white/10 bg-cover bg-center bg-no-repeat"
               style={{ backgroundImage: `url(${value})` }}
               aria-label="Превью фото товара"
             />
@@ -153,7 +96,7 @@ export function ImageDropZone({
               </p>
 
               <span className="mt-3 inline-flex rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs text-blue-300">
-                {requirementsText}
+                Изображение сохранится в карточку
               </span>
             </div>
           </div>
@@ -162,7 +105,7 @@ export function ImageDropZone({
             <div className="text-sm font-semibold text-white">Перетащите фото товара</div>
             <p className="mt-2 max-w-[420px] text-sm leading-relaxed text-white/45">{hint}</p>
             <span className="mt-3 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-white/45">
-              {requirementsText}
+              PNG / JPG / WEBP до {MAX_IMAGE_SIZE_MB} МБ
             </span>
           </div>
         )}

@@ -7,84 +7,47 @@ import { getSiteContentLibrary } from "@/lib/site-content-library-db";
 
 export const dynamic = "force-dynamic";
 
-function cleanString(value: unknown) {
-  return typeof value === "string" ? value.trim() : "";
-}
-
 export async function GET() {
   try {
-    const [catalog, siteSettings, pageBlocks, contentLibrary] =
-      await Promise.all([
-        getPublicCatalogData(),
-        getSiteEditorSettings(),
-        getPublicPageBlocks("home"),
-        getSiteContentLibrary({ activeOnly: true }),
-      ]);
+    const [catalog, siteSettings, pageBlocks, contentLibrary] = await Promise.all([
+      getPublicCatalogData(),
+      getSiteEditorSettings(),
+      getPublicPageBlocks("home"),
+      getSiteContentLibrary({ activeOnly: true }),
+    ]);
 
-    const categories = catalog.categories.map((category) => ({
-      ...category,
-      id: cleanString(category.id) || cleanString(category.slug),
-      slug: cleanString(category.slug),
-      name: cleanString(category.name),
-      description: cleanString(category.description),
-      image: cleanString(category.image),
-      href:
-        cleanString(category.href) || `/catalog/${cleanString(category.slug)}`,
-    }));
-
-    const dbProducts = catalog.productCards.filter(
-      (product) => product.slug !== "catalog",
-    );
-
-    const configuredProducts = dbProducts.filter((product) => {
-      const images = [
-        product.image,
-        ...(Array.isArray(product.images) ? product.images : []),
-      ]
-        .map((image) => cleanString(image))
+    const configuredProducts = catalog.productCards.filter((product) => {
+      const images = [product.image, ...(Array.isArray(product.images) ? product.images : [])]
+        .map((image) => String(image ?? "").trim())
         .filter(Boolean);
 
-      return images.length > 0;
+      return product.slug !== "catalog" && images.length > 0;
     });
 
+    const dbProducts = catalog.productCards.filter(
+      (product) => product.slug !== "catalog"
+    );
     const explicitNewArrivals = dbProducts.filter((product) => product.isNew);
 
-    return NextResponse.json(
-      {
-        categories,
-        products: configuredProducts,
-        popularProducts: configuredProducts.filter(
-          (product) => product.isPopular,
-        ),
-        newArrivals:
-          explicitNewArrivals.length > 0
-            ? explicitNewArrivals
-            : dbProducts.slice(0, 3),
-        pageBlocks,
-        siteSettings,
-        banners: contentLibrary.banners,
-        benefits: contentLibrary.benefits,
-      },
-      {
-        headers: {
-          "Cache-Control": "public, s-maxage=60, stale-while-revalidate=300",
-        },
-      },
-    );
+    return NextResponse.json({
+      categories: catalog.categories.map((category) => ({
+        ...category,
+        image: category.image || "",
+      })),
+      products: configuredProducts,
+      popularProducts: configuredProducts.filter((product) => product.isPopular),
+      newArrivals:
+        explicitNewArrivals.length > 0
+          ? explicitNewArrivals
+          : dbProducts.slice(0, 3),
+      pageBlocks,
+      siteSettings,
+      banners: contentLibrary.banners,
+      benefits: contentLibrary.benefits,
+    });
   } catch (error) {
     console.error("Home data loading failed", error);
 
-    return NextResponse.json(
-      {
-        categories: [],
-        products: [],
-        popularProducts: [],
-        newArrivals: [],
-        pageBlocks: [],
-        banners: [],
-        benefits: [],
-      },
-      { status: 500 },
-    );
+    return NextResponse.json({ categories: [], products: [], pageBlocks: [], banners: [], benefits: [] });
   }
 }

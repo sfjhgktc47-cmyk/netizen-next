@@ -430,7 +430,7 @@ export function ProductDetailView({
           <Link
             href="/catalog"
             className="text-sm text-blue-500 transition-colors hover:text-blue-400"
-           prefetch={false}>
+          >
             ← Вернуться в каталог
           </Link>
         </div>
@@ -808,7 +808,7 @@ export function ProductDetailView({
                   <Link
                     href="/help"
                     className="mt-3 flex justify-center rounded-xl border border-theme bg-transparent px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-7 sm:py-4"
-                   prefetch={false}>
+                  >
                     Задать вопрос
                   </Link>
                 </div>
@@ -887,7 +887,7 @@ export function ProductDetailView({
                           href="/cart"
                           onClick={saveSelectedPositionToCart}
                           className="flex justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500 sm:px-7 sm:py-4"
-                         prefetch={false}>
+                        >
                           Купить сейчас →
                         </Link>
                       ) : (
@@ -917,7 +917,7 @@ export function ProductDetailView({
                     <Link
                       href="/help"
                       className="mt-3 flex justify-center rounded-xl border border-theme bg-transparent px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-7 sm:py-4"
-                     prefetch={false}>
+                    >
                       Задать вопрос
                     </Link>
                   </div>
@@ -1055,7 +1055,7 @@ function ProductStrip({ title }: { title: string }) {
             key={index}
             href="/catalog"
             className="card group rounded-[20px] p-3 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/35 hover:bg-blue-soft sm:rounded-3xl sm:p-4"
-           prefetch={false}>
+          >
             <div className="soft-box flex aspect-[3/4] items-center justify-center rounded-2xl text-sm text-muted-soft">
               Фото
             </div>

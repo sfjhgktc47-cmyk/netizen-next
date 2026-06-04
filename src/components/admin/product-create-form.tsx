@@ -57,7 +57,6 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
   const [status, setStatus] = useState("active");
   const [isNew, setIsNew] = useState(true);
   const [isPopular, setIsPopular] = useState(false);
-  const [sortOrder, setSortOrder] = useState("100");
   const [images, setImages] = useState<string[]>([]);
   const [promoImages, setPromoImages] = useState<string[]>([]);
 
@@ -95,7 +94,6 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
           status,
           isNew,
           isPopular,
-          sortOrder: Number(sortOrder),
         }),
       });
 
@@ -187,16 +185,6 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
               </select>
             </Field>
 
-            <Field label="Порядок в каталоге">
-              <input
-                type="number"
-                value={sortOrder}
-                onChange={(event) => setSortOrder(event.target.value)}
-                placeholder="100"
-                className={inputClass}
-              />
-            </Field>
-
             <div className="grid gap-3 rounded-2xl border border-white/10 bg-black/20 p-4">
               <label className="flex items-center gap-3 text-sm text-white/70">
                 <input
@@ -225,8 +213,6 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
               label="Фотографии карточки"
               hint="Перетащите несколько общих фото модели. Первое фото будет главным до выбора конкретной позиции/SKU."
               maxImages={10}
-              recommendedWidth={1200}
-              recommendedHeight={1200}
             />
 
             <ImageLibraryField
@@ -235,8 +221,6 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
               label="Фото для блока «Новинки»"
               hint="Отдельное широкое промо-фото для главной. Лучше загружать баннер 16:9 или широкий PNG/WebP."
               maxImages={1}
-              recommendedWidth={1600}
-              recommendedHeight={900}
             />
           </div>
 

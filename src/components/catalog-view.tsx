@@ -30,9 +30,7 @@ type ProductModel = CatalogProductBase & {
   images?: string[];
   shortDescription?: string;
   status?: string;
-  isNew?: boolean;
   isPopular?: boolean;
-  sortOrder?: number;
   price: string;
   minPrice: number;
   maxPrice: number;
@@ -84,6 +82,7 @@ const sortModeOptions: { value: SortMode; label: string; description: string }[]
   },
 ];
 
+const filterBrands = ["Apple", "Samsung", "Dyson", "Sony", "JBL", "PlayStation"];
 const emptyValue = "—";
 
 function uniqueValues(values: string[]) {
@@ -196,26 +195,21 @@ function getProductPriceStats(
   };
 }
 
-function getProductSortOrder(product: ProductModel) {
-  const order = Number(product.sortOrder);
-  return Number.isFinite(order) ? order : 100;
-}
-
 function sortProductModels(items: ProductModel[], sortMode: SortMode) {
+  if (sortMode === "popular") {
+    return items;
+  }
+
   return [...items].sort((a, b) => {
     if (sortMode === "price_asc") {
-      return a.minPrice - b.minPrice || getProductSortOrder(a) - getProductSortOrder(b);
+      return a.minPrice - b.minPrice;
     }
 
     if (sortMode === "price_desc") {
-      return b.maxPrice - a.maxPrice || getProductSortOrder(a) - getProductSortOrder(b);
+      return b.maxPrice - a.maxPrice;
     }
 
-    if (sortMode === "new") {
-      return Number(Boolean(b.isNew)) - Number(Boolean(a.isNew)) || getProductSortOrder(a) - getProductSortOrder(b);
-    }
-
-    return getProductSortOrder(a) - getProductSortOrder(b);
+    return b.slug.localeCompare(a.slug);
   });
 }
 
@@ -620,22 +614,12 @@ export function CatalogView({
     [allProducts, categoryId, normalizedSearchQuery, onlyPopular]
   );
 
-  const orderedCategoryProducts = useMemo(
-    () => sortProductModels(categoryProducts, "popular"),
-    [categoryProducts]
-  );
-
-  const filterBrandOptions = useMemo(
-    () => uniqueValues(orderedCategoryProducts.map((product) => product.brand)),
-    [orderedCategoryProducts]
-  );
-
   const visibleModelProducts = useMemo(
     () =>
       selectedBrand
-        ? orderedCategoryProducts.filter((product) => product.brand === selectedBrand)
-        : orderedCategoryProducts,
-    [orderedCategoryProducts, selectedBrand]
+        ? categoryProducts.filter((product) => product.brand === selectedBrand)
+        : categoryProducts,
+    [categoryProducts, selectedBrand]
   );
 
   const modelOptions = useMemo(() => {
@@ -855,26 +839,22 @@ export function CatalogView({
   );
 
   const productsByBrand = useMemo(() => {
-    const grouped = visibleModelProducts.reduce<Map<string, ProductModel[]>>(
+    const grouped = visibleModelProducts.reduce<Record<string, ProductModel[]>>(
       (acc, product) => {
-        const current = acc.get(product.brand) ?? [];
-        current.push(product);
-        acc.set(product.brand, current);
+        if (!acc[product.brand]) {
+          acc[product.brand] = [];
+        }
+
+        acc[product.brand].push(product);
         return acc;
       },
-      new Map<string, ProductModel[]>()
+      {}
     );
 
-    return Array.from(grouped.entries())
-      .map(([brand, brandProducts]) => [
-        brand,
-        sortProductModels(brandProducts, sortMode),
-      ] as [string, ProductModel[]])
-      .sort((a, b) => {
-        const aOrder = Math.min(...a[1].map(getProductSortOrder));
-        const bOrder = Math.min(...b[1].map(getProductSortOrder));
-        return aOrder - bOrder || a[0].localeCompare(b[0], "ru");
-      });
+    return Object.entries(grouped).map(([brand, brandProducts]) => [
+      brand,
+      sortProductModels(brandProducts, sortMode),
+    ] as [string, ProductModel[]]);
   }, [sortMode, visibleModelProducts]);
 
   const hasSpecificationFilters = Boolean(
@@ -973,7 +953,7 @@ export function CatalogView({
           <Link
             href="/"
             className="text-sm text-blue-500 transition-colors hover:text-blue-400"
-           prefetch={false}>
+          >
             ← На главную
           </Link>
 
@@ -1034,7 +1014,7 @@ export function CatalogView({
                   ? "border-blue-500 bg-blue-600 text-white"
                   : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
               }`}
-             prefetch={false}>
+            >
               Все товары
             </Link>
 
@@ -1042,7 +1022,6 @@ export function CatalogView({
 
             <Link
               href="/catalog?popular=1"
-              prefetch={false}
               onClick={() => {
                 setOnlyPopular(true);
                 setSelectedBrand(null);
@@ -1072,7 +1051,7 @@ export function CatalogView({
                         ? "border-blue-500 bg-blue-600 text-white"
                         : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
                     }`}
-                   prefetch={false}>
+                  >
                     {category.name}
                   </Link>
                 );
@@ -1139,7 +1118,6 @@ export function CatalogView({
                   disabledSimOptions={disabledSimOptions}
                   disabledStatusOptions={disabledStatusOptions}
                   resultCount={resultCount}
-                  brandOptions={filterBrandOptions}
                   onSelectBrand={handleSelectBrand}
                   onResetBrand={handleResetBrand}
                   onSelectModel={handleSelectModel}
@@ -1384,7 +1362,7 @@ function PositionProductCard({
           ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
           : "border-black/10 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)] hover:border-blue-500/35"
       }`}
-     prefetch={false}>
+    >
       <div
         className={`flex aspect-square w-full items-center justify-center overflow-hidden rounded-[14px] transition-colors duration-700 sm:rounded-2xl sm:aspect-[3/4] ${
           position.images?.[0] || getModelImage(position.product)
@@ -1492,7 +1470,6 @@ function FilterPanel({
   disabledSimOptions,
   disabledStatusOptions,
   resultCount,
-  brandOptions,
   onSelectBrand,
   onResetBrand,
   onSelectModel,
@@ -1526,7 +1503,6 @@ function FilterPanel({
   disabledSimOptions: string[];
   disabledStatusOptions: string[];
   resultCount: number;
-  brandOptions: string[];
   onSelectBrand: (brand: string) => void;
   onResetBrand: () => void;
   onSelectModel: (modelSlug: string) => void;
@@ -1569,7 +1545,7 @@ function FilterPanel({
           <div className="mb-3 text-sm font-semibold">Бренд</div>
 
           <div className="flex flex-wrap gap-2">
-            {brandOptions.map((brand) => {
+            {filterBrands.map((brand) => {
               const isActive = brand === selectedBrand;
 
               return (

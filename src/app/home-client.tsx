@@ -187,7 +187,7 @@ export default function Home({ initialData = {} }: { initialData?: HomePayload }
     ) return;
 
     let mounted = true;
-    fetch("/api/home", { cache: "no-store" })
+    fetch("/api/home")
       .then((r) => (r.ok ? r.json() : Promise.reject()))
       .then((payload: HomePayload) => {
         if (!mounted) return;
@@ -403,9 +403,6 @@ function mutedTextClass(dark: boolean) {
   return dark ? "text-white/55" : "text-black/55";
 }
 
-function withoutTrailingArrow(label: string) {
-  return label.replace(/\s*[→➜➡]+\s*$/, "").trim();
-}
 
 function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
   const slides = banners
@@ -557,23 +554,23 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
               </p>
             ) : null}
 
-            <div className="mt-6 flex flex-wrap gap-2 sm:mt-10 sm:gap-4 lg:mt-12">
+            <div className="mt-3 flex flex-wrap gap-2 sm:mt-8 sm:gap-4">
               <Link
                 href={slide.primaryHref}
-                className="inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-[11px] font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500 sm:min-h-12 sm:px-7 sm:py-4 sm:text-sm"
-               prefetch={false}>
-                {withoutTrailingArrow(slide.primaryLabel)}
+                className="inline-flex items-center justify-center rounded-xl bg-blue-600 px-3 py-2 text-[11px] font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500 sm:px-7 sm:py-4 sm:text-sm"
+              >
+                {slide.primaryLabel} →
               </Link>
 
               <Link
                 href={slide.secondaryHref}
-                className={`hidden min-h-11 items-center justify-center rounded-xl border px-4 py-2.5 text-[11px] font-medium transition-all duration-300 hover:-translate-y-0.5 min-[390px]:inline-flex sm:min-h-12 sm:px-7 sm:py-4 sm:text-sm ${
+                className={`hidden items-center justify-center rounded-xl border px-3 py-2 text-[11px] font-medium transition-all duration-300 hover:-translate-y-0.5 min-[390px]:inline-flex sm:px-7 sm:py-4 sm:text-sm ${
                   dark
                     ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
                     : "border-black/10 bg-white text-black hover:border-blue-500/40 hover:bg-blue-50"
                 }`}
-               prefetch={false}>
-                {withoutTrailingArrow(slide.secondaryLabel)}
+              >
+                {slide.secondaryLabel} →
               </Link>
             </div>
 
@@ -623,39 +620,36 @@ function Benefits({
 
   return (
     <section className={`mt-3 rounded-2xl border p-3 transition-all duration-700 sm:mt-6 sm:p-5 ${panelClass(dark)}`}>
-      <div className="flex w-full flex-wrap items-start gap-x-4 gap-y-4 sm:gap-x-5 lg:flex-nowrap">
+      <div className="flex gap-2 overflow-x-auto pb-1 sm:grid sm:grid-cols-2 sm:overflow-visible sm:pb-0 md:grid-cols-5 md:gap-4 [&::-webkit-scrollbar]:hidden" style={{scrollbarWidth:"none"}}>
         {items.map((item) => {
-          const hasImage = Boolean(item.image);
           const card = (
-            <div className="flex h-full w-full items-start gap-3 px-1 py-1 sm:gap-3 sm:px-2 lg:gap-4">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-visible text-sm text-blue-500 sm:h-12 sm:w-12 sm:text-base">
-                {hasImage ? (
+            <div className={`flex min-h-[68px] w-[200px] shrink-0 items-start gap-2 rounded-2xl border p-2.5 sm:min-h-0 sm:w-auto sm:gap-4 sm:border-0 sm:p-0 ${
+              dark ? "border-white/10 bg-white/[0.025]" : "border-black/10 bg-slate-50/80 sm:bg-transparent"
+            }`}>
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center overflow-hidden rounded-full border border-blue-500/30 text-xs text-blue-500 sm:h-12 sm:w-12 sm:text-base">
+                {item.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.image} alt="" className="max-h-full max-w-full object-contain" />
+                  <img src={item.image} alt="" className="h-full w-full object-cover" />
                 ) : (
                   item.icon || "✓"
                 )}
               </div>
 
-              <div className="min-w-0 flex-1">
-                <div className="whitespace-normal text-[12px] font-semibold leading-snug sm:whitespace-nowrap sm:text-[13px] lg:text-[14px]">{item.title}</div>
-                {item.description ? (
-                  <div className={`mt-1 break-words text-[11px] leading-snug sm:text-xs ${mutedTextClass(dark)}`}>
-                    {item.description}
-                  </div>
-                ) : null}
+              <div className="min-w-0">
+                <div className="line-clamp-2 text-[12px] font-semibold leading-tight sm:text-base">{item.title}</div>
+                <div className={`mt-0.5 line-clamp-2 text-[10px] leading-snug sm:mt-1 sm:text-sm ${mutedTextClass(dark)}`}>
+                  {item.description}
+                </div>
               </div>
             </div>
           );
 
-          const itemClass = "w-full min-w-[220px] flex-1 sm:min-w-[240px] lg:min-w-0";
-
           return item.href ? (
-            <Link key={item.id} href={item.href} className={`${itemClass} rounded-2xl transition-opacity hover:opacity-80`} prefetch={false}>
+            <Link key={item.id} href={item.href} className="rounded-xl transition-opacity hover:opacity-80">
               {card}
             </Link>
           ) : (
-            <div key={item.id} className={itemClass}>{card}</div>
+            <div key={item.id}>{card}</div>
           );
         })}
       </div>
@@ -699,14 +693,14 @@ function Categories({
         </div>
 
         {showButton ? (
-          <Link href={buttonHref} className="shrink-0 text-[11px] font-medium text-blue-600 sm:hidden" prefetch={false}>
+          <Link href={buttonHref} className="shrink-0 text-[11px] font-medium text-blue-600 sm:hidden">
             {buttonText}
           </Link>
         ) : null}
       </div>
 
       <div
-        className="mt-3 flex gap-2 overflow-x-auto pb-1 sm:mt-8 sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:pb-0 lg:grid-cols-3 xl:grid-cols-4 [&::-webkit-scrollbar]:hidden"
+        className="mt-3 flex gap-2 overflow-x-auto pb-1 sm:mt-8 sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:pb-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {categories.map((category) => {
@@ -716,14 +710,14 @@ function Categories({
             <Link
               key={category.id || category.slug}
               href={category.href || `/catalog/${category.slug}`}
-              className={`group relative flex h-[92px] w-[78px] shrink-0 flex-col items-center justify-between overflow-hidden rounded-2xl border p-2 text-center transition-all duration-500 hover:-translate-y-1 sm:min-h-[178px] sm:w-auto sm:items-start sm:p-6 sm:text-left ${
+              className={`group relative flex h-[92px] w-[78px] shrink-0 flex-col items-center justify-between overflow-hidden rounded-2xl border p-2 text-center transition-all duration-500 hover:-translate-y-1 sm:h-[160px] sm:w-auto sm:items-start sm:p-5 sm:text-left ${
                 dark
                   ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
                   : "border-black/10 bg-white shadow-[0_20px_70px_rgba(15,23,42,0.08)] hover:border-blue-500/35 hover:shadow-[0_28px_90px_rgba(15,23,42,0.12)]"
               }`}
-             prefetch={false}>
-              <div className="relative z-10 order-2 flex w-full flex-1 flex-col sm:order-none sm:max-w-[56%]">
-                <h3 className="line-clamp-2 text-[10px] font-bold leading-tight sm:text-xl">
+            >
+              <div className="relative z-10 order-2 w-full sm:order-none sm:max-w-[58%]">
+                <h3 className="line-clamp-2 text-[10px] font-bold leading-tight sm:text-lg">
                   {category.name}
                 </h3>
 
@@ -732,7 +726,7 @@ function Categories({
                 </p>
               </div>
 
-              <div className="relative z-10 order-1 flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl sm:absolute sm:right-5 sm:top-1/2 sm:h-[138px] sm:w-[138px] sm:-translate-y-1/2 sm:rounded-2xl">
+              <div className="relative z-10 order-1 flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl sm:absolute sm:right-4 sm:top-1/2 sm:h-[130px] sm:w-[130px] sm:-translate-y-1/2 sm:rounded-2xl">
                 {image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -747,7 +741,7 @@ function Categories({
               </div>
 
               <div
-                className={`relative z-10 mt-5 hidden h-11 w-11 items-center justify-center rounded-xl border text-base font-bold transition-all duration-300 group-hover:translate-x-1 sm:flex ${
+                className={`relative z-10 mt-5 hidden h-10 w-10 items-center justify-center rounded-xl border text-base font-bold transition-all duration-300 group-hover:translate-x-1 sm:flex ${
                   dark
                     ? "border-blue-500/35 bg-blue-500/10 text-blue-400 group-hover:bg-blue-600 group-hover:text-white"
                     : "border-black/10 bg-white text-black shadow-sm group-hover:border-blue-500 group-hover:bg-blue-600 group-hover:text-white"
@@ -771,7 +765,7 @@ function Categories({
                 ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
                 : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
             }`}
-           prefetch={false}>
+          >
             {buttonText}
           </Link>
         </div>
@@ -893,7 +887,7 @@ function PopularProducts({
         </div>
 
         {showButton ? (
-          <Link href={buttonHref} className="shrink-0 text-[11px] font-medium text-blue-600 sm:hidden" prefetch={false}>
+          <Link href={buttonHref} className="shrink-0 text-[11px] font-medium text-blue-600 sm:hidden">
             {buttonText}
           </Link>
         ) : null}
@@ -979,7 +973,7 @@ function PopularProducts({
                 ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
                 : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
             }`}
-           prefetch={false}>
+          >
             {buttonText}
           </Link>
         </div>
@@ -1008,7 +1002,7 @@ function ProductCard({
           ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
           : "border-black/10 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)] hover:border-blue-500/35"
       }`}
-     prefetch={false}>
+    >
       <div
         className={`relative flex h-[88px] items-center justify-center overflow-hidden rounded-[12px] transition-colors duration-700 min-[390px]:h-[98px] sm:h-[230px] sm:rounded-2xl ${
           image
@@ -1155,7 +1149,7 @@ function NewArrivalCard({
           ? "border-white/10 bg-white/[0.035] shadow-[0_24px_90px_rgba(0,60,255,0.09)] hover:border-blue-500/35"
           : "border-black/10 bg-white shadow-[0_18px_55px_rgba(15,23,42,0.08)] hover:border-blue-500/35"
       }`}
-     prefetch={false}>
+    >
       <div className="relative z-10 flex flex-col items-start justify-center p-4 sm:p-6 lg:p-8">
         <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-500 sm:text-xs">
           Новинка
@@ -1238,7 +1232,7 @@ function PromoBanner({
             ? "border-blue-500/20 bg-blue-600/10 shadow-[0_24px_90px_rgba(0,60,255,0.10)] hover:border-blue-500/40"
             : "border-blue-100 bg-white shadow-[0_24px_90px_rgba(15,23,42,0.08)] hover:border-blue-400/40"
         }`}
-       prefetch={false}>
+      >
         <div className="flex flex-col items-start justify-center p-4 sm:p-8 lg:p-10">
           <div className="text-xs font-bold uppercase tracking-[0.18em] text-blue-500">{label}</div>
           <h2 className={`mt-4 max-w-[520px] whitespace-pre-line font-bold leading-[1.05] tracking-[-0.05em] ${bannerTitleSizeClass(titleSize)}`}>
@@ -1453,7 +1447,7 @@ function Footer({
           <Link
             href="/"
             className="relative flex h-12 w-[170px] items-center justify-start overflow-hidden"
-           prefetch={false}>
+          >
             <Image
               src={dark ? logoLight : logoDark}
               alt={storeName}
@@ -1559,7 +1553,7 @@ function Footer({
               key={item}
               href="#"
               className="transition-colors hover:text-blue-500"
-             prefetch={false}>
+            >
               {item}
             </Link>
           ))}
@@ -1625,7 +1619,7 @@ function FooterColumn({
               key={label}
               href={href}
               className="transition-colors hover:text-blue-500"
-             prefetch={false}>
+            >
               {label}
             </Link>
           );

@@ -2,7 +2,6 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 
 import { ProductVisibilityButton } from "@/components/admin/product-visibility-button";
-import { SortOrderInput } from "@/components/admin/sort-order-input";
 import {
   getAdminProducts,
   getAdminStatusClass,
@@ -349,7 +348,7 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
         </section>
 
         <section className="mt-6 overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.035]">
-          <div className="hidden grid-cols-[90px_1.25fr_0.75fr_0.65fr_0.5fr_0.65fr_0.65fr_0.55fr_220px] border-b border-white/10 bg-black/25 px-5 py-4 text-sm text-white/45 xl:grid">
+          <div className="hidden grid-cols-[90px_1.3fr_0.8fr_0.7fr_0.6fr_0.7fr_0.7fr_220px] border-b border-white/10 bg-black/25 px-5 py-4 text-sm text-white/45 xl:grid">
             <div>Фото</div>
             <div>Карточка</div>
             <div>Категория</div>
@@ -357,7 +356,6 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
             <div>SKU</div>
             <div>Цена от</div>
             <div>Статус</div>
-            <div>Порядок</div>
             <div className="text-right">Действия</div>
           </div>
 
@@ -366,7 +364,7 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
               {products.map((product) => (
                 <div
                   key={`${product.source}-${product.id}`}
-                  className="grid gap-5 bg-white/[0.015] p-5 transition-colors hover:bg-blue-500/[0.04] xl:grid-cols-[90px_1.25fr_0.75fr_0.65fr_0.5fr_0.65fr_0.65fr_0.55fr_220px] xl:items-center"
+                  className="grid gap-5 bg-white/[0.015] p-5 transition-colors hover:bg-blue-500/[0.04] xl:grid-cols-[90px_1.3fr_0.8fr_0.7fr_0.6fr_0.7fr_0.7fr_220px] xl:items-center"
                 >
                   <Link
                     href={`/product/${product.slug}`}
@@ -417,15 +415,6 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
                     <span className={`rounded-full border px-3 py-1 text-sm ${getAdminStatusClass(product.status)}`}>
                       {getAdminStatusLabel(product.status)}
                     </span>
-                  </AdminCell>
-
-                  <AdminCell label="Порядок">
-                    <SortOrderInput
-                      id={product.id}
-                      value={product.sortOrder}
-                      apiPath="/api/admin/products"
-                      extraBody={{ action: "set-sort-order" }}
-                    />
                   </AdminCell>
 
                   <div className="flex flex-wrap gap-2 xl:justify-end">

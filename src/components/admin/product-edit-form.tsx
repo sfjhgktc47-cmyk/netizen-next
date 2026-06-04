@@ -32,7 +32,6 @@ type ProductForEdit = {
   images?: string[];
   isNew: boolean;
   isPopular: boolean;
-  sortOrder?: number;
 };
 
 type Props = {
@@ -79,7 +78,6 @@ export function ProductEditForm({ product, categories }: Props) {
   const [promoImages, setPromoImages] = useState<string[]>(product.promoImage ? [product.promoImage] : []);
   const [isNew, setIsNew] = useState(product.isNew);
   const [isPopular, setIsPopular] = useState(product.isPopular);
-  const [sortOrder, setSortOrder] = useState(String(product.sortOrder ?? 100));
 
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -116,7 +114,6 @@ export function ProductEditForm({ product, categories }: Props) {
           status: statusOverride ?? status,
           isNew,
           isPopular,
-          sortOrder: Number(sortOrder),
         }),
       });
 
@@ -197,16 +194,6 @@ export function ProductEditForm({ product, categories }: Props) {
           </select>
         </Field>
 
-        <Field label="Порядок в каталоге">
-          <input
-            type="number"
-            value={sortOrder}
-            onChange={(event) => setSortOrder(event.target.value)}
-            className={inputClass}
-            placeholder="100"
-          />
-        </Field>
-
         <div className="md:col-span-2 xl:col-span-2">
           <ImageLibraryField
             value={images}
@@ -214,8 +201,6 @@ export function ProductEditForm({ product, categories }: Props) {
             label="Фотографии карточки"
             hint="Перетащите несколько общих фото модели. Эти фото показываются до выбора конкретной позиции/SKU."
             maxImages={10}
-            recommendedWidth={1200}
-            recommendedHeight={1200}
           />
         </div>
 
@@ -226,8 +211,6 @@ export function ProductEditForm({ product, categories }: Props) {
             label="Фото для блока «Новинки»"
             hint="Отдельное широкое промо-фото для главной. Используется только в промо-блоке новинок."
             maxImages={1}
-            recommendedWidth={1600}
-            recommendedHeight={900}
           />
         </div>
 

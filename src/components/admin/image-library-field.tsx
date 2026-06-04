@@ -9,68 +9,13 @@ type Props = {
   label?: string;
   hint?: string;
   maxImages?: number;
-  recommendedWidth?: number;
-  recommendedHeight?: number;
 };
 
 const MAX_IMAGE_SIZE_MB = 2;
 const MAX_IMAGE_SIZE_BYTES = MAX_IMAGE_SIZE_MB * 1024 * 1024;
-const OPTIMIZED_IMAGE_TYPE = "image/webp";
-const OPTIMIZED_IMAGE_QUALITY = 0.82;
-const FALLBACK_MAX_WIDTH = 1200;
-const FALLBACK_MAX_HEIGHT = 1200;
 
 function uniqueImages(images: string[]) {
   return Array.from(new Set(images.filter(Boolean)));
-}
-
-function formatImageRequirements(maxImages: number, width?: number, height?: number) {
-  const base = `PNG / JPG / WEBP до ${MAX_IMAGE_SIZE_MB} МБ · максимум ${maxImages} фото`;
-
-  if (!width || !height) {
-    return `${base} · авто-сжатие`;
-  }
-
-  return `${base} · рекомендовано ${width} × ${height} px · авто-сжатие`;
-}
-
-function getTargetSize(originalWidth: number, originalHeight: number, maxWidth: number, maxHeight: number) {
-  const ratio = Math.min(maxWidth / originalWidth, maxHeight / originalHeight, 1);
-
-  return {
-    width: Math.max(1, Math.round(originalWidth * ratio)),
-    height: Math.max(1, Math.round(originalHeight * ratio)),
-  };
-}
-
-async function optimizeImageFile(file: File, maxWidth: number, maxHeight: number) {
-  const source = URL.createObjectURL(file);
-
-  try {
-    const image = await new Promise<HTMLImageElement>((resolve, reject) => {
-      const img = new Image();
-
-      img.onload = () => resolve(img);
-      img.onerror = () => reject(new Error("Не удалось открыть изображение."));
-      img.src = source;
-    });
-
-    const { width, height } = getTargetSize(image.naturalWidth, image.naturalHeight, maxWidth, maxHeight);
-    const canvas = document.createElement("canvas");
-    const context = canvas.getContext("2d");
-
-    if (!context) {
-      throw new Error("Не удалось подготовить изображение.");
-    }
-
-    canvas.width = width;
-    canvas.height = height;
-    context.drawImage(image, 0, 0, width, height);
-
-    return canvas.toDataURL(OPTIMIZED_IMAGE_TYPE, OPTIMIZED_IMAGE_QUALITY);
-  } finally {
-    URL.revokeObjectURL(source);
-  }
 }
 
 export function ImageLibraryField({
@@ -79,8 +24,6 @@ export function ImageLibraryField({
   label = "Фотографии позиции",
   hint = "Перетащите сюда несколько фото или нажмите, чтобы выбрать файлы.",
   maxImages = 12,
-  recommendedWidth,
-  recommendedHeight,
 }: Props) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -123,18 +66,29 @@ export function ImageLibraryField({
 
     try {
       const images = await Promise.all(
-        validFiles.map((file) =>
-          optimizeImageFile(
-            file,
-            recommendedWidth ?? FALLBACK_MAX_WIDTH,
-            recommendedHeight ?? FALLBACK_MAX_HEIGHT,
-          ),
-        ),
+        validFiles.map(
+          (file) =>
+            new Promise<string>((resolve, reject) => {
+              const reader = new FileReader();
+
+              reader.onload = () => {
+                if (typeof reader.result === "string") {
+                  resolve(reader.result);
+                  return;
+                }
+
+                reject(new Error("Не удалось прочитать фото."));
+              };
+
+              reader.onerror = () => reject(new Error("Не удалось прочитать фото."));
+              reader.readAsDataURL(file);
+            })
+        )
       );
 
       applyImages([...value, ...images]);
     } catch {
-      setError("Не удалось сжать одно из фото. Попробуйте другой файл.");
+      setError("Не удалось прочитать одно из фото.");
     }
   }
 
@@ -172,8 +126,6 @@ export function ImageLibraryField({
     setUrlValue("");
   }
 
-  const requirementsText = formatImageRequirements(maxImages, recommendedWidth, recommendedHeight);
-
   return (
     <div className="grid gap-3">
       <div>
@@ -202,7 +154,7 @@ export function ImageLibraryField({
           <div className="text-sm font-semibold text-white">Перетащите фото позиции</div>
           <p className="mt-2 max-w-[520px] text-sm leading-relaxed text-white/45">{hint}</p>
           <span className="mt-3 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-white/45">
-            {requirementsText}
+            PNG / JPG / WEBP до {MAX_IMAGE_SIZE_MB} МБ · максимум {maxImages} фото
           </span>
         </div>
       </button>
@@ -251,8 +203,6 @@ export function ImageLibraryField({
                 <span className="w-fit rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-xs text-white/50">
                   {index === 0 ? "Главное" : `Фото ${index + 1}`}
                 </span>
-
-                <div className="text-[11px] leading-relaxed text-white/40">{requirementsText}</div>
 
                 <div className="grid gap-2">
                   {index > 0 ? (

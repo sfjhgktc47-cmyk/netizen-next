@@ -218,7 +218,7 @@ export default function FaqPage() {
 
         <section className="mt-6">
           <div className="flex flex-col items-start gap-3">
-            <Link href="/" className="text-sm font-medium text-blue-500" prefetch={false}>
+            <Link href="/" className="text-sm font-medium text-blue-500">
               ← На главную
             </Link>
 
@@ -243,13 +243,13 @@ export default function FaqPage() {
               <Link
                 href="/help"
                 className="rounded-2xl bg-blue-600 px-6 py-4 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
-               prefetch={false}>
+              >
                 Написать в поддержку →
               </Link>
               <Link
                 href="/catalog"
                 className="rounded-2xl border border-theme px-6 py-4 text-sm font-semibold transition-colors hover:border-blue-500/45 hover:text-blue-500"
-               prefetch={false}>
+              >
                 Перейти в каталог
               </Link>
             </div>
