@@ -146,7 +146,7 @@ function NewPageModule({
             </p>
           </div>
           {getBoolean(settings, "showButton", false) ? (
-            <Link href={getText(settings, "buttonHref", "/catalog?new=1")} className={`rounded-xl border px-6 py-3 text-sm font-medium ${dark ? "border-white/10 bg-white/[0.035]" : "border-black/10 bg-white shadow-sm"}`}>
+            <Link href={getText(settings, "buttonHref", "/catalog?new=1")} className={`rounded-xl border px-6 py-3 text-sm font-medium ${dark ? "border-white/10 bg-white/[0.035]" : "border-black/10 bg-white shadow-sm"}`} prefetch={false}>
               {getText(settings, "buttonText", "В каталог →")}
             </Link>
           ) : null}
@@ -179,7 +179,7 @@ function NewPageModule({
       <section className={`mb-16 rounded-[34px] border p-8 ${dark ? "border-white/10 bg-white/[0.035]" : "border-black/10 bg-white shadow-sm"}`}>
         <h2 className="text-3xl font-bold tracking-[-0.04em]">{getText(settings, "title", "Поможем выбрать новинку")}</h2>
         <p className={`mt-3 ${muted(dark)}`}>{getText(settings, "subtitle", "Расскажем отличия и подберём конфигурацию.")}</p>
-        <Link href="/help" className="mt-6 inline-flex rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white">Написать в поддержку →</Link>
+        <Link href="/help" className="mt-6 inline-flex rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white" prefetch={false}>Написать в поддержку →</Link>
       </section>
     );
   }
@@ -197,7 +197,7 @@ function PromoBlock({ dark, settings }: { dark: boolean; settings: Record<string
           <div className="text-sm font-bold uppercase tracking-[0.18em] text-blue-500">Новинки</div>
           <h1 className="mt-4 text-4xl font-bold leading-none tracking-[-0.05em] lg:text-6xl">{getText(settings, "title", "Новые поступления")}</h1>
           <p className={`mt-5 max-w-[520px] text-base leading-relaxed ${muted(dark)}`}>{getText(settings, "subtitle", "Самые свежие модели и конфигурации")}</p>
-          <Link href={getText(settings, "buttonHref", "/catalog?new=1")} className="mt-8 inline-flex w-fit rounded-xl bg-blue-600 px-7 py-4 text-sm font-medium text-white">
+          <Link href={getText(settings, "buttonHref", "/catalog?new=1")} className="mt-8 inline-flex w-fit rounded-xl bg-blue-600 px-7 py-4 text-sm font-medium text-white" prefetch={false}>
             {getText(settings, "buttonText", "В каталог →")}
           </Link>
         </div>
@@ -227,7 +227,7 @@ function NewCard({
   const description = descriptionOverride || product.shortDescription || "Откройте карточку, чтобы выбрать конфигурацию.";
 
   return (
-    <Link href={`/product/${product.slug}`} className={`group overflow-hidden rounded-3xl border transition-all duration-500 hover:-translate-y-1 ${dark ? "border-white/10 bg-white/[0.035] hover:border-blue-500/35" : "border-black/10 bg-white shadow-sm hover:border-blue-500/35"}`}>
+    <Link href={`/product/${product.slug}`} className={`group overflow-hidden rounded-3xl border transition-all duration-500 hover:-translate-y-1 ${dark ? "border-white/10 bg-white/[0.035] hover:border-blue-500/35" : "border-black/10 bg-white shadow-sm hover:border-blue-500/35"}`} prefetch={false}>
       <div className={`flex h-[230px] items-center justify-center ${image ? "bg-white" : dark ? "bg-white/[0.04]" : "bg-slate-100"}`}>
         {image ? <img src={image} alt={title} className="h-full w-full object-contain" /> : null}
       </div>

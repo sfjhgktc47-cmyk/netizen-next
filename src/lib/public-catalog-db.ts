@@ -425,11 +425,11 @@ async function getPublicProductBySlugUncached(slug: string) {
 
   return {
     product: toPublicProduct(product, {
-      includeAllImages: true,
-      includeDescriptionBlocks: true,
+      includeAllImages: false,
+      includeDescriptionBlocks: false,
     }),
     positions: product.variants.map((variant) =>
-      toPublicPosition(variant, product, { includeAllImages: true })
+      toPublicPosition(variant, product, { includeAllImages: false })
     ),
   };
 }

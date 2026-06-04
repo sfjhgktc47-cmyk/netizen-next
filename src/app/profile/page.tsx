@@ -367,7 +367,7 @@ export default function ProfilePage() {
           <Link
             href="/"
             className="text-sm text-blue-500 transition-colors hover:text-blue-400"
-          >
+           prefetch={false}>
             ← На главную
           </Link>
         </div>
@@ -398,14 +398,14 @@ export default function ProfilePage() {
                 <Link
                   href="/catalog"
                   className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-500 sm:px-6 sm:py-3.5"
-                >
+                 prefetch={false}>
                   Перейти в каталог →
                 </Link>
 
                 <Link
                   href="/help"
                   className="rounded-xl border border-theme bg-transparent px-4 py-2.5 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-6 sm:py-3.5"
-                >
+                 prefetch={false}>
                   Написать в поддержку
                 </Link>
 
@@ -434,7 +434,7 @@ export default function ProfilePage() {
                 <Link
                   href="/cart"
                   className="text-sm font-medium text-blue-500 transition-colors hover:text-blue-400"
-                >
+                 prefetch={false}>
                   Оформить новую заявку →
                 </Link>
               </div>
@@ -499,7 +499,7 @@ export default function ProfilePage() {
                 <Link
                   href="/catalog"
                   className="text-sm font-medium text-blue-500 transition-colors hover:text-blue-400"
-                >
+                 prefetch={false}>
                   Добавить товары →
                 </Link>
               </div>
@@ -535,7 +535,7 @@ export default function ProfilePage() {
                             <Link
                               href={`/product/${favorite.product.slug}`}
                               className="text-blue-500 transition-colors hover:text-blue-400"
-                            >
+                             prefetch={false}>
                               Перейти →
                             </Link>
                           </div>
@@ -694,21 +694,21 @@ export default function ProfilePage() {
                 <Link
                   href="/cart"
                   className="rounded-xl bg-blue-600 px-5 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-blue-500"
-                >
+                 prefetch={false}>
                   Новая заявка →
                 </Link>
 
                 <Link
                   href="#favorites"
                   className="rounded-xl border border-theme bg-transparent px-5 py-3 text-center text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
-                >
+                 prefetch={false}>
                   Избранные товары
                 </Link>
 
                 <Link
                   href="/help"
                   className="rounded-xl border border-theme bg-transparent px-5 py-3 text-center text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
-                >
+                 prefetch={false}>
                   Поддержка
                 </Link>
               </div>
@@ -863,7 +863,7 @@ function EmptyState({
       <Link
         href={href}
         className="mt-5 inline-flex rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500"
-      >
+       prefetch={false}>
         {action}
       </Link>
     </div>

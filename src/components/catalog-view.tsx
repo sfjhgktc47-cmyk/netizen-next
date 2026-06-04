@@ -1042,7 +1042,8 @@ export function CatalogView({
 
             <Link
               href="/catalog?popular=1"
-              onClick={() = prefetch={false}> {
+              prefetch={false}
+              onClick={() => {
                 setOnlyPopular(true);
                 setSelectedBrand(null);
                 resetSpecificationFilters();
