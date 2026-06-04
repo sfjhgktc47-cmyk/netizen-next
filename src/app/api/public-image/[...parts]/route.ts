@@ -8,15 +8,29 @@ export const dynamic = "force-dynamic";
 type ImageKind = "category" | "product" | "variant" | "banner" | "benefit" | "setting";
 
 function parseDataImage(value: string) {
-  const match = value.match(/^data:([^;]+);base64,(.*)$/s);
+  const marker = ";base64,";
+  const trimmed = value.trim();
 
-  if (!match) {
+  if (!trimmed.startsWith("data:")) {
+    return null;
+  }
+
+  const markerIndex = trimmed.indexOf(marker);
+
+  if (markerIndex === -1) {
+    return null;
+  }
+
+  const contentType = trimmed.slice("data:".length, markerIndex);
+  const base64Body = trimmed.slice(markerIndex + marker.length);
+
+  if (!contentType || !base64Body) {
     return null;
   }
 
   return {
-    contentType: match[1],
-    body: Buffer.from(match[2], "base64"),
+    contentType,
+    body: Buffer.from(base64Body, "base64"),
   };
 }
 
