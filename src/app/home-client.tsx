@@ -623,16 +623,12 @@ function Benefits({
 
   return (
     <section className={`mt-3 rounded-2xl border p-3 transition-all duration-700 sm:mt-6 sm:p-5 ${panelClass(dark)}`}>
-      <div className="mx-auto grid w-full justify-center gap-3 sm:gap-4 [grid-template-columns:repeat(auto-fit,minmax(240px,260px))]">
+      <div className="mx-auto flex w-full flex-wrap justify-center gap-x-4 gap-y-4 sm:gap-x-5">
         {items.map((item) => {
           const hasImage = Boolean(item.image);
           const card = (
-            <div className={`flex h-full min-h-[96px] w-full items-start gap-3 rounded-2xl border p-3 sm:min-h-[104px] sm:gap-4 sm:p-4 ${
-              dark ? "border-white/10 bg-white/[0.025]" : "border-black/10 bg-slate-50/80"
-            }`}>
-              <div className={`flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden text-sm text-blue-500 sm:h-12 sm:w-12 sm:text-base ${
-                hasImage ? "" : "rounded-full border border-blue-500/30"
-              }`}>
+            <div className="flex h-full w-full items-start gap-3 px-2 py-1 sm:gap-4 sm:px-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-visible text-sm text-blue-500 sm:h-12 sm:w-12 sm:text-base">
                 {hasImage ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={item.image} alt="" className="max-h-full max-w-full object-contain" />
@@ -642,7 +638,7 @@ function Benefits({
               </div>
 
               <div className="min-w-0 flex-1">
-                <div className="truncate whitespace-nowrap text-[13px] font-semibold leading-snug sm:text-[15px]">{item.title}</div>
+                <div className="whitespace-nowrap text-[12px] font-semibold leading-snug sm:text-[13px] lg:text-[14px]">{item.title}</div>
                 {item.description ? (
                   <div className={`mt-1 break-words text-[11px] leading-snug sm:text-xs ${mutedTextClass(dark)}`}>
                     {item.description}
@@ -652,7 +648,7 @@ function Benefits({
             </div>
           );
 
-          const itemClass = "w-full max-w-[260px]";
+          const itemClass = "w-full sm:w-auto sm:min-w-[235px] sm:max-w-[250px] sm:flex-[0_1_240px]";
 
           return item.href ? (
             <Link key={item.id} href={item.href} className={`${itemClass} rounded-2xl transition-opacity hover:opacity-80`}>
