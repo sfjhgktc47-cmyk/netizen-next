@@ -561,7 +561,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
               <Link
                 href={slide.primaryHref}
                 className="inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-[11px] font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500 sm:min-h-12 sm:px-7 sm:py-4 sm:text-sm"
-              >
+               prefetch={false}>
                 {withoutTrailingArrow(slide.primaryLabel)}
               </Link>
 
@@ -572,7 +572,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
                     ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
                     : "border-black/10 bg-white text-black hover:border-blue-500/40 hover:bg-blue-50"
                 }`}
-              >
+               prefetch={false}>
                 {withoutTrailingArrow(slide.secondaryLabel)}
               </Link>
             </div>
@@ -651,7 +651,7 @@ function Benefits({
           const itemClass = "w-full min-w-[220px] flex-1 sm:min-w-[240px] lg:min-w-0";
 
           return item.href ? (
-            <Link key={item.id} href={item.href} className={`${itemClass} rounded-2xl transition-opacity hover:opacity-80`}>
+            <Link key={item.id} href={item.href} className={`${itemClass} rounded-2xl transition-opacity hover:opacity-80`} prefetch={false}>
               {card}
             </Link>
           ) : (
@@ -699,7 +699,7 @@ function Categories({
         </div>
 
         {showButton ? (
-          <Link href={buttonHref} className="shrink-0 text-[11px] font-medium text-blue-600 sm:hidden">
+          <Link href={buttonHref} className="shrink-0 text-[11px] font-medium text-blue-600 sm:hidden" prefetch={false}>
             {buttonText}
           </Link>
         ) : null}
@@ -721,7 +721,7 @@ function Categories({
                   ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
                   : "border-black/10 bg-white shadow-[0_20px_70px_rgba(15,23,42,0.08)] hover:border-blue-500/35 hover:shadow-[0_28px_90px_rgba(15,23,42,0.12)]"
               }`}
-            >
+             prefetch={false}>
               <div className="relative z-10 order-2 flex w-full flex-1 flex-col sm:order-none sm:max-w-[56%]">
                 <h3 className="line-clamp-2 text-[10px] font-bold leading-tight sm:text-xl">
                   {category.name}
@@ -771,7 +771,7 @@ function Categories({
                 ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
                 : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
             }`}
-          >
+           prefetch={false}>
             {buttonText}
           </Link>
         </div>
@@ -893,7 +893,7 @@ function PopularProducts({
         </div>
 
         {showButton ? (
-          <Link href={buttonHref} className="shrink-0 text-[11px] font-medium text-blue-600 sm:hidden">
+          <Link href={buttonHref} className="shrink-0 text-[11px] font-medium text-blue-600 sm:hidden" prefetch={false}>
             {buttonText}
           </Link>
         ) : null}
@@ -979,7 +979,7 @@ function PopularProducts({
                 ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
                 : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
             }`}
-          >
+           prefetch={false}>
             {buttonText}
           </Link>
         </div>
@@ -1008,7 +1008,7 @@ function ProductCard({
           ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
           : "border-black/10 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)] hover:border-blue-500/35"
       }`}
-    >
+     prefetch={false}>
       <div
         className={`relative flex h-[88px] items-center justify-center overflow-hidden rounded-[12px] transition-colors duration-700 min-[390px]:h-[98px] sm:h-[230px] sm:rounded-2xl ${
           image
@@ -1155,7 +1155,7 @@ function NewArrivalCard({
           ? "border-white/10 bg-white/[0.035] shadow-[0_24px_90px_rgba(0,60,255,0.09)] hover:border-blue-500/35"
           : "border-black/10 bg-white shadow-[0_18px_55px_rgba(15,23,42,0.08)] hover:border-blue-500/35"
       }`}
-    >
+     prefetch={false}>
       <div className="relative z-10 flex flex-col items-start justify-center p-4 sm:p-6 lg:p-8">
         <div className="text-[10px] font-bold uppercase tracking-[0.18em] text-blue-500 sm:text-xs">
           Новинка
@@ -1238,7 +1238,7 @@ function PromoBanner({
             ? "border-blue-500/20 bg-blue-600/10 shadow-[0_24px_90px_rgba(0,60,255,0.10)] hover:border-blue-500/40"
             : "border-blue-100 bg-white shadow-[0_24px_90px_rgba(15,23,42,0.08)] hover:border-blue-400/40"
         }`}
-      >
+       prefetch={false}>
         <div className="flex flex-col items-start justify-center p-4 sm:p-8 lg:p-10">
           <div className="text-xs font-bold uppercase tracking-[0.18em] text-blue-500">{label}</div>
           <h2 className={`mt-4 max-w-[520px] whitespace-pre-line font-bold leading-[1.05] tracking-[-0.05em] ${bannerTitleSizeClass(titleSize)}`}>
@@ -1453,7 +1453,7 @@ function Footer({
           <Link
             href="/"
             className="relative flex h-12 w-[170px] items-center justify-start overflow-hidden"
-          >
+           prefetch={false}>
             <Image
               src={dark ? logoLight : logoDark}
               alt={storeName}
@@ -1559,7 +1559,7 @@ function Footer({
               key={item}
               href="#"
               className="transition-colors hover:text-blue-500"
-            >
+             prefetch={false}>
               {item}
             </Link>
           ))}
@@ -1625,7 +1625,7 @@ function FooterColumn({
               key={label}
               href={href}
               className="transition-colors hover:text-blue-500"
-            >
+             prefetch={false}>
               {label}
             </Link>
           );

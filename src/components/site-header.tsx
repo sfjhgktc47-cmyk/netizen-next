@@ -256,7 +256,7 @@ export function SiteHeader() {
           href="/"
           className="relative flex h-10 w-[108px] shrink-0 items-center justify-start overflow-hidden sm:w-[128px] lg:h-12 lg:w-[150px]"
           aria-label={storeName}
-        >
+         prefetch={false}>
           {mobileLogo ? (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -292,7 +292,7 @@ export function SiteHeader() {
               key={item.label}
               href={item.href}
               className="group relative overflow-hidden rounded-xl px-5 py-3 transition-colors duration-300 hover:text-white"
-            >
+             prefetch={false}>
               <span className="relative z-10">{item.label}</span>
 
               <span className="absolute inset-0 translate-y-full rounded-xl bg-blue-600/90 opacity-0 transition-all duration-300 ease-out group-hover:translate-y-0 group-hover:opacity-100" />
@@ -348,7 +348,7 @@ export function SiteHeader() {
                 ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
                 : "border-black/10 bg-white text-[#07111f] hover:border-blue-500/40 hover:bg-blue-50"
             }`}
-          >
+           prefetch={false}>
             🛒
 
             {cartCount > 0 && (
@@ -369,7 +369,7 @@ export function SiteHeader() {
                     ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
                     : "border-black/10 bg-white text-[#07111f] hover:border-blue-500/40 hover:bg-blue-50"
                 }`}
-              >
+               prefetch={false}>
                 {getUserInitial(authUser)}
               </Link>
 
@@ -446,7 +446,7 @@ export function SiteHeader() {
                       ? "text-white/60 hover:bg-white/[0.06] hover:text-white"
                       : "text-slate-500 hover:bg-blue-50 hover:text-blue-600"
                 }`}
-              >
+               prefetch={false}>
                 <span className="flex h-5 items-center justify-center">{renderNavIcon(icon, item.label)}</span>
                 <span className="max-w-full truncate leading-none">{item.label}</span>
 

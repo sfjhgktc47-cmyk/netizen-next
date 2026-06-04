@@ -973,7 +973,7 @@ export function CatalogView({
           <Link
             href="/"
             className="text-sm text-blue-500 transition-colors hover:text-blue-400"
-          >
+           prefetch={false}>
             ← На главную
           </Link>
 
@@ -1034,7 +1034,7 @@ export function CatalogView({
                   ? "border-blue-500 bg-blue-600 text-white"
                   : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
               }`}
-            >
+             prefetch={false}>
               Все товары
             </Link>
 
@@ -1042,7 +1042,7 @@ export function CatalogView({
 
             <Link
               href="/catalog?popular=1"
-              onClick={() => {
+              onClick={() = prefetch={false}> {
                 setOnlyPopular(true);
                 setSelectedBrand(null);
                 resetSpecificationFilters();
@@ -1071,7 +1071,7 @@ export function CatalogView({
                         ? "border-blue-500 bg-blue-600 text-white"
                         : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
                     }`}
-                  >
+                   prefetch={false}>
                     {category.name}
                   </Link>
                 );
@@ -1383,7 +1383,7 @@ function PositionProductCard({
           ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
           : "border-black/10 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)] hover:border-blue-500/35"
       }`}
-    >
+     prefetch={false}>
       <div
         className={`flex aspect-square w-full items-center justify-center overflow-hidden rounded-[14px] transition-colors duration-700 sm:rounded-2xl sm:aspect-[3/4] ${
           position.images?.[0] || getModelImage(position.product)
