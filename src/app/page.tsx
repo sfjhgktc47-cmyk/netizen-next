@@ -4,7 +4,7 @@ import { getSiteEditorSettings } from "@/lib/site-settings-db";
 import { getSiteContentLibrary } from "@/lib/site-content-library-db";
 import HomeClient from "./home-client";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 function cleanString(value: unknown) {
   return typeof value === "string" ? value.trim() : "";

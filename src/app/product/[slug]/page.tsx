@@ -6,7 +6,7 @@ import {
 import { ProductDetailView } from "@/components/product-detail-view";
 import { getSiteBenefits } from "@/lib/site-content-library-db";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export async function generateStaticParams() {
   try {

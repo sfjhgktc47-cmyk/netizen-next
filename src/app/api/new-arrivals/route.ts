@@ -4,7 +4,7 @@ import { getPublicCatalogData } from "@/lib/public-catalog-db";
 import { getPublicPageBlocks } from "@/lib/page-builder-db";
 import { getSiteEditorSettings } from "@/lib/site-settings-db";
 
-export const revalidate = 60;
+export const dynamic = "force-dynamic";
 
 export async function GET() {
   try {
