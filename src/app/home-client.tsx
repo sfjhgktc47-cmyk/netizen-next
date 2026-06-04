@@ -691,7 +691,7 @@ function Categories({
 
   return (
     <section className="py-3 sm:py-8 lg:py-10">
-      <div className="flex items-end justify-between gap-3">
+      <div className="flex items-start justify-between gap-4">
         <div className="min-w-0">
           <h2 className="text-[20px] font-bold leading-tight tracking-[-0.04em] sm:text-3xl lg:text-4xl">
             {title}
@@ -703,14 +703,21 @@ function Categories({
         </div>
 
         {showButton ? (
-          <Link href={buttonHref} className="shrink-0 text-[11px] font-medium text-blue-600 sm:hidden">
-            {buttonText}
+          <Link
+            href={buttonHref}
+            className={`hidden shrink-0 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 sm:inline-flex ${
+              dark
+                ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
+                : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
+            }`}
+          >
+            {withoutTrailingArrow(buttonText)}
           </Link>
         ) : null}
       </div>
 
       <div
-        className="mt-3 flex gap-2 overflow-x-auto pb-1 sm:mt-8 sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:pb-0 lg:grid-cols-4 [&::-webkit-scrollbar]:hidden"
+        className="mt-3 flex gap-2 overflow-x-auto pb-1 sm:mt-8 sm:grid sm:grid-cols-2 sm:gap-5 sm:overflow-visible sm:pb-0 lg:grid-cols-3 xl:grid-cols-4 [&::-webkit-scrollbar]:hidden"
         style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
       >
         {categories.map((category) => {
@@ -720,14 +727,14 @@ function Categories({
             <Link
               key={category.id || category.slug}
               href={category.href || `/catalog/${category.slug}`}
-              className={`group relative flex h-[92px] w-[78px] shrink-0 flex-col items-center justify-between overflow-hidden rounded-2xl border p-2 text-center transition-all duration-500 hover:-translate-y-1 sm:h-[160px] sm:w-auto sm:items-start sm:p-5 sm:text-left ${
+              className={`group relative flex h-[96px] w-[92px] shrink-0 flex-col items-center justify-between overflow-hidden rounded-2xl border p-2 text-center transition-all duration-500 hover:-translate-y-1 sm:min-h-[180px] sm:w-auto sm:items-start sm:p-6 sm:text-left ${
                 dark
                   ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
                   : "border-black/10 bg-white shadow-[0_20px_70px_rgba(15,23,42,0.08)] hover:border-blue-500/35 hover:shadow-[0_28px_90px_rgba(15,23,42,0.12)]"
               }`}
             >
-              <div className="relative z-10 order-2 w-full sm:order-none sm:max-w-[58%]">
-                <h3 className="line-clamp-2 text-[10px] font-bold leading-tight sm:text-lg">
+              <div className="relative z-10 order-2 flex w-full flex-1 flex-col sm:order-none sm:max-w-[56%]">
+                <h3 className="line-clamp-2 text-[10px] font-bold leading-tight sm:text-xl">
                   {category.name}
                 </h3>
 
@@ -736,7 +743,7 @@ function Categories({
                 </p>
               </div>
 
-              <div className="relative z-10 order-1 flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl sm:absolute sm:right-4 sm:top-1/2 sm:h-[130px] sm:w-[130px] sm:-translate-y-1/2 sm:rounded-2xl">
+              <div className="relative z-10 order-1 flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl sm:absolute sm:right-5 sm:top-1/2 sm:h-[138px] sm:w-[138px] sm:-translate-y-1/2 sm:rounded-2xl">
                 {image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
@@ -751,7 +758,7 @@ function Categories({
               </div>
 
               <div
-                className={`relative z-10 mt-5 hidden h-10 w-10 items-center justify-center rounded-xl border text-base font-bold transition-all duration-300 group-hover:translate-x-1 sm:flex ${
+                className={`relative z-10 mt-5 hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl border text-base font-bold transition-all duration-300 group-hover:translate-x-1 sm:flex ${
                   dark
                     ? "border-blue-500/35 bg-blue-500/10 text-blue-400 group-hover:bg-blue-600 group-hover:text-white"
                     : "border-black/10 bg-white text-black shadow-sm group-hover:border-blue-500 group-hover:bg-blue-600 group-hover:text-white"
@@ -767,23 +774,22 @@ function Categories({
       </div>
 
       {showButton ? (
-        <div className="mt-5 hidden justify-center sm:flex sm:mt-8">
+        <div className="mt-4 flex sm:hidden">
           <Link
             href={buttonHref}
-            className={`w-full rounded-xl border px-6 py-3 text-center text-sm font-medium transition-all duration-500 hover:-translate-y-0.5 sm:min-w-[280px] sm:w-auto sm:px-10 sm:py-4 ${
+            className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-300 ${
               dark
                 ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
                 : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
             }`}
           >
-            {buttonText}
+            {withoutTrailingArrow(buttonText)}
           </Link>
         </div>
       ) : null}
     </section>
   );
 }
-
 
 function PopularProducts({
   dark,
@@ -896,13 +902,19 @@ function PopularProducts({
           </p>
         </div>
 
-        {showButton ? (
-          <Link href={buttonHref} className="shrink-0 text-[11px] font-medium text-blue-600 sm:hidden">
-            {buttonText}
-          </Link>
-        ) : null}
-
         <div className="hidden items-center gap-3 sm:flex">
+          {showButton ? (
+            <Link
+              href={buttonHref}
+              className={`shrink-0 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 ${
+                dark
+                  ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
+                  : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
+              }`}
+            >
+              {withoutTrailingArrow(buttonText)}
+            </Link>
+          ) : null}
           <button
             type="button"
             onClick={() => scrollProducts("prev")}
@@ -975,16 +987,16 @@ function PopularProducts({
       </div>
 
       {showButton ? (
-        <div className="mt-5 hidden justify-center sm:flex sm:mt-8">
+        <div className="mt-4 flex sm:hidden">
           <Link
             href={buttonHref}
-            className={`w-full rounded-xl border px-6 py-3 text-center text-sm font-medium transition-all duration-500 hover:-translate-y-0.5 sm:min-w-[320px] sm:w-auto sm:px-10 sm:py-4 ${
+            className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-300 ${
               dark
                 ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
                 : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
             }`}
           >
-            {buttonText}
+            {withoutTrailingArrow(buttonText)}
           </Link>
         </div>
       ) : null}
@@ -1079,13 +1091,26 @@ function NewArrivals({
   if (!mainItem) {
     return (
       <section className="pb-3 sm:pb-8 lg:pb-10">
-        <div className="mb-8">
-          <h2 className="text-[23px] font-bold leading-none tracking-[-0.04em] sm:text-[36px] lg:text-[52px]">
-            {title}
-          </h2>
-          <p className={`mt-1 text-xs sm:mt-3 sm:text-base ${mutedTextClass(dark)}`}>
-            {subtitle}
-          </p>
+        <div className="mb-8 flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <h2 className="text-[23px] font-bold leading-none tracking-[-0.04em] sm:text-[36px] lg:text-[52px]">
+              {title}
+            </h2>
+            <p className={`mt-1 text-xs sm:mt-3 sm:text-base ${mutedTextClass(dark)}`}>
+              {subtitle}
+            </p>
+          </div>
+
+          <Link
+            href="/new"
+            className={`hidden shrink-0 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 sm:inline-flex ${
+              dark
+                ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
+                : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
+            }`}
+          >
+            Перейти к новинкам
+          </Link>
         </div>
 
         <div
@@ -1104,14 +1129,27 @@ function NewArrivals({
 
   return (
     <section className="pb-3 sm:pb-8 lg:pb-10">
-      <div className="mb-5 sm:mb-8">
-        <h2 className="text-[22px] font-bold leading-none tracking-[-0.04em] sm:text-[36px] lg:text-[52px]">
-          {title}
-        </h2>
+      <div className="mb-5 flex items-start justify-between gap-4 sm:mb-8">
+        <div className="min-w-0">
+          <h2 className="text-[22px] font-bold leading-none tracking-[-0.04em] sm:text-[36px] lg:text-[52px]">
+            {title}
+          </h2>
 
-        <p className={`mt-1.5 text-sm sm:mt-3 sm:text-base ${mutedTextClass(dark)}`}>
-          {subtitle}
-        </p>
+          <p className={`mt-1.5 text-sm sm:mt-3 sm:text-base ${mutedTextClass(dark)}`}>
+            {subtitle}
+          </p>
+        </div>
+
+        <Link
+          href="/new"
+          className={`hidden shrink-0 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 sm:inline-flex ${
+            dark
+              ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
+              : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
+          }`}
+        >
+          Перейти к новинкам
+        </Link>
       </div>
 
       <div className="grid gap-3">
