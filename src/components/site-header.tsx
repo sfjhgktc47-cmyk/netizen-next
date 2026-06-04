@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from 'next/image';
 import { usePathname } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AuthModal } from "@/components/auth-modal";
@@ -78,7 +79,7 @@ function renderNavIcon(icon: string, label: string) {
   if (value && isImageIcon(value)) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <img src={value} alt="" className="h-[18px] w-[18px] object-contain" aria-hidden="true" />
+      <Image quality={75} src={value} alt="" className="h-[18px] w-[18px] object-contain" aria-hidden="true" />
     );
   }
 
@@ -260,22 +261,19 @@ export function SiteHeader() {
           {mobileLogo ? (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={mobileLogo}
+              <Image quality={75} src={mobileLogo}
                 alt={storeName}
                 className="h-auto max-h-7 w-auto object-contain transition-opacity duration-700 sm:max-h-8 lg:hidden"
               />
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src={logoSrc}
+              <Image quality={75} src={logoSrc}
                 alt={storeName}
                 className="hidden h-auto max-h-9 w-auto object-contain transition-opacity duration-700 lg:block"
               />
             </>
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={logoSrc}
+            <Image quality={75} src={logoSrc}
               alt={storeName}
               className="h-auto max-h-7 w-auto object-contain transition-opacity duration-700 sm:max-h-8 lg:max-h-9"
             />

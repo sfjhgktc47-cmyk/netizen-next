@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from 'next/image';
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { SiteHeader } from "@/components/site-header";
@@ -515,8 +516,7 @@ export default function ProfilePage() {
                         <div className="soft-box flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white text-xs text-muted-soft sm:h-24 sm:w-24">
                           {favorite.product.image ? (
                             // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={favorite.product.image}
+                            <Image quality={75} src={favorite.product.image}
                               alt={favorite.product.name}
                               className="h-full w-full object-contain"
                             />

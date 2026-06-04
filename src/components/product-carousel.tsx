@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from 'next/image';
 import {
   useRef,
   useState,
@@ -271,8 +272,7 @@ function CarouselProductCard({
       >
         {image ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={image}
+          <Image quality={75} src={image}
             alt={product.name}
             draggable={false}
             className="h-full w-full object-contain p-1 transition-transform duration-700 group-hover:scale-105 sm:p-3"

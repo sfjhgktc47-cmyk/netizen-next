@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from 'next/image';
 import { useEffect, useMemo, useRef, useState } from "react";
 import { products as fallbackProducts, type ProductModel as CatalogProductBase } from "@/data/products";
 import { productPositions as fallbackProductPositions, type ProductPosition as CatalogPositionBase } from "@/data/product-positions";
@@ -1374,8 +1375,7 @@ function PositionProductCard({
       >
         {position.images?.[0] || getModelImage(position.product) ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={position.images?.[0] ?? getModelImage(position.product)}
+          <Image quality={75} src={position.images?.[0] ?? getModelImage(position.product)}
             alt={position.title}
             className="h-full w-full object-contain p-2 sm:p-3"
           />

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from 'next/image';
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, PointerEvent } from "react";
 import { SiteHeader } from "@/components/site-header";
@@ -100,8 +101,7 @@ function ProductMainImage({ src, alt }: { src: string; alt: string }) {
   return (
     <div className="relative mx-auto flex h-full min-h-[180px] w-full items-center justify-center overflow-hidden rounded-[16px] border border-theme bg-slate-50 text-muted-soft sm:h-auto sm:min-h-0 sm:aspect-[3/4] sm:max-w-[520px] sm:rounded-[30px] sm:border-0 sm:bg-white">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src={src}
+      <Image quality={75} src={src}
         alt={alt}
         draggable={false}
         className="pointer-events-none h-full w-full select-none object-contain"
@@ -510,8 +510,7 @@ export function ProductDetailView({
                 >
                   {typeof image === "string" ? (
                     // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={image}
+                    <Image quality={75} src={image}
                       alt={`${product.name} фото ${index + 1}`}
                       draggable={false}
                       className="pointer-events-none h-full w-full select-none object-contain p-1"
@@ -1027,8 +1026,7 @@ function ProductStory({ product }: { product: ProductCard }) {
               >
                 {hasImage ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img
-                    src={block.image}
+                  <Image quality={75} src={block.image}
                     alt={block.imageAlt || block.title || product.name}
                     className="h-full max-h-[520px] w-full object-contain p-6 lg:p-10"
                   />

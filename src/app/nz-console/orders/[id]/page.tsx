@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from 'next/image';
 import { notFound } from "next/navigation";
 import { OrderStatusForm } from "@/components/admin/order-status-form";
 import {
@@ -124,7 +125,7 @@ export default async function AdminOrderDetailPage({
               <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-white/[0.04] text-xs text-white/35">
                 {item.image ? (
                   // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
+                  <Image quality={75} src={item.image} alt={item.title} className="h-full w-full object-cover" />
                 ) : (
                   "Фото"
                 )}

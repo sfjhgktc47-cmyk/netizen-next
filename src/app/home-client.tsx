@@ -501,27 +501,31 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
         }`}
       >
         {image ? (
-          <picture className="absolute inset-0 hidden h-full w-full sm:block">
-            <img
+          <div className="absolute inset-0 hidden sm:block">
+            <Image
               src={image}
               alt=""
-              aria-hidden="true"
-              className="h-full w-full object-contain object-right transition-transform duration-700"
+              fill
+              priority={activeSlide === 0}
+              quality={75}
+              className="object-contain object-right transition-transform duration-700"
               draggable={false}
             />
-          </picture>
+          </div>
         ) : null}
 
         {mobileImage ? (
-          <picture className="absolute inset-y-0 right-0 block h-full w-[60%] sm:hidden">
-            <img
+          <div className="absolute inset-y-0 right-0 block h-full w-[60%] sm:hidden">
+            <Image
               src={mobileImage}
               alt=""
-              aria-hidden="true"
-              className="h-full w-full object-contain object-right p-1.5"
+              fill
+              priority={activeSlide === 0}
+              quality={75}
+              className="object-contain object-right p-1.5"
               draggable={false}
             />
-          </picture>
+          </div>
         ) : null}
 
         <div

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from 'next/image';
 import { notFound } from "next/navigation";
 
 import { ProductVariantEditForm } from "@/components/admin/product-variant-edit-form";
@@ -106,7 +107,7 @@ export default async function AdminPositionDetailPage({
                   <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-3xl bg-white/[0.045] text-xs text-white/25">
                     {mainImage ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={mainImage} alt={variant.title} className="h-full w-full object-cover" />
+                      <Image quality={75} src={mainImage} alt={variant.title} className="h-full w-full object-cover" />
                     ) : (
                       "Фото"
                     )}
