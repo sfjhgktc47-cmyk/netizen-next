@@ -614,8 +614,24 @@ function BenefitIcon({ image, icon }: { image?: string; icon?: string }) {
   const cleanImage = typeof image === "string" ? image.trim() : "";
   const fallbackIcon = icon?.trim() || "✓";
 
+  useEffect(() => {
+    setLoaded(false);
+  }, [cleanImage]);
+
   return (
     <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-visible text-sm text-blue-500 sm:h-12 sm:w-12 sm:text-base">
+      {cleanImage ? (
+        <>
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-1/2 h-[120%] w-[120%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-500/20 opacity-0 blur-xl transition-opacity duration-300 dark:opacity-100"
+          />
+          <span
+            aria-hidden="true"
+            className="pointer-events-none absolute left-1/2 top-1/2 h-[80%] w-[80%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 opacity-0 blur-lg transition-opacity duration-300 dark:opacity-100"
+          />
+        </>
+      ) : null}
       <span
         className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${
           cleanImage && loaded ? "opacity-0" : "opacity-100"
@@ -632,7 +648,7 @@ function BenefitIcon({ image, icon }: { image?: string; icon?: string }) {
           loading="lazy"
           decoding="async"
           onLoad={() => setLoaded(true)}
-          className={`max-h-full max-w-full object-contain transition-opacity duration-300 ${
+          className={`relative z-10 max-h-full max-w-full object-contain drop-shadow-[0_6px_14px_rgba(0,0,0,0.25)] transition-opacity duration-300 dark:drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)] ${
             loaded ? "opacity-100" : "opacity-0"
           }`}
         />
@@ -768,14 +784,27 @@ function Categories({
                 </p>
               </div>
 
-              <div className="relative z-10 order-1 flex h-12 w-12 items-center justify-center overflow-hidden rounded-xl sm:absolute sm:right-5 sm:top-1/2 sm:h-[138px] sm:w-[138px] sm:-translate-y-1/2 sm:rounded-2xl">
+              <div className="relative z-10 order-1 flex h-12 w-12 items-center justify-center overflow-visible rounded-xl sm:absolute sm:right-5 sm:top-1/2 sm:h-[138px] sm:w-[138px] sm:-translate-y-1/2 sm:rounded-2xl">
+                {dark ? (
+                  <>
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute left-1/2 top-1/2 h-[88%] w-[88%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-500/20 blur-2xl"
+                    />
+                    <div
+                      aria-hidden="true"
+                      className="pointer-events-none absolute left-1/2 top-1/2 h-[62%] w-[62%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 blur-xl"
+                    />
+                  </>
+                ) : null}
+
                 {image ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
                     src={image}
                     alt=""
                     draggable={false}
-                    className="h-full w-full object-contain"
+                    className="relative z-10 h-full w-full object-contain drop-shadow-[0_10px_24px_rgba(0,0,0,0.28)] dark:drop-shadow-[0_12px_28px_rgba(0,0,0,0.55)]"
                   />
                 ) : (
                   <div className={`h-full w-full rounded-xl sm:rounded-2xl ${dark ? "bg-white/[0.04]" : "bg-slate-100"}`} />

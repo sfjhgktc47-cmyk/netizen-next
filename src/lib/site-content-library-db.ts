@@ -90,6 +90,25 @@ function toBanner(item: {
   };
 }
 
+function toRawBenefit(item: {
+  id: string;
+  title: string;
+  description: string;
+  icon: string;
+  image: string;
+  href: string;
+  enabled: boolean;
+  sortOrder: number;
+  createdAt: Date;
+  updatedAt: Date;
+}): SiteBenefit {
+  return {
+    ...item,
+    createdAt: item.createdAt.toISOString(),
+    updatedAt: item.updatedAt.toISOString(),
+  };
+}
+
 function toBenefit(item: {
   id: string;
   title: string;
@@ -104,7 +123,14 @@ function toBenefit(item: {
 }): SiteBenefit {
   return {
     ...item,
-    image: publicImageUrl("benefit", item.id, "image", item.image),
+    image: publicImageUrl(
+      "benefit",
+      item.id,
+      "image",
+      item.image,
+      undefined,
+      item.updatedAt.getTime(),
+    ),
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString(),
   };
@@ -119,13 +145,16 @@ export async function getSiteBanners(options?: { activeOnly?: boolean }) {
   return banners.map(toBanner);
 }
 
-export async function getSiteBenefits(options?: { activeOnly?: boolean }) {
+export async function getSiteBenefits(options?: {
+  activeOnly?: boolean;
+  rawImages?: boolean;
+}) {
   const benefits = await prisma.siteBenefit.findMany({
     where: options?.activeOnly ? { enabled: true } : undefined,
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
   });
 
-  return benefits.map(toBenefit);
+  return benefits.map(options?.rawImages ? toRawBenefit : toBenefit);
 }
 
 export async function getSiteContentLibrary(options?: { activeOnly?: boolean }): Promise<SiteContentLibrary> {
@@ -207,7 +236,7 @@ export async function createSiteBenefit(input?: BenefitInput) {
     },
   });
 
-  return toBenefit(benefit);
+  return toRawBenefit(benefit);
 }
 
 export async function updateSiteBenefit(id: string, input: BenefitInput) {
@@ -217,14 +246,17 @@ export async function updateSiteBenefit(id: string, input: BenefitInput) {
       ...(input.title !== undefined ? { title: cleanText(input.title, "Новое преимущество") || "Новое преимущество" } : {}),
       ...(input.description !== undefined ? { description: cleanText(input.description) } : {}),
       ...(input.icon !== undefined ? { icon: cleanText(input.icon, "✓") || "✓" } : {}),
-      ...(input.image !== undefined ? { image: cleanText(input.image) } : {}),
+      ...(input.image !== undefined &&
+      !cleanText(input.image).startsWith(`/api/public-image/benefit/${id}/image`)
+        ? { image: cleanText(input.image) }
+        : {}),
       ...(input.href !== undefined ? { href: cleanText(input.href) } : {}),
       ...(input.enabled !== undefined ? { enabled: cleanBoolean(input.enabled) } : {}),
       ...(input.sortOrder !== undefined ? { sortOrder: cleanNumber(input.sortOrder) } : {}),
     },
   });
 
-  return toBenefit(benefit);
+  return toRawBenefit(benefit);
 }
 
 export async function deleteSiteBenefit(id: string) {

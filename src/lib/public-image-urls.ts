@@ -10,6 +10,7 @@ export function publicImageUrl(
   field: string,
   value: string,
   index?: number,
+  version?: string | number,
 ) {
   const cleanValue = typeof value === "string" ? value.trim() : "";
 
@@ -23,7 +24,17 @@ export function publicImageUrl(
     encodeURIComponent(field),
   ].join("/");
 
-  const query = typeof index === "number" ? `?index=${index}` : "";
+  const params = new URLSearchParams();
+
+  if (typeof index === "number") {
+    params.set("index", String(index));
+  }
+
+  if (version !== undefined && String(version)) {
+    params.set("v", String(version));
+  }
+
+  const query = params.toString() ? `?${params.toString()}` : "";
 
   return `/api/public-image/${path}${query}`;
 }
