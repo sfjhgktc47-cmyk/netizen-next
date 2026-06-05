@@ -504,7 +504,7 @@ export function ProductDetailView({
             </div>
             </div>
 
-            <div className="hidden w-fit rounded-[18px] border border-theme bg-white p-2 sm:block sm:rounded-[20px] sm:p-2.5">
+            <div className="hidden w-fit self-start rounded-[18px] border border-theme bg-white p-2 sm:block sm:self-start sm:rounded-[20px] sm:p-2.5">
               <div className="grid grid-cols-4 gap-2">
               {(mediaImages.length > 0
                 ? mediaImages.slice(0, 8)
