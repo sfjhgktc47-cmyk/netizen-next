@@ -306,6 +306,66 @@ export async function getPublicProductBySlug(slug: string) {
     : [];
 
   const relatedById = new Map(relatedProducts.map((item) => [item.id, item]));
+  const excludedProductIds = [product.id, ...relatedIds];
+
+  const categoryCandidates = await prisma.product.findMany({
+    where: {
+      id: { notIn: excludedProductIds },
+      status: "active",
+      categorySlug: product.categorySlug,
+    },
+    include: {
+      category: true,
+      variants: {
+        where: {
+          status: { in: ["active", "out_of_stock"] },
+        },
+        orderBy: [{ price: "asc" }, { createdAt: "asc" }],
+      },
+    },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+    take: 12,
+  });
+
+  const sortedCategoryCandidates = [...categoryCandidates].sort((a, b) => {
+    const aSameBrand = a.brand === product.brand ? 0 : 1;
+    const bSameBrand = b.brand === product.brand ? 0 : 1;
+
+    return (
+      aSameBrand - bSameBrand ||
+      Number(a.sortOrder ?? 100) - Number(b.sortOrder ?? 100)
+    );
+  });
+
+  let similarProducts = sortedCategoryCandidates.slice(0, 5);
+
+  if (similarProducts.length < 5) {
+    const alreadySelectedIds = [
+      ...excludedProductIds,
+      ...similarProducts.map((item) => item.id),
+    ];
+
+    const brandFallback = await prisma.product.findMany({
+      where: {
+        id: { notIn: alreadySelectedIds },
+        status: "active",
+        brand: product.brand,
+      },
+      include: {
+        category: true,
+        variants: {
+          where: {
+            status: { in: ["active", "out_of_stock"] },
+          },
+          orderBy: [{ price: "asc" }, { createdAt: "asc" }],
+        },
+      },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+      take: 5 - similarProducts.length,
+    });
+
+    similarProducts = [...similarProducts, ...brandFallback];
+  }
 
   return {
     product: toPublicProduct(product),
@@ -314,6 +374,7 @@ export async function getPublicProductBySlug(slug: string) {
       .map((id) => relatedById.get(id))
       .filter((item): item is NonNullable<typeof item> => Boolean(item))
       .map(toPublicProduct),
+    similarProducts: similarProducts.map(toPublicProduct),
   };
 }
 

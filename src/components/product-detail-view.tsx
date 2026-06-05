@@ -30,6 +30,7 @@ type ProductDetailViewProps = {
   selectedPosition?: ProductPosition;
   benefits?: ProductBenefit[];
   relatedProducts?: ProductCard[];
+  similarProducts?: ProductCard[];
 };
 
 type ProductReviewItem = {
@@ -155,6 +156,7 @@ export function ProductDetailView({
   selectedPosition,
   benefits = [],
   relatedProducts = [],
+  similarProducts = [],
 }: ProductDetailViewProps) {
   const [selectedColor, setSelectedColor] = useState(
     selectedPosition?.color ?? "",
@@ -726,7 +728,7 @@ export function ProductDetailView({
                 <button
                   type="button"
                   onClick={scrollToCommunity}
-                  className="text-muted transition-colors hover:text-blue-500"
+                  className="font-semibold text-main transition-colors hover:text-blue-500"
                 >
                   <span className="text-amber-500">★</span>{" "}
                   {community?.summary.reviewsCount ?? 0} отзывов
@@ -737,9 +739,9 @@ export function ProductDetailView({
                 <button
                   type="button"
                   onClick={() => setShowQuestionForm((value) => !value)}
-                  className="text-muted transition-colors hover:text-blue-500"
+                  className="font-semibold text-main transition-colors hover:text-blue-500"
                 >
-                  <span className="text-blue-500">?</span>{" "}
+                  <span className="font-bold text-blue-500">?</span>{" "}
                   {community?.summary.questionsCount ?? 0} вопросов
                 </button>
               </div>
@@ -1407,9 +1409,11 @@ export function ProductDetailView({
           </div>
         </section>
 
-        <section className="mb-8 mt-6 sm:mb-10 sm:mt-10">
-          <ProductStrip title="Похожие товары" />
-        </section>
+        {similarProducts.length > 0 ? (
+          <section className="mb-8 mt-6 sm:mb-10 sm:mt-10">
+            <ProductStrip title="Похожие товары" products={similarProducts} />
+          </section>
+        ) : null}
       </div>
     </main>
   );
