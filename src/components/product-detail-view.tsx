@@ -708,26 +708,27 @@ export function ProductDetailView({
               </div>
 
               <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs sm:text-sm">
-                <button
-                  type="button"
-                  onClick={scrollToCommunity}
-                  className="font-medium text-main transition-colors hover:text-blue-500"
-                >
-                  <span className="text-amber-500">★</span>{" "}
-                  {communityLoading
-                    ? "—"
-                    : community && community.summary.reviewsCount > 0
-                      ? community.summary.rating.toFixed(1)
-                      : "Нет оценок"}
-                </button>
+                {!communityLoading && (community?.summary.reviewsCount ?? 0) > 0 ? (
+                  <>
+                    <button
+                      type="button"
+                      onClick={scrollToCommunity}
+                      className="font-medium text-main transition-colors hover:text-blue-500"
+                    >
+                      <span className="text-amber-500">★</span>{" "}
+                      {community?.summary.rating.toFixed(1)}
+                    </button>
 
-                <span className="text-muted-soft">·</span>
+                    <span className="text-muted-soft">·</span>
+                  </>
+                ) : null}
 
                 <button
                   type="button"
                   onClick={scrollToCommunity}
                   className="text-muted transition-colors hover:text-blue-500"
                 >
+                  <span className="text-amber-500">★</span>{" "}
                   {community?.summary.reviewsCount ?? 0} отзывов
                 </button>
 
@@ -738,6 +739,7 @@ export function ProductDetailView({
                   onClick={() => setShowQuestionForm((value) => !value)}
                   className="text-muted transition-colors hover:text-blue-500"
                 >
+                  <span className="text-blue-500">?</span>{" "}
                   {community?.summary.questionsCount ?? 0} вопросов
                 </button>
               </div>
