@@ -1125,7 +1125,7 @@ export function CatalogView({
                       key={category.id}
                       type="button"
                       onClick={() => handleSelectCategory(category.id)}
-                      className={`group relative min-h-[118px] overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 hover:-translate-y-0.5 sm:min-h-[150px] sm:p-4 ${
+                      className={`group relative min-h-[118px] overflow-hidden rounded-2xl border p-4 xl:p-5 text-left transition-all duration-300 hover:-translate-y-0.5 sm:min-h-[150px] sm:p-4 ${
                         isActive
                           ? "border-blue-500 bg-blue-soft"
                           : "border-theme bg-card hover:border-blue-500/40"
