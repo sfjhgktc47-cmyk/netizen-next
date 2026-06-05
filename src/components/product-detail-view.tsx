@@ -504,8 +504,8 @@ export function ProductDetailView({
             </div>
             </div>
 
-            <div className="hidden w-fit rounded-[20px] border border-theme bg-white p-2.5 sm:block sm:rounded-[24px] sm:p-3">
-              <div className="grid grid-cols-4 gap-2.5">
+            <div className="hidden w-fit rounded-[18px] border border-theme bg-white p-2 sm:block sm:rounded-[20px] sm:p-2.5">
+              <div className="grid grid-cols-4 gap-2">
               {(mediaImages.length > 0
                 ? mediaImages.slice(0, 8)
                 : Array.from({ length: 4 })
@@ -528,7 +528,7 @@ export function ProductDetailView({
                     <Image quality={75} src={image}
                       alt={`${product.name} фото ${index + 1}`}
                       draggable={false}
-                      className="pointer-events-none h-full w-full select-none object-contain p-1.5"
+                      className="pointer-events-none h-full w-full select-none object-contain p-1"
                     />
                   ) : (
                     "Фото"
