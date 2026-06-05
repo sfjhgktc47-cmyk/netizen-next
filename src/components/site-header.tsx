@@ -412,9 +412,27 @@ export function SiteHeader() {
                     setIsSearchOpen(true);
                   }}
                   placeholder="Поиск по каталогу"
-                  className="h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-current/50"
+                  className="h-full min-w-0 flex-1 bg-transparent pr-2 text-sm outline-none placeholder:text-current/50"
                 />
-                <button type="submit" className="ml-2 text-lg text-blue-500" aria-label="Найти">
+
+                {searchQuery ? (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchQuery("");
+                      setIsSearchOpen(true);
+                    }}
+                    className={`mr-1 inline-flex h-7 w-7 items-center justify-center rounded-full text-sm transition-colors ${
+                      dark ? "text-white/55 hover:bg-white/10 hover:text-white" : "text-black/45 hover:bg-black/5 hover:text-black"
+                    }`}
+                    aria-label="Очистить поиск"
+                    title="Очистить"
+                  >
+                    ×
+                  </button>
+                ) : null}
+
+                <button type="submit" className="ml-1 text-lg text-blue-500" aria-label="Найти">
                   ⌕
                 </button>
               </form>
