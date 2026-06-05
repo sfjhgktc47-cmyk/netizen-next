@@ -175,13 +175,14 @@ export async function POST(
   const session = await getAuthSession();
 
   if (body.type === "vote") {
-    if (session?.role !== "customer" || !session.customerId) {
+    if (session?.role !== "customer" || !customerId) {
       return NextResponse.json(
         { error: "Чтобы оценить отзыв, войдите в аккаунт." },
         { status: 401 },
       );
     }
 
+    const customerId = customerId;
     const reviewId = normalizeText(body.reviewId, 100);
     const value = body.vote === "helpful" ? 1 : body.vote === "unhelpful" ? -1 : 0;
 
@@ -202,7 +203,7 @@ export async function POST(
       where: {
         reviewId_customerId: {
           reviewId,
-          customerId: session.customerId,
+          customerId: customerId,
         },
       },
     });
@@ -217,7 +218,7 @@ export async function POST(
         });
       } else {
         await tx.productReviewVote.create({
-          data: { reviewId, customerId: session.customerId, value },
+          data: { reviewId, customerId: customerId, value },
         });
       }
 
