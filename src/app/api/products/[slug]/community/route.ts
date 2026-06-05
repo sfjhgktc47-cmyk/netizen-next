@@ -6,15 +6,28 @@ import { prisma } from "@/lib/db";
 export const dynamic = "force-dynamic";
 
 type CommunityBody = {
-  type?: "review" | "question";
+  type?: "review" | "question" | "vote";
   rating?: number;
   text?: string;
+  images?: string[];
+  reviewId?: string;
+  vote?: "helpful" | "unhelpful";
   authorName?: string;
   authorEmail?: string;
 };
 
 function normalizeText(value: unknown, maxLength = 2000) {
   return typeof value === "string" ? value.trim().slice(0, maxLength) : "";
+}
+
+function normalizeReviewImages(value: unknown) {
+  if (!Array.isArray(value)) return [];
+
+  return value
+    .filter((item): item is string => typeof item === "string")
+    .map((item) => item.trim())
+    .filter((item) => item.startsWith("data:image/") || item.startsWith("/uploads/"))
+    .slice(0, 4);
 }
 
 async function findProduct(slug: string) {
@@ -54,7 +67,7 @@ export async function GET(
 
   const session = await getAuthSession();
 
-  const [reviews, questions, reviewAggregate, existingReview] = await Promise.all([
+  const [reviews, questions, reviewAggregate, ratingGroups, existingReview] = await Promise.all([
     prisma.productReview.findMany({
       where: { productId: product.id },
       orderBy: { createdAt: "desc" },
@@ -63,6 +76,13 @@ export async function GET(
         customer: {
           select: { name: true, lastName: true },
         },
+        votes: session?.role === "customer" && session.customerId
+          ? {
+              where: { customerId: session.customerId },
+              select: { value: true },
+              take: 1,
+            }
+          : false,
       },
     }),
     prisma.productQuestion.findMany({
@@ -74,6 +94,11 @@ export async function GET(
       where: { productId: product.id },
       _avg: { rating: true },
       _count: { id: true },
+    }),
+    prisma.productReview.groupBy({
+      by: ["rating"],
+      where: { productId: product.id },
+      _count: { rating: true },
     }),
     session?.role === "customer" && session.customerId
       ? prisma.productReview.findUnique({
@@ -99,6 +124,11 @@ export async function GET(
       rating: Number(reviewAggregate._avg.rating ?? 0),
       reviewsCount: reviewAggregate._count.id,
       questionsCount: questions.length,
+      distribution: [5, 4, 3, 2, 1].map((rating) => ({
+        rating,
+        count:
+          ratingGroups.find((group) => group.rating === rating)?._count.rating ?? 0,
+      })),
     },
     authenticated: Boolean(session?.role === "customer" && session.customerId),
     canReview,
@@ -108,6 +138,13 @@ export async function GET(
       rating: review.rating,
       text: review.text,
       verifiedPurchase: review.verifiedPurchase,
+      images: review.images,
+      helpfulCount: review.helpfulCount,
+      unhelpfulCount: review.unhelpfulCount,
+      userVote:
+        "votes" in review && Array.isArray(review.votes) && review.votes[0]
+          ? review.votes[0].value
+          : 0,
       author:
         [review.customer.name, review.customer.lastName].filter(Boolean).join(" ") ||
         "Покупатель",
@@ -145,6 +182,73 @@ export async function POST(
   }
 
   const session = await getAuthSession();
+
+  if (body.type === "vote") {
+    if (session?.role !== "customer" || !session.customerId) {
+      return NextResponse.json(
+        { error: "Чтобы оценить отзыв, войдите в аккаунт." },
+        { status: 401 },
+      );
+    }
+
+    const reviewId = normalizeText(body.reviewId, 100);
+    const value = body.vote === "helpful" ? 1 : body.vote === "unhelpful" ? -1 : 0;
+
+    if (!reviewId || value === 0) {
+      return NextResponse.json({ error: "Некорректный голос." }, { status: 400 });
+    }
+
+    const review = await prisma.productReview.findFirst({
+      where: { id: reviewId, productId: product.id },
+      select: { id: true },
+    });
+
+    if (!review) {
+      return NextResponse.json({ error: "Отзыв не найден." }, { status: 404 });
+    }
+
+    const existingVote = await prisma.productReviewVote.findUnique({
+      where: {
+        reviewId_customerId: {
+          reviewId,
+          customerId: session.customerId,
+        },
+      },
+    });
+
+    await prisma.$transaction(async (tx) => {
+      if (existingVote?.value === value) {
+        await tx.productReviewVote.delete({ where: { id: existingVote.id } });
+      } else if (existingVote) {
+        await tx.productReviewVote.update({
+          where: { id: existingVote.id },
+          data: { value },
+        });
+      } else {
+        await tx.productReviewVote.create({
+          data: { reviewId, customerId: session.customerId, value },
+        });
+      }
+
+      const counts = await tx.productReviewVote.groupBy({
+        by: ["value"],
+        where: { reviewId },
+        _count: { value: true },
+      });
+
+      await tx.productReview.update({
+        where: { id: reviewId },
+        data: {
+          helpfulCount:
+            counts.find((item) => item.value === 1)?._count.value ?? 0,
+          unhelpfulCount:
+            counts.find((item) => item.value === -1)?._count.value ?? 0,
+        },
+      });
+    });
+
+    return NextResponse.json({ ok: true });
+  }
 
   if (body.type === "review") {
     if (session?.role !== "customer" || !session.customerId) {
@@ -195,6 +299,7 @@ export async function POST(
         customerId: session.customerId,
         rating,
         text,
+        images: normalizeReviewImages(body.images),
         verifiedPurchase: true,
       },
     });

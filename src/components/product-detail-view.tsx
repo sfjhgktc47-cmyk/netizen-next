@@ -38,6 +38,10 @@ type ProductReviewItem = {
   rating: number;
   text: string;
   verifiedPurchase: boolean;
+  images: string[];
+  helpfulCount: number;
+  unhelpfulCount: number;
+  userVote: number;
   author: string;
   createdAt: string;
 };
@@ -55,6 +59,7 @@ type ProductCommunity = {
     rating: number;
     reviewsCount: number;
     questionsCount: number;
+    distribution: Array<{ rating: number; count: number }>;
   };
   authenticated: boolean;
   canReview: boolean;
@@ -180,6 +185,10 @@ export function ProductDetailView({
   const [questionEmail, setQuestionEmail] = useState("");
   const [reviewText, setReviewText] = useState("");
   const [reviewRating, setReviewRating] = useState(5);
+  const [reviewImages, setReviewImages] = useState<string[]>([]);
+  const [reviewSort, setReviewSort] = useState<
+    "newest" | "oldest" | "highest" | "lowest" | "helpful"
+  >("newest");
   const [communityMessage, setCommunityMessage] = useState("");
   const [communitySubmitting, setCommunitySubmitting] = useState(false);
   const [communityTab, setCommunityTab] = useState<"reviews" | "questions">("reviews");
@@ -319,6 +328,7 @@ export function ProductDetailView({
           type: "review",
           text: reviewText,
           rating: reviewRating,
+          images: reviewImages,
         }),
       });
       const payload = (await response.json().catch(() => ({}))) as { error?: string };
@@ -330,6 +340,7 @@ export function ProductDetailView({
 
       setReviewText("");
       setReviewRating(5);
+      setReviewImages([]);
       setShowReviewForm(false);
       setCommunityMessage("Спасибо! Отзыв опубликован.");
       await loadCommunity();
@@ -415,6 +426,95 @@ export function ProductDetailView({
     if (event.key === "ArrowRight") {
       event.preventDefault();
       showNextImage();
+    }
+  }
+
+  const sortedReviews = useMemo(() => {
+    const reviews = [...(community?.reviews ?? [])];
+
+    return reviews.sort((a, b) => {
+      if (reviewSort === "oldest") {
+        return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+      }
+
+      if (reviewSort === "highest") {
+        return b.rating - a.rating || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+
+      if (reviewSort === "lowest") {
+        return a.rating - b.rating || new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      }
+
+      if (reviewSort === "helpful") {
+        return (
+          b.helpfulCount - b.unhelpfulCount -
+          (a.helpfulCount - a.unhelpfulCount)
+        );
+      }
+
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }, [community?.reviews, reviewSort]);
+
+  function formatReviewDate(value: string) {
+    const date = new Date(value);
+
+    if (Number.isNaN(date.getTime())) return "";
+
+    return new Intl.DateTimeFormat("ru-RU", {
+      day: "numeric",
+      month: "long",
+      year: "numeric",
+    }).format(date);
+  }
+
+  async function handleReviewImages(files: FileList | null) {
+    if (!files) return;
+
+    const selected = Array.from(files).slice(0, Math.max(0, 4 - reviewImages.length));
+    const nextImages: string[] = [];
+
+    for (const file of selected) {
+      if (!file.type.startsWith("image/") || file.size > 2 * 1024 * 1024) {
+        setCommunityMessage("Можно добавить до 4 изображений, каждое не больше 2 МБ.");
+        continue;
+      }
+
+      const image = await new Promise<string>((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () =>
+          typeof reader.result === "string"
+            ? resolve(reader.result)
+            : reject(new Error("read"));
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(file);
+      }).catch(() => "");
+
+      if (image) nextImages.push(image);
+    }
+
+    setReviewImages((current) => [...current, ...nextImages].slice(0, 4));
+  }
+
+  async function voteReview(reviewId: string, vote: "helpful" | "unhelpful") {
+    setCommunityMessage("");
+
+    try {
+      const response = await fetch(`/api/products/${product.slug}/community`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ type: "vote", reviewId, vote }),
+      });
+      const payload = (await response.json().catch(() => ({}))) as { error?: string };
+
+      if (!response.ok) {
+        setCommunityMessage(payload.error || "Не удалось оценить отзыв.");
+        return;
+      }
+
+      await loadCommunity();
+    } catch {
+      setCommunityMessage("Не удалось оценить отзыв.");
     }
   }
 
@@ -1317,6 +1417,54 @@ export function ProductDetailView({
                       className="mt-3 w-full resize-none rounded-xl border border-theme bg-card px-3 py-2.5 text-sm outline-none focus:border-blue-500"
                     />
 
+                    <div className="mt-3">
+                      <label className="inline-flex cursor-pointer items-center rounded-xl border border-theme bg-card px-4 py-2.5 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft">
+                        Добавить фотографии
+                        <input
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          className="hidden"
+                          onChange={(event) => {
+                            void handleReviewImages(event.target.files);
+                            event.currentTarget.value = "";
+                          }}
+                        />
+                      </label>
+                      <span className="ml-3 text-xs text-muted">
+                        До 4 фото, каждое до 2 МБ
+                      </span>
+
+                      {reviewImages.length > 0 ? (
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {reviewImages.map((image, index) => (
+                            <div
+                              key={`${image.slice(0, 32)}-${index}`}
+                              className="relative h-20 w-20 overflow-hidden rounded-xl border border-theme bg-white"
+                            >
+                              <img
+                                src={image}
+                                alt={`Фото отзыва ${index + 1}`}
+                                className="h-full w-full object-cover"
+                              />
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  setReviewImages((current) =>
+                                    current.filter((_, itemIndex) => itemIndex !== index),
+                                  )
+                                }
+                                className="absolute right-1 top-1 flex h-6 w-6 items-center justify-center rounded-full bg-black/65 text-sm text-white"
+                                aria-label="Удалить фотографию"
+                              >
+                                ×
+                              </button>
+                            </div>
+                          ))}
+                        </div>
+                      ) : null}
+                    </div>
+
                     <div className="mt-3 flex justify-end">
                       <button
                         type="button"
@@ -1330,15 +1478,85 @@ export function ProductDetailView({
                   </div>
                 ) : null}
 
+                {community?.summary.reviewsCount ? (
+                  <div className="mb-5 grid gap-5 rounded-2xl border border-theme bg-page p-4 sm:grid-cols-[180px_1fr]">
+                    <div>
+                      <div className="text-4xl font-bold">
+                        {community.summary.rating.toFixed(1)}
+                      </div>
+                      <div className="mt-1 text-lg text-amber-500">★★★★★</div>
+                      <div className="mt-1 text-sm text-muted">
+                        {community.summary.reviewsCount} отзывов
+                      </div>
+                    </div>
+
+                    <div className="grid gap-2">
+                      {community.summary.distribution.map((item) => {
+                        const percent =
+                          community.summary.reviewsCount > 0
+                            ? Math.round(
+                                (item.count / community.summary.reviewsCount) * 100,
+                              )
+                            : 0;
+
+                        return (
+                          <div
+                            key={item.rating}
+                            className="grid grid-cols-[34px_1fr_34px] items-center gap-2 text-xs"
+                          >
+                            <span>{item.rating} ★</span>
+                            <div className="h-2 overflow-hidden rounded-full bg-black/10">
+                              <div
+                                className="h-full rounded-full bg-amber-500"
+                                style={{ width: `${percent}%` }}
+                              />
+                            </div>
+                            <span className="text-right text-muted">{item.count}</span>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                  <div className="font-semibold">Отзывы покупателей</div>
+                  <select
+                    value={reviewSort}
+                    onChange={(event) =>
+                      setReviewSort(
+                        event.target.value as
+                          | "newest"
+                          | "oldest"
+                          | "highest"
+                          | "lowest"
+                          | "helpful",
+                      )
+                    }
+                    className="rounded-xl border border-theme bg-card px-3 py-2 text-sm outline-none"
+                  >
+                    <option value="newest">Сначала новые</option>
+                    <option value="oldest">Сначала старые</option>
+                    <option value="highest">С высокой оценкой</option>
+                    <option value="lowest">С низкой оценкой</option>
+                    <option value="helpful">Самые полезные</option>
+                  </select>
+                </div>
+
                 <div className="space-y-3">
-                  {community?.reviews.length ? (
-                    community.reviews.map((review) => (
+                  {sortedReviews.length ? (
+                    sortedReviews.map((review) => (
                       <article
                         key={review.id}
                         className="rounded-2xl border border-theme bg-page p-4"
                       >
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <div className="font-semibold">{review.author}</div>
+                        <div className="flex flex-wrap items-start justify-between gap-3">
+                          <div>
+                            <div className="font-semibold">{review.author}</div>
+                            <div className="mt-1 text-xs text-muted">
+                              {formatReviewDate(review.createdAt)}
+                            </div>
+                          </div>
                           <div className="text-sm text-amber-500">
                             {"★".repeat(review.rating)}
                             <span className="text-muted-soft">
@@ -1356,6 +1574,55 @@ export function ProductDetailView({
                         <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-muted">
                           {review.text}
                         </p>
+
+                        {review.images.length > 0 ? (
+                          <div className="mt-4 flex flex-wrap gap-2">
+                            {review.images.map((image, index) => (
+                              <a
+                                key={`${review.id}-${index}`}
+                                href={image}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="block h-24 w-24 overflow-hidden rounded-xl border border-theme bg-white"
+                              >
+                                <img
+                                  src={image}
+                                  alt={`Фото покупателя ${index + 1}`}
+                                  loading="lazy"
+                                  className="h-full w-full object-cover"
+                                />
+                              </a>
+                            ))}
+                          </div>
+                        ) : null}
+
+                        <div className="mt-4 flex flex-wrap items-center gap-2 border-t border-theme pt-3">
+                          <span className="mr-1 text-xs text-muted">
+                            Отзыв полезен?
+                          </span>
+                          <button
+                            type="button"
+                            onClick={() => void voteReview(review.id, "helpful")}
+                            className={`rounded-lg border px-3 py-1.5 text-xs transition-colors ${
+                              review.userVote === 1
+                                ? "border-green-500/40 bg-green-500/10 text-green-600"
+                                : "border-theme hover:border-green-500/40"
+                            }`}
+                          >
+                            Да · {review.helpfulCount}
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => void voteReview(review.id, "unhelpful")}
+                            className={`rounded-lg border px-3 py-1.5 text-xs transition-colors ${
+                              review.userVote === -1
+                                ? "border-red-500/40 bg-red-500/10 text-red-600"
+                                : "border-theme hover:border-red-500/40"
+                            }`}
+                          >
+                            Нет · {review.unhelpfulCount}
+                          </button>
+                        </div>
                       </article>
                     ))
                   ) : (

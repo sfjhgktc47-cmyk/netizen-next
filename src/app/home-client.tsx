@@ -1376,37 +1376,51 @@ function TextImageModule({
 
 
 function SupportBlock({ dark }: { dark: boolean }) {
-  const [activeFaqId, setActiveFaqId] = useState<number | null>(1);
+  const [activeFaqId, setActiveFaqId] = useState<string | null>(null);
+  const [supportCards, setSupportCards] = useState<
+    Array<{ id: string; title: string; text: string; icon: string }>
+  >([]);
+  const [questions, setQuestions] = useState<
+    Array<{ id: string; question: string; answer: string }>
+  >([]);
 
-  const supportCards = [
-    { title: "Только оригинал", text: "Работаем напрямую с официальными поставщиками." },
-    { title: "Официальная гарантия", text: "Гарантия производителя и собственная поддержка." },
-    { title: "Быстрая доставка", text: "По Москве — 1 день, по России — от 2 дней." },
-    { title: "Безопасная оплата", text: "Защищённые платежи и удобные способы оплаты." },
-  ];
+  useEffect(() => {
+    let mounted = true;
 
-  const questions = [
-    {
-      id: 1,
-      question: "Можно ли выбрать конфигурацию?",
-      answer: "Да. На странице товара можно выбрать нужный объём памяти, цвет и доступные параметры модели.",
-    },
-    {
-      id: 2,
-      question: "Есть ли техника в наличии?",
-      answer: "Да, большинство популярных моделей есть в наличии. Актуальный статус наличия показывается в карточке товара.",
-    },
-    {
-      id: 3,
-      question: "Как оформить заказ?",
-      answer: "Добавьте товар в корзину, укажите контакты и способ доставки — после этого менеджер подтвердит заказ.",
-    },
-    {
-      id: 4,
-      question: "Можно ли заказать товар под запрос?",
-      answer: "Да. Если нужной конфигурации нет в наличии, мы можем привезти её под заказ. Сроки и условия уточняются индивидуально.",
-    },
-  ];
+    fetch("/api/support-content", { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : Promise.reject()))
+      .then((payload: {
+        features?: Array<{ id: string; title: string; text: string; icon: string }>;
+        questions?: Array<{ id: string; question: string; answer: string }>;
+      }) => {
+        if (!mounted) return;
+
+        const nextFeatures = Array.isArray(payload.features) ? payload.features : [];
+        const nextQuestions = Array.isArray(payload.questions) ? payload.questions : [];
+
+        setSupportCards(nextFeatures);
+        setQuestions(nextQuestions);
+        setActiveFaqId((current) =>
+          nextQuestions.some((item) => item.id === current)
+            ? current
+            : nextQuestions[0]?.id ?? null,
+        );
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setSupportCards([]);
+        setQuestions([]);
+        setActiveFaqId(null);
+      });
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
+
+  if (supportCards.length === 0 && questions.length === 0) {
+    return null;
+  }
 
   return (
     <section className={`mb-10 rounded-[22px] border p-3 transition-all duration-700 sm:mb-20 sm:rounded-[32px] sm:p-8 md:p-10 ${panelClass(dark)}`}>
@@ -1422,15 +1436,19 @@ function SupportBlock({ dark }: { dark: boolean }) {
         <div className="grid grid-cols-2 gap-2 self-start sm:gap-5">
           {supportCards.map((item) => (
             <div
-              key={item.title}
+              key={item.id}
               className={`flex min-h-[74px] flex-col justify-start rounded-2xl border p-2.5 transition-colors duration-300 sm:h-[170px] sm:p-6 ${
                 dark
                   ? "border-white/10 bg-white/[0.025] hover:border-blue-500/25 hover:bg-blue-500/[0.03]"
                   : "border-black/10 bg-white/80 hover:border-blue-500/25 hover:bg-blue-50/40"
               }`}
             >
-              <div className="text-sm leading-none text-blue-500 sm:text-lg">✓</div>
-              <h3 className="mt-2 text-[12px] font-bold leading-tight sm:mt-6 sm:text-base">{item.title}</h3>
+              <div className="text-sm leading-none text-blue-500 sm:text-lg">
+                {item.icon || "✓"}
+              </div>
+              <h3 className="mt-2 text-[12px] font-bold leading-tight sm:mt-6 sm:text-base">
+                {item.title}
+              </h3>
               <p className={`mt-1 line-clamp-2 text-[10px] leading-snug sm:mt-3 sm:text-sm ${mutedTextClass(dark)}`}>
                 {item.text}
               </p>
@@ -1455,11 +1473,15 @@ function SupportBlock({ dark }: { dark: boolean }) {
               >
                 <button
                   type="button"
-                  onClick={() => setActiveFaqId((prev) => (prev === item.id ? null : item.id))}
+                  onClick={() =>
+                    setActiveFaqId((prev) => (prev === item.id ? null : item.id))
+                  }
                   className="group relative w-full px-3 py-3 text-left sm:px-6 sm:py-5"
                 >
                   <div className="flex items-center justify-between gap-3">
-                    <span className="text-[12px] font-semibold leading-tight sm:text-base">{item.question}</span>
+                    <span className="text-[12px] font-semibold leading-tight sm:text-base">
+                      {item.question}
+                    </span>
                     <span
                       className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-xl border text-blue-500 transition-all duration-300 ${
                         dark
@@ -1495,6 +1517,7 @@ function SupportBlock({ dark }: { dark: boolean }) {
     </section>
   );
 }
+
 
 function Footer({
   dark,

@@ -133,6 +133,7 @@ model Customer {
   tickets     SupportRequest[]
   favorites   CustomerFavorite[]
   reviews     ProductReview[]
+  reviewVotes ProductReviewVote[]
   questions   ProductQuestion[]
 
   @@index([phone])
@@ -141,20 +142,40 @@ model Customer {
 
 
 model ProductReview {
-  id               String   @id @default(cuid())
+  id               String              @id @default(cuid())
   productId        String
   customerId       String
   rating           Int
   text             String
-  verifiedPurchase Boolean  @default(true)
-  createdAt        DateTime @default(now())
-  updatedAt        DateTime @updatedAt
+  images           String[]            @default([])
+  verifiedPurchase Boolean             @default(true)
+  helpfulCount     Int                 @default(0)
+  unhelpfulCount   Int                 @default(0)
+  createdAt        DateTime            @default(now())
+  updatedAt        DateTime            @updatedAt
 
-  product          Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
-  customer         Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  product          Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customer         Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  votes            ProductReviewVote[]
 
   @@unique([productId, customerId])
   @@index([productId, createdAt])
+  @@index([productId, rating])
+}
+
+model ProductReviewVote {
+  id         String        @id @default(cuid())
+  reviewId   String
+  customerId String
+  value      Int
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+
+  review     ProductReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  customer   Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, customerId])
+  @@index([reviewId, value])
 }
 
 model ProductQuestion {
@@ -290,6 +311,63 @@ model SupportMessage {
   request   SupportRequest @relation(fields: [requestId], references: [id], onDelete: Cascade)
 
   @@index([requestId, createdAt])
+}
+
+
+model FaqCategory {
+  id          String        @id @default(cuid())
+  slug        String        @unique
+  eyebrow     String        @default("")
+  title       String
+  icon        String        @default("?")
+  description String        @default("")
+  isActive    Boolean       @default(true)
+  sortOrder   Int           @default(100)
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  questions   FaqQuestion[]
+
+  @@index([isActive, sortOrder])
+}
+
+model FaqQuestion {
+  id         String      @id @default(cuid())
+  categoryId String
+  question   String
+  answer     String
+  isActive   Boolean     @default(true)
+  sortOrder  Int         @default(100)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+  category   FaqCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([categoryId, isActive, sortOrder])
+}
+
+
+model SupportFeature {
+  id          String   @id @default(cuid())
+  title       String
+  text        String   @default("")
+  icon        String   @default("✓")
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(100)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+}
+
+model SupportFaqItem {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
 }
 
 model SiteSetting {
