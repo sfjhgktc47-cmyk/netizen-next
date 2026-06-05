@@ -33,6 +33,10 @@ function mutedTextClass(dark: boolean) {
   return dark ? "text-white/55" : "text-black/55";
 }
 
+function withoutTrailingArrow(label: string) {
+  return label.replace(/\s*[→➜➡]+\s*$/, "").trim();
+}
+
 function getProductImage(product: CarouselProduct) {
   const images = [
     product.image,
@@ -151,21 +155,29 @@ export function ProductCarousel({
           )}
         </div>
 
-        <div className="flex items-center gap-2 sm:gap-3">
+        <div className="flex items-center gap-2">
           {actionOnClick ? (
             <button
               type="button"
               onClick={actionOnClick}
-              className="text-sm font-medium text-blue-500 transition-colors hover:text-blue-400"
+              className={`inline-flex h-10 items-center justify-center rounded-xl border px-4 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 ${
+                dark
+                  ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
+                  : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
+              }`}
             >
-              {actionLabel} →
+              {withoutTrailingArrow(actionLabel)}
             </button>
           ) : (
             <Link
               href={actionHref}
-              className="text-sm font-medium text-blue-500 transition-colors hover:text-blue-400"
+              className={`inline-flex h-10 items-center justify-center rounded-xl border px-4 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 ${
+                dark
+                  ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
+                  : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
+              }`}
             >
-              {actionLabel} →
+              {withoutTrailingArrow(actionLabel)}
             </Link>
           )}
 
@@ -173,27 +185,27 @@ export function ProductCarousel({
             <button
               type="button"
               onClick={() => scrollProducts("prev")}
-              className={`flex h-10 w-10 items-center justify-center rounded-xl border text-sm transition-all duration-300 hover:-translate-y-0.5 ${
+              className={`flex h-10 w-10 items-center justify-center rounded-xl border text-base font-medium transition-all duration-300 hover:-translate-y-0.5 ${
                 dark
                   ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
                   : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
               }`}
               aria-label="Предыдущие товары"
             >
-              ←
+              ‹
             </button>
 
             <button
               type="button"
               onClick={() => scrollProducts("next")}
-              className={`flex h-10 w-10 items-center justify-center rounded-xl border text-sm transition-all duration-300 hover:-translate-y-0.5 ${
+              className={`flex h-10 w-10 items-center justify-center rounded-xl border text-base font-medium transition-all duration-300 hover:-translate-y-0.5 ${
                 dark
                   ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
                   : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
               }`}
               aria-label="Следующие товары"
             >
-              →
+              ›
             </button>
           </div>
         </div>
