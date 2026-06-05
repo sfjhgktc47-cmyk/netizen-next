@@ -15,6 +15,7 @@ type CategoryItem = {
   slug: string;
   name: string;
   description: string;
+  image?: string;
   href: string;
 };
 
@@ -467,6 +468,7 @@ export function CatalogView({
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(
     () => activeCategoryIndex >= 6
   );
+  const [isCategoryPanelVisible, setIsCategoryPanelVisible] = useState(true);
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
   const [selectedModelSlug, setSelectedModelSlug] = useState<string | null>(null);
   const [selectedMemory, setSelectedMemory] = useState<string | null>(null);
@@ -483,6 +485,28 @@ export function CatalogView({
   useEffect(() => {
     setSelectedCategoryId(categoryId ?? null);
   }, [categoryId]);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("netizen-catalog-category-panel");
+      setIsCategoryPanelVisible(stored !== "hidden");
+    } catch {
+      setIsCategoryPanelVisible(true);
+    }
+  }, []);
+
+  function setCategoryPanelVisible(visible: boolean) {
+    setIsCategoryPanelVisible(visible);
+
+    try {
+      localStorage.setItem(
+        "netizen-catalog-category-panel",
+        visible ? "visible" : "hidden",
+      );
+    } catch {
+      // Local storage may be unavailable in private mode.
+    }
+  }
 
   useEffect(() => {
     if (activeCategoryIndex >= 6) {
@@ -1070,72 +1094,150 @@ export function CatalogView({
         </section>
 
         <section className="mt-4 sm:mt-8">
-          <div className="-mx-3 flex snap-x flex-nowrap items-center gap-2 overflow-x-auto px-3 pb-2 sm:mx-0 sm:flex-wrap sm:gap-3 sm:overflow-visible sm:px-0 sm:pb-0">
-            <button
-              type="button"
-              onClick={handleResetCatalogState}
-              className={`snap-start whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-medium transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
-                !onlyPopular && !selectedCategoryId && !selectedBrand && !hasSpecificationFilters
-                  ? "border-blue-500 bg-blue-600 text-white"
-                  : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
-              }`}
-            >
-              Все товары
-            </button>
+          {isCategoryPanelVisible ? (
+            <div className="rounded-[24px] border border-theme bg-card p-3 shadow-soft sm:rounded-[30px] sm:p-5">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-bold tracking-[-0.04em] sm:text-2xl">
+                    Категории
+                  </h2>
+                  <p className="mt-1 text-xs text-muted sm:text-sm">
+                    Выберите нужное направление каталога
+                  </p>
+                </div>
 
+                <button
+                  type="button"
+                  onClick={() => setCategoryPanelVisible(false)}
+                  className="shrink-0 rounded-xl border border-theme bg-transparent px-4 py-2.5 text-xs font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:text-sm"
+                >
+                  Скрыть категории
+                </button>
+              </div>
 
+              <div className="mt-4 grid grid-cols-2 gap-2.5 sm:mt-5 sm:grid-cols-3 sm:gap-4 xl:grid-cols-5">
+                {categories.map((category) => {
+                  const isActive =
+                    category.id === selectedCategoryId && !hasActiveFilters;
 
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedCategoryId(null);
-                setOnlyPopular(true);
-                setSelectedBrand(null);
-                setSearchQuery("");
-                resetSpecificationFilters();
-                setSortMode("popular");
-                replaceCatalogUrl(null, true);
-              }}
-              className={`snap-start whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-medium transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
-                onlyPopular && !selectedCategoryId && !selectedBrand && !hasSpecificationFilters
-                  ? "border-blue-500 bg-blue-600 text-white"
-                  : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
-              }`}
-            >
-              Популярные
-            </button>
+                  return (
+                    <button
+                      key={category.id}
+                      type="button"
+                      onClick={() => handleSelectCategory(category.id)}
+                      className={`group relative min-h-[118px] overflow-hidden rounded-2xl border p-3 text-left transition-all duration-300 hover:-translate-y-0.5 sm:min-h-[150px] sm:p-4 ${
+                        isActive
+                          ? "border-blue-500 bg-blue-soft"
+                          : "border-theme bg-card hover:border-blue-500/40"
+                      }`}
+                    >
+                      <div className="relative z-10 max-w-[58%]">
+                        <h3 className="text-sm font-bold leading-tight sm:text-base">
+                          {category.name}
+                        </h3>
+                        {category.description ? (
+                          <p className="mt-2 hidden line-clamp-2 text-xs leading-relaxed text-muted sm:block">
+                            {category.description}
+                          </p>
+                        ) : null}
+                      </div>
 
-            {(isCategoriesOpen ? categories : categories.slice(0, 6)).map(
-              (category) => {
-                const isActive = category.id === selectedCategoryId && !hasActiveFilters;
+                      <div className="absolute bottom-2 right-2 top-2 flex w-[43%] items-center justify-center sm:bottom-3 sm:right-3 sm:top-3">
+                        {category.image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={category.image}
+                            alt=""
+                            loading="lazy"
+                            decoding="async"
+                            className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="h-full w-full rounded-xl bg-blue-soft" />
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className="-mx-3 flex flex-1 snap-x flex-nowrap items-center gap-2 overflow-x-auto px-3 pb-2 sm:mx-0 sm:flex-wrap sm:gap-3 sm:overflow-visible sm:px-0 sm:pb-0">
+                <button
+                  type="button"
+                  onClick={handleResetCatalogState}
+                  className={`snap-start whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-medium transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
+                    !onlyPopular && !selectedCategoryId && !selectedBrand && !hasSpecificationFilters
+                      ? "border-blue-500 bg-blue-600 text-white"
+                      : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
+                  }`}
+                >
+                  Все товары
+                </button>
 
-                return (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCategoryId(null);
+                    setOnlyPopular(true);
+                    setSelectedBrand(null);
+                    setSearchQuery("");
+                    resetSpecificationFilters();
+                    setSortMode("popular");
+                    replaceCatalogUrl(null, true);
+                  }}
+                  className={`snap-start whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-medium transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
+                    onlyPopular && !selectedCategoryId && !selectedBrand && !hasSpecificationFilters
+                      ? "border-blue-500 bg-blue-600 text-white"
+                      : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
+                  }`}
+                >
+                  Популярные
+                </button>
+
+                {(isCategoriesOpen ? categories : categories.slice(0, 6)).map(
+                  (category) => {
+                    const isActive =
+                      category.id === selectedCategoryId && !hasActiveFilters;
+
+                    return (
+                      <button
+                        key={category.id}
+                        type="button"
+                        onClick={() => handleSelectCategory(category.id)}
+                        className={`snap-start whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-medium transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
+                          isActive
+                            ? "border-blue-500 bg-blue-600 text-white"
+                            : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
+                        }`}
+                      >
+                        {category.name}
+                      </button>
+                    );
+                  },
+                )}
+
+                {categories.length > 6 ? (
                   <button
-                    key={category.id}
                     type="button"
-                    onClick={() => handleSelectCategory(category.id)}
-                    className={`snap-start whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-medium transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
-                      isActive
-                        ? "border-blue-500 bg-blue-600 text-white"
-                        : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
-                    }`}
+                    onClick={() => setIsCategoriesOpen((prev) => !prev)}
+                    className="snap-start whitespace-nowrap rounded-full border border-theme bg-transparent px-4 py-2.5 text-xs font-medium text-blue-500 transition-all duration-300 hover:border-blue-500/40 hover:bg-blue-soft sm:px-5 sm:py-3 sm:text-sm"
                   >
-                    {category.name}
+                    {isCategoriesOpen ? "Свернуть" : "Развернуть"}
                   </button>
-                );
-              }
-            )}
+                ) : null}
+              </div>
 
-            {categories.length > 6 && (
               <button
                 type="button"
-                onClick={() => setIsCategoriesOpen((prev) => !prev)}
-                className="snap-start whitespace-nowrap rounded-full border border-theme bg-transparent px-4 py-2.5 text-xs font-medium text-blue-500 transition-all duration-300 hover:border-blue-500/40 hover:bg-blue-soft sm:px-5 sm:py-3 sm:text-sm"
+                onClick={() => setCategoryPanelVisible(true)}
+                className="hidden shrink-0 rounded-xl border border-theme bg-transparent px-4 py-2.5 text-xs font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:block sm:text-sm"
               >
-                {isCategoriesOpen ? "Свернуть" : "Развернуть"}
+                Показать категории
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </section>
 
         {hasActiveFilters && (
