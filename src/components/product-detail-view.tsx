@@ -1173,9 +1173,30 @@ export function ProductDetailView({
 
         {hasProductStory(product) ? <ProductStory product={product} /> : null}
 
+        {relatedProducts.length > 0 ? (
+          <section className="mt-6 sm:mt-10">
+            <ProductStrip title="С этим товаром покупают" products={relatedProducts} />
+          </section>
+        ) : null}
+
+        <section className="mt-6 sm:mt-10">
+          <ProductTabs
+            productName={product.name}
+            brand={product.brand}
+            category={categoryName}
+            memory={detailsPosition?.memory || "Не выбрано"}
+            color={detailsPosition?.color || "Не выбрано"}
+            sim={detailsPosition?.sim || "Не выбрано"}
+            sku={detailsPosition?.sku || "Будет выбран после конфигурации"}
+            description={product.description}
+            shortDescription={product.shortDescription}
+            benefits={benefits}
+          />
+        </section>
+
         <section
           id="product-community"
-          className="mt-6 scroll-mt-24 rounded-[24px] border border-theme bg-card shadow-soft sm:mt-10 sm:rounded-[36px]"
+          className="mt-6 scroll-mt-24 rounded-[24px] border border-theme bg-white shadow-soft sm:mt-10 sm:rounded-[36px]"
         >
           <div className="border-b border-theme p-4 sm:p-7">
             <div className="flex flex-wrap items-center justify-between gap-4">
@@ -1383,27 +1404,6 @@ export function ProductDetailView({
             ) : null}
           </div>
         </section>
-
-        <section className="mt-6 sm:mt-10">
-          <ProductTabs
-            productName={product.name}
-            brand={product.brand}
-            category={categoryName}
-            memory={detailsPosition?.memory || "Не выбрано"}
-            color={detailsPosition?.color || "Не выбрано"}
-            sim={detailsPosition?.sim || "Не выбрано"}
-            sku={detailsPosition?.sku || "Будет выбран после конфигурации"}
-            description={product.description}
-            shortDescription={product.shortDescription}
-            benefits={benefits}
-          />
-        </section>
-
-        {relatedProducts.length > 0 ? (
-          <section className="mt-6 sm:mt-10">
-            <ProductStrip title="С этим товаром покупают" products={relatedProducts} />
-          </section>
-        ) : null}
 
         <section className="mb-8 mt-6 sm:mb-10 sm:mt-10">
           <ProductStrip title="Похожие товары" />

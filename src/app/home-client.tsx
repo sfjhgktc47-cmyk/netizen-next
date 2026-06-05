@@ -758,7 +758,7 @@ function Categories({
                   : "border-black/10 bg-white shadow-[0_20px_70px_rgba(15,23,42,0.08)] hover:border-blue-500/35 hover:shadow-[0_28px_90px_rgba(15,23,42,0.12)]"
               }`}
             >
-              <div className="relative z-10 order-2 flex w-full flex-1 flex-col sm:order-none sm:max-w-[56%]">
+              <div className="relative z-10 order-2 flex w-full flex-1 flex-col sm:order-none sm:max-w-[46%]">
                 <h3 className="line-clamp-2 text-[10px] font-bold leading-tight sm:text-xl">
                   {category.name}
                 </h3>
