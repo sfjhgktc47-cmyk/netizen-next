@@ -175,14 +175,14 @@ export async function POST(
   const session = await getAuthSession();
 
   if (body.type === "vote") {
-    if (session?.role !== "customer" || !customerId) {
+    if (session?.role !== "customer" || !session.customerId) {
       return NextResponse.json(
         { error: "Чтобы оценить отзыв, войдите в аккаунт." },
         { status: 401 },
       );
     }
 
-    const customerId = customerId;
+    const customerId: string = session.customerId;
     const reviewId = normalizeText(body.reviewId, 100);
     const value = body.vote === "helpful" ? 1 : body.vote === "unhelpful" ? -1 : 0;
 
