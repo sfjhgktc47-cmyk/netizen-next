@@ -452,18 +452,21 @@ export function CatalogView({
     positionsData.length > 0 ? positionsData : fallbackProductPositions;
   const categories = categoriesData;
 
+  const isUrlSyncReady = useRef(false);
+  const shouldSkipInitialUrlWrite = useRef(true);
+
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    categoryId ?? null
+  );
+
   const activeCategoryIndex = categories.findIndex(
     (category) => category.id === selectedCategoryId
   );
-
-  const isUrlSyncReady = useRef(false);
-  const shouldSkipInitialUrlWrite = useRef(true);
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(
     () => activeCategoryIndex >= 6
   );
-  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(categoryId ?? null);
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
   const [selectedModelSlug, setSelectedModelSlug] = useState<string | null>(null);
   const [selectedMemory, setSelectedMemory] = useState<string | null>(null);
