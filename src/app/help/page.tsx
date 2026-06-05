@@ -140,17 +140,18 @@ export default function HelpPage() {
         <SiteHeader />
 
         <section className="mt-3 sm:mt-10">
-          <Link href="/" className="text-xs text-blue-500 transition-colors hover:text-blue-400 sm:text-sm">
-            ← На главную
-          </Link>
+          <nav
+            aria-label="Хлебные крошки"
+            className="flex flex-wrap items-center gap-2 text-xs text-muted sm:text-sm"
+          >
+            <Link href="/" className="transition-colors hover:text-blue-500">
+              Главная
+            </Link>
+            <span className="text-muted-soft">›</span>
+            <span className="font-medium text-main">Поддержка</span>
+          </nav>
 
-          <div className="mt-3 flex sm:mt-5">
-            <span className="w-fit rounded-full border border-blue-500/35 bg-blue-500/10 px-2.5 py-1 text-[11px] font-medium text-blue-500 sm:px-4 sm:py-2 sm:text-sm">
-              Поддержка Netizen
-            </span>
-          </div>
-
-          <h1 className="mt-3 max-w-[940px] text-[23px] font-bold leading-[1.05] tracking-[-0.055em] sm:mt-5 sm:text-4xl md:text-5xl">
+          <h1 className="mt-4 max-w-[940px] text-[23px] font-bold leading-[1.05] tracking-[-0.055em] sm:mt-6 sm:text-4xl md:text-5xl">
             Напишите нам — поможем разобраться
           </h1>
 

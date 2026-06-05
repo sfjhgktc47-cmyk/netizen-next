@@ -217,17 +217,18 @@ export default function FaqPage() {
         <SiteHeader />
 
         <section className="mt-6">
-          <div className="flex flex-col items-start gap-3">
-            <Link href="/" className="text-sm font-medium text-blue-500">
-              ← На главную
+          <nav
+            aria-label="Хлебные крошки"
+            className="flex flex-wrap items-center gap-2 text-xs text-muted sm:text-sm"
+          >
+            <Link href="/" className="transition-colors hover:text-blue-500">
+              Главная
             </Link>
+            <span className="text-muted-soft">›</span>
+            <span className="font-medium text-main">FAQ</span>
+          </nav>
 
-            <div className="inline-flex rounded-full border border-blue-500/35 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-500">
-              FAQ Netizen
-            </div>
-          </div>
-
-          <div className="mt-4 flex flex-col gap-5 border-b border-theme pb-7 lg:flex-row lg:items-end lg:justify-between">
+          <div className="mt-5 flex flex-col gap-5 border-b border-theme pb-7 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <h1 className="max-w-[820px] text-5xl font-bold tracking-[-0.055em] md:text-6xl">
                 Частые вопросы
