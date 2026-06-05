@@ -8,7 +8,6 @@ import {
   useState,
   type MouseEvent,
   type PointerEvent,
-  type ReactNode,
 } from "react";
 import { AnimatePresence, motion } from "framer-motion";
 import { SiteHeader } from "@/components/site-header";
@@ -225,81 +224,22 @@ export default function Home({ initialData = {} }: { initialData?: HomePayload }
       <div className="mx-auto max-w-[1440px] px-2 pb-12 pt-2.5 sm:px-5 sm:py-6 lg:px-6">
         <SiteHeader />
 
-        {visibleHomeBlocks.map((block) => {
-          const renderedModule = (
-            <HomeModule
-              block={block}
-              dark={dark}
-              categories={visibleCategories}
-              popularProducts={popularProducts}
-              allProducts={popularProducts.length ? popularProducts : newArrivals}
-              newArrivals={newArrivals}
-              banners={banners}
-              benefits={benefits}
-            />
-          );
-
-          if ((block.type || block.id) === "hero") {
-            return <div key={block.id}>{renderedModule}</div>;
-          }
-
-          return (
-            <LazyHomeModule key={block.id} blockId={block.id}>
-              {renderedModule}
-            </LazyHomeModule>
-          );
-        })}
+        {visibleHomeBlocks.map((block) => (
+          <HomeModule
+            key={block.id}
+            block={block}
+            dark={dark}
+            categories={visibleCategories}
+            popularProducts={popularProducts}
+            allProducts={popularProducts.length ? popularProducts : newArrivals}
+            newArrivals={newArrivals}
+            banners={banners}
+            benefits={benefits}
+          />
+        ))}
         <Footer dark={dark} siteSettings={siteSettings} />
       </div>
     </main>
-  );
-}
-
-
-function LazyHomeModule({
-  blockId,
-  children,
-}: {
-  blockId: string;
-  children: ReactNode;
-}) {
-  const rootRef = useRef<HTMLDivElement | null>(null);
-  const [shouldRender, setShouldRender] = useState(false);
-
-  useEffect(() => {
-    const element = rootRef.current;
-
-    if (!element) {
-      return;
-    }
-
-    if (!("IntersectionObserver" in window)) {
-      setShouldRender(true);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setShouldRender(true);
-          observer.disconnect();
-        }
-      },
-      {
-        rootMargin: "650px 0px",
-        threshold: 0.01,
-      },
-    );
-
-    observer.observe(element);
-
-    return () => observer.disconnect();
-  }, []);
-
-  return (
-    <div ref={rootRef} data-home-lazy-block={blockId} className={shouldRender ? "" : "min-h-[120px]"}>
-      {shouldRender ? children : null}
-    </div>
   );
 }
 
