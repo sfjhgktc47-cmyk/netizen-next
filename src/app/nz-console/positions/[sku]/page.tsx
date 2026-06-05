@@ -55,16 +55,30 @@ export default async function AdminPositionDetailPage({
   const { sku } = await params;
   const decodedSku = decodeURIComponent(sku);
 
-  const variant = await prisma.productVariant.findUnique({
-    where: { sku: decodedSku },
-    include: {
-      product: {
-        include: {
-          category: true,
+  const [variant, relatedProductOptions] = await Promise.all([
+    prisma.productVariant.findUnique({
+      where: { sku: decodedSku },
+      include: {
+        product: {
+          include: {
+            category: true,
+          },
         },
       },
-    },
-  });
+    }),
+    prisma.product.findMany({
+      where: { status: "active" },
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        brand: true,
+        image: true,
+        images: true,
+      },
+      orderBy: [{ brand: "asc" }, { name: "asc" }],
+    }),
+  ]);
 
   if (!variant) {
     notFound();
@@ -180,7 +194,19 @@ export default async function AdminPositionDetailPage({
               seoTitle: variant.seoTitle,
               seoDescription: variant.seoDescription,
               seoKeywords: variant.seoKeywords,
+              relatedProductIds: Array.isArray(variant.relatedProductIds)
+                ? variant.relatedProductIds
+                : [],
             }}
+            relatedProductOptions={relatedProductOptions
+              .filter((product) => product.id !== variant.productId)
+              .map((product) => ({
+                id: product.id,
+                slug: product.slug,
+                name: product.name,
+                brand: product.brand,
+                image: product.image || product.images?.[0] || "",
+              }))}
           />
         </section>
       </div>

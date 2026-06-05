@@ -39,6 +39,20 @@ function normalizeImages(value: unknown) {
     .slice(0, 12);
 }
 
+function normalizeRelatedProductIds(value: unknown) {
+  if (!Array.isArray(value)) {
+    return [];
+  }
+
+  return Array.from(
+    new Set(
+      value
+        .map((item) => (typeof item === "string" ? item.trim() : ""))
+        .filter(Boolean),
+    ),
+  ).slice(0, 8);
+}
+
 function getErrorMessage(error: unknown) {
   if (error instanceof Error) {
     return error.message;
@@ -85,6 +99,7 @@ export async function PATCH(
         seoTitle: String(body.seoTitle ?? ""),
         seoDescription: String(body.seoDescription ?? ""),
         seoKeywords: String(body.seoKeywords ?? ""),
+        relatedProductIds: normalizeRelatedProductIds(body.relatedProductIds),
       },
     });
 

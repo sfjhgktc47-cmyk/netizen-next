@@ -78,6 +78,8 @@ model Product {
   variants         ProductVariant[]
   orderItems       OrderItem[]
   favorites        CustomerFavorite[]
+  reviews          ProductReview[]
+  questions        ProductQuestion[]
 
   @@index([brand])
   @@index([categorySlug])
@@ -99,10 +101,11 @@ model ProductVariant {
   oldPrice       Int?
   stock          Int          @default(0)
   status         EntityStatus @default(active)
-  seoTitle       String       @default("")
-  seoDescription String       @default("")
-  seoKeywords    String       @default("")
-  createdAt      DateTime     @default(now())
+  seoTitle         String       @default("")
+  seoDescription   String       @default("")
+  seoKeywords      String       @default("")
+  relatedProductIds String[]    @default([])
+  createdAt        DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
   product        Product      @relation(fields: [productId], references: [id], onDelete: Cascade)
@@ -129,9 +132,47 @@ model Customer {
   addresses   Address[]
   tickets     SupportRequest[]
   favorites   CustomerFavorite[]
+  reviews     ProductReview[]
+  questions   ProductQuestion[]
 
   @@index([phone])
   @@index([email])
+}
+
+
+model ProductReview {
+  id               String   @id @default(cuid())
+  productId        String
+  customerId       String
+  rating           Int
+  text             String
+  verifiedPurchase Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  product          Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customer         Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([productId, customerId])
+  @@index([productId, createdAt])
+}
+
+model ProductQuestion {
+  id          String    @id @default(cuid())
+  productId   String
+  customerId  String?
+  authorName  String
+  authorEmail String    @default("")
+  text        String
+  answer      String    @default("")
+  answeredAt  DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customer    Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([productId, createdAt])
 }
 
 model AdminUser {

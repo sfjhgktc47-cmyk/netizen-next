@@ -52,6 +52,7 @@ export type PublicProductPosition = {
   images: string[];
   seoTitle: string;
   seoDescription: string;
+  relatedProductIds: string[];
 };
 
 export type PublicCatalogData = {
@@ -215,6 +216,9 @@ function toPublicPosition(
     seoDescription:
       variant.seoDescription ||
       `${variant.title} — конфигурация модели ${product.name}. Цена, наличие и доставка уточняются менеджером.`,
+    relatedProductIds: Array.isArray(variant.relatedProductIds)
+      ? variant.relatedProductIds
+      : [],
   };
 }
 
@@ -276,9 +280,40 @@ export async function getPublicProductBySlug(slug: string) {
     return null;
   }
 
+  const positions = product.variants.map((variant) => toPublicPosition(variant, product));
+  const relatedIds = Array.from(
+    new Set(product.variants.flatMap((variant) =>
+      Array.isArray(variant.relatedProductIds) ? variant.relatedProductIds : [],
+    )),
+  );
+
+  const relatedProducts = relatedIds.length
+    ? await prisma.product.findMany({
+        where: {
+          id: { in: relatedIds },
+          status: "active",
+        },
+        include: {
+          category: true,
+          variants: {
+            where: {
+              status: { in: ["active", "out_of_stock"] },
+            },
+            orderBy: [{ price: "asc" }, { createdAt: "asc" }],
+          },
+        },
+      })
+    : [];
+
+  const relatedById = new Map(relatedProducts.map((item) => [item.id, item]));
+
   return {
     product: toPublicProduct(product),
-    positions: product.variants.map((variant) => toPublicPosition(variant, product)),
+    positions,
+    relatedProducts: relatedIds
+      .map((id) => relatedById.get(id))
+      .filter((item): item is NonNullable<typeof item> => Boolean(item))
+      .map(toPublicProduct),
   };
 }
 

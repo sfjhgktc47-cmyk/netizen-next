@@ -29,6 +29,37 @@ type ProductDetailViewProps = {
   positions: ProductPosition[];
   selectedPosition?: ProductPosition;
   benefits?: ProductBenefit[];
+  relatedProducts?: ProductCard[];
+};
+
+type ProductReviewItem = {
+  id: string;
+  rating: number;
+  text: string;
+  verifiedPurchase: boolean;
+  author: string;
+  createdAt: string;
+};
+
+type ProductQuestionItem = {
+  id: string;
+  authorName: string;
+  text: string;
+  answer: string;
+  createdAt: string;
+};
+
+type ProductCommunity = {
+  summary: {
+    rating: number;
+    reviewsCount: number;
+    questionsCount: number;
+  };
+  authenticated: boolean;
+  canReview: boolean;
+  hasReview: boolean;
+  reviews: ProductReviewItem[];
+  questions: ProductQuestionItem[];
 };
 
 function uniqueBy<T>(items: T[], getKey: (item: T) => string) {
@@ -123,6 +154,7 @@ export function ProductDetailView({
   positions,
   selectedPosition,
   benefits = [],
+  relatedProducts = [],
 }: ProductDetailViewProps) {
   const [selectedColor, setSelectedColor] = useState(
     selectedPosition?.color ?? "",
@@ -137,6 +169,18 @@ export function ProductDetailView({
   const [isFavorite, setIsFavorite] = useState(false);
   const [showConfigEditor, setShowConfigEditor] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [community, setCommunity] = useState<ProductCommunity | null>(null);
+  const [communityLoading, setCommunityLoading] = useState(true);
+  const [showQuestionForm, setShowQuestionForm] = useState(false);
+  const [showReviewForm, setShowReviewForm] = useState(false);
+  const [questionText, setQuestionText] = useState("");
+  const [questionName, setQuestionName] = useState("");
+  const [questionEmail, setQuestionEmail] = useState("");
+  const [reviewText, setReviewText] = useState("");
+  const [reviewRating, setReviewRating] = useState(5);
+  const [communityMessage, setCommunityMessage] = useState("");
+  const [communitySubmitting, setCommunitySubmitting] = useState(false);
+  const [communityTab, setCommunityTab] = useState<"reviews" | "questions">("reviews");
   const galleryDragStartRef = useRef<{
     x: number;
     y: number;
@@ -196,6 +240,103 @@ export function ProductDetailView({
   useEffect(() => {
     setActiveImageIndex(0);
   }, [previewPosition?.sku, product.slug]);
+
+  async function loadCommunity() {
+    setCommunityLoading(true);
+
+    try {
+      const response = await fetch(`/api/products/${product.slug}/community`, {
+        cache: "no-store",
+      });
+      const payload = (await response.json().catch(() => null)) as ProductCommunity | null;
+      setCommunity(response.ok ? payload : null);
+    } catch {
+      setCommunity(null);
+    } finally {
+      setCommunityLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    void loadCommunity();
+  }, [product.slug]);
+
+  function scrollToCommunity() {
+    document.getElementById("product-community")?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+    });
+  }
+
+  async function submitQuestion() {
+    if (communitySubmitting) return;
+    setCommunitySubmitting(true);
+    setCommunityMessage("");
+
+    try {
+      const response = await fetch(`/api/products/${product.slug}/community`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "question",
+          text: questionText,
+          authorName: questionName,
+          authorEmail: questionEmail,
+        }),
+      });
+      const payload = (await response.json().catch(() => ({}))) as { error?: string };
+
+      if (!response.ok) {
+        setCommunityMessage(payload.error || "Не удалось отправить вопрос.");
+        return;
+      }
+
+      setQuestionText("");
+      setQuestionName("");
+      setQuestionEmail("");
+      setShowQuestionForm(false);
+      setCommunityMessage("Вопрос отправлен.");
+      await loadCommunity();
+    } catch {
+      setCommunityMessage("Не удалось отправить вопрос.");
+    } finally {
+      setCommunitySubmitting(false);
+    }
+  }
+
+  async function submitReview() {
+    if (communitySubmitting) return;
+    setCommunitySubmitting(true);
+    setCommunityMessage("");
+
+    try {
+      const response = await fetch(`/api/products/${product.slug}/community`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "review",
+          text: reviewText,
+          rating: reviewRating,
+        }),
+      });
+      const payload = (await response.json().catch(() => ({}))) as { error?: string };
+
+      if (!response.ok) {
+        setCommunityMessage(payload.error || "Не удалось отправить отзыв.");
+        return;
+      }
+
+      setReviewText("");
+      setReviewRating(5);
+      setShowReviewForm(false);
+      setCommunityMessage("Спасибо! Отзыв опубликован.");
+      await loadCommunity();
+    } catch {
+      setCommunityMessage("Не удалось отправить отзыв.");
+    } finally {
+      setCommunitySubmitting(false);
+    }
+  }
 
   function showPreviousImage() {
     if (mediaImages.length <= 1) return;
@@ -565,6 +706,87 @@ export function ProductDetailView({
                   {isFavorite ? "В избранном ✓" : "В избранное"}
                 </button>
               </div>
+
+              <div className="mt-3 flex flex-wrap items-center gap-x-3 gap-y-2 text-xs sm:text-sm">
+                <button
+                  type="button"
+                  onClick={scrollToCommunity}
+                  className="font-medium text-main transition-colors hover:text-blue-500"
+                >
+                  <span className="text-amber-500">★</span>{" "}
+                  {communityLoading
+                    ? "—"
+                    : community && community.summary.reviewsCount > 0
+                      ? community.summary.rating.toFixed(1)
+                      : "Нет оценок"}
+                </button>
+
+                <span className="text-muted-soft">·</span>
+
+                <button
+                  type="button"
+                  onClick={scrollToCommunity}
+                  className="text-muted transition-colors hover:text-blue-500"
+                >
+                  {community?.summary.reviewsCount ?? 0} отзывов
+                </button>
+
+                <span className="text-muted-soft">·</span>
+
+                <button
+                  type="button"
+                  onClick={() => setShowQuestionForm((value) => !value)}
+                  className="text-muted transition-colors hover:text-blue-500"
+                >
+                  {community?.summary.questionsCount ?? 0} вопросов
+                </button>
+              </div>
+
+              {showQuestionForm ? (
+                <div className="mt-4 rounded-2xl border border-theme bg-page p-4">
+                  <div className="text-sm font-bold">Задать вопрос о товаре</div>
+
+                  {!community?.authenticated ? (
+                    <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                      <input
+                        value={questionName}
+                        onChange={(event) => setQuestionName(event.target.value)}
+                        placeholder="Ваше имя"
+                        className="rounded-xl border border-theme bg-card px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                      />
+                      <input
+                        value={questionEmail}
+                        onChange={(event) => setQuestionEmail(event.target.value)}
+                        placeholder="Email — необязательно"
+                        className="rounded-xl border border-theme bg-card px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                      />
+                    </div>
+                  ) : null}
+
+                  <textarea
+                    value={questionText}
+                    onChange={(event) => setQuestionText(event.target.value)}
+                    placeholder="Напишите вопрос"
+                    rows={3}
+                    className="mt-3 w-full resize-none rounded-xl border border-theme bg-card px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                  />
+
+                  <div className="mt-3 flex justify-end">
+                    <button
+                      type="button"
+                      onClick={() => void submitQuestion()}
+                      disabled={communitySubmitting}
+                      className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:opacity-50"
+                    >
+                      {communitySubmitting ? "Отправляем…" : "Отправить вопрос"}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+
+              {communityMessage ? (
+                <div className="mt-3 text-sm text-blue-500">{communityMessage}</div>
+              ) : null}
 
               {!activePosition && (
                 <div className="mt-3 hidden rounded-[18px] border border-blue-500/30 bg-blue-soft p-3 sm:mt-7 sm:block sm:rounded-3xl sm:p-5">
@@ -951,6 +1173,217 @@ export function ProductDetailView({
 
         {hasProductStory(product) ? <ProductStory product={product} /> : null}
 
+        <section
+          id="product-community"
+          className="mt-6 scroll-mt-24 rounded-[24px] border border-theme bg-card shadow-soft sm:mt-10 sm:rounded-[36px]"
+        >
+          <div className="border-b border-theme p-4 sm:p-7">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div>
+                <h2 className="text-2xl font-bold tracking-[-0.04em] sm:text-3xl">
+                  Отзывы и вопросы о товаре
+                </h2>
+                <p className="mt-1 text-sm text-muted">
+                  Отзывы оставляют только покупатели. Вопрос можно задать сразу.
+                </p>
+              </div>
+
+              <div className="flex flex-wrap gap-2">
+                {communityTab === "reviews" ? (
+                  community?.canReview ? (
+                    <button
+                      type="button"
+                      onClick={() => setShowReviewForm((value) => !value)}
+                      className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-500"
+                    >
+                      Оставить отзыв
+                    </button>
+                  ) : community?.hasReview ? (
+                    <span className="rounded-xl border border-green-500/30 bg-green-500/10 px-4 py-2.5 text-sm text-green-600">
+                      Отзыв уже оставлен
+                    </span>
+                  ) : community?.authenticated ? (
+                    <span className="rounded-xl border border-theme px-4 py-2.5 text-sm text-muted">
+                      Доступно после покупки
+                    </span>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        window.dispatchEvent(
+                          new CustomEvent("netizen-open-auth", { detail: "login" }),
+                        )
+                      }
+                      className="rounded-xl border border-theme px-4 py-2.5 text-sm font-medium hover:border-blue-500/40 hover:bg-blue-soft"
+                    >
+                      Войти для отзыва
+                    </button>
+                  )
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowQuestionForm(true);
+                      window.scrollTo({ top: 0, behavior: "smooth" });
+                    }}
+                    className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-500"
+                  >
+                    Задать вопрос
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="mt-5 flex gap-2 overflow-x-auto">
+              <button
+                type="button"
+                onClick={() => setCommunityTab("reviews")}
+                className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors ${
+                  communityTab === "reviews"
+                    ? "bg-blue-600 text-white"
+                    : "border border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
+                }`}
+              >
+                Отзывы · {community?.summary.reviewsCount ?? 0}
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setCommunityTab("questions")}
+                className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors ${
+                  communityTab === "questions"
+                    ? "bg-blue-600 text-white"
+                    : "border border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
+                }`}
+              >
+                Вопросы о товаре · {community?.summary.questionsCount ?? 0}
+              </button>
+            </div>
+          </div>
+
+          <div className="p-4 sm:p-7">
+            {communityTab === "reviews" ? (
+              <>
+                {showReviewForm ? (
+                  <div className="mb-5 rounded-2xl border border-theme bg-page p-4">
+                    <div className="text-sm font-bold">Ваш отзыв</div>
+
+                    <div className="mt-3 flex gap-1">
+                      {[1, 2, 3, 4, 5].map((rating) => (
+                        <button
+                          key={rating}
+                          type="button"
+                          onClick={() => setReviewRating(rating)}
+                          className={`text-2xl ${
+                            rating <= reviewRating ? "text-amber-500" : "text-muted-soft"
+                          }`}
+                          aria-label={`${rating} из 5`}
+                        >
+                          ★
+                        </button>
+                      ))}
+                    </div>
+
+                    <textarea
+                      value={reviewText}
+                      onChange={(event) => setReviewText(event.target.value)}
+                      placeholder="Расскажите о товаре"
+                      rows={4}
+                      className="mt-3 w-full resize-none rounded-xl border border-theme bg-card px-3 py-2.5 text-sm outline-none focus:border-blue-500"
+                    />
+
+                    <div className="mt-3 flex justify-end">
+                      <button
+                        type="button"
+                        onClick={() => void submitReview()}
+                        disabled={communitySubmitting}
+                        className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white hover:bg-blue-500 disabled:opacity-50"
+                      >
+                        {communitySubmitting ? "Публикуем…" : "Опубликовать отзыв"}
+                      </button>
+                    </div>
+                  </div>
+                ) : null}
+
+                <div className="space-y-3">
+                  {community?.reviews.length ? (
+                    community.reviews.map((review) => (
+                      <article
+                        key={review.id}
+                        className="rounded-2xl border border-theme bg-page p-4"
+                      >
+                        <div className="flex flex-wrap items-center justify-between gap-2">
+                          <div className="font-semibold">{review.author}</div>
+                          <div className="text-sm text-amber-500">
+                            {"★".repeat(review.rating)}
+                            <span className="text-muted-soft">
+                              {"★".repeat(5 - review.rating)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {review.verifiedPurchase ? (
+                          <div className="mt-1 text-xs text-green-600">
+                            Подтверждённая покупка
+                          </div>
+                        ) : null}
+
+                        <p className="mt-3 whitespace-pre-line text-sm leading-relaxed text-muted">
+                          {review.text}
+                        </p>
+                      </article>
+                    ))
+                  ) : (
+                    <div className="rounded-2xl border border-dashed border-theme p-6 text-sm text-muted">
+                      Отзывов пока нет. Первый отзыв сможет оставить покупатель после завершённого заказа.
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <div className="space-y-3">
+                {community?.questions.length ? (
+                  community.questions.map((question) => (
+                    <article
+                      key={question.id}
+                      className="rounded-2xl border border-theme bg-page p-4"
+                    >
+                      <div className="font-semibold">{question.authorName}</div>
+
+                      <p className="mt-2 whitespace-pre-line text-sm leading-relaxed text-muted">
+                        {question.text}
+                      </p>
+
+                      {question.answer ? (
+                        <div className="mt-3 rounded-xl border border-blue-500/20 bg-blue-soft p-3">
+                          <div className="text-xs font-semibold text-blue-500">
+                            Ответ магазина
+                          </div>
+                          <p className="mt-1 text-sm leading-relaxed">
+                            {question.answer}
+                          </p>
+                        </div>
+                      ) : (
+                        <div className="mt-3 text-xs text-muted-soft">
+                          Магазин ещё не ответил.
+                        </div>
+                      )}
+                    </article>
+                  ))
+                ) : (
+                  <div className="rounded-2xl border border-dashed border-theme p-6 text-sm text-muted">
+                    Вопросов пока нет. Задайте первый вопрос о товаре прямо из карточки.
+                  </div>
+                )}
+              </div>
+            )}
+
+            {communityMessage ? (
+              <div className="mt-4 text-sm text-blue-500">{communityMessage}</div>
+            ) : null}
+          </div>
+        </section>
+
         <section className="mt-6 sm:mt-10">
           <ProductTabs
             productName={product.name}
@@ -966,9 +1399,11 @@ export function ProductDetailView({
           />
         </section>
 
-        <section className="mt-6 sm:mt-10">
-          <ProductStrip title="С этим товаром покупают" />
-        </section>
+        {relatedProducts.length > 0 ? (
+          <section className="mt-6 sm:mt-10">
+            <ProductStrip title="С этим товаром покупают" products={relatedProducts} />
+          </section>
+        ) : null}
 
         <section className="mb-8 mt-6 sm:mb-10 sm:mt-10">
           <ProductStrip title="Похожие товары" />
@@ -1059,33 +1494,54 @@ function ProductStory({ product }: { product: ProductCard }) {
   );
 }
 
-function ProductStrip({ title }: { title: string }) {
+function ProductStrip({
+  title,
+  products,
+}: {
+  title: string;
+  products?: ProductCard[];
+}) {
+  const items = Array.isArray(products) ? products : [];
+
+  if (items.length === 0) {
+    return null;
+  }
+
   return (
     <section>
       <h2 className="text-2xl font-bold tracking-[-0.04em] sm:text-3xl">{title}</h2>
 
       <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-5 sm:gap-5 md:grid-cols-3 xl:grid-cols-5">
-        {Array.from({ length: 5 }).map((_, index) => (
+        {items.map((item) => (
           <Link
-            key={index}
-            href="/catalog"
+            key={item.slug}
+            href={`/product/${item.slug}`}
             className="card group rounded-[20px] p-3 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/35 hover:bg-blue-soft sm:rounded-3xl sm:p-4"
           >
-            <div className="soft-box flex aspect-[3/4] items-center justify-center rounded-2xl text-sm text-muted-soft">
-              Фото
+            <div className="soft-box flex aspect-[3/4] items-center justify-center overflow-hidden rounded-2xl text-sm text-muted-soft">
+              {item.image ? (
+                <Image
+                  quality={75}
+                  src={item.image}
+                  alt={item.name}
+                  className="h-full w-full object-contain p-3"
+                />
+              ) : (
+                "Фото"
+              )}
             </div>
 
             <div className="pt-4">
-              <div className="text-sm text-muted-soft">Аксессуар</div>
+              <div className="text-sm text-muted-soft">{item.brand}</div>
 
               <h3 className="mt-1 line-clamp-2 font-bold leading-tight">
-                Рекомендованный товар
+                {item.name}
               </h3>
 
-              <p className="mt-1 text-sm text-muted">от 9 990 ₽</p>
+              <p className="mt-1 text-sm text-muted">{item.price}</p>
 
               <div className="mt-3 flex items-center justify-center rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white transition-colors group-hover:bg-blue-500 sm:mt-4 sm:py-3">
-                Смотреть →
+                Смотреть
               </div>
             </div>
           </Link>
