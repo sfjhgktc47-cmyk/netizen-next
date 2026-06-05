@@ -504,8 +504,8 @@ export function ProductDetailView({
             </div>
             </div>
 
-            <div className="hidden w-fit self-start rounded-[16px] border border-theme bg-white p-2 sm:block sm:self-start sm:rounded-[18px]">
-              <div className="flex flex-wrap items-start gap-2">
+            <div className="hidden w-full rounded-[20px] border border-theme bg-white px-3 py-2.5 sm:block sm:rounded-[24px] sm:px-4 sm:py-3">
+              <div className="flex items-center gap-3 overflow-x-auto">
                 {(mediaImages.length > 0
                   ? mediaImages.slice(0, 8)
                   : Array.from({ length: 4 })
@@ -516,7 +516,7 @@ export function ProductDetailView({
                     onClick={() =>
                       typeof image === "string" && setActiveImageIndex(index)
                     }
-                    className={`flex h-[68px] w-[68px] items-center justify-center overflow-hidden rounded-[14px] border bg-white p-1 transition-all ${
+                    className={`flex h-[84px] w-[84px] shrink-0 items-center justify-center overflow-hidden rounded-[16px] border bg-white p-1.5 transition-all ${
                       activeImageIndex === index && typeof image === "string"
                         ? "border-blue-500 ring-2 ring-blue-500/20"
                         : "border-theme hover:border-blue-500/50"
