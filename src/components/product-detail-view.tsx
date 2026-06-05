@@ -504,37 +504,38 @@ export function ProductDetailView({
             </div>
             </div>
 
-            <div className="hidden w-fit self-start rounded-[18px] border border-theme bg-white p-2 sm:block sm:self-start sm:rounded-[20px] sm:p-2.5">
-              <div className="grid grid-cols-4 gap-2">
-              {(mediaImages.length > 0
-                ? mediaImages.slice(0, 8)
-                : Array.from({ length: 4 })
-              ).map((image, index) => (
-                <button
-                  key={typeof image === "string" ? `${image}-${index}` : index}
-                  type="button"
-                  onClick={() =>
-                    typeof image === "string" && setActiveImageIndex(index)
-                  }
-                  className={`flex aspect-square items-center justify-center overflow-hidden rounded-2xl border bg-white/[0.02] p-1 text-muted-soft transition-all ter justify-center overflow-hidden rounded-xl border bg-white text-xs text-muted-soft transition-all sm:aspect-[3/4] sm:rounded-2xl ${
-                    activeImageIndex === index && typeof image === "string"
-                      ? "border-blue-500 ring-2 ring-blue-500/20"
-                      : "border-theme hover:border-blue-500/50"
-                  }`}
-                  aria-label={`Показать фото ${index + 1}`}
-                >
-                  {typeof image === "string" ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <Image quality={75} src={image}
-                      alt={`${product.name} фото ${index + 1}`}
-                      draggable={false}
-                      className="pointer-events-none h-full w-full select-none object-contain p-1"
-                    />
-                  ) : (
-                    "Фото"
-                  )}
-                </button>
-              ))}
+            <div className="hidden w-fit self-start rounded-[16px] border border-theme bg-white p-2 sm:block sm:self-start sm:rounded-[18px]">
+              <div className="flex flex-wrap items-start gap-2">
+                {(mediaImages.length > 0
+                  ? mediaImages.slice(0, 8)
+                  : Array.from({ length: 4 })
+                ).map((image, index) => (
+                  <button
+                    key={typeof image === "string" ? `${image}-${index}` : index}
+                    type="button"
+                    onClick={() =>
+                      typeof image === "string" && setActiveImageIndex(index)
+                    }
+                    className={`flex h-[68px] w-[68px] items-center justify-center overflow-hidden rounded-[14px] border bg-white p-1 transition-all ${
+                      activeImageIndex === index && typeof image === "string"
+                        ? "border-blue-500 ring-2 ring-blue-500/20"
+                        : "border-theme hover:border-blue-500/50"
+                    }`}
+                    aria-label={`Показать фото ${index + 1}`}
+                  >
+                    {typeof image === "string" ? (
+                      <Image
+                        quality={75}
+                        src={image}
+                        alt={`${product.name} фото ${index + 1}`}
+                        draggable={false}
+                        className="pointer-events-none h-full w-full select-none object-contain p-1"
+                      />
+                    ) : (
+                      "Фото"
+                    )}
+                  </button>
+                ))}
               </div>
             </div>
           </div>
