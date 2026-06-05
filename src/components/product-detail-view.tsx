@@ -99,7 +99,7 @@ function saveFavoriteSlugs(slugs: string[]) {
 
 function ProductMainImage({ src, alt }: { src: string; alt: string }) {
   return (
-    <div className="relative mx-auto flex h-full min-h-[180px] w-full items-center justify-center overflow-hidden rounded-[16px] border border-theme bg-slate-50 text-muted-soft sm:h-auto sm:min-h-0 sm:aspect-[3/4] sm:max-w-[520px] sm:rounded-[30px] sm:border-0 sm:bg-white">
+    <div className="relative mx-auto flex h-full min-h-[220px] w-full items-center justify-center overflow-hidden rounded-[16px] border border-theme bg-slate-50 text-muted-soft sm:h-auto sm:min-h-0 sm:aspect-[3/4] sm:max-w-[560px] sm:rounded-[30px] sm:border-0 sm:bg-white">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <Image quality={75} src={src}
         alt={alt}
@@ -112,7 +112,7 @@ function ProductMainImage({ src, alt }: { src: string; alt: string }) {
 
 function ProductImagePlaceholder() {
   return (
-    <div className="mx-auto flex h-full min-h-[180px] w-full items-center justify-center overflow-hidden rounded-[16px] border border-theme bg-blue-soft text-muted-soft sm:h-auto sm:min-h-0 sm:aspect-[3/4] sm:max-w-[520px] sm:rounded-[30px]">
+    <div className="mx-auto flex h-full min-h-[220px] w-full items-center justify-center overflow-hidden rounded-[16px] border border-theme bg-blue-soft text-muted-soft sm:h-auto sm:min-h-0 sm:aspect-[3/4] sm:max-w-[520px] sm:rounded-[30px]">
       Фото товара
     </div>
   );
@@ -446,9 +446,10 @@ export function ProductDetailView({
           <span className="text-main">{product.name}</span>
         </nav>
 
-        <section className="mt-4 grid grid-cols-[52%_1fr] items-start gap-3 lg:mt-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
-          <div className="h-full sm:card sm:rounded-[36px] sm:p-6">
-            <div
+        <section className="mt-4 grid grid-cols-[52%_1fr] items-start gap-4 lg:mt-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
+          <div className="flex h-full flex-col gap-4">
+            <div className="card rounded-[28px] p-4 sm:rounded-[36px] sm:p-6">
+              <div
               className="relative cursor-grab touch-pan-y select-none active:cursor-grabbing"
               role="region"
               tabIndex={0}
@@ -501,7 +502,12 @@ export function ProductDetailView({
                 />
               ))}
             </div>
-            <div className="hidden sm:grid mx-auto mt-6 max-w-[520px] grid-cols-4 gap-4">
+            </div>
+
+            <div className="hidden rounded-[24px] border border-theme bg-card p-4 sm:block sm:rounded-[28px] sm:p-5">
+              <div className="mx-auto max-w-[560px]">
+                <div className="mb-3 text-sm font-semibold text-main">Фотографии</div>
+                <div className="grid grid-cols-4 gap-4">
               {(mediaImages.length > 0
                 ? mediaImages.slice(0, 8)
                 : Array.from({ length: 4 })
@@ -512,7 +518,7 @@ export function ProductDetailView({
                   onClick={() =>
                     typeof image === "string" && setActiveImageIndex(index)
                   }
-                  className={`flex aspect-square items-center justify-center overflow-hidden rounded-xl border bg-white text-xs text-muted-soft transition-all sm:aspect-[3/4] sm:rounded-2xl ${
+                  className={`flex aspect-square items-center justify-center overflow-hidden rounded-2xl border bg-white/[0.02] p-1 text-muted-soft transition-all ter justify-center overflow-hidden rounded-xl border bg-white text-xs text-muted-soft transition-all sm:aspect-[3/4] sm:rounded-2xl ${
                     activeImageIndex === index && typeof image === "string"
                       ? "border-blue-500 ring-2 ring-blue-500/20"
                       : "border-theme hover:border-blue-500/50"
@@ -531,6 +537,8 @@ export function ProductDetailView({
                   )}
                 </button>
               ))}
+                </div>
+              </div>
             </div>
           </div>
 
