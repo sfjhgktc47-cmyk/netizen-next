@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getAuthSession } from "@/lib/auth";
 import { getPriceNumber } from "@/lib/product-pricing";
+import {
+  normalizeEmailStrict,
+  normalizeRuPhone,
+  validateCourierAddress,
+} from "@/lib/contact-validation";
 
 type IncomingOrderItem = {
   sku?: string;
@@ -60,19 +65,31 @@ export async function POST(request: Request) {
     const session = await getAuthSession();
     const body = (await request.json()) as IncomingOrderBody;
     const customerName = normalizeText(body.customer?.name);
-    const phone = normalizeText(body.customer?.phone);
-    const email = normalizeText(body.customer?.email);
+    const phone = normalizeRuPhone(body.customer?.phone);
+    const rawEmail = normalizeText(body.customer?.email);
+    const email = rawEmail ? normalizeEmailStrict(rawEmail) : "";
     const deliveryMethod = body.delivery?.method === "pickup" ? "pickup" : "courier";
     const city = normalizeText(body.delivery?.city);
     const rawAddress = normalizeText(body.delivery?.savedAddress) || normalizeText(body.delivery?.address);
-    const address = deliveryMethod === "courier" ? [city, rawAddress].filter(Boolean).join(", ") : "";
+    const addressValidation =
+      deliveryMethod === "courier"
+        ? validateCourierAddress(city, rawAddress)
+        : { ok: true as const, message: "", normalized: "" };
+    const address = deliveryMethod === "courier" ? addressValidation.normalized : "";
     const pickupPoint = deliveryMethod === "pickup" ? rawAddress || "ПВЗ Netizen" : "";
     const comment = normalizeText(body.comment);
     const incomingItems = Array.isArray(body.items) ? body.items : [];
 
     if (!customerName || !phone) {
       return NextResponse.json(
-        { ok: false, error: "Укажите имя и телефон." },
+        { ok: false, error: "Укажите имя и корректный телефон РФ." },
+        { status: 400 }
+      );
+    }
+
+    if (rawEmail && !email) {
+      return NextResponse.json(
+        { ok: false, error: "Укажите корректный e-mail." },
         { status: 400 }
       );
     }
@@ -84,9 +101,9 @@ export async function POST(request: Request) {
       );
     }
 
-    if (deliveryMethod === "courier" && !address) {
+    if (deliveryMethod === "courier" && !addressValidation.ok) {
       return NextResponse.json(
-        { ok: false, error: "Укажите адрес доставки." },
+        { ok: false, error: addressValidation.message },
         { status: 400 }
       );
     }

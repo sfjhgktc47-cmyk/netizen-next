@@ -172,15 +172,6 @@ export async function POST(
   }
 
   const body = (await request.json().catch(() => ({}))) as CommunityBody;
-  const text = normalizeText(body.text);
-
-  if (text.length < 3) {
-    return NextResponse.json(
-      { error: "Напишите сообщение длиной хотя бы 3 символа." },
-      { status: 400 },
-    );
-  }
-
   const session = await getAuthSession();
 
   if (body.type === "vote") {
@@ -248,6 +239,15 @@ export async function POST(
     });
 
     return NextResponse.json({ ok: true });
+  }
+
+  const text = normalizeText(body.text);
+
+  if (text.length < 3) {
+    return NextResponse.json(
+      { error: "Напишите сообщение длиной хотя бы 3 символа." },
+      { status: 400 },
+    );
   }
 
   if (body.type === "review") {
