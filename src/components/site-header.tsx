@@ -398,7 +398,7 @@ export function SiteHeader() {
             <div ref={searchRootRef} className="relative hidden lg:block">
               <form
                 onSubmit={submitSearch}
-                className={`flex h-11 w-[360px] items-center rounded-xl border px-4 text-sm transition-all duration-300 ${
+                className={`flex h-11 w-[400px] items-center rounded-xl border px-4 text-sm transition-all duration-300 ${
                   dark
                     ? "border-white/10 bg-black/20 text-white/70 focus-within:border-blue-500/55"
                     : "border-black/10 bg-[#f6f8fb] text-black/70 focus-within:border-blue-500/55"
@@ -421,7 +421,7 @@ export function SiteHeader() {
 
               {isSearchOpen ? (
                 <div
-                  className={`absolute right-0 top-[calc(100%+10px)] z-[80] max-h-[78vh] w-[620px] overflow-y-auto rounded-[24px] border p-5 shadow-[0_32px_100px_rgba(15,23,42,0.30)] ${
+                  className={`absolute right-0 top-[calc(100%+12px)] z-[80] max-h-[82vh] w-[820px] max-w-[calc(100vw-32px)] overflow-y-auto rounded-[28px] border p-6 shadow-[0_36px_120px_rgba(15,23,42,0.34)] ${
                     dark
                       ? "border-white/10 bg-[#07101d] text-white"
                       : "border-black/10 bg-white text-[#07111f]"
@@ -430,7 +430,7 @@ export function SiteHeader() {
                   {!searchQuery.trim() ? (
                     <>
                       <div className="flex items-center justify-between gap-3">
-                        <h3 className="text-sm font-bold">История</h3>
+                        <h3 className="text-base font-bold">История</h3>
                         {searchHistory.length > 0 ? (
                           <button
                             type="button"
@@ -449,7 +449,7 @@ export function SiteHeader() {
                               key={item}
                               type="button"
                               onClick={() => openHistoryQuery(item)}
-                              className={`flex items-center gap-3 rounded-xl px-3 py-2 text-left text-sm transition-colors ${
+                              className={`flex items-center gap-3 rounded-xl px-4 py-3 text-left text-sm transition-colors ${
                                 dark ? "hover:bg-white/[0.05]" : "hover:bg-slate-100"
                               }`}
                             >
@@ -468,18 +468,18 @@ export function SiteHeader() {
 
                       <div className={`my-4 h-px ${dark ? "bg-white/10" : "bg-black/10"}`} />
 
-                      <h3 className="text-sm font-bold">Рекомендуем для вас</h3>
+                      <h3 className="text-base font-bold">Рекомендуем для вас</h3>
                     </>
                   ) : (
                     <div className="flex items-center justify-between gap-3">
-                      <h3 className="text-sm font-bold">Результаты поиска</h3>
+                      <h3 className="text-base font-bold">Результаты поиска</h3>
                       <span className={`text-xs ${dark ? "text-white/45" : "text-black/45"}`}>
                         {isSearchLoading ? "Ищем…" : `${searchProducts.length} найдено`}
                       </span>
                     </div>
                   )}
 
-                  <div className="mt-4 grid grid-cols-2 gap-4">
+                  <div className="mt-5 grid grid-cols-2 gap-5">
                     {searchProducts.map((product) => (
                       <Link
                         key={product.slug}
@@ -489,13 +489,13 @@ export function SiteHeader() {
                           if (query) saveSearchHistory(query);
                           setIsSearchOpen(false);
                         }}
-                        className={`group rounded-[20px] border p-3 transition-all hover:-translate-y-0.5 ${
+                        className={`group rounded-[24px] border p-4 transition-all hover:-translate-y-0.5 ${
                           dark
                             ? "border-white/10 bg-white/[0.03] hover:border-blue-500/35"
                             : "border-black/10 bg-white hover:border-blue-500/35 hover:shadow-lg"
                         }`}
                       >
-                        <div className={`aspect-[4/3] overflow-hidden rounded-2xl ${dark ? "bg-white/[0.04]" : "bg-slate-100"}`}>
+                        <div className={`aspect-[16/10] overflow-hidden rounded-[20px] ${dark ? "bg-white/[0.04]" : "bg-slate-100"}`}>
                           {product.image ? (
                             // eslint-disable-next-line @next/next/no-img-element
                             <img
@@ -503,7 +503,7 @@ export function SiteHeader() {
                               alt=""
                               loading="lazy"
                               decoding="async"
-                              className="h-full w-full object-contain p-3"
+                              className="h-full w-full object-contain p-4"
                             />
                           ) : null}
                         </div>
@@ -512,12 +512,12 @@ export function SiteHeader() {
                           <div className={`truncate text-[10px] ${dark ? "text-white/45" : "text-black/45"}`}>
                             {product.brand}
                           </div>
-                          <div className="mt-1 line-clamp-2 min-h-[42px] text-sm font-semibold leading-snug">
+                          <div className="mt-2 line-clamp-2 min-h-[48px] text-[15px] font-semibold leading-snug">
                             {product.name}
                           </div>
 
                           <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                            <span className="text-base font-bold text-blue-500">{product.price}</span>
+                            <span className="text-lg font-bold text-blue-500">{product.price}</span>
                             {product.oldPrice ? (
                               <span className={`text-[10px] line-through ${dark ? "text-white/35" : "text-black/35"}`}>
                                 {product.oldPrice}
