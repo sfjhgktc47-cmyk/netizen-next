@@ -205,9 +205,10 @@ export default function Home({ initialData = {} }: { initialData?: HomePayload }
   // Fallback client-side fetch if server data wasn't provided
   useEffect(() => {
     if (
-      categories.length > 0 ||
-      popularProducts.length > 0 ||
-      banners.length > 0
+      categories.length > 0 &&
+      popularProducts.length > 0 &&
+      banners.length > 0 &&
+      benefits.length > 0
     ) return;
 
     let mounted = true;
@@ -230,7 +231,7 @@ export default function Home({ initialData = {} }: { initialData?: HomePayload }
       })
       .catch(() => { if (mounted) { setCategories([]); } });
     return () => { mounted = false; };
-  }, []);
+  }, [banners.length, benefits.length, categories.length, popularProducts.length]);
 
   useEffect(() => {
     if (!siteSettings?.faqHome?.enabled) {
@@ -664,54 +665,52 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
 }
 
 
-function BenefitIcon({ image, icon }: { image?: string; icon?: string }) {
-  const [loaded, setLoaded] = useState(false);
-  const cleanImage = typeof image === "string" ? image.trim() : "";
-  const fallbackIcon = icon?.trim() || "✓";
-
-  useEffect(() => {
-    setLoaded(false);
-  }, [cleanImage]);
+function BenefitIcon({
+  image,
+  icon,
+  dark = false,
+}: {
+  image?: string;
+  icon?: string;
+  dark?: boolean;
+}) {
+  const source = typeof image === "string" ? image.trim() : "";
+  const [failed, setFailed] = useState(false);
+  const showImage = Boolean(source) && !failed;
 
   return (
-    <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-visible text-sm text-blue-500 sm:h-12 sm:w-12 sm:text-base">
-      {cleanImage ? (
+    <div className="relative flex h-10 w-10 shrink-0 items-center justify-center sm:h-12 sm:w-12">
+      {dark ? (
         <>
-          <span
+          <div
             aria-hidden="true"
-            className="pointer-events-none absolute left-1/2 top-1/2 h-[120%] w-[120%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-500/20 opacity-0 blur-xl transition-opacity duration-300 dark:opacity-100"
+            className="pointer-events-none absolute inset-1 rounded-full bg-blue-500/20 blur-xl"
           />
-          <span
+          <div
             aria-hidden="true"
-            className="pointer-events-none absolute left-1/2 top-1/2 h-[80%] w-[80%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 opacity-0 blur-lg transition-opacity duration-300 dark:opacity-100"
+            className="pointer-events-none absolute inset-2 rounded-full bg-white/10 blur-lg"
           />
         </>
       ) : null}
-      <span
-        className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${
-          cleanImage && loaded ? "opacity-0" : "opacity-100"
-        }`}
-      >
-        {fallbackIcon}
-      </span>
 
-      {cleanImage ? (
+      {showImage ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={cleanImage}
+          src={source}
           alt=""
           loading="lazy"
-          decoding="async"
-          onLoad={() => setLoaded(true)}
-          className={`relative z-10 max-h-full max-w-full object-contain drop-shadow-[0_6px_14px_rgba(0,0,0,0.25)] transition-opacity duration-300 dark:drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)] ${
-            loaded ? "opacity-100" : "opacity-0"
-          }`}
+          draggable={false}
+          onError={() => setFailed(true)}
+          className="relative z-10 block h-8 w-8 max-h-8 max-w-8 object-contain sm:h-10 sm:w-10 sm:max-h-10 sm:max-w-10"
         />
-      ) : null}
+      ) : (
+        <span className="relative z-10 flex h-8 w-8 items-center justify-center text-base font-bold leading-none text-blue-500 sm:h-10 sm:w-10">
+          {icon || "✓"}
+        </span>
+      )}
     </div>
   );
 }
-
 
 function Benefits({
   dark,
@@ -736,7 +735,7 @@ function Benefits({
         {items.map((item) => {
           const card = (
             <div className="flex h-full w-full items-start gap-3 px-1 py-1 sm:gap-4 sm:px-2">
-              <BenefitIcon image={item.image} icon={item.icon} />
+              <BenefitIcon image={item.image} icon={item.icon} dark={dark} />
 
               <div className="min-w-0 flex-1">
                 <div className="whitespace-normal text-[12px] font-semibold leading-snug sm:text-[13px] lg:text-[14px]">{item.title}</div>
