@@ -273,7 +273,7 @@ function CarouselProductCard({
       draggable={false}
       className={`group relative block h-full rounded-[14px] border p-1.5 transition-all duration-500 hover:-translate-y-1 sm:rounded-3xl sm:p-4 ${
         dark
-          ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
+          ? "border-white/10 bg-white/[0.035] shadow-none hover:border-blue-500/35 hover:bg-white/[0.025]"
           : "border-black/10 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)] hover:border-blue-500/35"
       }`}
     >

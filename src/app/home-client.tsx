@@ -396,7 +396,7 @@ function getBlockBoolean(settings: Record<string, string | number | boolean | nu
 
 function panelClass(dark: boolean) {
   return dark
-    ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)]"
+    ? "border-white/10 bg-white/[0.035] shadow-none"
     : "border-black/10 bg-white shadow-[0_6px_22px_rgba(15,23,42,0.055)]";
 }
 
@@ -625,11 +625,11 @@ function BenefitIcon({ image, icon }: { image?: string; icon?: string }) {
         <>
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute left-1/2 top-1/2 h-[120%] w-[120%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-500/20 opacity-0 blur-xl transition-opacity duration-300 dark:opacity-100"
+            className="pointer-events-none absolute left-1/2 top-1/2 h-[120%] w-[120%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-500/20 opacity-0 blur-xl transition-opacity duration-300 dark:opacity-40"
           />
           <span
             aria-hidden="true"
-            className="pointer-events-none absolute left-1/2 top-1/2 h-[80%] w-[80%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 opacity-0 blur-lg transition-opacity duration-300 dark:opacity-100"
+            className="pointer-events-none absolute left-1/2 top-1/2 h-[80%] w-[80%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 opacity-0 blur-lg transition-opacity duration-300 dark:opacity-40"
           />
         </>
       ) : null}
@@ -771,7 +771,7 @@ function Categories({
               href={category.href || `/catalog/${category.slug}`}
               className={`group relative flex h-[96px] w-[92px] shrink-0 flex-col items-center justify-between overflow-hidden rounded-2xl border p-2 text-center transition-all duration-500 hover:-translate-y-1 sm:min-h-[180px] sm:w-auto sm:items-start sm:p-6 sm:text-left ${
                 dark
-                  ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
+                  ? "border-white/10 bg-white/[0.035] shadow-none hover:border-blue-500/35 hover:bg-white/[0.025]"
                   : "border-black/10 bg-white shadow-[0_6px_20px_rgba(15,23,42,0.055)] hover:border-blue-500/35 hover:shadow-[0_10px_30px_rgba(15,23,42,0.08)]"
               }`}
             >
@@ -790,7 +790,7 @@ function Categories({
                   <>
                     <div
                       aria-hidden="true"
-                      className="pointer-events-none absolute left-1/2 top-1/2 h-[88%] w-[88%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-500/20 blur-2xl"
+                      className="pointer-events-none absolute left-1/2 top-1/2 h-[88%] w-[88%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-500/[0.05] blur-2xl"
                     />
                     <div
                       aria-hidden="true"
@@ -1076,7 +1076,7 @@ function ProductCard({
       draggable={false}
       className={`group block h-full rounded-[15px] border p-1.5 transition-all duration-500 hover:-translate-y-1 sm:rounded-3xl sm:p-4 ${
         dark
-          ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
+          ? "border-white/10 bg-white/[0.035] shadow-none hover:border-blue-500/35 hover:bg-white/[0.025]"
           : "border-black/10 bg-white shadow-[0_6px_22px_rgba(15,23,42,0.055)] hover:border-blue-500/35"
       }`}
     >
@@ -1477,7 +1477,7 @@ function SupportBlock({ dark }: { dark: boolean }) {
                 {dark && item.image ? (
                   <div
                     aria-hidden="true"
-                    className="pointer-events-none absolute inset-1 rounded-full bg-blue-500/20 blur-xl"
+                    className="pointer-events-none absolute inset-1 rounded-full bg-blue-500/[0.05] blur-xl"
                   />
                 ) : null}
                 {item.image ? (

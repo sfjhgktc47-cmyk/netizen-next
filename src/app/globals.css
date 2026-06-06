@@ -121,33 +121,26 @@ body.has-mobile-bottom-nav {
   }
 }
 
-/* Спокойная тёмная тема — блоки немного светлее фона */
+/* Плоские карточки и единые синие кнопки в тёмной теме */
 .dark {
-  --muted: rgba(255, 255, 255, 0.66);
-  --muted-soft: rgba(255, 255, 255, 0.46);
-  --card: rgba(7, 17, 31, 0.96);
-  --card-soft: rgba(10, 22, 39, 0.94);
+  --muted: rgba(255, 255, 255, 0.64);
+  --muted-soft: rgba(255, 255, 255, 0.43);
+  --card: rgba(255, 255, 255, 0.018);
+  --card-soft: rgba(255, 255, 255, 0.026);
   --border: rgba(255, 255, 255, 0.13);
-  --blue-soft: rgba(37, 99, 235, 0.10);
+  --blue-soft: rgba(37, 99, 235, 0.08);
 }
 
 .dark .card {
   border-color: rgba(255, 255, 255, 0.13);
-  background:
-    linear-gradient(
-      180deg,
-      rgba(9, 21, 38, 0.96),
-      rgba(6, 15, 28, 0.96)
-    );
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.025),
-    0 10px 28px rgba(0, 0, 0, 0.14);
+  background: rgba(255, 255, 255, 0.018);
+  box-shadow: none;
 }
 
 .dark .soft-box,
 .dark .bg-blue-soft {
-  border-color: rgba(96, 165, 250, 0.14);
-  background-color: rgba(37, 99, 235, 0.08);
+  border-color: rgba(255, 255, 255, 0.11);
+  background-color: rgba(255, 255, 255, 0.022);
 }
 
 .dark .border-theme {
@@ -156,7 +149,7 @@ body.has-mobile-bottom-nav {
 
 .dark [class*="border-white/10"],
 .dark [class*="border-white/[0.1]"] {
-  border-color: rgba(255, 255, 255, 0.14) !important;
+  border-color: rgba(255, 255, 255, 0.13) !important;
 }
 
 .dark [class*="bg-white/[0.02]"],
@@ -166,34 +159,39 @@ body.has-mobile-bottom-nav {
 .dark [class*="bg-white/[0.04]"],
 .dark [class*="bg-white/[0.045]"],
 .dark [class*="bg-white/[0.05]"] {
-  background-color: rgba(255, 255, 255, 0.045) !important;
+  background-color: rgba(255, 255, 255, 0.018) !important;
 }
 
 .dark [class*="bg-black/15"],
 .dark [class*="bg-black/20"],
 .dark [class*="bg-black/25"],
 .dark [class*="bg-black/30"] {
-  background-color: rgba(2, 9, 19, 0.52) !important;
+  background-color: rgba(0, 0, 0, 0.18) !important;
+}
+
+.dark [class*="shadow-[0_20px_80px_rgba(0,60,255"],
+.dark [class*="shadow-[0_24px_90px_rgba(0,60,255"] {
+  box-shadow: none !important;
 }
 
 .dark [class*="text-white/35"] {
-  color: rgba(255, 255, 255, 0.50) !important;
+  color: rgba(255, 255, 255, 0.48) !important;
 }
 
 .dark [class*="text-white/40"],
 .dark [class*="text-white/45"] {
-  color: rgba(255, 255, 255, 0.59) !important;
+  color: rgba(255, 255, 255, 0.57) !important;
 }
 
 .dark [class*="text-white/50"],
 .dark [class*="text-white/55"] {
-  color: rgba(255, 255, 255, 0.67) !important;
+  color: rgba(255, 255, 255, 0.65) !important;
 }
 
 .dark [class*="text-white/60"],
 .dark [class*="text-white/65"],
 .dark [class*="text-white/70"] {
-  color: rgba(255, 255, 255, 0.77) !important;
+  color: rgba(255, 255, 255, 0.76) !important;
 }
 
 .dark input:not([type="checkbox"]):not([type="radio"]),
@@ -210,7 +208,7 @@ body.has-mobile-bottom-nav {
 .dark .admin-input,
 .dark .admin-textarea {
   border-color: rgba(255, 255, 255, 0.15) !important;
-  background-color: rgba(4, 13, 25, 0.76) !important;
+  background-color: rgba(255, 255, 255, 0.025) !important;
   color: #ffffff !important;
 }
 
@@ -219,8 +217,8 @@ body.has-mobile-bottom-nav {
 .dark textarea[class*="border"]:focus,
 .dark .admin-input:focus,
 .dark .admin-textarea:focus {
-  border-color: rgba(96, 165, 250, 0.58) !important;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10) !important;
+  border-color: rgba(59, 130, 246, 0.72) !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
 }
 
 .dark input::placeholder,
@@ -228,28 +226,28 @@ body.has-mobile-bottom-nav {
   color: rgba(255, 255, 255, 0.38) !important;
 }
 
-.dark button[class*="border"]:not([class*="bg-blue-"]):not([class*="bg-red-"]):not([class*="bg-green-"]),
-.dark a[class*="border"]:not([class*="bg-blue-"]):not([class*="bg-red-"]):not([class*="bg-green-"]) {
-  border-color: rgba(255, 255, 255, 0.16) !important;
-  background-color: rgba(255, 255, 255, 0.055) !important;
-  color: rgba(255, 255, 255, 0.92) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.025),
-    0 5px 16px rgba(0, 0, 0, 0.10);
+/* Все обычные кнопки на тёмной теме — единый ярко-синий стиль. */
+.dark button:not([disabled]):not([aria-label="Переключить тему"]):not([aria-label="Телефон магазина"]):not([class*="bg-red-"]):not([class*="text-red-"]):not([class*="border-red-"]):not([class*="bg-green-"]):not([class*="text-green-"]):not([class*="border-green-"]):not([class*="bg-amber-"]):not([class*="text-amber-"]),
+.dark a[class*="rounded"][class*="px-"]:not([class*="bg-red-"]):not([class*="text-red-"]):not([class*="border-red-"]):not([class*="bg-green-"]):not([class*="text-green-"]):not([class*="border-green-"]):not([class*="bg-amber-"]):not([class*="text-amber-"]),
+.dark a[class*="rounded"][class*="py-"]:not([class*="bg-red-"]):not([class*="text-red-"]):not([class*="border-red-"]):not([class*="bg-green-"]):not([class*="text-green-"]):not([class*="border-green-"]):not([class*="bg-amber-"]):not([class*="text-amber-"]) {
+  border-color: #3b82f6 !important;
+  background: #2563eb !important;
+  color: #ffffff !important;
+  box-shadow: none !important;
 }
 
-.dark button[class*="border"]:not([class*="bg-blue-"]):not([class*="bg-red-"]):not([class*="bg-green-"]):hover,
-.dark a[class*="border"]:not([class*="bg-blue-"]):not([class*="bg-red-"]):not([class*="bg-green-"]):hover {
-  border-color: rgba(96, 165, 250, 0.46) !important;
-  background-color: rgba(37, 99, 235, 0.14) !important;
+.dark button:not([disabled]):not([aria-label="Переключить тему"]):not([aria-label="Телефон магазина"]):not([class*="bg-red-"]):not([class*="text-red-"]):not([class*="border-red-"]):not([class*="bg-green-"]):not([class*="text-green-"]):not([class*="border-green-"]):not([class*="bg-amber-"]):not([class*="text-amber-"]):hover,
+.dark a[class*="rounded"][class*="px-"]:not([class*="bg-red-"]):not([class*="text-red-"]):not([class*="border-red-"]):not([class*="bg-green-"]):not([class*="text-green-"]):not([class*="border-green-"]):not([class*="bg-amber-"]):not([class*="text-amber-"]):hover,
+.dark a[class*="rounded"][class*="py-"]:not([class*="bg-red-"]):not([class*="text-red-"]):not([class*="border-red-"]):not([class*="bg-green-"]):not([class*="text-green-"]):not([class*="border-green-"]):not([class*="bg-amber-"]):not([class*="text-amber-"]):hover {
+  border-color: #60a5fa !important;
+  background: #3b82f6 !important;
   color: #ffffff !important;
+  transform: none !important;
 }
 
-.dark button[class*="border-blue-500"],
-.dark a[class*="border-blue-500"] {
-  border-color: rgba(96, 165, 250, 0.42) !important;
-  background-color: rgba(37, 99, 235, 0.13) !important;
-  color: #ffffff !important;
+.dark button:disabled,
+.dark a[aria-disabled="true"] {
+  opacity: 0.48;
 }
 
 .dark details[class*="border"],
@@ -257,17 +255,15 @@ body.has-mobile-bottom-nav {
 .dark article[class*="border"][class*="bg-white/"],
 .dark aside[class*="border"][class*="bg-white/"] {
   border-color: rgba(255, 255, 255, 0.13) !important;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.02),
-    0 8px 24px rgba(0, 0, 0, 0.12);
+  background-color: rgba(255, 255, 255, 0.018) !important;
+  box-shadow: none !important;
 }
 
 .dark [class*="border-dashed"] {
-  border-color: rgba(255, 255, 255, 0.17) !important;
-  background-color: rgba(255, 255, 255, 0.018);
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  background-color: rgba(255, 255, 255, 0.01);
 }
 
-/* Лёгкое свечение изображений без пересвета карточек */
 .dark img[class*="object-contain"] {
-  filter: drop-shadow(0 8px 16px rgba(70, 130, 255, 0.07));
+  filter: none;
 }
