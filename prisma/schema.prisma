@@ -354,6 +354,7 @@ model SupportFeature {
   title       String
   text        String   @default("")
   icon        String   @default("✓")
+  image       String   @default("")
   isActive    Boolean  @default(true)
   sortOrder   Int      @default(100)
   createdAt   DateTime @default(now())

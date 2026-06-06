@@ -7,6 +7,7 @@ type Feature = {
   title: string;
   text: string;
   icon: string;
+  image: string;
   isActive: boolean;
   sortOrder: number;
 };
@@ -22,7 +23,11 @@ type Question = {
 const fieldClass =
   "w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-sm text-white outline-none focus:border-blue-500/60";
 
-export function SupportContentAdminClient() {
+export function SupportContentAdminClient({
+  mode = "all",
+}: {
+  mode?: "all" | "features";
+}) {
   const [features, setFeatures] = useState<Feature[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [saving, setSaving] = useState(false);
@@ -87,6 +92,7 @@ export function SupportContentAdminClient() {
             title: "Новое преимущество",
             text: "",
             icon: "✓",
+            image: "",
             isActive: true,
             sortOrder: (features.at(-1)?.sortOrder ?? 0) + 10,
           })
@@ -151,6 +157,70 @@ export function SupportContentAdminClient() {
               </select>
             </div>
 
+            <div className="mt-3 rounded-2xl border border-white/10 bg-black/15 p-4">
+              <div className="text-xs font-semibold uppercase tracking-[0.14em] text-white/40">
+                Фото / иконка преимущества
+              </div>
+
+              <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+                <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white">
+                  {item.image ? (
+                    // eslint-disable-next-line @next/next/no-img-element
+                    <img src={item.image} alt="" className="h-full w-full object-contain p-2" />
+                  ) : (
+                    <span className="text-xl text-blue-500">{item.icon || "✓"}</span>
+                  )}
+                </div>
+
+                <div className="flex flex-wrap gap-2">
+                  <label className="cursor-pointer rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-500">
+                    Загрузить фото
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={(event) => {
+                        const file = event.target.files?.[0];
+                        if (!file) return;
+                        if (!file.type.startsWith("image/") || file.size > 2 * 1024 * 1024) {
+                          setMessage("Фото должно быть изображением до 2 МБ.");
+                          event.currentTarget.value = "";
+                          return;
+                        }
+                        const reader = new FileReader();
+                        reader.onload = () => {
+                          if (typeof reader.result !== "string") return;
+                          setFeatures((current) =>
+                            current.map((value) =>
+                              value.id === item.id ? { ...value, image: reader.result as string } : value,
+                            ),
+                          );
+                        };
+                        reader.readAsDataURL(file);
+                        event.currentTarget.value = "";
+                      }}
+                    />
+                  </label>
+
+                  {item.image ? (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFeatures((current) =>
+                          current.map((value) =>
+                            value.id === item.id ? { ...value, image: "" } : value,
+                          ),
+                        )
+                      }
+                      className="rounded-xl border border-white/10 px-4 py-2.5 text-sm"
+                    >
+                      Удалить фото
+                    </button>
+                  ) : null}
+                </div>
+              </div>
+            </div>
+
             <textarea
               value={item.text}
               onChange={(event) =>
@@ -186,6 +256,7 @@ export function SupportContentAdminClient() {
         ))}
       </AdminSection>
 
+      {mode === "all" ? (
       <AdminSection
         title="Вопросы справа"
         buttonLabel="Добавить вопрос"
@@ -280,6 +351,8 @@ export function SupportContentAdminClient() {
           </div>
         ))}
       </AdminSection>
+      ) : null}
+
 
       {message ? (
         <div className="rounded-2xl border border-blue-500/25 bg-blue-500/10 px-4 py-3 text-sm text-blue-200">

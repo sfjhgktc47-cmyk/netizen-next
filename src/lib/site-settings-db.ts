@@ -77,22 +77,12 @@ export type SiteSeoSettings = {
   keywords: string;
 };
 
-export type SiteFaqHomeSettings = {
-  enabled: boolean;
-  title: string;
-  subtitle: string;
-  questionLimit: number;
-  categoryLimit: number;
-  buttonText: string;
-};
-
 export type SiteEditorSettings = {
   branding: SiteBrandingSettings;
   contacts: SiteContactsSettings;
   homeBlocks: HomeBlockSettings[];
   catalog: SiteCatalogSettings;
   productPage: SiteProductPageSettings;
-  faqHome: SiteFaqHomeSettings;
   seo: SiteSeoSettings;
 };
 
@@ -239,14 +229,6 @@ export const defaultSiteEditorSettings: SiteEditorSettings = {
     showSeoBlock: true,
     showDeliveryWarranty: true,
     showProductFaq: false,
-  },
-  faqHome: {
-    enabled: false,
-    title: "Частые вопросы",
-    subtitle: "Коротко отвечаем на основные вопросы о заказе, доставке и гарантии.",
-    questionLimit: 6,
-    categoryLimit: 3,
-    buttonText: "Смотреть все вопросы",
   },
   seo: {
     homeTitle: "Netizen — магазин техники",
@@ -503,20 +485,6 @@ function normalizeSeo(value: unknown): SiteSeoSettings {
   };
 }
 
-function normalizeFaqHome(value: unknown): SiteFaqHomeSettings {
-  const raw = isRecord(value) ? value : {};
-  const defaults = defaultSiteEditorSettings.faqHome;
-
-  return {
-    enabled: booleanValue(raw.enabled, defaults.enabled),
-    title: stringValue(raw.title, defaults.title),
-    subtitle: stringValue(raw.subtitle, defaults.subtitle),
-    questionLimit: Math.min(12, Math.max(1, numberValue(raw.questionLimit, defaults.questionLimit))),
-    categoryLimit: Math.min(8, Math.max(1, numberValue(raw.categoryLimit, defaults.categoryLimit))),
-    buttonText: stringValue(raw.buttonText, defaults.buttonText),
-  };
-}
-
 export function normalizeSiteEditorSettings(value: unknown): SiteEditorSettings {
   const raw = isRecord(value) ? value : {};
 
@@ -526,7 +494,6 @@ export function normalizeSiteEditorSettings(value: unknown): SiteEditorSettings 
     homeBlocks: normalizeHomeBlocks(raw.homeBlocks),
     catalog: normalizeCatalog(raw.catalog),
     productPage: normalizeProductPage(raw.productPage),
-    faqHome: normalizeFaqHome(raw.faqHome),
     seo: normalizeSeo(raw.seo),
   };
 }

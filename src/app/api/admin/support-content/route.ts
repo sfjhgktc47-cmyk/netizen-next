@@ -11,6 +11,7 @@ type Body = {
   title?: string;
   text?: string;
   icon?: string;
+  image?: string;
   question?: string;
   answer?: string;
   isActive?: boolean;
@@ -73,6 +74,7 @@ export async function POST(request: Request) {
       title: clean(body.title, 160) || "Новое преимущество",
       text: clean(body.text, 500),
       icon: clean(body.icon, 10) || "✓",
+      image: clean(body.image, 2_800_000),
       isActive: body.isActive !== false,
       sortOrder: order(body.sortOrder),
     },
@@ -113,6 +115,7 @@ export async function PATCH(request: Request) {
       title: clean(body.title, 160),
       text: clean(body.text, 500),
       icon: clean(body.icon, 10) || "✓",
+      image: clean(body.image, 2_800_000),
       isActive: body.isActive !== false,
       sortOrder: order(body.sortOrder),
     },

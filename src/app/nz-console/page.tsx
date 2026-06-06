@@ -102,6 +102,13 @@ export default async function AdminDashboardPage() {
               </Link>
 
               <Link
+                href="/nz-console/faq"
+                className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4 text-center text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
+              >
+                Настроить FAQ
+              </Link>
+
+              <Link
                 href="/nz-console/support-content"
                 className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4 text-center text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
               >

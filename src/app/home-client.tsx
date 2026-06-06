@@ -104,14 +104,6 @@ type PublicSiteSettings = {
     telegramText?: string;
   };
   homeBlocks?: HomeBlockSetting[];
-  faqHome?: {
-    enabled?: boolean;
-    title?: string;
-    subtitle?: string;
-    questionLimit?: number;
-    categoryLimit?: number;
-    buttonText?: string;
-  };
 };
 
 type HomePayload = {
@@ -124,20 +116,6 @@ type HomePayload = {
   banners?: HomeBanner[];
   benefits?: HomeBenefit[];
 };
-
-type HomeFaqQuestion = {
-  id: string;
-  question: string;
-  answer: string;
-};
-
-type HomeFaqCategory = {
-  id: string;
-  title: string;
-  icon: string;
-  questions: HomeFaqQuestion[];
-};
-
 
 const defaultHomePageBlocks: HomePageBlock[] = [
   { id: "hero", pageKey: "home", type: "hero", title: "Hero", description: "", enabled: true, sortOrder: 10, settings: {} },
@@ -199,16 +177,13 @@ export default function Home({ initialData = {} }: { initialData?: HomePayload }
   const [siteSettings, setSiteSettings] = useState<PublicSiteSettings | null>(
     initialData.siteSettings ?? null
   );
-  const [faqCategories, setFaqCategories] = useState<HomeFaqCategory[]>([]);
-
 
   // Fallback client-side fetch if server data wasn't provided
   useEffect(() => {
     if (
-      categories.length > 0 &&
-      popularProducts.length > 0 &&
-      banners.length > 0 &&
-      benefits.length > 0
+      categories.length > 0 ||
+      popularProducts.length > 0 ||
+      banners.length > 0
     ) return;
 
     let mounted = true;
@@ -231,30 +206,7 @@ export default function Home({ initialData = {} }: { initialData?: HomePayload }
       })
       .catch(() => { if (mounted) { setCategories([]); } });
     return () => { mounted = false; };
-  }, [banners.length, benefits.length, categories.length, popularProducts.length]);
-
-  useEffect(() => {
-    if (!siteSettings?.faqHome?.enabled) {
-      setFaqCategories([]);
-      return;
-    }
-
-    let mounted = true;
-
-    fetch("/api/faq", { cache: "no-store" })
-      .then((response) => (response.ok ? response.json() : Promise.reject()))
-      .then((payload: { categories?: HomeFaqCategory[] }) => {
-        if (!mounted) return;
-        setFaqCategories(Array.isArray(payload.categories) ? payload.categories : []);
-      })
-      .catch(() => {
-        if (mounted) setFaqCategories([]);
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, [siteSettings?.faqHome?.enabled]);
+  }, []);
 
   const visibleCategories = categories;
   const visibleHomeBlocks = (homeBlocks.length ? homeBlocks : defaultHomePageBlocks)
@@ -285,14 +237,6 @@ export default function Home({ initialData = {} }: { initialData?: HomePayload }
             benefits={benefits}
           />
         ))}
-        {siteSettings?.faqHome?.enabled ? (
-          <HomeFaqBlock
-            dark={dark}
-            categories={faqCategories}
-            settings={siteSettings.faqHome}
-          />
-        ) : null}
-
         <Footer dark={dark} siteSettings={siteSettings} />
       </div>
     </main>
@@ -665,52 +609,54 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
 }
 
 
-function BenefitIcon({
-  image,
-  icon,
-  dark = false,
-}: {
-  image?: string;
-  icon?: string;
-  dark?: boolean;
-}) {
-  const source = typeof image === "string" ? image.trim() : "";
-  const [failed, setFailed] = useState(false);
-  const showImage = Boolean(source) && !failed;
+function BenefitIcon({ image, icon }: { image?: string; icon?: string }) {
+  const [loaded, setLoaded] = useState(false);
+  const cleanImage = typeof image === "string" ? image.trim() : "";
+  const fallbackIcon = icon?.trim() || "✓";
+
+  useEffect(() => {
+    setLoaded(false);
+  }, [cleanImage]);
 
   return (
-    <div className="relative flex h-10 w-10 shrink-0 items-center justify-center sm:h-12 sm:w-12">
-      {dark ? (
+    <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-visible text-sm text-blue-500 sm:h-12 sm:w-12 sm:text-base">
+      {cleanImage ? (
         <>
-          <div
+          <span
             aria-hidden="true"
-            className="pointer-events-none absolute inset-1 rounded-full bg-blue-500/20 blur-xl"
+            className="pointer-events-none absolute left-1/2 top-1/2 h-[120%] w-[120%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-500/20 opacity-0 blur-xl transition-opacity duration-300 dark:opacity-100"
           />
-          <div
+          <span
             aria-hidden="true"
-            className="pointer-events-none absolute inset-2 rounded-full bg-white/10 blur-lg"
+            className="pointer-events-none absolute left-1/2 top-1/2 h-[80%] w-[80%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 opacity-0 blur-lg transition-opacity duration-300 dark:opacity-100"
           />
         </>
       ) : null}
+      <span
+        className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${
+          cleanImage && loaded ? "opacity-0" : "opacity-100"
+        }`}
+      >
+        {fallbackIcon}
+      </span>
 
-      {showImage ? (
+      {cleanImage ? (
         // eslint-disable-next-line @next/next/no-img-element
         <img
-          src={source}
+          src={cleanImage}
           alt=""
           loading="lazy"
-          draggable={false}
-          onError={() => setFailed(true)}
-          className="relative z-10 block h-8 w-8 max-h-8 max-w-8 object-contain sm:h-10 sm:w-10 sm:max-h-10 sm:max-w-10"
+          decoding="async"
+          onLoad={() => setLoaded(true)}
+          className={`relative z-10 max-h-full max-w-full object-contain drop-shadow-[0_6px_14px_rgba(0,0,0,0.25)] transition-opacity duration-300 dark:drop-shadow-[0_8px_18px_rgba(0,0,0,0.55)] ${
+            loaded ? "opacity-100" : "opacity-0"
+          }`}
         />
-      ) : (
-        <span className="relative z-10 flex h-8 w-8 items-center justify-center text-base font-bold leading-none text-blue-500 sm:h-10 sm:w-10">
-          {icon || "✓"}
-        </span>
-      )}
+      ) : null}
     </div>
   );
 }
+
 
 function Benefits({
   dark,
@@ -735,7 +681,7 @@ function Benefits({
         {items.map((item) => {
           const card = (
             <div className="flex h-full w-full items-start gap-3 px-1 py-1 sm:gap-4 sm:px-2">
-              <BenefitIcon image={item.image} icon={item.icon} dark={dark} />
+              <BenefitIcon image={item.image} icon={item.icon} />
 
               <div className="min-w-0 flex-1">
                 <div className="whitespace-normal text-[12px] font-semibold leading-snug sm:text-[13px] lg:text-[14px]">{item.title}</div>
@@ -1461,7 +1407,7 @@ function TextImageModule({
 function SupportBlock({ dark }: { dark: boolean }) {
   const [activeFaqId, setActiveFaqId] = useState<string | null>(null);
   const [supportCards, setSupportCards] = useState<
-    Array<{ id: string; title: string; text: string; icon: string }>
+    Array<{ id: string; title: string; text: string; icon: string; image: string }>
   >([]);
   const [questions, setQuestions] = useState<
     Array<{ id: string; question: string; answer: string }>
@@ -1473,7 +1419,7 @@ function SupportBlock({ dark }: { dark: boolean }) {
     fetch("/api/support-content", { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : Promise.reject()))
       .then((payload: {
-        features?: Array<{ id: string; title: string; text: string; icon: string }>;
+        features?: Array<{ id: string; title: string; text: string; icon: string; image: string }>;
         questions?: Array<{ id: string; question: string; answer: string }>;
       }) => {
         if (!mounted) return;
@@ -1526,8 +1472,25 @@ function SupportBlock({ dark }: { dark: boolean }) {
                   : "border-black/10 bg-white/80 hover:border-blue-500/25 hover:bg-blue-50/40"
               }`}
             >
-              <div className="text-sm leading-none text-blue-500 sm:text-lg">
-                {item.icon || "✓"}
+              <div className="relative flex h-10 w-10 items-center justify-center sm:h-12 sm:w-12">
+                {dark && item.image ? (
+                  <div
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-1 rounded-full bg-blue-500/20 blur-xl"
+                  />
+                ) : null}
+                {item.image ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={item.image}
+                    alt=""
+                    className="relative z-10 h-8 w-8 object-contain sm:h-10 sm:w-10"
+                  />
+                ) : (
+                  <span className="relative z-10 text-sm leading-none text-blue-500 sm:text-lg">
+                    {item.icon || "✓"}
+                  </span>
+                )}
               </div>
               <h3 className="mt-2 text-[12px] font-bold leading-tight sm:mt-6 sm:text-base">
                 {item.title}
@@ -1601,113 +1564,6 @@ function SupportBlock({ dark }: { dark: boolean }) {
   );
 }
 
-
-function HomeFaqBlock({
-  dark,
-  categories,
-  settings,
-}: {
-  dark: boolean;
-  categories: HomeFaqCategory[];
-  settings: NonNullable<PublicSiteSettings["faqHome"]>;
-}) {
-  const [openId, setOpenId] = useState<string | null>(null);
-  const categoryLimit = Math.max(1, Number(settings.categoryLimit) || 3);
-  const questionLimit = Math.max(1, Number(settings.questionLimit) || 6);
-  const questions = categories
-    .slice(0, categoryLimit)
-    .flatMap((category) =>
-      category.questions.map((question) => ({
-        ...question,
-        categoryTitle: category.title,
-        categoryIcon: category.icon,
-      })),
-    )
-    .slice(0, questionLimit);
-
-  if (questions.length === 0) {
-    return null;
-  }
-
-  return (
-    <section
-      className={`mb-10 mt-6 rounded-[24px] border p-4 sm:mb-16 sm:mt-10 sm:rounded-[32px] sm:p-8 ${
-        dark
-          ? "border-white/10 bg-white/[0.025]"
-          : "border-black/10 bg-white shadow-[0_6px_20px_rgba(15,23,42,0.05)]"
-      }`}
-    >
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-        <div>
-          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-500">
-            FAQ
-          </div>
-          <h2 className="mt-2 text-2xl font-bold tracking-[-0.045em] sm:text-4xl">
-            {settings.title || "Частые вопросы"}
-          </h2>
-          <p className={`mt-2 max-w-[760px] text-sm leading-relaxed sm:text-base ${mutedTextClass(dark)}`}>
-            {settings.subtitle ||
-              "Коротко отвечаем на основные вопросы о заказе, доставке и гарантии."}
-          </p>
-        </div>
-
-        <Link
-          href="/faq"
-          className={`w-fit shrink-0 rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors ${
-            dark
-              ? "border-white/10 bg-white/[0.035] hover:border-blue-500/40 hover:bg-blue-500/10"
-              : "border-black/10 bg-white hover:border-blue-500/40 hover:bg-blue-50"
-          }`}
-        >
-          {settings.buttonText || "Смотреть все вопросы"}
-        </Link>
-      </div>
-
-      <div className="mt-5 grid gap-3 lg:grid-cols-2">
-        {questions.map((item) => {
-          const isOpen = openId === item.id;
-
-          return (
-            <article
-              key={item.id}
-              className={`overflow-hidden rounded-2xl border ${
-                dark ? "border-white/10 bg-black/20" : "border-black/10 bg-[#f8fafc]"
-              }`}
-            >
-              <button
-                type="button"
-                onClick={() => setOpenId((current) => (current === item.id ? null : item.id))}
-                className="flex w-full items-center justify-between gap-4 p-4 text-left sm:p-5"
-              >
-                <div className="min-w-0">
-                  <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-blue-500">
-                    {item.categoryIcon} {item.categoryTitle}
-                  </div>
-                  <div className="mt-1 font-bold leading-snug">{item.question}</div>
-                </div>
-                <span
-                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border text-lg transition-transform ${
-                    dark ? "border-white/10" : "border-black/10"
-                  } ${isOpen ? "rotate-45" : ""}`}
-                >
-                  +
-                </span>
-              </button>
-
-              {isOpen ? (
-                <div className={`border-t px-4 pb-4 pt-3 text-sm leading-relaxed sm:px-5 sm:pb-5 ${
-                  dark ? "border-white/10 text-white/60" : "border-black/10 text-black/60"
-                }`}>
-                  {item.answer}
-                </div>
-              ) : null}
-            </article>
-          );
-        })}
-      </div>
-    </section>
-  );
-}
 
 function Footer({
   dark,
