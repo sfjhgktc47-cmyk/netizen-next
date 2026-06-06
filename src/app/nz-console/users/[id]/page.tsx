@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CustomerStatusCard } from "@/components/admin/customer-status-card";
 import {
   getAdminCustomer,
   getClientStatusClass,
@@ -137,6 +138,14 @@ export default async function AdminCustomerDetailPage({
             </aside>
           </div>
         </section>
+
+        <div className="mt-8">
+          <CustomerStatusCard
+            customerId={customer.id}
+            progress={customer.statusProgress}
+            rules={customer.statusRules}
+          />
+        </div>
 
         <section className="mt-8 grid gap-8 lg:grid-cols-[1fr_380px]">
           <div className="space-y-8">
@@ -279,6 +288,10 @@ export default async function AdminCustomerDetailPage({
                 <InfoLine label="Аккаунт" value={customer.authLabel} />
                 <InfoLine label="Дата регистрации" value={customer.registeredAtLabel} />
                 <InfoLine label="Статус" value={customer.status} />
+                <InfoLine
+                  label="Режим статуса"
+                  value={customer.statusProgress.isManual ? "Назначен вручную" : "Автоматический"}
+                />
                 <InfoLine label="Сумма покупок" value={customer.totalSpentLabel} />
                 <InfoLine label="Последняя активность" value={customer.lastActivityLabel} />
               </div>

@@ -123,9 +123,11 @@ model Customer {
   phone       String
   email       String    @default("")
   passwordHash String   @default("")
-  city        String    @default("")
-  crmId       String    @default("")
-  createdAt   DateTime  @default(now())
+  city             String    @default("")
+  crmId            String    @default("")
+  statusOverride   String    @default("")
+  statusOverrideAt DateTime?
+  createdAt        DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
   orders      Order[]
