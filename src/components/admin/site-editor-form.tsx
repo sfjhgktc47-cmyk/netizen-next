@@ -158,6 +158,19 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder, initialCon
     }));
   }
 
+  function updateFaqHome<K extends keyof SiteEditorSettings["faqHome"]>(
+    key: K,
+    value: SiteEditorSettings["faqHome"][K],
+  ) {
+    setSettings((current) => ({
+      ...current,
+      faqHome: {
+        ...current.faqHome,
+        [key]: value,
+      },
+    }));
+  }
+
   function updateLocalBlock(id: string, patch: Partial<SitePageBlock>) {
     setPageBuilder((current) => ({
       ...current,
@@ -491,6 +504,121 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder, initialCon
           initialLibrary={contentLibrary}
           onChange={setContentLibrary}
         />
+
+        <section className="mt-6 rounded-[34px] border border-white/10 bg-white/[0.035] p-5 sm:p-8">
+          <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
+            <div>
+              <div className="text-xs font-medium uppercase tracking-[0.18em] text-blue-400">
+                FAQ
+              </div>
+              <h2 className="mt-2 text-3xl font-bold tracking-[-0.045em]">
+                Частые вопросы
+              </h2>
+              <p className="mt-3 max-w-[760px] text-sm leading-relaxed text-white/50">
+                Настрой отображение компактного FAQ-блока на главной. Сами разделы,
+                вопросы и ответы редактируются на отдельной странице.
+              </p>
+            </div>
+
+            <Link
+              href="/nz-console/faq"
+              className="shrink-0 rounded-xl border border-white/10 bg-black/20 px-5 py-3 text-sm font-semibold text-white/75 transition-colors hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-white"
+            >
+              Редактировать вопросы
+            </Link>
+          </div>
+
+          <div className="mt-6 rounded-3xl border border-white/10 bg-black/20 p-5 sm:p-6">
+            <label className="flex cursor-pointer items-start justify-between gap-5">
+              <div>
+                <div className="font-bold">Показывать FAQ на главной странице</div>
+                <div className="mt-1 text-sm leading-relaxed text-white/45">
+                  Если выключить, полная страница FAQ продолжит работать по адресу /faq.
+                </div>
+              </div>
+              <input
+                type="checkbox"
+                checked={settings.faqHome.enabled}
+                onChange={(event) => updateFaqHome("enabled", event.target.checked)}
+                className="mt-1 h-5 w-5 accent-blue-600"
+              />
+            </label>
+
+            <div className={`mt-6 grid gap-5 md:grid-cols-2 ${
+              settings.faqHome.enabled ? "" : "pointer-events-none opacity-45"
+            }`}>
+              <Field label="Заголовок блока">
+                <input
+                  value={settings.faqHome.title}
+                  onChange={(event) => updateFaqHome("title", event.target.value)}
+                  className="admin-input"
+                />
+              </Field>
+
+              <Field label="Текст кнопки">
+                <input
+                  value={settings.faqHome.buttonText}
+                  onChange={(event) => updateFaqHome("buttonText", event.target.value)}
+                  className="admin-input"
+                />
+              </Field>
+
+              <div className="md:col-span-2">
+                <Field label="Подзаголовок">
+                  <textarea
+                    value={settings.faqHome.subtitle}
+                    onChange={(event) => updateFaqHome("subtitle", event.target.value)}
+                    className="admin-textarea min-h-[100px]"
+                  />
+                </Field>
+              </div>
+
+              <Field label="Сколько вопросов показать">
+                <input
+                  type="number"
+                  min={1}
+                  max={12}
+                  value={settings.faqHome.questionLimit}
+                  onChange={(event) =>
+                    updateFaqHome(
+                      "questionLimit",
+                      Math.min(12, Math.max(1, Number(event.target.value) || 1)),
+                    )
+                  }
+                  className="admin-input"
+                />
+              </Field>
+
+              <Field label="Из скольких разделов брать вопросы">
+                <input
+                  type="number"
+                  min={1}
+                  max={8}
+                  value={settings.faqHome.categoryLimit}
+                  onChange={(event) =>
+                    updateFaqHome(
+                      "categoryLimit",
+                      Math.min(8, Math.max(1, Number(event.target.value) || 1)),
+                    )
+                  }
+                  className="admin-input"
+                />
+              </Field>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={saveSettings}
+            disabled={saveState === "saving"}
+            className="mt-6 w-full rounded-2xl bg-blue-600 px-7 py-4 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+          >
+            {saveState === "saving" ? "Сохраняю..." : "Сохранить настройки FAQ"}
+          </button>
+
+          {saveState === "saved" ? <Alert tone="success">Настройки FAQ сохранены.</Alert> : null}
+          {saveState === "error" ? <Alert tone="error">Не удалось сохранить настройки FAQ.</Alert> : null}
+        </section>
 
         <details className="mt-6 rounded-[34px] border border-white/10 bg-white/[0.035] p-5 sm:p-8">
           <summary className="cursor-pointer list-none">

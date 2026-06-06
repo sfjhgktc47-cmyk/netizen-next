@@ -104,6 +104,14 @@ type PublicSiteSettings = {
     telegramText?: string;
   };
   homeBlocks?: HomeBlockSetting[];
+  faqHome?: {
+    enabled?: boolean;
+    title?: string;
+    subtitle?: string;
+    questionLimit?: number;
+    categoryLimit?: number;
+    buttonText?: string;
+  };
 };
 
 type HomePayload = {
@@ -116,6 +124,20 @@ type HomePayload = {
   banners?: HomeBanner[];
   benefits?: HomeBenefit[];
 };
+
+type HomeFaqQuestion = {
+  id: string;
+  question: string;
+  answer: string;
+};
+
+type HomeFaqCategory = {
+  id: string;
+  title: string;
+  icon: string;
+  questions: HomeFaqQuestion[];
+};
+
 
 const defaultHomePageBlocks: HomePageBlock[] = [
   { id: "hero", pageKey: "home", type: "hero", title: "Hero", description: "", enabled: true, sortOrder: 10, settings: {} },
@@ -177,15 +199,15 @@ export default function Home({ initialData = {} }: { initialData?: HomePayload }
   const [siteSettings, setSiteSettings] = useState<PublicSiteSettings | null>(
     initialData.siteSettings ?? null
   );
+  const [faqCategories, setFaqCategories] = useState<HomeFaqCategory[]>([]);
+
 
   // Fallback client-side fetch if server data wasn't provided
   useEffect(() => {
     if (
-      categories.length > 0 &&
-      popularProducts.length > 0 &&
-      banners.length > 0 &&
-      benefits.length > 0 &&
-      homeBlocks.length > 0
+      categories.length > 0 ||
+      popularProducts.length > 0 ||
+      banners.length > 0
     ) return;
 
     let mounted = true;
@@ -198,19 +220,11 @@ export default function Home({ initialData = {} }: { initialData?: HomePayload }
         const na = Array.isArray(payload.newArrivals)
           ? payload.newArrivals
           : all.filter((p) => p.isNew);
-        if (Array.isArray(payload.categories) && payload.categories.length > 0) {
-          setCategories(payload.categories);
-        }
-        if (payload.siteSettings) setSiteSettings(payload.siteSettings);
-        if (Array.isArray(payload.pageBlocks) && payload.pageBlocks.length > 0) {
-          setHomeBlocks(payload.pageBlocks);
-        }
-        if (Array.isArray(payload.banners) && payload.banners.length > 0) {
-          setBanners(payload.banners);
-        }
-        if (Array.isArray(payload.benefits) && payload.benefits.length > 0) {
-          setBenefits(payload.benefits);
-        }
+        setCategories(Array.isArray(payload.categories) ? payload.categories : []);
+        setSiteSettings(payload.siteSettings ?? null);
+        setHomeBlocks(Array.isArray(payload.pageBlocks) ? payload.pageBlocks : []);
+        setBanners(Array.isArray(payload.banners) ? payload.banners : []);
+        setBenefits(Array.isArray(payload.benefits) ? payload.benefits : []);
         setPopularProducts(pop.filter(isConfiguredProduct));
         setNewArrivals(na.filter((p) => p.slug !== "catalog").slice(0, 3));
       })
@@ -218,28 +232,31 @@ export default function Home({ initialData = {} }: { initialData?: HomePayload }
     return () => { mounted = false; };
   }, []);
 
-  const visibleCategories = categories;
-
-  // Keep saved editor settings, but restore any required default modules that
-  // are missing from the database. Previously, the presence of even one saved
-  // block disabled all defaults, so the benefits module could disappear while
-  // the benefit records themselves still existed.
-  const mergedHomeBlocks = (() => {
-    if (homeBlocks.length === 0) {
-      return defaultHomePageBlocks;
+  useEffect(() => {
+    if (!siteSettings?.faqHome?.enabled) {
+      setFaqCategories([]);
+      return;
     }
 
-    const savedTypes = new Set(
-      homeBlocks.map((block) => String(block.type || block.id).trim()),
-    );
-    const missingDefaults = defaultHomePageBlocks.filter(
-      (block) => !savedTypes.has(String(block.type || block.id).trim()),
-    );
+    let mounted = true;
 
-    return [...homeBlocks, ...missingDefaults];
-  })();
+    fetch("/api/faq", { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : Promise.reject()))
+      .then((payload: { categories?: HomeFaqCategory[] }) => {
+        if (!mounted) return;
+        setFaqCategories(Array.isArray(payload.categories) ? payload.categories : []);
+      })
+      .catch(() => {
+        if (mounted) setFaqCategories([]);
+      });
 
-  const visibleHomeBlocks = mergedHomeBlocks
+    return () => {
+      mounted = false;
+    };
+  }, [siteSettings?.faqHome?.enabled]);
+
+  const visibleCategories = categories;
+  const visibleHomeBlocks = (homeBlocks.length ? homeBlocks : defaultHomePageBlocks)
     .filter((block) => block.enabled)
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
@@ -267,6 +284,14 @@ export default function Home({ initialData = {} }: { initialData?: HomePayload }
             benefits={benefits}
           />
         ))}
+        {siteSettings?.faqHome?.enabled ? (
+          <HomeFaqBlock
+            dark={dark}
+            categories={faqCategories}
+            settings={siteSettings.faqHome}
+          />
+        ) : null}
+
         <Footer dark={dark} siteSettings={siteSettings} />
       </div>
     </main>
@@ -1577,6 +1602,113 @@ function SupportBlock({ dark }: { dark: boolean }) {
   );
 }
 
+
+function HomeFaqBlock({
+  dark,
+  categories,
+  settings,
+}: {
+  dark: boolean;
+  categories: HomeFaqCategory[];
+  settings: NonNullable<PublicSiteSettings["faqHome"]>;
+}) {
+  const [openId, setOpenId] = useState<string | null>(null);
+  const categoryLimit = Math.max(1, Number(settings.categoryLimit) || 3);
+  const questionLimit = Math.max(1, Number(settings.questionLimit) || 6);
+  const questions = categories
+    .slice(0, categoryLimit)
+    .flatMap((category) =>
+      category.questions.map((question) => ({
+        ...question,
+        categoryTitle: category.title,
+        categoryIcon: category.icon,
+      })),
+    )
+    .slice(0, questionLimit);
+
+  if (questions.length === 0) {
+    return null;
+  }
+
+  return (
+    <section
+      className={`mb-10 mt-6 rounded-[24px] border p-4 sm:mb-16 sm:mt-10 sm:rounded-[32px] sm:p-8 ${
+        dark
+          ? "border-white/10 bg-white/[0.025]"
+          : "border-black/10 bg-white shadow-[0_6px_20px_rgba(15,23,42,0.05)]"
+      }`}
+    >
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <div className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-500">
+            FAQ
+          </div>
+          <h2 className="mt-2 text-2xl font-bold tracking-[-0.045em] sm:text-4xl">
+            {settings.title || "Частые вопросы"}
+          </h2>
+          <p className={`mt-2 max-w-[760px] text-sm leading-relaxed sm:text-base ${mutedTextClass(dark)}`}>
+            {settings.subtitle ||
+              "Коротко отвечаем на основные вопросы о заказе, доставке и гарантии."}
+          </p>
+        </div>
+
+        <Link
+          href="/faq"
+          className={`w-fit shrink-0 rounded-xl border px-4 py-2.5 text-sm font-medium transition-colors ${
+            dark
+              ? "border-white/10 bg-white/[0.035] hover:border-blue-500/40 hover:bg-blue-500/10"
+              : "border-black/10 bg-white hover:border-blue-500/40 hover:bg-blue-50"
+          }`}
+        >
+          {settings.buttonText || "Смотреть все вопросы"}
+        </Link>
+      </div>
+
+      <div className="mt-5 grid gap-3 lg:grid-cols-2">
+        {questions.map((item) => {
+          const isOpen = openId === item.id;
+
+          return (
+            <article
+              key={item.id}
+              className={`overflow-hidden rounded-2xl border ${
+                dark ? "border-white/10 bg-black/20" : "border-black/10 bg-[#f8fafc]"
+              }`}
+            >
+              <button
+                type="button"
+                onClick={() => setOpenId((current) => (current === item.id ? null : item.id))}
+                className="flex w-full items-center justify-between gap-4 p-4 text-left sm:p-5"
+              >
+                <div className="min-w-0">
+                  <div className="text-[11px] font-semibold uppercase tracking-[0.14em] text-blue-500">
+                    {item.categoryIcon} {item.categoryTitle}
+                  </div>
+                  <div className="mt-1 font-bold leading-snug">{item.question}</div>
+                </div>
+                <span
+                  className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-xl border text-lg transition-transform ${
+                    dark ? "border-white/10" : "border-black/10"
+                  } ${isOpen ? "rotate-45" : ""}`}
+                >
+                  +
+                </span>
+              </button>
+
+              {isOpen ? (
+                <div className={`border-t px-4 pb-4 pt-3 text-sm leading-relaxed sm:px-5 sm:pb-5 ${
+                  dark ? "border-white/10 text-white/60" : "border-black/10 text-black/60"
+                }`}>
+                  {item.answer}
+                </div>
+              ) : null}
+            </article>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
 
 function Footer({
   dark,
