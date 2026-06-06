@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
 
-export type PageKey = "home" | "catalog" | "new" | "product" | "cart" | "profile" | "benefits" | "faq";
+export type PageKey = "home" | "catalog" | "new" | "product" | "cart" | "profile" | "faq";
 
 export type PageBlockType =
   | "hero"
@@ -30,8 +30,7 @@ export type PageBlockType =
   | "profile-addresses"
   | "profile-support"
   | "faq-header"
-  | "faq-content"
-  | "benefits-editor";
+  | "faq-content";
 
 export type PageBlockSettings = Record<string, string | number | boolean | null>;
 
@@ -98,11 +97,6 @@ export const builderPages: BuilderPage[] = [
     key: "profile",
     title: "Профиль",
     description: "Данные клиента, заказы, адреса и обращения в поддержку.",
-  },
-  {
-    key: "benefits",
-    title: "Преимущества",
-    description: "Все группы преимуществ сайта в одном месте.",
   },
   {
     key: "faq",
@@ -363,13 +357,6 @@ export const moduleLibrary: ModuleDefinition[] = [
       layout: "tabs",
     },
   },
-  {
-    type: "benefits-editor",
-    title: "Все преимущества",
-    description: "Общие преимущества и преимущества блока сервиса.",
-    pageKeys: ["benefits"],
-    defaultSettings: {},
-  },
 ];
 
 export const defaultPageBlocks: Record<PageKey, Array<Omit<SitePageBlock, "id" | "createdAt" | "updatedAt">>> = {
@@ -409,9 +396,6 @@ export const defaultPageBlocks: Record<PageKey, Array<Omit<SitePageBlock, "id" |
     makeDefaultBlock("profile", "profile-orders", 20),
     makeDefaultBlock("profile", "profile-addresses", 30),
     makeDefaultBlock("profile", "profile-support", 40),
-  ],
-  benefits: [
-    makeDefaultBlock("benefits", "benefits-editor", 10),
   ],
   faq: [
     makeDefaultBlock("faq", "faq-header", 10),

@@ -197,6 +197,8 @@ export function ProductDetailView({
     y: number;
     pointerId: number;
   } | null>(null);
+  const configurationUrlReadyRef = useRef(false);
+
 
   const categoryName = product.categoryName || product.category;
 
@@ -226,7 +228,53 @@ export function ProductDetailView({
     selectedSim,
   ]);
 
-  useEffect(() => { if (activePosition) setShowConfigEditor(false); }, [activePosition]);
+  useEffect(() => {
+    if (activePosition) setShowConfigEditor(false);
+  }, [activePosition]);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+
+    if (!selectedPosition) {
+      const color = params.get("color") ?? "";
+      const memory = params.get("memory") ?? "";
+      const sim = params.get("sim") ?? "";
+
+      if (color) setSelectedColor(color);
+      if (memory) setSelectedMemory(memory);
+      if (sim) setSelectedSim(sim);
+    }
+
+    configurationUrlReadyRef.current = true;
+  }, [selectedPosition]);
+
+  useEffect(() => {
+    if (!configurationUrlReadyRef.current) return;
+
+    const params = new URLSearchParams(window.location.search);
+
+    if (activePosition) {
+      params.set("sku", activePosition.sku);
+      params.set("color", activePosition.color);
+      params.set("memory", activePosition.memory);
+      params.set("sim", activePosition.sim);
+    } else {
+      params.delete("sku");
+
+      if (selectedColor) params.set("color", selectedColor);
+      else params.delete("color");
+
+      if (selectedMemory) params.set("memory", selectedMemory);
+      else params.delete("memory");
+
+      if (selectedSim) params.set("sim", selectedSim);
+      else params.delete("sim");
+    }
+
+    const query = params.toString();
+    const nextUrl = `${window.location.pathname}${query ? `?${query}` : ""}${window.location.hash}`;
+    window.history.replaceState(window.history.state, "", nextUrl);
+  }, [activePosition, selectedColor, selectedMemory, selectedSim]);
 
   const hasInvalidCompleteConfiguration =
     isConfigurationComplete && !activePosition;
@@ -664,6 +712,15 @@ export function ProductDetailView({
     setQuantity(1);
   }
 
+  async function copyConfigurationLink() {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCommunityMessage("Ссылка на конфигурацию скопирована.");
+    } catch {
+      setCommunityMessage("Не удалось скопировать ссылку.");
+    }
+  }
+
   return (
     <main className="min-h-screen bg-page px-3 py-4 text-main transition-colors duration-700 sm:px-5 sm:py-6">
       <div className="mx-auto max-w-[1440px]">
@@ -794,6 +851,24 @@ export function ProductDetailView({
               <p className="mt-2 hidden max-w-[620px] text-sm leading-relaxed text-muted sm:mt-4 sm:block">
                 {product.shortDescription}
               </p>
+
+              <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-muted sm:mt-3 sm:text-sm">
+                <span>
+                  {activePosition ? `SKU: ${activePosition.sku}` : `Модель: ${product.slug}`}
+                </span>
+                {activePosition ? (
+                  <>
+                    <span className="text-muted-soft">·</span>
+                    <button
+                      type="button"
+                      onClick={() => void copyConfigurationLink()}
+                      className="font-medium text-blue-500 transition-colors hover:text-blue-400"
+                    >
+                      Скопировать ссылку
+                    </button>
+                  </>
+                ) : null}
+              </div>
 
               <div className="mt-4 sm:mt-5">
                 <button
@@ -966,7 +1041,7 @@ export function ProductDetailView({
 
                     <div>
                       <div className="text-muted-soft">SKU</div>
-                      <div className="mt-1 font-semibold text-main">
+                      <div className="mt-1 break-all font-semibold text-main">
                         {activePosition.sku}
                       </div>
                     </div>

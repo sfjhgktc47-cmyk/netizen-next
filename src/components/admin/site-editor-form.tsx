@@ -14,7 +14,6 @@ import type {
 } from "@/lib/page-builder-db";
 import type { SiteEditorSettings } from "@/lib/site-settings-db";
 import type { SiteContentLibrary } from "@/lib/site-content-library-db";
-import { SupportContentAdminClient } from "@/components/admin/support-content-admin-client";
 
 type SaveState = "idle" | "saving" | "saved" | "error";
 type BuilderState = "idle" | "saving" | "saved" | "error";
@@ -743,37 +742,6 @@ function ModuleSettings({ block, onSettingChange, contentLibrary }: { block: Sit
 
   if (block.type === "benefits") {
     return <BenefitsModuleEditor settings={settings} onSettingChange={onSettingChange} contentLibrary={contentLibrary} />;
-  }
-
-  if (block.type === "benefits-editor") {
-    return (
-      <div className="mt-7 grid gap-7">
-        <SiteContentLibraryForm
-          initialLibrary={contentLibrary}
-          onChange={() => undefined}
-          benefitsOnly
-        />
-
-        <section className="rounded-[34px] border border-white/10 bg-white/[0.035] p-5 sm:p-8">
-          <div>
-            <div className="text-xs font-medium uppercase tracking-[0.18em] text-blue-400">
-              Сервис и поддержка
-            </div>
-            <h2 className="mt-2 text-3xl font-bold tracking-[-0.045em]">
-              Карточки слева в блоке поддержки
-            </h2>
-            <p className="mt-3 max-w-[760px] text-sm leading-relaxed text-white/50">
-              Эта группа используется только в блоке «Сервис и поддержка Нетизен».
-              Здесь можно менять текст, иконку, фото, порядок и видимость.
-            </p>
-          </div>
-
-          <div className="mt-6">
-            <SupportContentAdminClient mode="features" />
-          </div>
-        </section>
-      </div>
-    );
   }
 
   if (block.type === "faq-content") {

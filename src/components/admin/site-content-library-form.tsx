@@ -4,14 +4,14 @@ import { useState, type ReactNode } from "react";
 
 import { ImageDropZone } from "@/components/admin/image-drop-zone";
 import type { SiteBanner, SiteBenefit, SiteContentLibrary } from "@/lib/site-content-library-db";
+import { SupportContentAdminClient } from "@/components/admin/support-content-admin-client";
 
-type LibraryTab = "banners" | "benefits";
+type LibraryTab = "banners" | "benefits" | "service";
 type SaveState = "idle" | "saving" | "saved" | "error";
 
 type Props = {
   initialLibrary: SiteContentLibrary;
   onChange?: (library: SiteContentLibrary) => void;
-  benefitsOnly?: boolean;
 };
 
 const emptyBanner: Omit<SiteBanner, "id" | "createdAt" | "updatedAt"> = {
@@ -44,13 +44,9 @@ const emptyBenefit: Omit<SiteBenefit, "id" | "createdAt" | "updatedAt"> = {
   sortOrder: 100,
 };
 
-export function SiteContentLibraryForm({
-  initialLibrary,
-  onChange,
-  benefitsOnly = false,
-}: Props) {
+export function SiteContentLibraryForm({ initialLibrary, onChange }: Props) {
   const [library, setLibrary] = useState(initialLibrary);
-  const [tab, setTab] = useState<LibraryTab>(benefitsOnly ? "benefits" : "banners");
+  const [tab, setTab] = useState<LibraryTab>("banners");
   const [selectedBannerId, setSelectedBannerId] = useState(initialLibrary.banners[0]?.id ?? "");
   const [selectedBenefitId, setSelectedBenefitId] = useState(initialLibrary.benefits[0]?.id ?? "");
   const [state, setState] = useState<SaveState>("idle");
@@ -208,23 +204,47 @@ export function SiteContentLibraryForm({
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <div className="text-xs font-medium uppercase tracking-[0.18em] text-blue-400">
-            {benefitsOnly ? "Общие преимущества" : "Библиотека контента"}
+            Библиотека контента
           </div>
           <h2 className="mt-2 text-3xl font-bold tracking-[-0.045em]">
-            {benefitsOnly ? "Главная и карточка товара" : "Баннеры и преимущества"}
+            Баннеры и преимущества
           </h2>
           <p className="mt-3 max-w-[760px] text-sm leading-relaxed text-white/50">
-            {benefitsOnly
-              ? "Эта группа используется в верхней полосе на главной и во вкладке преимуществ карточки товара."
-              : "Здесь создаются готовые баннеры и карточки преимуществ. Потом модуль на главной просто выбирает их из библиотеки."}
+            Здесь редактируются баннеры и все группы преимуществ сайта.
           </p>
         </div>
-        {!benefitsOnly ? (
-          <div className="flex gap-2 rounded-2xl border border-white/10 bg-black/20 p-1">
-            <button type="button" onClick={() => setTab("banners")} className={`rounded-xl px-4 py-3 text-sm font-semibold ${tab === "banners" ? "bg-blue-600 text-white" : "text-white/55 hover:text-white"}`}>Баннеры</button>
-            <button type="button" onClick={() => setTab("benefits")} className={`rounded-xl px-4 py-3 text-sm font-semibold ${tab === "benefits" ? "bg-blue-600 text-white" : "text-white/55 hover:text-white"}`}>Преимущества</button>
-          </div>
-        ) : null}
+
+        <div className="flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-black/20 p-1">
+          <button
+            type="button"
+            onClick={() => setTab("banners")}
+            className={`rounded-xl px-4 py-3 text-sm font-semibold ${
+              tab === "banners" ? "bg-blue-600 text-white" : "text-white/55 hover:text-white"
+            }`}
+          >
+            Баннеры
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setTab("benefits")}
+            className={`rounded-xl px-4 py-3 text-sm font-semibold ${
+              tab === "benefits" ? "bg-blue-600 text-white" : "text-white/55 hover:text-white"
+            }`}
+          >
+            Преимущества магазина
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setTab("service")}
+            className={`rounded-xl px-4 py-3 text-sm font-semibold ${
+              tab === "service" ? "bg-blue-600 text-white" : "text-white/55 hover:text-white"
+            }`}
+          >
+            Сервис и поддержка
+          </button>
+        </div>
       </div>
 
       {state === "saved" && <LibraryAlert tone="success">Сохранено.</LibraryAlert>}
@@ -244,7 +264,7 @@ export function SiteContentLibraryForm({
 
           {selectedBanner ? (
             <BannerEditor banner={selectedBanner} disabled={state === "saving"} updateBanner={updateBanner} saveBanner={saveBanner} deleteBanner={deleteBanner} />
-          ) : (
+          ) : tab === "benefits" ? (
             <EmptyState>Создай или выбери баннер.</EmptyState>
           )}
         </div>
@@ -269,6 +289,20 @@ export function SiteContentLibraryForm({
           ) : (
             <EmptyState>Создай или выбери преимущество.</EmptyState>
           )}
+        </div>
+      ) : (
+        <div className="mt-6">
+          <div className="mb-5 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4">
+            <div className="text-sm font-bold text-blue-200">
+              Преимущества блока «Сервис и поддержка»
+            </div>
+            <p className="mt-1 text-sm leading-relaxed text-white/50">
+              Эти карточки показываются слева в блоке «Сервис и поддержка Нетизен».
+              Здесь можно менять название, описание, иконку, фото, порядок и видимость.
+            </p>
+          </div>
+
+          <SupportContentAdminClient mode="features" />
         </div>
       )}
     </section>

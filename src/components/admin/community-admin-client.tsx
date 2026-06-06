@@ -41,8 +41,14 @@ type Question = {
 
 type Tab = "questions" | "reviews";
 
-export function CommunityAdminClient() {
-  const [tab, setTab] = useState<Tab>("questions");
+export function CommunityAdminClient({
+  initialTab = "questions",
+  hideTabs = false,
+}: {
+  initialTab?: Tab;
+  hideTabs?: boolean;
+}) {
+  const [tab, setTab] = useState<Tab>(initialTab);
   const [reviews, setReviews] = useState<Review[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [search, setSearch] = useState("");
@@ -110,26 +116,39 @@ export function CommunityAdminClient() {
   return (
     <div>
       <div className="flex flex-col gap-4 rounded-[28px] border border-white/10 bg-white/[0.035] p-5 sm:flex-row sm:items-center sm:justify-between">
-        <div className="flex gap-2">
-          <button
-            type="button"
-            onClick={() => setTab("questions")}
-            className={`rounded-xl px-4 py-3 text-sm font-semibold ${
-              tab === "questions" ? "bg-blue-600 text-white" : "border border-white/10 bg-black/20"
-            }`}
-          >
-            Вопросы {tab === "questions" && unansweredCount ? `· без ответа ${unansweredCount}` : ""}
-          </button>
-          <button
-            type="button"
-            onClick={() => setTab("reviews")}
-            className={`rounded-xl px-4 py-3 text-sm font-semibold ${
-              tab === "reviews" ? "bg-blue-600 text-white" : "border border-white/10 bg-black/20"
-            }`}
-          >
-            Отзывы
-          </button>
-        </div>
+        {!hideTabs ? (
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => setTab("questions")}
+              className={`rounded-xl px-4 py-3 text-sm font-semibold ${
+                tab === "questions" ? "bg-blue-600 text-white" : "border border-white/10 bg-black/20"
+              }`}
+            >
+              Вопросы {tab === "questions" && unansweredCount ? `· без ответа ${unansweredCount}` : ""}
+            </button>
+            <button
+              type="button"
+              onClick={() => setTab("reviews")}
+              className={`rounded-xl px-4 py-3 text-sm font-semibold ${
+                tab === "reviews" ? "bg-blue-600 text-white" : "border border-white/10 bg-black/20"
+              }`}
+            >
+              Отзывы
+            </button>
+          </div>
+        ) : (
+          <div>
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-400">
+              {tab === "reviews" ? "Отзывы покупателей" : "Вопросы покупателей"}
+            </div>
+            <div className="mt-1 text-sm text-white/45">
+              {tab === "reviews"
+                ? "Модерация отзывов и фотографий покупателей."
+                : `Ответы на вопросы о товарах${unansweredCount ? ` · без ответа ${unansweredCount}` : ""}.`}
+            </div>
+          </div>
+        )}
 
         <div className="flex w-full gap-2 sm:max-w-[520px]">
           <input
