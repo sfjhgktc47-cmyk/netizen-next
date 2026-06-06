@@ -69,7 +69,7 @@ export async function GET(
 
   const [reviews, questions, reviewAggregate, ratingGroups, existingReview] = await Promise.all([
     prisma.productReview.findMany({
-      where: { productId: product.id },
+      where: { productId: product.id, isVisible: true },
       orderBy: { createdAt: "desc" },
       take: 30,
       include: {
@@ -86,18 +86,18 @@ export async function GET(
       },
     }),
     prisma.productQuestion.findMany({
-      where: { productId: product.id },
+      where: { productId: product.id, isVisible: true },
       orderBy: { createdAt: "desc" },
       take: 30,
     }),
     prisma.productReview.aggregate({
-      where: { productId: product.id },
+      where: { productId: product.id, isVisible: true },
       _avg: { rating: true },
       _count: { id: true },
     }),
     prisma.productReview.groupBy({
       by: ["rating"],
-      where: { productId: product.id },
+      where: { productId: product.id, isVisible: true },
       _count: { rating: true },
     }),
     session?.role === "customer" && session.customerId

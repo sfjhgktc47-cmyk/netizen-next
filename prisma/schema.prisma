@@ -151,6 +151,7 @@ model ProductReview {
   verifiedPurchase Boolean             @default(true)
   helpfulCount     Int                 @default(0)
   unhelpfulCount   Int                 @default(0)
+  isVisible        Boolean             @default(true)
   createdAt        DateTime            @default(now())
   updatedAt        DateTime            @updatedAt
 
@@ -161,6 +162,7 @@ model ProductReview {
   @@unique([productId, customerId])
   @@index([productId, createdAt])
   @@index([productId, rating])
+  @@index([isVisible, createdAt])
 }
 
 model ProductReviewVote {
@@ -187,6 +189,7 @@ model ProductQuestion {
   text        String
   answer      String    @default("")
   answeredAt  DateTime?
+  isVisible   Boolean   @default(true)
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -194,6 +197,7 @@ model ProductQuestion {
   customer    Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
 
   @@index([productId, createdAt])
+  @@index([isVisible, createdAt])
 }
 
 model AdminUser {

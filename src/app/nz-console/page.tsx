@@ -114,6 +114,14 @@ export default async function AdminDashboardPage() {
               >
                 Настроить сервис и поддержку
               </Link>
+
+              <Link
+                href="/nz-console/community"
+                className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4 text-center text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
+              >
+                Отзывы и вопросы
+              </Link>
+
             </div>
 
             <div className="mt-8 rounded-2xl border border-blue-500/25 bg-blue-500/10 p-5">

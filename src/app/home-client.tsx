@@ -396,7 +396,7 @@ function getBlockBoolean(settings: Record<string, string | number | boolean | nu
 function panelClass(dark: boolean) {
   return dark
     ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)]"
-    : "border-black/10 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)]";
+    : "border-black/10 bg-white shadow-[0_6px_22px_rgba(15,23,42,0.055)]";
 }
 
 function mutedTextClass(dark: boolean) {
@@ -501,7 +501,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
         className={`relative h-[176px] cursor-grab select-none overflow-hidden rounded-[20px] border transition-all duration-700 active:cursor-grabbing sm:h-[360px] sm:rounded-[30px] lg:h-[520px] ${
           dark
             ? "border-white/10 bg-[#06101f]"
-            : "border-black/10 bg-white shadow-[0_18px_55px_rgba(15,23,42,0.08)]"
+            : "border-black/10 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)]"
         }`}
       >
         {image ? (
@@ -771,7 +771,7 @@ function Categories({
               className={`group relative flex h-[96px] w-[92px] shrink-0 flex-col items-center justify-between overflow-hidden rounded-2xl border p-2 text-center transition-all duration-500 hover:-translate-y-1 sm:min-h-[180px] sm:w-auto sm:items-start sm:p-6 sm:text-left ${
                 dark
                   ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
-                  : "border-black/10 bg-white shadow-[0_20px_70px_rgba(15,23,42,0.08)] hover:border-blue-500/35 hover:shadow-[0_28px_90px_rgba(15,23,42,0.12)]"
+                  : "border-black/10 bg-white shadow-[0_6px_20px_rgba(15,23,42,0.055)] hover:border-blue-500/35 hover:shadow-[0_10px_30px_rgba(15,23,42,0.08)]"
               }`}
             >
               <div className="relative z-10 order-2 flex w-full flex-1 flex-col sm:order-none sm:max-w-[46%]">
@@ -804,7 +804,7 @@ function Categories({
                     src={image}
                     alt=""
                     draggable={false}
-                    className="relative z-10 h-full w-full object-contain drop-shadow-[0_10px_24px_rgba(0,0,0,0.28)] dark:drop-shadow-[0_12px_28px_rgba(0,0,0,0.55)]"
+                    className="relative z-10 h-full w-full object-contain dark:drop-shadow-[0_12px_28px_rgba(0,0,0,0.55)]"
                   />
                 ) : (
                   <div className={`h-full w-full rounded-xl sm:rounded-2xl ${dark ? "bg-white/[0.04]" : "bg-slate-100"}`} />
@@ -1076,7 +1076,7 @@ function ProductCard({
       className={`group block h-full rounded-[15px] border p-1.5 transition-all duration-500 hover:-translate-y-1 sm:rounded-3xl sm:p-4 ${
         dark
           ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
-          : "border-black/10 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)] hover:border-blue-500/35"
+          : "border-black/10 bg-white shadow-[0_6px_22px_rgba(15,23,42,0.055)] hover:border-blue-500/35"
       }`}
     >
       <div
@@ -1249,7 +1249,7 @@ function NewArrivalCard({
       } ${
         dark
           ? "border-white/10 bg-white/[0.035] shadow-[0_24px_90px_rgba(0,60,255,0.09)] hover:border-blue-500/35"
-          : "border-black/10 bg-white shadow-[0_18px_55px_rgba(15,23,42,0.08)] hover:border-blue-500/35"
+          : "border-black/10 bg-white shadow-[0_8px_24px_rgba(15,23,42,0.06)] hover:border-blue-500/35"
       }`}
     >
       <div className="relative z-10 flex flex-col items-start justify-center p-4 sm:p-6 lg:p-8">
