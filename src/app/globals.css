@@ -121,39 +121,42 @@ body.has-mobile-bottom-nav {
   }
 }
 
-
-/* Единый контрастный дизайн тёмной темы */
+/* Спокойная тёмная тема — блоки немного светлее фона */
 .dark {
-  --muted: rgba(255, 255, 255, 0.72);
-  --muted-soft: rgba(255, 255, 255, 0.52);
-  --card: rgba(10, 20, 36, 0.88);
-  --card-soft: rgba(14, 28, 49, 0.88);
-  --border: rgba(255, 255, 255, 0.20);
-  --blue-soft: rgba(37, 99, 235, 0.22);
+  --muted: rgba(255, 255, 255, 0.66);
+  --muted-soft: rgba(255, 255, 255, 0.46);
+  --card: rgba(7, 17, 31, 0.96);
+  --card-soft: rgba(10, 22, 39, 0.94);
+  --border: rgba(255, 255, 255, 0.13);
+  --blue-soft: rgba(37, 99, 235, 0.10);
 }
 
 .dark .card {
-  border-color: rgba(255, 255, 255, 0.20);
+  border-color: rgba(255, 255, 255, 0.13);
   background:
-    linear-gradient(180deg, rgba(16, 30, 50, 0.94), rgba(8, 18, 33, 0.94));
+    linear-gradient(
+      180deg,
+      rgba(9, 21, 38, 0.96),
+      rgba(6, 15, 28, 0.96)
+    );
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.045),
-    0 16px 44px rgba(0, 0, 0, 0.20);
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 10px 28px rgba(0, 0, 0, 0.14);
 }
 
 .dark .soft-box,
 .dark .bg-blue-soft {
-  border-color: rgba(96, 165, 250, 0.22);
-  background-color: rgba(37, 99, 235, 0.17);
+  border-color: rgba(96, 165, 250, 0.14);
+  background-color: rgba(37, 99, 235, 0.08);
 }
 
 .dark .border-theme {
-  border-color: rgba(255, 255, 255, 0.20);
+  border-color: rgba(255, 255, 255, 0.13);
 }
 
 .dark [class*="border-white/10"],
 .dark [class*="border-white/[0.1]"] {
-  border-color: rgba(255, 255, 255, 0.21) !important;
+  border-color: rgba(255, 255, 255, 0.14) !important;
 }
 
 .dark [class*="bg-white/[0.02]"],
@@ -163,34 +166,34 @@ body.has-mobile-bottom-nav {
 .dark [class*="bg-white/[0.04]"],
 .dark [class*="bg-white/[0.045]"],
 .dark [class*="bg-white/[0.05]"] {
-  background-color: rgba(255, 255, 255, 0.085) !important;
+  background-color: rgba(255, 255, 255, 0.045) !important;
 }
 
 .dark [class*="bg-black/15"],
 .dark [class*="bg-black/20"],
 .dark [class*="bg-black/25"],
 .dark [class*="bg-black/30"] {
-  background-color: rgba(4, 12, 24, 0.62) !important;
+  background-color: rgba(2, 9, 19, 0.52) !important;
 }
 
 .dark [class*="text-white/35"] {
-  color: rgba(255, 255, 255, 0.58) !important;
+  color: rgba(255, 255, 255, 0.50) !important;
 }
 
 .dark [class*="text-white/40"],
 .dark [class*="text-white/45"] {
-  color: rgba(255, 255, 255, 0.68) !important;
+  color: rgba(255, 255, 255, 0.59) !important;
 }
 
 .dark [class*="text-white/50"],
 .dark [class*="text-white/55"] {
-  color: rgba(255, 255, 255, 0.74) !important;
+  color: rgba(255, 255, 255, 0.67) !important;
 }
 
 .dark [class*="text-white/60"],
 .dark [class*="text-white/65"],
 .dark [class*="text-white/70"] {
-  color: rgba(255, 255, 255, 0.84) !important;
+  color: rgba(255, 255, 255, 0.77) !important;
 }
 
 .dark input:not([type="checkbox"]):not([type="radio"]),
@@ -206,8 +209,8 @@ body.has-mobile-bottom-nav {
 .dark textarea[class*="border"],
 .dark .admin-input,
 .dark .admin-textarea {
-  border-color: rgba(255, 255, 255, 0.23) !important;
-  background-color: rgba(5, 14, 28, 0.82) !important;
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  background-color: rgba(4, 13, 25, 0.76) !important;
   color: #ffffff !important;
 }
 
@@ -216,36 +219,36 @@ body.has-mobile-bottom-nav {
 .dark textarea[class*="border"]:focus,
 .dark .admin-input:focus,
 .dark .admin-textarea:focus {
-  border-color: rgba(96, 165, 250, 0.86) !important;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18) !important;
+  border-color: rgba(96, 165, 250, 0.58) !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.10) !important;
 }
 
 .dark input::placeholder,
 .dark textarea::placeholder {
-  color: rgba(255, 255, 255, 0.45) !important;
+  color: rgba(255, 255, 255, 0.38) !important;
 }
 
 .dark button[class*="border"]:not([class*="bg-blue-"]):not([class*="bg-red-"]):not([class*="bg-green-"]),
 .dark a[class*="border"]:not([class*="bg-blue-"]):not([class*="bg-red-"]):not([class*="bg-green-"]) {
-  border-color: rgba(255, 255, 255, 0.25) !important;
-  background-color: rgba(255, 255, 255, 0.10) !important;
-  color: rgba(255, 255, 255, 0.98) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  background-color: rgba(255, 255, 255, 0.055) !important;
+  color: rgba(255, 255, 255, 0.92) !important;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.045),
-    0 8px 24px rgba(0, 0, 0, 0.12);
+    inset 0 1px 0 rgba(255, 255, 255, 0.025),
+    0 5px 16px rgba(0, 0, 0, 0.10);
 }
 
 .dark button[class*="border"]:not([class*="bg-blue-"]):not([class*="bg-red-"]):not([class*="bg-green-"]):hover,
 .dark a[class*="border"]:not([class*="bg-blue-"]):not([class*="bg-red-"]):not([class*="bg-green-"]):hover {
-  border-color: rgba(96, 165, 250, 0.78) !important;
-  background-color: rgba(37, 99, 235, 0.30) !important;
+  border-color: rgba(96, 165, 250, 0.46) !important;
+  background-color: rgba(37, 99, 235, 0.14) !important;
   color: #ffffff !important;
 }
 
 .dark button[class*="border-blue-500"],
 .dark a[class*="border-blue-500"] {
-  border-color: rgba(96, 165, 250, 0.68) !important;
-  background-color: rgba(37, 99, 235, 0.27) !important;
+  border-color: rgba(96, 165, 250, 0.42) !important;
+  background-color: rgba(37, 99, 235, 0.13) !important;
   color: #ffffff !important;
 }
 
@@ -253,18 +256,18 @@ body.has-mobile-bottom-nav {
 .dark section[class*="border"][class*="bg-white/"],
 .dark article[class*="border"][class*="bg-white/"],
 .dark aside[class*="border"][class*="bg-white/"] {
-  border-color: rgba(255, 255, 255, 0.20) !important;
+  border-color: rgba(255, 255, 255, 0.13) !important;
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.035),
-    0 14px 38px rgba(0, 0, 0, 0.16);
+    inset 0 1px 0 rgba(255, 255, 255, 0.02),
+    0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .dark [class*="border-dashed"] {
-  border-color: rgba(255, 255, 255, 0.25) !important;
-  background-color: rgba(255, 255, 255, 0.035);
+  border-color: rgba(255, 255, 255, 0.17) !important;
+  background-color: rgba(255, 255, 255, 0.018);
 }
 
-/* Светлая подложка за товарными изображениями на тёмной теме */
+/* Лёгкое свечение изображений без пересвета карточек */
 .dark img[class*="object-contain"] {
-  filter: drop-shadow(0 12px 24px rgba(70, 130, 255, 0.12));
+  filter: drop-shadow(0 8px 16px rgba(70, 130, 255, 0.07));
 }
