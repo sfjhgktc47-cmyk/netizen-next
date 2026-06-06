@@ -181,9 +181,11 @@ export default function Home({ initialData = {} }: { initialData?: HomePayload }
   // Fallback client-side fetch if server data wasn't provided
   useEffect(() => {
     if (
-      categories.length > 0 ||
-      popularProducts.length > 0 ||
-      banners.length > 0
+      categories.length > 0 &&
+      popularProducts.length > 0 &&
+      banners.length > 0 &&
+      benefits.length > 0 &&
+      homeBlocks.length > 0
     ) return;
 
     let mounted = true;
@@ -196,11 +198,19 @@ export default function Home({ initialData = {} }: { initialData?: HomePayload }
         const na = Array.isArray(payload.newArrivals)
           ? payload.newArrivals
           : all.filter((p) => p.isNew);
-        setCategories(Array.isArray(payload.categories) ? payload.categories : []);
-        setSiteSettings(payload.siteSettings ?? null);
-        setHomeBlocks(Array.isArray(payload.pageBlocks) ? payload.pageBlocks : []);
-        setBanners(Array.isArray(payload.banners) ? payload.banners : []);
-        setBenefits(Array.isArray(payload.benefits) ? payload.benefits : []);
+        if (Array.isArray(payload.categories) && payload.categories.length > 0) {
+          setCategories(payload.categories);
+        }
+        if (payload.siteSettings) setSiteSettings(payload.siteSettings);
+        if (Array.isArray(payload.pageBlocks) && payload.pageBlocks.length > 0) {
+          setHomeBlocks(payload.pageBlocks);
+        }
+        if (Array.isArray(payload.banners) && payload.banners.length > 0) {
+          setBanners(payload.banners);
+        }
+        if (Array.isArray(payload.benefits) && payload.benefits.length > 0) {
+          setBenefits(payload.benefits);
+        }
         setPopularProducts(pop.filter(isConfiguredProduct));
         setNewArrivals(na.filter((p) => p.slug !== "catalog").slice(0, 3));
       })
@@ -209,7 +219,27 @@ export default function Home({ initialData = {} }: { initialData?: HomePayload }
   }, []);
 
   const visibleCategories = categories;
-  const visibleHomeBlocks = (homeBlocks.length ? homeBlocks : defaultHomePageBlocks)
+
+  // Keep saved editor settings, but restore any required default modules that
+  // are missing from the database. Previously, the presence of even one saved
+  // block disabled all defaults, so the benefits module could disappear while
+  // the benefit records themselves still existed.
+  const mergedHomeBlocks = (() => {
+    if (homeBlocks.length === 0) {
+      return defaultHomePageBlocks;
+    }
+
+    const savedTypes = new Set(
+      homeBlocks.map((block) => String(block.type || block.id).trim()),
+    );
+    const missingDefaults = defaultHomePageBlocks.filter(
+      (block) => !savedTypes.has(String(block.type || block.id).trim()),
+    );
+
+    return [...homeBlocks, ...missingDefaults];
+  })();
+
+  const visibleHomeBlocks = mergedHomeBlocks
     .filter((block) => block.enabled)
     .sort((a, b) => a.sortOrder - b.sortOrder);
 
