@@ -72,6 +72,29 @@ type DeliveryOption = {
   address: DeliveryAddress | null;
 };
 
+type DiscountQuote = {
+  subtotal: number;
+  statusDiscount: number;
+  statusLabel: string;
+  statusCode: "new" | "regular" | "vip";
+  promoDiscount: number;
+  promoCode: string;
+  promoName: string;
+  promoValid: boolean;
+  promoMessage: string;
+  discountTotal: number;
+  total: number;
+};
+
+type AddressSuggestion = {
+  value: string;
+  unrestrictedValue: string;
+  city: string;
+  street: string;
+  house: string;
+  fiasId: string;
+};
+
 type StoredProfile = Partial<CustomerData> & {
   addresses?: string[];
   deliveryAddresses?: string[];
@@ -299,6 +322,10 @@ export default function CartPage() {
   const [isOrderSubmitting, setIsOrderSubmitting] = useState(false);
   const [orderError, setOrderError] = useState("");
   const [recentlyAddedSku, setRecentlyAddedSku] = useState("");
+  const [promoInput, setPromoInput] = useState("");
+  const [appliedPromoCode, setAppliedPromoCode] = useState("");
+  const [quote, setQuote] = useState<DiscountQuote | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
 
   useEffect(() => {
     const profile = getSavedProfile();
@@ -308,6 +335,9 @@ export default function CartPage() {
     setDelivery(getStoredDelivery());
     setSavedAddresses(getStoredAddresses(profile));
     setComment(localStorage.getItem("netizen-checkout-comment") ?? "");
+    const storedPromo = localStorage.getItem("netizen-promo-code") ?? "";
+    setPromoInput(storedPromo);
+    setAppliedPromoCode(storedPromo);
 
     fetch("/api/auth/me")
       .then((res) => res.json())
@@ -368,6 +398,46 @@ export default function CartPage() {
     localStorage.setItem("netizen-checkout-comment", comment);
   }, [comment, isCartLoaded]);
 
+  useEffect(() => {
+    if (!isCartLoaded) return;
+    if (!items.length) {
+      setQuote(null);
+      setQuoteLoading(false);
+      return;
+    }
+
+    let active = true;
+    const timeout = window.setTimeout(async () => {
+      setQuoteLoading(true);
+      try {
+        const response = await fetch("/api/checkout/quote", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            items: items.map((item) => ({ sku: item.sku, quantity: item.quantity })),
+            promoCode: appliedPromoCode,
+            phone: normalizeRuPhone(customer.phone),
+          }),
+        });
+        const payload = (await response.json().catch(() => null)) as
+          | { ok?: boolean; quote?: DiscountQuote; error?: string }
+          | null;
+        if (!active) return;
+        if (response.ok && payload?.quote) setQuote(payload.quote);
+        else setQuote(null);
+      } catch {
+        if (active) setQuote(null);
+      } finally {
+        if (active) setQuoteLoading(false);
+      }
+    }, 250);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timeout);
+    };
+  }, [appliedPromoCode, customer.phone, isCartLoaded, items]);
+
   const totalQuantity = useMemo(
     () => items.reduce((sum, item) => sum + item.quantity, 0),
     [items]
@@ -407,7 +477,15 @@ export default function CartPage() {
   const deliveryValidationError = getDeliveryValidationError(delivery);
   const hasGuestContacts = !contactValidationError;
   const hasDelivery = !deliveryValidationError;
-  const canPlaceOrder = hasItems && hasDelivery && (isRegistered || hasGuestContacts);
+  const promoHasError = Boolean(appliedPromoCode && quote && !quote.promoValid);
+  const canPlaceOrder =
+    hasItems &&
+    hasDelivery &&
+    (isRegistered || hasGuestContacts) &&
+    !quoteLoading &&
+    !promoHasError;
+  const payableTotal = quote?.total ?? subtotal;
+  const calculatedSubtotal = quote?.subtotal ?? subtotal;
 
   const deliverySummary = getDeliverySummary(delivery, isRegistered);
   const contactSummary = isRegistered
@@ -490,6 +568,24 @@ export default function CartPage() {
   function clearCart() {
     updateItems([]);
     setItemPendingRemove(null);
+    setPromoInput("");
+    setAppliedPromoCode("");
+    setQuote(null);
+    localStorage.removeItem("netizen-promo-code");
+  }
+
+  function applyPromoCode() {
+    const code = promoInput.trim().toUpperCase();
+    setPromoInput(code);
+    setAppliedPromoCode(code);
+    if (code) localStorage.setItem("netizen-promo-code", code);
+    else localStorage.removeItem("netizen-promo-code");
+  }
+
+  function removePromoCode() {
+    setPromoInput("");
+    setAppliedPromoCode("");
+    localStorage.removeItem("netizen-promo-code");
   }
 
   function getAddressText(address: DeliveryAddress | null | undefined) {
@@ -594,6 +690,7 @@ export default function CartPage() {
             title: delivery.deliveryTitle || (delivery.method === "pickup" ? "ПВЗ / самовывоз" : "Курьерская доставка"),
           },
           comment,
+          promoCode: appliedPromoCode,
           items,
         }),
       });
@@ -625,7 +722,11 @@ export default function CartPage() {
         comment,
         items,
         totalQuantity,
-        subtotal,
+        subtotal: calculatedSubtotal,
+        statusDiscount: quote?.statusDiscount ?? 0,
+        promoDiscount: quote?.promoDiscount ?? 0,
+        promoCode: quote?.promoCode ?? "",
+        total: payableTotal,
       };
 
       localStorage.setItem("netizen-last-order", JSON.stringify(order));
@@ -919,7 +1020,7 @@ export default function CartPage() {
             <div className="mt-3 space-y-2 text-xs text-muted sm:mt-6 sm:space-y-4 sm:text-base">
               <div className="flex justify-between gap-4">
                 <span>Товары</span>
-                <span className="text-main">{formatPrice(subtotal)}</span>
+                <span className="text-main">{formatPrice(calculatedSubtotal)}</span>
               </div>
 
               <div className="flex justify-between gap-4">
@@ -939,22 +1040,79 @@ export default function CartPage() {
                 </div>
               )}
 
+              {quote?.statusDiscount ? (
+                <div className="flex justify-between gap-4 text-green-500">
+                  <span>Скидка · {quote.statusLabel}</span>
+                  <span>−{formatPrice(quote.statusDiscount)}</span>
+                </div>
+              ) : null}
+
+              {quote?.promoDiscount ? (
+                <div className="flex justify-between gap-4 text-green-500">
+                  <span>Промокод {quote.promoCode}</span>
+                  <span>−{formatPrice(quote.promoDiscount)}</span>
+                </div>
+              ) : null}
+
               <div className="flex justify-between gap-4">
                 <span>Оплата</span>
                 <span className="text-main">наличными</span>
               </div>
             </div>
 
+            <div className="mt-5 rounded-2xl border border-theme bg-blue-soft p-3 sm:p-4">
+              <div className="text-sm font-semibold text-main">Промокод</div>
+              <div className="mt-2 flex gap-2">
+                <input
+                  value={promoInput}
+                  onChange={(event) => setPromoInput(event.target.value.toUpperCase())}
+                  onKeyDown={(event) => {
+                    if (event.key === "Enter") {
+                      event.preventDefault();
+                      applyPromoCode();
+                    }
+                  }}
+                  placeholder="Введите промокод"
+                  className="min-w-0 flex-1 rounded-xl border border-theme bg-transparent px-3 py-2.5 text-sm uppercase outline-none placeholder:normal-case placeholder:text-muted-soft focus:border-blue-500/50"
+                />
+                <button
+                  type="button"
+                  onClick={applyPromoCode}
+                  disabled={quoteLoading}
+                  className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-60"
+                >
+                  {quoteLoading ? "…" : "Применить"}
+                </button>
+              </div>
+
+              {appliedPromoCode ? (
+                <div className={`mt-2 flex items-start justify-between gap-3 text-xs ${quote?.promoValid ? "text-green-500" : "text-red-500"}`}>
+                  <span>{quoteLoading ? "Проверяем промокод…" : quote?.promoMessage || "Промокод проверяется."}</span>
+                  <button type="button" onClick={removePromoCode} className="shrink-0 underline underline-offset-2">
+                    Убрать
+                  </button>
+                </div>
+              ) : (
+                <p className="mt-2 text-xs leading-relaxed text-muted-soft">
+                  Условия промокода проверяются на сервере: сумма заказа, статус клиента, история покупок и лимиты.
+                </p>
+              )}
+            </div>
+
             <div className="mt-4 border-t border-theme pt-4 sm:mt-6 sm:pt-6">
               <div className="flex justify-between gap-4 text-base font-bold sm:text-xl">
                 <span>К оплате</span>
-                <span>{formatPrice(subtotal)}</span>
+                <span>{formatPrice(payableTotal)}</span>
               </div>
             </div>
 
             {!canPlaceOrder && (
               <div className="mt-4 rounded-2xl border border-orange-500/30 bg-orange-500/10 p-3 text-xs text-orange-500 sm:p-4 sm:text-sm">
-                {getMissingText(hasDelivery, isRegistered, hasGuestContacts)}
+                {promoHasError
+                  ? quote?.promoMessage
+                  : quoteLoading
+                    ? "Пересчитываем скидки…"
+                    : getMissingText(hasDelivery, isRegistered, hasGuestContacts)}
               </div>
             )}
 
@@ -1059,12 +1217,34 @@ export default function CartPage() {
 
                   {isAddingAddress ? (
                     <div className="rounded-2xl border border-theme bg-blue-soft p-4">
-                      <input
+                      <div className="grid gap-3 md:grid-cols-[180px_1fr]">
+                        <input
+                          value={delivery.city}
+                          onChange={(event) =>
+                            setDelivery((current) => ({
+                              ...current,
+                              method: "courier",
+                              city: event.target.value,
+                            }))
+                          }
+                          placeholder="Город"
+                          className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+                        />
+                      <AddressSuggestionInput
                         value={newAddress}
-                        onChange={(event) => setNewAddress(event.target.value)}
-                        placeholder="Новый адрес доставки"
-                        className="h-12 w-full rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+                        city={delivery.city}
+                        placeholder="Начните вводить улицу и дом"
+                        onChange={setNewAddress}
+                        onSelect={(suggestion) => {
+                          setNewAddress(suggestion.value);
+                          setDelivery((current) => ({
+                            ...current,
+                            method: "courier",
+                            city: suggestion.city || current.city,
+                          }));
+                        }}
                       />
+                      </div>
 
                       <div className="mt-3 flex gap-3">
                         <button
@@ -1116,13 +1296,27 @@ export default function CartPage() {
                       className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
                     />
 
-                    <input
+                    <AddressSuggestionInput
                       value={delivery.address}
-                      onChange={(event) =>
-                        setDelivery((current) => ({ ...current, method: "courier", address: event.target.value, savedAddress: "" }))
-                      }
+                      city={delivery.city}
                       placeholder="Улица, дом, квартира"
-                      className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+                      onChange={(value) =>
+                        setDelivery((current) => ({
+                          ...current,
+                          method: "courier",
+                          address: value,
+                          savedAddress: "",
+                        }))
+                      }
+                      onSelect={(suggestion) =>
+                        setDelivery((current) => ({
+                          ...current,
+                          method: "courier",
+                          city: suggestion.city || current.city,
+                          address: suggestion.value,
+                          savedAddress: "",
+                        }))
+                      }
                     />
                   </div>
                 </>
@@ -1237,6 +1431,105 @@ export default function CartPage() {
         </Modal>
       )}
     </main>
+  );
+}
+
+function AddressSuggestionInput({
+  value,
+  city,
+  placeholder,
+  onChange,
+  onSelect,
+}: {
+  value: string;
+  city: string;
+  placeholder: string;
+  onChange: (value: string) => void;
+  onSelect: (suggestion: AddressSuggestion) => void;
+}) {
+  const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  useEffect(() => {
+    const query = value.trim();
+    if (query.length < 3) {
+      setSuggestions([]);
+      setOpen(false);
+      return;
+    }
+
+    let active = true;
+    const timeout = window.setTimeout(async () => {
+      setLoading(true);
+      try {
+        const response = await fetch("/api/address-suggestions", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ query, city }),
+        });
+        const payload = (await response.json().catch(() => null)) as
+          | { suggestions?: AddressSuggestion[] }
+          | null;
+        if (!active) return;
+        const next = Array.isArray(payload?.suggestions) ? payload.suggestions : [];
+        setSuggestions(next);
+        setOpen(next.length > 0);
+      } catch {
+        if (active) {
+          setSuggestions([]);
+          setOpen(false);
+        }
+      } finally {
+        if (active) setLoading(false);
+      }
+    }, 300);
+
+    return () => {
+      active = false;
+      window.clearTimeout(timeout);
+    };
+  }, [city, value]);
+
+  return (
+    <div className="relative min-w-0">
+      <input
+        value={value}
+        onChange={(event) => {
+          onChange(event.target.value);
+          setOpen(true);
+        }}
+        onFocus={() => setOpen(suggestions.length > 0)}
+        onBlur={() => window.setTimeout(() => setOpen(false), 150)}
+        placeholder={placeholder}
+        autoComplete="street-address"
+        className="h-12 w-full rounded-xl border border-theme bg-transparent px-4 pr-10 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+      />
+      {loading ? (
+        <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-soft">…</span>
+      ) : null}
+      {open && suggestions.length ? (
+        <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 max-h-72 overflow-y-auto rounded-2xl border border-theme bg-card p-1 shadow-[0_18px_50px_rgba(2,8,20,0.22)]">
+          {suggestions.map((suggestion) => (
+            <button
+              key={`${suggestion.fiasId}-${suggestion.value}`}
+              type="button"
+              onMouseDown={(event) => event.preventDefault()}
+              onClick={() => {
+                onSelect(suggestion);
+                setOpen(false);
+              }}
+              className="block w-full rounded-xl px-3 py-3 text-left text-sm transition-colors hover:bg-blue-soft"
+            >
+              <span className="font-medium text-main">{suggestion.value}</span>
+              {suggestion.house ? (
+                <span className="mt-1 block text-xs text-muted-soft">Дом найден в ФИАС</span>
+              ) : null}
+            </button>
+          ))}
+        </div>
+      ) : null}
+    </div>
   );
 }
 

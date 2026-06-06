@@ -48,11 +48,52 @@ export function normalizeCustomerStatusRules(value: unknown): CustomerStatusRule
     numberValue(raw.vipOrders, defaultCustomerStatusRules.vipOrders, 1, 1000),
   );
 
+  const discountType = (value: unknown, fallback: "percent" | "fixed") =>
+    value === "fixed" || value === "percent" ? value : fallback;
+  const combinationMode = raw.discountCombinationMode === "best" ? "best" : "stack";
+
   return {
     minOrderTotal: numberValue(raw.minOrderTotal, defaultCustomerStatusRules.minOrderTotal, 0, 100_000_000),
     regularOrders,
     vipOrders,
     vipTotalSpent: numberValue(raw.vipTotalSpent, defaultCustomerStatusRules.vipTotalSpent, 1, 1_000_000_000),
+    regularDiscountEnabled:
+      typeof raw.regularDiscountEnabled === "boolean"
+        ? raw.regularDiscountEnabled
+        : defaultCustomerStatusRules.regularDiscountEnabled,
+    regularDiscountType: discountType(raw.regularDiscountType, defaultCustomerStatusRules.regularDiscountType),
+    regularDiscountValue: numberValue(raw.regularDiscountValue, defaultCustomerStatusRules.regularDiscountValue, 0, 100_000_000),
+    regularDiscountMinOrderTotal: numberValue(
+      raw.regularDiscountMinOrderTotal,
+      defaultCustomerStatusRules.regularDiscountMinOrderTotal,
+      0,
+      100_000_000,
+    ),
+    regularDiscountMinItemPrice: numberValue(
+      raw.regularDiscountMinItemPrice,
+      defaultCustomerStatusRules.regularDiscountMinItemPrice,
+      0,
+      100_000_000,
+    ),
+    vipDiscountEnabled:
+      typeof raw.vipDiscountEnabled === "boolean"
+        ? raw.vipDiscountEnabled
+        : defaultCustomerStatusRules.vipDiscountEnabled,
+    vipDiscountType: discountType(raw.vipDiscountType, defaultCustomerStatusRules.vipDiscountType),
+    vipDiscountValue: numberValue(raw.vipDiscountValue, defaultCustomerStatusRules.vipDiscountValue, 0, 100_000_000),
+    vipDiscountMinOrderTotal: numberValue(
+      raw.vipDiscountMinOrderTotal,
+      defaultCustomerStatusRules.vipDiscountMinOrderTotal,
+      0,
+      100_000_000,
+    ),
+    vipDiscountMinItemPrice: numberValue(
+      raw.vipDiscountMinItemPrice,
+      defaultCustomerStatusRules.vipDiscountMinItemPrice,
+      0,
+      100_000_000,
+    ),
+    discountCombinationMode: combinationMode,
   };
 }
 

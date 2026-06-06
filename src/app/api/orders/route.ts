@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getAuthSession } from "@/lib/auth";
 import { getPriceNumber } from "@/lib/product-pricing";
+import { getCheckoutQuote } from "@/lib/checkout-discounts";
 import {
   normalizeEmailStrict,
   normalizeRuPhone,
@@ -34,6 +36,7 @@ type IncomingOrderBody = {
     title?: string;
   };
   comment?: string;
+  promoCode?: string;
   items?: IncomingOrderItem[];
 };
 
@@ -150,19 +153,16 @@ export async function POST(request: Request) {
       };
     });
 
-    const invalidItem = preparedItems.find((item) => !item.sku || item.price <= 0);
+    const invalidItem = preparedItems.find(
+      (item) => !item.sku || !item.variantId || item.price <= 0,
+    );
 
     if (invalidItem) {
       return NextResponse.json(
-        { ok: false, error: "В корзине есть позиция без SKU или цены." },
+        { ok: false, error: "Одна из позиций не найдена в каталоге или не имеет корректной цены." },
         { status: 400 }
       );
     }
-
-    const total = preparedItems.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0
-    );
 
     const customer = session?.role === "customer" && session.customerId
       ? await prisma.customer.findUnique({ where: { id: session.customerId } })
@@ -214,39 +214,73 @@ export async function POST(request: Request) {
       }
     }
 
-    const order = await prisma.order.create({
-      data: {
-        publicId: await generateOrderPublicId(),
-        customerId: savedCustomer.id,
-        customerName,
-        phone,
-        email,
-        deliveryType: deliveryMethod,
-        address,
-        pickupPoint,
-        total,
-        comment,
-        status: "new",
-        items: {
-          create: preparedItems.map((item) => ({
-            productId: item.productId,
-            variantId: item.variantId,
-            title: item.title,
-            productTitle: item.productTitle,
-            brand: item.brand,
-            sku: item.sku,
-            memory: item.memory,
-            color: item.color,
-            sim: item.sim,
-            image: item.image,
-            quantity: item.quantity,
-            price: item.price,
-          })),
-        },
-      },
-      include: {
-        items: true,
-      },
+    const requestedPromoCode = normalizeText(body.promoCode).toUpperCase();
+    const quote = await getCheckoutQuote({
+      items: preparedItems.map((item) => ({ sku: item.sku, quantity: item.quantity })),
+      promoCode: requestedPromoCode,
+      customerId: savedCustomer.id,
+      phone,
+    });
+
+    if (requestedPromoCode && !quote.promoValid) {
+      return NextResponse.json(
+        { ok: false, error: quote.promoMessage || "Промокод больше не действует." },
+        { status: 400 },
+      );
+    }
+
+    const order = await prisma.$transaction(async (tx) => {
+      const created = await tx.order.create({
+        data: ({
+          publicId: await generateOrderPublicId(),
+          customerId: savedCustomer.id,
+          customerName,
+          phone,
+          email,
+          deliveryType: deliveryMethod,
+          address,
+          pickupPoint,
+          subtotal: quote.subtotal,
+          statusDiscount: quote.statusDiscount,
+          promoDiscount: quote.promoDiscount,
+          promoCode: quote.promoCode,
+          discountTotal: quote.discountTotal,
+          total: quote.total,
+          comment,
+          status: "new",
+          items: {
+            create: preparedItems.map((item) => ({
+              productId: item.productId,
+              variantId: item.variantId,
+              title: item.title,
+              productTitle: item.productTitle,
+              brand: item.brand,
+              sku: item.sku,
+              memory: item.memory,
+              color: item.color,
+              sim: item.sim,
+              image: item.image,
+              quantity: item.quantity,
+              price: item.price,
+            })),
+          },
+        } as any),
+        include: { items: true },
+      });
+
+      if (quote.promoId && quote.promoDiscount > 0) {
+        await (tx as any).promoCodeUsage.create({
+          data: {
+            promoCodeId: quote.promoId,
+            customerId: savedCustomer.id,
+            orderId: created.id,
+            code: quote.promoCode,
+            discount: quote.promoDiscount,
+          },
+        });
+      }
+
+      return created;
     });
 
     return NextResponse.json({

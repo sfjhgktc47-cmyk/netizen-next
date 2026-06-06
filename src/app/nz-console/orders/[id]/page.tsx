@@ -23,6 +23,13 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
   const deliveryValue = order.deliveryType === "pickup"
     ? order.pickupPoint || "ПВЗ не указан"
     : order.address || "Адрес не указан";
+  const discountData = order as typeof order & {
+    subtotal?: number;
+    statusDiscount?: number;
+    promoDiscount?: number;
+    promoCode?: string;
+    discountTotal?: number;
+  };
 
   return (
     <main className="min-h-screen bg-[#020814] px-4 py-5 text-white sm:px-6 sm:py-6">
@@ -50,7 +57,28 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
               <InfoCard label="Клиент" value={order.customerName} hint={order.phone} />
               <InfoCard label="Получение" value={getDeliveryLabel(order.deliveryType)} hint={deliveryValue} />
               <InfoCard label="Ответственный" value={order.assignedToName || "Не назначен"} />
-              <InfoCard label="Сумма" value={formatAdminPrice(order.total)} />
+              <InfoCard
+                label="Сумма"
+                value={formatAdminPrice(order.total)}
+                hint={
+                  discountData.discountTotal
+                    ? `До скидок: ${formatAdminPrice(discountData.subtotal || order.total)}`
+                    : undefined
+                }
+              />
+              {discountData.discountTotal ? (
+                <InfoCard
+                  label="Скидки"
+                  value={`−${formatAdminPrice(discountData.discountTotal)}`}
+                  hint={
+                    discountData.promoCode
+                      ? `Промокод: ${discountData.promoCode}`
+                      : discountData.statusDiscount
+                        ? "Скидка по статусу клиента"
+                        : undefined
+                  }
+                />
+              ) : null}
             </div>
           </div>
 

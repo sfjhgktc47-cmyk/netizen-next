@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 
 import { getAuthSession, normalizeText } from "@/lib/auth";
@@ -152,7 +153,7 @@ export async function POST(request: Request) {
 
     const total = preparedItems.reduce((sum, item) => sum + item.price * item.quantity, 0);
     const order = await prisma.order.create({
-      data: {
+      data: ({
         publicId: await generatePublicId(),
         customerId: savedCustomer.id,
         customerName,
@@ -162,6 +163,11 @@ export async function POST(request: Request) {
         address: deliveryType === "courier" ? address : "",
         pickupPoint: deliveryType === "pickup" ? pickupPoint : "",
         paymentMethod,
+        subtotal: total,
+        statusDiscount: 0,
+        promoDiscount: 0,
+        promoCode: "",
+        discountTotal: 0,
         total,
         status,
         comment,
@@ -177,7 +183,7 @@ export async function POST(request: Request) {
             details: `Товаров: ${preparedItems.length}. Ответственный: ${assignee?.name || assignee?.login || "не назначен"}.`,
           },
         },
-      },
+      } as any),
     });
 
     return NextResponse.json({ ok: true, order: { id: order.id, publicId: order.publicId } }, { status: 201 });

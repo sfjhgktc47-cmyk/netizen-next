@@ -56,7 +56,9 @@ export function isValidEmail(value: unknown) {
 export function validateCourierAddress(cityValue: unknown, addressValue: unknown) {
   const city = typeof cityValue === "string" ? cityValue.trim() : "";
   const address = typeof addressValue === "string" ? addressValue.trim() : "";
-  const combined = [city, address].filter(Boolean).join(", ");
+  const combined = city && !address.toLowerCase().includes(city.toLowerCase())
+    ? [city, address].filter(Boolean).join(", ")
+    : address || city;
 
   if (city.length < 2) {
     return {

@@ -33,6 +33,13 @@ type ProductDetailViewProps = {
   similarProducts?: ProductCard[];
 };
 
+type PositionDiscountQuote = {
+  subtotal: number;
+  statusDiscount: number;
+  statusLabel: string;
+  total: number;
+};
+
 type ProductReviewItem = {
   id: string;
   rating: number;
@@ -176,6 +183,7 @@ export function ProductDetailView({
   const [isFavorite, setIsFavorite] = useState(false);
   const [showConfigEditor, setShowConfigEditor] = useState(false);
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  const [positionDiscountQuote, setPositionDiscountQuote] = useState<PositionDiscountQuote | null>(null);
   const [community, setCommunity] = useState<ProductCommunity | null>(null);
   const [communityLoading, setCommunityLoading] = useState(true);
   const [showQuestionForm, setShowQuestionForm] = useState(false);
@@ -299,6 +307,31 @@ export function ProductDetailView({
   useEffect(() => {
     setActiveImageIndex(0);
   }, [previewPosition?.sku, product.slug]);
+
+  useEffect(() => {
+    if (!activePosition?.sku) {
+      setPositionDiscountQuote(null);
+      return;
+    }
+
+    let active = true;
+    fetch("/api/checkout/quote", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ items: [{ sku: activePosition.sku, quantity: 1 }] }),
+    })
+      .then((response) => response.json())
+      .then((payload: { quote?: PositionDiscountQuote }) => {
+        if (active) setPositionDiscountQuote(payload.quote ?? null);
+      })
+      .catch(() => {
+        if (active) setPositionDiscountQuote(null);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [activePosition?.sku]);
 
   async function loadCommunity() {
     setCommunityLoading(true);
@@ -1235,15 +1268,24 @@ export function ProductDetailView({
                 <div className="mt-5 border-t border-theme pt-5 sm:mt-8 sm:pt-7">
                   <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
                     <div>
-                      {activePosition.oldPrice && (
+                      {(activePosition.oldPrice || (positionDiscountQuote?.statusDiscount ?? 0) > 0) && (
                         <div className="text-sm text-muted line-through">
-                          {activePosition.oldPrice}
+                          {positionDiscountQuote?.statusDiscount
+                            ? activePosition.price
+                            : activePosition.oldPrice}
                         </div>
                       )}
 
                       <div className="mt-1 text-[28px] font-bold tracking-[-0.045em] sm:text-4xl">
-                        {activePosition.price}
+                        {positionDiscountQuote?.statusDiscount
+                          ? formatPrice(positionDiscountQuote.total)
+                          : activePosition.price}
                       </div>
+                      {positionDiscountQuote?.statusDiscount ? (
+                        <div className="mt-1 text-xs font-medium text-green-500 sm:text-sm">
+                          Ваша цена · {positionDiscountQuote.statusLabel} · скидка {formatPrice(positionDiscountQuote.statusDiscount)}
+                        </div>
+                      ) : null}
                     </div>
 
                     {activePosition.stock > 0 ? (

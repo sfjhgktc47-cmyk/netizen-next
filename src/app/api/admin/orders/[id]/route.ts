@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 
 import { getAuthSession, normalizeText } from "@/lib/auth";
@@ -155,6 +156,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
       if (preparedItems) {
         await tx.orderItem.deleteMany({ where: { orderId: order.id } });
+        await (tx as any).promoCodeUsage.deleteMany({ where: { orderId: order.id } });
         await tx.orderItem.createMany({
           data: preparedItems.map((item) => ({ orderId: order.id, ...item })),
         });
@@ -166,7 +168,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
 
       const savedOrder = await tx.order.update({
         where: { id: order.id },
-        data: {
+        data: ({
           customerId: savedCustomer.id,
           customerName,
           phone,
@@ -175,13 +177,20 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           address: deliveryType === "courier" ? address : "",
           pickupPoint: deliveryType === "pickup" ? pickupPoint : "",
           paymentMethod,
+          subtotal: preparedItems
+            ? total
+            : Number((order as any).subtotal || order.total),
+          statusDiscount: preparedItems ? 0 : Number((order as any).statusDiscount || 0),
+          promoDiscount: preparedItems ? 0 : Number((order as any).promoDiscount || 0),
+          promoCode: preparedItems ? "" : String((order as any).promoCode || ""),
+          discountTotal: preparedItems ? 0 : Number((order as any).discountTotal || 0),
           total,
           status,
           comment,
           managerComment,
           assignedToId: assignee?.id ?? null,
           assignedToName: assignee?.name || assignee?.login || "",
-        },
+        } as any),
       });
 
       await tx.orderChange.create({

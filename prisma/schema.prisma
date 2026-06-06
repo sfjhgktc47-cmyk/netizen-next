@@ -131,6 +131,7 @@ model Customer {
   updatedAt   DateTime  @updatedAt
 
   orders      Order[]
+  promoUsages PromoCodeUsage[]
   addresses   Address[]
   tickets     SupportRequest[]
   favorites   CustomerFavorite[]
@@ -256,6 +257,11 @@ model Order {
   address        String       @default("")
   pickupPoint    String       @default("")
   paymentMethod  String       @default("cash")
+  subtotal       Int          @default(0)
+  statusDiscount Int          @default(0)
+  promoDiscount  Int          @default(0)
+  promoCode      String       @default("")
+  discountTotal  Int          @default(0)
   total          Int
   status         OrderStatus  @default(new)
   comment        String       @default("")
@@ -270,6 +276,7 @@ model Order {
   items          OrderItem[]
   changes        OrderChange[]
   supportRequests SupportRequest[]
+  promoUsage      PromoCodeUsage?
 
   @@index([status, createdAt])
   @@index([phone])
@@ -310,6 +317,52 @@ model OrderChange {
   order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
 
   @@index([orderId, createdAt])
+}
+
+
+model PromoCode {
+  id                      String           @id @default(cuid())
+  code                    String           @unique
+  name                    String
+  description             String           @default("")
+  discountType            String           @default("percent")
+  discountValue           Int
+  maxDiscount             Int              @default(0)
+  minOrderTotal           Int              @default(0)
+  minItemPrice            Int              @default(0)
+  startsAt                DateTime?
+  endsAt                  DateTime?
+  usageLimit              Int              @default(0)
+  perCustomerLimit        Int              @default(1)
+  firstOrderOnly          Boolean          @default(false)
+  minCompletedOrders      Int              @default(0)
+  minTotalSpent           Int              @default(0)
+  conditionMode           String           @default("all")
+  allowedStatuses         String[]         @default([])
+  allowWithStatusDiscount Boolean          @default(true)
+  active                  Boolean          @default(true)
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+  usages                  PromoCodeUsage[]
+
+  @@index([active, startsAt, endsAt])
+}
+
+model PromoCodeUsage {
+  id          String    @id @default(cuid())
+  promoCodeId String
+  customerId  String?
+  orderId     String    @unique
+  code        String
+  discount    Int
+  createdAt   DateTime  @default(now())
+
+  promoCode   PromoCode @relation(fields: [promoCodeId], references: [id], onDelete: Cascade)
+  customer    Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  order       Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([promoCodeId, customerId])
+  @@index([code, createdAt])
 }
 
 model SupportRequest {
