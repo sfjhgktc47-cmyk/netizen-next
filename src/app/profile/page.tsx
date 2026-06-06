@@ -686,7 +686,7 @@ export default function ProfilePage() {
                     key={tier.id}
                     className="rounded-xl border border-theme bg-transparent px-3 py-2 text-xs text-muted"
                   >
-                    От {formatPrice(tier.minOrderTotal)} →{" "}
+                    От {formatPrice(tier.minOrderTotal)} —{" "}
                     <b className="text-main">{formatDiscountValue(tier)}</b>
                   </span>
                 ))}
@@ -717,7 +717,7 @@ export default function ProfilePage() {
                   <h2 className="mt-1 text-xl font-bold sm:text-2xl">Последние заявки</h2>
                 </div>
 
-                <Link href="/cart" className="text-sm font-medium text-blue-500 hover:text-blue-400">
+                <Link href="/cart" className="inline-flex min-h-9 items-center justify-center rounded-xl border border-theme bg-card px-3.5 py-2 text-xs font-semibold text-main transition-colors hover:border-blue-500/40 hover:bg-blue-soft hover:text-blue-500">
                   Новая
                 </Link>
               </div>
@@ -764,7 +764,7 @@ export default function ProfilePage() {
                   <h2 className="mt-1 text-xl font-bold sm:text-2xl">Сохранённые товары</h2>
                 </div>
 
-                <Link href="/catalog" className="text-sm font-medium text-blue-500 hover:text-blue-400">
+                <Link href="/catalog" className="inline-flex min-h-9 items-center justify-center rounded-xl border border-theme bg-card px-3.5 py-2 text-xs font-semibold text-main transition-colors hover:border-blue-500/40 hover:bg-blue-soft hover:text-blue-500">
                   Каталог
                 </Link>
               </div>
@@ -820,7 +820,7 @@ export default function ProfilePage() {
                   <h2 className="mt-1 text-xl font-bold sm:text-2xl">Последние обращения</h2>
                 </div>
 
-                <Link href="/help" className="text-sm font-medium text-blue-500 hover:text-blue-400">
+                <Link href="/help" className="inline-flex min-h-9 items-center justify-center rounded-xl border border-theme bg-card px-3.5 py-2 text-xs font-semibold text-main transition-colors hover:border-blue-500/40 hover:bg-blue-soft hover:text-blue-500">
                   Написать
                 </Link>
               </div>
@@ -919,19 +919,19 @@ export default function ProfilePage() {
               <div className="mt-3 grid gap-2">
                 <Link
                   href="/catalog"
-                  className="rounded-xl border border-theme px-4 py-3 text-center text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
+                  className="flex min-h-11 items-center justify-center rounded-xl border border-theme bg-card px-4 py-3 text-center text-sm font-semibold transition-colors hover:border-blue-500/40 hover:bg-blue-soft hover:text-blue-500"
                 >
                   Каталог
                 </Link>
                 <Link
                   href="/cart"
-                  className="rounded-xl border border-theme px-4 py-3 text-center text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
+                  className="flex min-h-11 items-center justify-center rounded-xl border border-theme bg-card px-4 py-3 text-center text-sm font-semibold transition-colors hover:border-blue-500/40 hover:bg-blue-soft hover:text-blue-500"
                 >
                   Корзина
                 </Link>
                 <Link
                   href="/help"
-                  className="rounded-xl border border-theme px-4 py-3 text-center text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
+                  className="flex min-h-11 items-center justify-center rounded-xl border border-theme bg-card px-4 py-3 text-center text-sm font-semibold transition-colors hover:border-blue-500/40 hover:bg-blue-soft hover:text-blue-500"
                 >
                   Поддержка
                 </Link>
@@ -1199,8 +1199,11 @@ function SummaryCard({
       <div className="mt-2 text-2xl font-bold tracking-[-0.04em]">{value}</div>
       {hint ? <div className="mt-1 text-xs text-muted">{hint}</div> : null}
       {href && action ? (
-        <Link href={href} className="mt-3 inline-flex text-xs font-medium text-blue-500 hover:text-blue-400">
-          {action} →
+        <Link
+          href={href}
+          className="mt-3 inline-flex min-h-9 items-center justify-center rounded-xl border border-theme bg-card px-3.5 py-2 text-xs font-semibold text-main transition-colors hover:border-blue-500/40 hover:bg-blue-soft hover:text-blue-500"
+        >
+          {action}
         </Link>
       ) : null}
     </div>
@@ -1222,8 +1225,11 @@ function CompactEmpty({
     <div className="mt-4 rounded-2xl border border-dashed border-theme px-4 py-5">
       <div className="font-bold">{title}</div>
       <p className="mt-1 text-sm leading-relaxed text-muted">{text}</p>
-      <Link href={href} className="mt-3 inline-flex text-sm font-medium text-blue-500 hover:text-blue-400">
-        {action} →
+      <Link
+        href={href}
+        className="mt-3 inline-flex min-h-10 items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+      >
+        {action}
       </Link>
     </div>
   );

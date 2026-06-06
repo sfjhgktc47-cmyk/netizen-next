@@ -617,19 +617,21 @@ export function SiteHeader() {
                 {getUserInitial(authUser)}
               </Link>
 
-              <button
-                type="button"
-                onClick={logout}
-                aria-label="Выйти из аккаунта"
-                title="Выйти"
-                className={`hidden h-11 rounded-xl border px-4 text-sm font-medium transition-all duration-300 sm:inline-flex sm:items-center ${
-                  dark
-                    ? "border-white/10 bg-white/[0.03] text-white hover:border-red-500/40 hover:bg-red-500/10"
-                    : "border-black/10 bg-white text-[#07111f] hover:border-red-500/40 hover:bg-red-50"
-                }`}
-              >
-                Выйти
-              </button>
+              {!pathname.startsWith("/profile") ? (
+                <button
+                  type="button"
+                  onClick={logout}
+                  aria-label="Выйти из аккаунта"
+                  title="Выйти"
+                  className={`hidden h-11 rounded-xl border px-4 text-sm font-medium transition-all duration-300 sm:inline-flex sm:items-center ${
+                    dark
+                      ? "border-white/10 bg-white/[0.03] text-white hover:border-red-500/40 hover:bg-red-500/10"
+                      : "border-black/10 bg-white text-[#07111f] hover:border-red-500/40 hover:bg-red-50"
+                  }`}
+                >
+                  Выйти
+                </button>
+              ) : null}
             </div>
           ) : (
             <button
