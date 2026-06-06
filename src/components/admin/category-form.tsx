@@ -281,7 +281,7 @@ export function CategoryForm({ category }: Props) {
             disabled={loading}
             className="mt-6 w-full rounded-xl bg-blue-600 px-5 py-4 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {loading ? "Сохраняю..." : isEditing ? "Сохранить изменения" : "Создать категорию →"}
+            {loading ? "Сохраняю..." : isEditing ? "Сохранить изменения" : "Создать категорию"}
           </button>
 
           <Link

@@ -472,7 +472,7 @@ export default function ProfilePage() {
                   onClick={() => openAuthModal("login")}
                   className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-500 sm:px-6 sm:py-3.5"
                 >
-                  Войти →
+                  Войти
                 </button>
 
                 <button
@@ -718,7 +718,7 @@ export default function ProfilePage() {
                 </div>
 
                 <Link href="/cart" className="text-sm font-medium text-blue-500 hover:text-blue-400">
-                  Новая →
+                  Новая
                 </Link>
               </div>
 
@@ -765,7 +765,7 @@ export default function ProfilePage() {
                 </div>
 
                 <Link href="/catalog" className="text-sm font-medium text-blue-500 hover:text-blue-400">
-                  Каталог →
+                  Каталог
                 </Link>
               </div>
 
@@ -821,7 +821,7 @@ export default function ProfilePage() {
                 </div>
 
                 <Link href="/help" className="text-sm font-medium text-blue-500 hover:text-blue-400">
-                  Написать →
+                  Написать
                 </Link>
               </div>
 
@@ -908,7 +908,7 @@ export default function ProfilePage() {
                 href="/cart"
                 className="mt-4 flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500"
               >
-                Перейти в корзину →
+                Перейти в корзину
               </Link>
             </section>
 

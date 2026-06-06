@@ -117,7 +117,7 @@ export function ProductDescriptionBlocksEditor({ value, onChange }: Props) {
           onClick={() => onChange([...blocks, createBlock()])}
           className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
         >
-          Добавить блок →
+          Добавить блок
         </button>
       </div>
 

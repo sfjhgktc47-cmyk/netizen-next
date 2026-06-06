@@ -225,7 +225,7 @@ export default async function AdminPositionsPage({
             href="/"
             className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
           >
-            На сайт →
+            На сайт
           </Link>
         </header>
 
@@ -252,7 +252,7 @@ export default async function AdminPositionsPage({
                 href="/nz-console/positions/new"
                 className="rounded-xl bg-blue-600 px-7 py-4 text-sm font-medium text-white transition-colors hover:bg-blue-500"
               >
-                Добавить позицию →
+                Добавить позицию
               </Link>
             </div>
           </div>

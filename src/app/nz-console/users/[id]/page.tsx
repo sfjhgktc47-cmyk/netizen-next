@@ -60,7 +60,7 @@ export default async function AdminCustomerDetailPage({
             href="/nz-console/users"
             className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
           >
-            К клиентам →
+            К клиентам
           </Link>
         </header>
 

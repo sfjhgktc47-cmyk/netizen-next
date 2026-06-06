@@ -46,7 +46,7 @@ const defaultBlocks: NewPageBlock[] = [
     settings: {
       title: "Новые поступления",
       subtitle: "Самые свежие модели и конфигурации",
-      buttonText: "В каталог →",
+      buttonText: "В каталог",
       buttonHref: "/catalog?new=1",
     },
   },
@@ -162,7 +162,7 @@ function NewPageModule({
           </div>
           {getBoolean(settings, "showButton", false) ? (
             <Link href={getText(settings, "buttonHref", "/catalog?new=1")} className={`rounded-xl border px-6 py-3 text-sm font-medium ${dark ? "border-white/10 bg-white/[0.035]" : "border-black/10 bg-white shadow-sm"}`}>
-              {getText(settings, "buttonText", "В каталог →")}
+              {getText(settings, "buttonText", "В каталог")}
             </Link>
           ) : null}
         </div>
@@ -194,7 +194,7 @@ function NewPageModule({
       <section className={`mb-16 rounded-[34px] border p-8 ${dark ? "border-white/10 bg-white/[0.035]" : "border-black/10 bg-white shadow-sm"}`}>
         <h2 className="text-3xl font-bold tracking-[-0.04em]">{getText(settings, "title", "Поможем выбрать новинку")}</h2>
         <p className={`mt-3 ${muted(dark)}`}>{getText(settings, "subtitle", "Расскажем отличия и подберём конфигурацию.")}</p>
-        <Link href="/help" className="mt-6 inline-flex rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white">Написать в поддержку →</Link>
+        <Link href="/help" className="mt-6 inline-flex rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white">Написать в поддержку</Link>
       </section>
     );
   }
@@ -213,7 +213,7 @@ function PromoBlock({ dark, settings }: { dark: boolean; settings: Record<string
           <h1 className="mt-4 text-4xl font-bold leading-none tracking-[-0.05em] lg:text-6xl">{getText(settings, "title", "Новые поступления")}</h1>
           <p className={`mt-5 max-w-[520px] text-base leading-relaxed ${muted(dark)}`}>{getText(settings, "subtitle", "Самые свежие модели и конфигурации")}</p>
           <Link href={getText(settings, "buttonHref", "/catalog?new=1")} className="mt-8 inline-flex w-fit rounded-xl bg-blue-600 px-7 py-4 text-sm font-medium text-white">
-            {getText(settings, "buttonText", "В каталог →")}
+            {getText(settings, "buttonText", "В каталог")}
           </Link>
         </div>
         <div className={`min-h-[260px] ${dark ? "bg-blue-500/5" : "bg-slate-50"}`}>

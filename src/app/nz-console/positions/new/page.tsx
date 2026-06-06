@@ -46,7 +46,7 @@ export default async function AdminNewPositionPage({
             href="/nz-console/positions"
             className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
           >
-            К позициям →
+            К позициям
           </Link>
         </header>
 

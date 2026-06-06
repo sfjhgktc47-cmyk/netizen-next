@@ -367,7 +367,7 @@ export function AuthModal({ initialMode = "login", onClose, onSuccess }: AuthMod
             disabled={isSubmitting}
             className="rounded-xl bg-blue-600 px-6 py-3.5 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
           >
-            {isSubmitting ? "Проверяем..." : mode === "register" ? "Зарегистрироваться →" : "Войти →"}
+            {isSubmitting ? "Проверяем..." : mode === "register" ? "Зарегистрироваться" : "Войти"}
           </button>
 
           <button

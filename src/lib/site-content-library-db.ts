@@ -200,7 +200,7 @@ export async function createSiteBanner(input?: BannerInput) {
       title: cleanText(input?.title, "Новый баннер") || "Новый баннер",
       subtitle: cleanText(input?.subtitle),
       description: cleanText(input?.description),
-      buttonText: cleanText(input?.buttonText, "Подробнее →"),
+      buttonText: cleanText(input?.buttonText, "Подробнее"),
       buttonHref: cleanText(input?.buttonHref, "/catalog") || "/catalog",
       imageLight: cleanText(input?.imageLight),
       imageDark: cleanText(input?.imageDark),

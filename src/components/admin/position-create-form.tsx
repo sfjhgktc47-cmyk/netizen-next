@@ -341,7 +341,7 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
           disabled={loading}
           className="mt-6 w-full rounded-xl bg-blue-600 px-5 py-4 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loading ? "Сохраняю..." : "Создать позицию →"}
+          {loading ? "Сохраняю..." : "Создать позицию"}
         </button>
       </aside>
     </form>

@@ -275,7 +275,7 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
           disabled={loading || categories.length === 0}
           className="mt-6 w-full rounded-xl bg-blue-600 px-5 py-4 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loading ? "Сохраняю..." : "Создать карточку →"}
+          {loading ? "Сохраняю..." : "Создать карточку"}
         </button>
 
         <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4 text-xs leading-relaxed text-white/45">

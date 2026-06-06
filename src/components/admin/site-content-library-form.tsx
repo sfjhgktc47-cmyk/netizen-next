@@ -20,7 +20,7 @@ const emptyBanner: Omit<SiteBanner, "id" | "createdAt" | "updatedAt"> = {
   title: "Новый баннер",
   subtitle: "",
   description: "",
-  buttonText: "Подробнее →",
+  buttonText: "Подробнее",
   buttonHref: "/catalog",
   imageLight: "",
   imageDark: "",

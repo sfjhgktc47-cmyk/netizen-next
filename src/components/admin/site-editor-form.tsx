@@ -351,7 +351,7 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder, initialCon
             target="_blank"
             className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
           >
-            Предпросмотр →
+            Предпросмотр
           </Link>
         </header>
 
@@ -1025,12 +1025,12 @@ function BrandingEditor({ settings, updateBranding }: { settings: SiteEditorSett
           Можно поставить эмодзи, короткий символ или путь к картинке, например /uploads/home.svg.
         </p>
 
-        <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-5">
-          <Field label="Главная"><input value={settings.branding.navIconHome} onChange={(event) => updateBranding("navIconHome", event.target.value)} className="admin-input" /></Field>
-          <Field label="Каталог"><input value={settings.branding.navIconCatalog} onChange={(event) => updateBranding("navIconCatalog", event.target.value)} className="admin-input" /></Field>
-          <Field label="Новинки"><input value={settings.branding.navIconNew} onChange={(event) => updateBranding("navIconNew", event.target.value)} className="admin-input" /></Field>
-          <Field label="Поддержка"><input value={settings.branding.navIconSupport} onChange={(event) => updateBranding("navIconSupport", event.target.value)} className="admin-input" /></Field>
-          <Field label="Корзина"><input value={settings.branding.navIconCart} onChange={(event) => updateBranding("navIconCart", event.target.value)} className="admin-input" /></Field>
+        <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+          <NavIconEditor label="Главная" value={settings.branding.navIconHome} onChange={(value) => updateBranding("navIconHome", value)} />
+          <NavIconEditor label="Каталог" value={settings.branding.navIconCatalog} onChange={(value) => updateBranding("navIconCatalog", value)} />
+          <NavIconEditor label="Новинки" value={settings.branding.navIconNew} onChange={(value) => updateBranding("navIconNew", value)} />
+          <NavIconEditor label="Поддержка" value={settings.branding.navIconSupport} onChange={(value) => updateBranding("navIconSupport", value)} />
+          <NavIconEditor label="Корзина" value={settings.branding.navIconCart} onChange={(value) => updateBranding("navIconCart", value)} />
         </div>
       </div>
     </div>
@@ -1069,7 +1069,7 @@ function ContactsEditor({
             <h3 className="text-xl font-bold tracking-[-0.035em]">Адреса и точки выдачи</h3>
             <p className="mt-2 text-sm leading-relaxed text-white/50">Эти адреса потом выбираются в способах получения.</p>
           </div>
-          <button type="button" onClick={addAddress} className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500">Добавить адрес →</button>
+          <button type="button" onClick={addAddress} className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500">Добавить адрес</button>
         </div>
       </div>
 
@@ -1109,6 +1109,96 @@ function SeoEditor({ settings, updateSeo }: { settings: SiteEditorSettings; upda
       <Field label="Title главной"><input value={settings.seo.homeTitle} onChange={(event) => updateSeo("homeTitle", event.target.value)} className="admin-input" /></Field>
       <Field label="Description главной"><textarea value={settings.seo.homeDescription} onChange={(event) => updateSeo("homeDescription", event.target.value)} className="admin-textarea min-h-[110px]" /></Field>
       <Field label="Keywords"><input value={settings.seo.keywords} onChange={(event) => updateSeo("keywords", event.target.value)} className="admin-input" /></Field>
+    </div>
+  );
+}
+
+function NavIconEditor({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  const presets = ["⌂", "▦", "✦", "?", "🛒", "●", "◆", "■"];
+  const isImage = /^(data:image\/|\/|https?:\/\/)/i.test(value.trim());
+
+  function uploadIcon(file: File | undefined) {
+    if (!file || !file.type.startsWith("image/")) return;
+
+    if (file.size > 800 * 1024) {
+      window.alert("Иконка должна быть не больше 800 КБ.");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      if (typeof reader.result === "string") onChange(reader.result);
+    };
+    reader.readAsDataURL(file);
+  }
+
+  return (
+    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
+      <div className="text-sm font-semibold text-white/80">{label}</div>
+
+      <div className="mt-3 flex h-16 items-center justify-center rounded-xl border border-white/10 bg-white">
+        {isImage ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={value} alt="" className="h-10 w-10 object-contain" />
+        ) : (
+          <span className="text-2xl text-black">{value || "●"}</span>
+        )}
+      </div>
+
+      <div className="mt-3 flex flex-wrap gap-1.5">
+        {presets.map((preset) => (
+          <button
+            key={preset}
+            type="button"
+            onClick={() => onChange(preset)}
+            className={`flex h-8 w-8 items-center justify-center rounded-lg border text-sm ${
+              value === preset
+                ? "border-blue-500 bg-blue-500/15 text-blue-300"
+                : "border-white/10 bg-white/[0.03] text-white/70"
+            }`}
+          >
+            {preset}
+          </button>
+        ))}
+      </div>
+
+      <label className="mt-3 flex cursor-pointer items-center justify-center rounded-xl bg-blue-600 px-3 py-2.5 text-xs font-semibold text-white hover:bg-blue-500">
+        Загрузить картинку
+        <input
+          type="file"
+          accept="image/png,image/jpeg,image/webp,image/svg+xml"
+          className="hidden"
+          onChange={(event) => {
+            uploadIcon(event.target.files?.[0]);
+            event.currentTarget.value = "";
+          }}
+        />
+      </label>
+
+      <input
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="admin-input mt-2"
+        placeholder="Символ или путь к файлу"
+      />
+
+      {value ? (
+        <button
+          type="button"
+          onClick={() => onChange("")}
+          className="mt-2 w-full rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-300"
+        >
+          Удалить иконку
+        </button>
+      ) : null}
     </div>
   );
 }

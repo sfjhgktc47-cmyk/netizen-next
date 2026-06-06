@@ -1115,7 +1115,7 @@ export function ProductDetailView({
                     onClick={() => setShowConfigEditor(true)}
                     className="rounded-lg border border-blue-500/30 bg-transparent px-2 py-1 text-[11px] text-muted"
                   >
-                    Изменить →
+                    Изменить
                   </button>
                 </div>
               )}
@@ -1243,7 +1243,7 @@ export function ProductDetailView({
                       disabled
                       className="flex cursor-not-allowed justify-center rounded-xl bg-blue-600/50 px-5 py-3 text-sm font-medium text-white sm:px-7 sm:py-4"
                     >
-                      Купить сейчас →
+                      Купить сейчас
                     </button>
 
                     <button
@@ -1347,7 +1347,7 @@ export function ProductDetailView({
                           onClick={saveSelectedPositionToCart}
                           className="flex justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500 sm:px-7 sm:py-4"
                         >
-                          Купить сейчас →
+                          Купить сейчас
                         </Link>
                       ) : (
                         <button
@@ -1355,7 +1355,7 @@ export function ProductDetailView({
                           disabled
                           className="flex cursor-not-allowed justify-center rounded-xl bg-blue-600/50 px-5 py-3 text-sm font-medium text-white sm:px-7 sm:py-4"
                         >
-                          Купить сейчас →
+                          Купить сейчас
                         </button>
                       )}
 

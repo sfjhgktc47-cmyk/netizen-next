@@ -45,7 +45,7 @@ export default async function AdminCategoryDetailPage({
             href="/nz-console/categories"
             className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
           >
-            К категориям →
+            К категориям
           </Link>
         </header>
 
@@ -70,14 +70,14 @@ export default async function AdminCategoryDetailPage({
                 href={`/nz-console/products/new?category=${category.slug}`}
                 className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
               >
-                Добавить карточку в категорию →
+                Добавить карточку в категорию
               </Link>
 
               <Link
                 href={`/nz-console/positions/new?category=${category.slug}`}
                 className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
               >
-                Добавить SKU в категорию →
+                Добавить SKU в категорию
               </Link>
 
               <Link

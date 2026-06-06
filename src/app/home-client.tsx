@@ -120,8 +120,8 @@ type HomePayload = {
 const defaultHomePageBlocks: HomePageBlock[] = [
   { id: "hero", pageKey: "home", type: "hero", title: "Hero", description: "", enabled: true, sortOrder: 10, settings: {} },
   { id: "benefits", pageKey: "home", type: "benefits", title: "Преимущества", description: "", enabled: true, sortOrder: 20, settings: {} },
-  { id: "categories", pageKey: "home", type: "category-grid", title: "Категории", description: "", enabled: true, sortOrder: 30, settings: { title: "Выберите категорию", subtitle: "Выберите направление и найдите свой идеальный гаджет", limit: 12, showButton: true, buttonText: "Смотреть все категории →", buttonHref: "/catalog" } },
-  { id: "popular-products", pageKey: "home", type: "popular-products", title: "Популярные товары", description: "", enabled: true, sortOrder: 40, settings: { title: "Популярные товары", subtitle: "Выберите модель — конфигурацию подберёте на странице товара.", limit: 12, showButton: true, buttonText: "Смотреть все товары →", buttonHref: "/catalog?popular=1" } },
+  { id: "categories", pageKey: "home", type: "category-grid", title: "Категории", description: "", enabled: true, sortOrder: 30, settings: { title: "Выберите категорию", subtitle: "Выберите направление и найдите свой идеальный гаджет", limit: 12, showButton: true, buttonText: "Смотреть все категории", buttonHref: "/catalog" } },
+  { id: "popular-products", pageKey: "home", type: "popular-products", title: "Популярные товары", description: "", enabled: true, sortOrder: 40, settings: { title: "Популярные товары", subtitle: "Выберите модель — конфигурацию подберёте на странице товара.", limit: 12, showButton: true, buttonText: "Смотреть все товары", buttonHref: "/catalog?popular=1" } },
   { id: "new-arrivals", pageKey: "home", type: "new-arrivals", title: "Новинки", description: "", enabled: true, sortOrder: 50, settings: { title: "Новинки", subtitle: "Техника, которая только появилась", limit: 3 } },
   { id: "support", pageKey: "home", type: "support", title: "Поддержка", description: "", enabled: true, sortOrder: 60, settings: {} },
 ];
@@ -290,7 +290,7 @@ function HomeModule({
         categories={categories.slice(0, limit)}
         title={getBlockText(settings, "title", "Выберите категорию")}
         subtitle={getBlockText(settings, "subtitle", "Выберите направление и найдите свой идеальный гаджет")}
-        buttonText={getBlockText(settings, "buttonText", "Смотреть все категории →")}
+        buttonText={getBlockText(settings, "buttonText", "Смотреть все категории")}
         buttonHref={getBlockText(settings, "buttonHref", "/catalog")}
         showButton={getBlockBoolean(settings, "showButton", true)}
       />
@@ -304,7 +304,7 @@ function HomeModule({
         products={popularProducts.slice(0, limit)}
         title={getBlockText(settings, "title", "Популярные товары")}
         subtitle={getBlockText(settings, "subtitle", "Выберите модель — конфигурацию подберёте на странице товара.")}
-        buttonText={getBlockText(settings, "buttonText", "Смотреть все товары →")}
+        buttonText={getBlockText(settings, "buttonText", "Смотреть все товары")}
         buttonHref={getBlockText(settings, "buttonHref", "/catalog?popular=1")}
         showButton={getBlockBoolean(settings, "showButton", true)}
       />
@@ -321,7 +321,7 @@ function HomeModule({
         products={source.slice(0, limit)}
         title={getBlockText(settings, "title", "Товары")}
         subtitle={getBlockText(settings, "subtitle", "Подборка из каталога")}
-        buttonText={getBlockText(settings, "buttonText", "Открыть каталог →")}
+        buttonText={getBlockText(settings, "buttonText", "Открыть каталог")}
         buttonHref={getBlockText(settings, "buttonHref", "/catalog")}
         showButton={getBlockBoolean(settings, "showButton", true)}
       />
@@ -715,7 +715,7 @@ function Categories({
   categories,
   title = "Выберите категорию",
   subtitle = "Выберите направление и найдите свой идеальный гаджет",
-  buttonText = "Смотреть все категории →",
+  buttonText = "Смотреть все категории",
   buttonHref = "/catalog",
   showButton = true,
 }: {
@@ -851,7 +851,7 @@ function PopularProducts({
   products,
   title = "Популярные товары",
   subtitle = "Выберите модель — конфигурацию подберёте на странице товара.",
-  buttonText = "Смотреть все товары →",
+  buttonText = "Смотреть все товары",
   buttonHref = "/catalog?popular=1",
   showButton = true,
 }: {
@@ -1120,7 +1120,7 @@ function ProductCard({
         </p>
 
         <div className="mt-2 w-full rounded-xl bg-blue-600 py-2 text-center text-[11px] font-medium text-white transition-all duration-300 group-hover:bg-blue-500 sm:mt-4 sm:py-3 sm:text-sm">
-          Перейти →
+          Перейти
         </div>
       </div>
     </Link>
@@ -1268,7 +1268,7 @@ function NewArrivalCard({
 
         <div className="mt-2 flex flex-wrap items-center gap-2 sm:mt-3 sm:gap-3">
           <span className="inline-flex h-8 items-center justify-center rounded-xl bg-blue-600 px-3 text-[11px] font-medium text-white transition-colors group-hover:bg-blue-500 sm:h-9 sm:px-4 sm:text-xs">
-            Подробнее →
+            Подробнее
           </span>
 
           <span className={`text-[11px] sm:text-sm ${mutedTextClass(dark)}`}>{item.price}</span>
@@ -1321,7 +1321,7 @@ function PromoBanner({
       : banner.imageLight || banner.imageDark || banner.imageMobile
     : getBlockText(settings, "image", "");
   const label = banner?.label || getBlockText(settings, "label", "Промо");
-  const buttonText = banner?.buttonText || getBlockText(settings, "buttonText", "Подробнее →");
+  const buttonText = banner?.buttonText || getBlockText(settings, "buttonText", "Подробнее");
   const buttonHref = banner?.buttonHref || getBlockText(settings, "buttonHref", "/catalog");
   const titleSize = banner?.titleSize || getBlockText(settings, "titleSize", "lg");
   const textSize = banner?.textSize || getBlockText(settings, "textSize", "md");

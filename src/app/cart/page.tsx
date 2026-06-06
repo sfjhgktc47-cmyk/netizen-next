@@ -772,7 +772,7 @@ export default function CartPage() {
                 href="/catalog"
                 className="inline-flex justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500 sm:px-7 sm:py-4"
               >
-                Продолжить покупки →
+                Продолжить покупки
               </Link>
 
               <Link
@@ -813,7 +813,7 @@ export default function CartPage() {
                 href="/catalog"
                 className="inline-flex justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500 sm:px-7 sm:py-4"
               >
-                Перейти в каталог →
+                Перейти в каталог
               </Link>
 
               <Link
@@ -993,7 +993,7 @@ export default function CartPage() {
                   }
                   status={hasGuestContacts ? "Заполнено" : "Заполнить"}
                   isComplete={hasGuestContacts}
-                  action={hasGuestContacts ? "Изменить →" : "Контакты →"}
+                  action={hasGuestContacts ? "Изменить" : "Контакты"}
                   onClick={() => setActiveModal("contacts")}
                 />
               )}
@@ -1003,7 +1003,7 @@ export default function CartPage() {
                 text={deliverySummary}
                 status={hasDelivery ? "Заполнено" : "Выбрать"}
                 isComplete={hasDelivery}
-                action={hasDelivery ? "Изменить →" : "Доставка →"}
+                action={hasDelivery ? "Изменить" : "Доставка"}
                 onClick={() => setActiveModal("delivery")}
                 className={isRegistered ? "sm:col-span-2" : ""}
               />
@@ -1124,7 +1124,7 @@ export default function CartPage() {
               onClick={placeOrder}
               className="mt-4 flex w-full justify-center rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:bg-blue-600/40 disabled:text-white/60 sm:mt-6 sm:px-7 sm:py-4"
             >
-              {isOrderSubmitting ? "Отправляем заявку..." : "Оформить заказ →"}
+              {isOrderSubmitting ? "Отправляем заявку..." : "Оформить заказ"}
             </button>
 
             <p className="mt-3 text-[11px] leading-relaxed text-muted-soft sm:mt-4 sm:text-xs">
@@ -1789,7 +1789,7 @@ function ProductStrip({
               <p className="mt-1 text-sm text-muted">{product.price}</p>
 
               <div className="mt-3 flex items-center justify-center rounded-xl bg-blue-600 py-2.5 text-sm font-medium text-white transition-colors group-hover:bg-blue-500 sm:mt-4 sm:py-3">
-                Смотреть →
+                Смотреть
               </div>
             </div>
           </Link>

@@ -345,7 +345,7 @@ function CarouselProductCard({
         </div>
 
         <div className="mt-5 w-full rounded-xl bg-blue-600 py-3 text-center text-sm font-medium text-white transition-all duration-300 group-hover:bg-blue-500">
-          Перейти →
+          Перейти
         </div>
       </div>
     </Link>
