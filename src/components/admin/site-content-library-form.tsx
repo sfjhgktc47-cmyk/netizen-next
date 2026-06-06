@@ -254,30 +254,72 @@ export function SiteContentLibraryForm({ initialLibrary, onChange }: Props) {
         <div className="mt-6 grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
           <LibraryList title="Баннеры" onCreate={createBanner} createText="+ Создать баннер">
             {library.banners.map((banner) => (
-              <button key={banner.id} type="button" onClick={() => setSelectedBannerId(banner.id)} className={`rounded-2xl border p-4 text-left transition-all ${selectedBanner?.id === banner.id ? "border-blue-500/50 bg-blue-500/15" : "border-white/10 bg-black/20 hover:border-blue-500/35"}`}>
+              <button
+                key={banner.id}
+                type="button"
+                onClick={() => setSelectedBannerId(banner.id)}
+                className={`rounded-2xl border p-4 text-left transition-all ${
+                  selectedBanner?.id === banner.id
+                    ? "border-blue-500/50 bg-blue-500/15"
+                    : "border-white/10 bg-black/20 hover:border-blue-500/35"
+                }`}
+              >
                 <div className="text-sm font-bold">{banner.adminTitle}</div>
-                <div className="mt-1 line-clamp-1 text-xs text-white/45">{banner.title}</div>
-                <div className={`mt-3 inline-flex rounded-full border px-2.5 py-1 text-[11px] ${banner.enabled ? "border-green-500/30 bg-green-500/10 text-green-300" : "border-red-500/30 bg-red-500/10 text-red-300"}`}>{banner.enabled ? "Активен" : "Скрыт"}</div>
+                <div className="mt-1 line-clamp-1 text-xs text-white/45">
+                  {banner.title}
+                </div>
+                <div
+                  className={`mt-3 inline-flex rounded-full border px-2.5 py-1 text-[11px] ${
+                    banner.enabled
+                      ? "border-green-500/30 bg-green-500/10 text-green-300"
+                      : "border-red-500/30 bg-red-500/10 text-red-300"
+                  }`}
+                >
+                  {banner.enabled ? "Активен" : "Скрыт"}
+                </div>
               </button>
             ))}
           </LibraryList>
 
           {selectedBanner ? (
-            <BannerEditor banner={selectedBanner} disabled={state === "saving"} updateBanner={updateBanner} saveBanner={saveBanner} deleteBanner={deleteBanner} />
-          ) : tab === "benefits" ? (
+            <BannerEditor
+              banner={selectedBanner}
+              disabled={state === "saving"}
+              updateBanner={updateBanner}
+              saveBanner={saveBanner}
+              deleteBanner={deleteBanner}
+            />
+          ) : (
             <EmptyState>Создай или выбери баннер.</EmptyState>
           )}
         </div>
-      ) : (
+      ) : tab === "benefits" ? (
         <div className="mt-6 grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
-          <LibraryList title="Преимущества" onCreate={createBenefit} createText="+ Создать преимущество">
+          <LibraryList
+            title="Преимущества"
+            onCreate={createBenefit}
+            createText="+ Создать преимущество"
+          >
             {library.benefits.map((benefit) => (
-              <button key={benefit.id} type="button" onClick={() => setSelectedBenefitId(benefit.id)} className={`rounded-2xl border p-4 text-left transition-all ${selectedBenefit?.id === benefit.id ? "border-blue-500/50 bg-blue-500/15" : "border-white/10 bg-black/20 hover:border-blue-500/35"}`}>
+              <button
+                key={benefit.id}
+                type="button"
+                onClick={() => setSelectedBenefitId(benefit.id)}
+                className={`rounded-2xl border p-4 text-left transition-all ${
+                  selectedBenefit?.id === benefit.id
+                    ? "border-blue-500/50 bg-blue-500/15"
+                    : "border-white/10 bg-black/20 hover:border-blue-500/35"
+                }`}
+              >
                 <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-blue-500/30 bg-blue-500/10 text-blue-300">{benefit.icon || "✓"}</span>
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-blue-500/30 bg-blue-500/10 text-blue-300">
+                    {benefit.icon || "✓"}
+                  </span>
                   <div className="min-w-0">
                     <div className="truncate text-sm font-bold">{benefit.title}</div>
-                    <div className="mt-1 line-clamp-1 text-xs text-white/45">{benefit.description}</div>
+                    <div className="mt-1 line-clamp-1 text-xs text-white/45">
+                      {benefit.description}
+                    </div>
                   </div>
                 </div>
               </button>
@@ -285,7 +327,13 @@ export function SiteContentLibraryForm({ initialLibrary, onChange }: Props) {
           </LibraryList>
 
           {selectedBenefit ? (
-            <BenefitEditor benefit={selectedBenefit} disabled={state === "saving"} updateBenefit={updateBenefit} saveBenefit={saveBenefit} deleteBenefit={deleteBenefit} />
+            <BenefitEditor
+              benefit={selectedBenefit}
+              disabled={state === "saving"}
+              updateBenefit={updateBenefit}
+              saveBenefit={saveBenefit}
+              deleteBenefit={deleteBenefit}
+            />
           ) : (
             <EmptyState>Создай или выбери преимущество.</EmptyState>
           )}
