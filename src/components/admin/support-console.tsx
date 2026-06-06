@@ -1,5 +1,6 @@
 "use client";
 
+import { BackLink } from "@/components/back-link";
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { supportTopics } from "@/lib/support-topics";
@@ -228,9 +229,7 @@ export function SupportConsole() {
         </header>
 
         <section className="mt-10">
-          <Link href="/nz-console" className="text-sm text-blue-400 transition-colors hover:text-blue-300">
-            ← В админку
-          </Link>
+          <BackLink href="/nz-console" label="В админку" variant="admin" />
 
           <div className="mt-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>

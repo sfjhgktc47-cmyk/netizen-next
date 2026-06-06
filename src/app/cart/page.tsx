@@ -1,5 +1,6 @@
 "use client";
 
+import { BackLink } from "@/components/back-link";
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
@@ -834,12 +835,7 @@ export default function CartPage() {
         <SiteHeader />
 
         <div className="mt-3 sm:mt-6">
-          <Link
-            href="/catalog"
-            className="text-sm text-blue-500 transition-colors hover:text-blue-400"
-          >
-            ← Вернуться в каталог
-          </Link>
+          <BackLink href="/catalog" label="Вернуться в каталог" />
         </div>
 
         <div className="mt-3 grid items-start gap-3 lg:mt-6 lg:grid-cols-[1fr_420px] lg:gap-8">

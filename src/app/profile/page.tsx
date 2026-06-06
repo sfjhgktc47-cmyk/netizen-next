@@ -1,5 +1,6 @@
 "use client";
 
+import { BackLink } from "@/components/back-link";
 import Link from "next/link";
 import Image from 'next/image';
 import type { ReactNode } from "react";
@@ -83,7 +84,7 @@ type ProfileData = {
   favorites: ProfileFavorite[];
 };
 
-type ModalType = "profile" | "address" | null;
+type ModalType = "profile" | "security" | "address" | null;
 
 const emptyProfile: CustomerProfile = {
   id: "",
@@ -214,6 +215,15 @@ export default function ProfilePage() {
     enabled: boolean;
     tiers: StatusDiscountTier[];
   }>({ enabled: false, tiers: [] });
+  const [securityForm, setSecurityForm] = useState({
+    currentPassword: "",
+    phone: "",
+    email: "",
+    newPassword: "",
+    confirmPassword: "",
+  });
+  const [securityMessage, setSecurityMessage] = useState("");
+  const [securitySaving, setSecuritySaving] = useState(false);
   const [newAddress, setNewAddress] = useState("");
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [isProfileSaved, setIsProfileSaved] = useState(false);
@@ -297,8 +307,6 @@ export default function ProfilePage() {
     const normalizedProfile = {
       name: draftProfile.name.trim(),
       lastName: draftProfile.lastName.trim(),
-      phone: draftProfile.phone.trim(),
-      email: draftProfile.email.trim(),
     };
 
     const response = await fetch("/api/auth/profile", {
@@ -307,13 +315,11 @@ export default function ProfilePage() {
       body: JSON.stringify({
         firstName: normalizedProfile.name,
         lastName: normalizedProfile.lastName,
-        phone: normalizedProfile.phone,
-        email: normalizedProfile.email,
       }),
     });
     const data = (await response.json().catch(() => ({}))) as {
       message?: string;
-      user?: { profile?: CustomerProfile };
+      user?: { profile?: Partial<CustomerProfile> };
     };
 
     if (!response.ok || !data.user?.profile) {
@@ -321,14 +327,74 @@ export default function ProfilePage() {
       return;
     }
 
-    setProfile(data.user.profile);
-    setDraftProfile(data.user.profile);
+    setProfile((current) => ({ ...current, ...data.user?.profile }));
+    setDraftProfile((current) => ({ ...current, ...data.user?.profile }));
     window.dispatchEvent(new Event("netizen-auth-updated"));
     setIsProfileSaved(true);
     setActiveModal(null);
     setError("");
 
     window.setTimeout(() => setIsProfileSaved(false), 1800);
+  }
+
+  function openSecurityModal() {
+    setSecurityForm({
+      currentPassword: "",
+      phone: profile.phone,
+      email: profile.email,
+      newPassword: "",
+      confirmPassword: "",
+    });
+    setSecurityMessage("");
+    setActiveModal("security");
+  }
+
+  async function saveSecurity() {
+    if (securitySaving) return;
+
+    if (securityForm.newPassword !== securityForm.confirmPassword) {
+      setSecurityMessage("Новые пароли не совпадают.");
+      return;
+    }
+
+    setSecuritySaving(true);
+    setSecurityMessage("");
+
+    try {
+      const response = await fetch("/api/auth/security", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          currentPassword: securityForm.currentPassword,
+          phone: securityForm.phone,
+          email: securityForm.email,
+          newPassword: securityForm.newPassword,
+        }),
+      });
+      const data = (await response.json().catch(() => ({}))) as {
+        message?: string;
+        profile?: Partial<CustomerProfile>;
+      };
+
+      if (!response.ok || !data.profile) {
+        setSecurityMessage(data.message || "Не удалось обновить данные для входа.");
+        return;
+      }
+
+      setProfile((current) => ({ ...current, ...data.profile }));
+      setDraftProfile((current) => ({ ...current, ...data.profile }));
+      setSecurityMessage(data.message || "Данные для входа обновлены.");
+      window.dispatchEvent(new Event("netizen-auth-updated"));
+
+      window.setTimeout(() => {
+        setActiveModal(null);
+        setSecurityMessage("");
+      }, 900);
+    } catch {
+      setSecurityMessage("Сервер не ответил. Попробуйте ещё раз.");
+    } finally {
+      setSecuritySaving(false);
+    }
   }
 
   async function addAddress() {
@@ -437,12 +503,7 @@ export default function ProfilePage() {
         <SiteHeader />
 
         <div className="mt-4 flex items-center justify-between gap-3 sm:mt-6">
-          <Link
-            href="/"
-            className="text-sm text-blue-500 transition-colors hover:text-blue-400"
-          >
-            ← На главную
-          </Link>
+          <BackLink href="/" label="На главную" />
 
           <span className="text-xs text-muted">
             Личный кабинет
@@ -493,7 +554,15 @@ export default function ProfilePage() {
               }}
               className="rounded-xl border border-theme bg-card px-4 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
             >
-              Редактировать
+              Профиль
+            </button>
+
+            <button
+              type="button"
+              onClick={openSecurityModal}
+              className="rounded-xl border border-theme bg-card px-4 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
+            >
+              Безопасность
             </button>
 
             <button
@@ -911,35 +980,9 @@ export default function ProfilePage() {
               />
             </label>
 
-            <label className="grid gap-2 text-sm font-medium">
-              Телефон
-              <input
-                value={draftProfile.phone}
-                onChange={(event) =>
-                  setDraftProfile((current) => ({
-                    ...current,
-                    phone: event.target.value,
-                  }))
-                }
-                placeholder="+7 999 000-00-00"
-                className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
-              />
-            </label>
-
-            <label className="grid gap-2 text-sm font-medium">
-              E-mail
-              <input
-                value={draftProfile.email}
-                onChange={(event) =>
-                  setDraftProfile((current) => ({
-                    ...current,
-                    email: event.target.value,
-                  }))
-                }
-                placeholder="mail@example.com"
-                className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
-              />
-            </label>
+            <div className="rounded-2xl border border-theme bg-blue-soft p-4 text-sm text-muted">
+              Телефон, e-mail и пароль меняются в разделе «Безопасность» после подтверждения текущего пароля.
+            </div>
           </div>
 
           <div className="mt-6 flex flex-col gap-3 sm:flex-row">
@@ -949,6 +992,124 @@ export default function ProfilePage() {
               className="rounded-xl bg-blue-600 px-6 py-3.5 text-sm font-medium text-white transition-colors hover:bg-blue-500"
             >
               Сохранить
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setActiveModal(null)}
+              className="rounded-xl border border-theme bg-transparent px-6 py-3.5 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
+            >
+              Отмена
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {activeModal === "security" && (
+        <Modal title="Безопасность аккаунта" onClose={() => setActiveModal(null)}>
+          <div className="grid gap-4">
+            <div className="rounded-2xl border border-theme bg-blue-soft p-4 text-sm leading-relaxed text-muted">
+              Для изменения телефона, e-mail или пароля подтвердите текущий пароль.
+              Вход в аккаунт работает по телефону или e-mail.
+            </div>
+
+            <label className="grid gap-2 text-sm font-medium">
+              Телефон для входа
+              <input
+                value={securityForm.phone}
+                onChange={(event) =>
+                  setSecurityForm((current) => ({ ...current, phone: event.target.value }))
+                }
+                placeholder="+7 999 000-00-00"
+                autoComplete="tel"
+                className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+              />
+            </label>
+
+            <label className="grid gap-2 text-sm font-medium">
+              E-mail для входа
+              <input
+                type="email"
+                value={securityForm.email}
+                onChange={(event) =>
+                  setSecurityForm((current) => ({ ...current, email: event.target.value }))
+                }
+                placeholder="mail@example.com"
+                autoComplete="email"
+                className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+              />
+            </label>
+
+            <label className="grid gap-2 text-sm font-medium">
+              Текущий пароль
+              <input
+                type="password"
+                value={securityForm.currentPassword}
+                onChange={(event) =>
+                  setSecurityForm((current) => ({
+                    ...current,
+                    currentPassword: event.target.value,
+                  }))
+                }
+                autoComplete="current-password"
+                className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none focus:border-blue-500/50"
+              />
+            </label>
+
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="grid gap-2 text-sm font-medium">
+                Новый пароль
+                <input
+                  type="password"
+                  value={securityForm.newPassword}
+                  onChange={(event) =>
+                    setSecurityForm((current) => ({
+                      ...current,
+                      newPassword: event.target.value,
+                    }))
+                  }
+                  placeholder="Не менее 6 символов"
+                  autoComplete="new-password"
+                  className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+                />
+              </label>
+
+              <label className="grid gap-2 text-sm font-medium">
+                Повторите пароль
+                <input
+                  type="password"
+                  value={securityForm.confirmPassword}
+                  onChange={(event) =>
+                    setSecurityForm((current) => ({
+                      ...current,
+                      confirmPassword: event.target.value,
+                    }))
+                  }
+                  autoComplete="new-password"
+                  className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none focus:border-blue-500/50"
+                />
+              </label>
+            </div>
+          </div>
+
+          {securityMessage ? (
+            <div className={`mt-4 rounded-xl border px-4 py-3 text-sm ${
+              securityMessage.includes("обновлен")
+                ? "border-green-500/30 bg-green-500/10 text-green-500"
+                : "border-red-500/30 bg-red-500/10 text-red-500"
+            }`}>
+              {securityMessage}
+            </div>
+          ) : null}
+
+          <div className="mt-6 flex flex-col gap-3 sm:flex-row">
+            <button
+              type="button"
+              onClick={() => void saveSecurity()}
+              disabled={securitySaving}
+              className="rounded-xl bg-blue-600 px-6 py-3.5 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {securitySaving ? "Сохраняю…" : "Сохранить изменения"}
             </button>
 
             <button
@@ -994,40 +1155,6 @@ export default function ProfilePage() {
         </Modal>
       )}
     </main>
-  );
-}
-
-function ProfileField({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-2xl border border-theme bg-blue-soft p-4">
-      <div className="text-sm text-muted">{label}</div>
-      <div className="mt-1 font-semibold">{value}</div>
-    </div>
-  );
-}
-
-function EmptyState({
-  title,
-  text,
-  href,
-  action,
-}: {
-  title: string;
-  text: string;
-  href: string;
-  action: string;
-}) {
-  return (
-    <div className="mt-8 rounded-2xl border border-theme bg-blue-soft p-6">
-      <h3 className="text-xl font-bold">{title}</h3>
-      <p className="mt-2 max-w-[560px] text-sm leading-relaxed text-muted">{text}</p>
-      <Link
-        href={href}
-        className="mt-5 inline-flex rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500"
-      >
-        {action}
-      </Link>
-    </div>
   );
 }
 

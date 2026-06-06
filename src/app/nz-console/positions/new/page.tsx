@@ -1,3 +1,4 @@
+import { BackLink } from "@/components/back-link";
 import Link from "next/link";
 
 import { PositionCreateForm } from "@/components/admin/position-create-form";
@@ -50,9 +51,7 @@ export default async function AdminNewPositionPage({
         </header>
 
         <section className="mt-10">
-          <Link href="/nz-console/positions" className="text-sm text-blue-400 transition-colors hover:text-blue-300">
-            ← Назад к позициям
-          </Link>
+          <BackLink href="/nz-console/positions" label="Назад к позициям" variant="admin" />
 
           <div className="mt-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>

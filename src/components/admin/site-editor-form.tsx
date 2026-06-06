@@ -1,5 +1,6 @@
 "use client";
 
+import { BackLink } from "@/components/back-link";
 import Link from "next/link";
 import { SiteContentLibraryForm } from "@/components/admin/site-content-library-form";
 import { FaqAdminClient } from "@/components/admin/faq-admin-client";
@@ -355,9 +356,7 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder, initialCon
         </header>
 
         <section className="mt-8 rounded-[34px] border border-white/10 bg-white/[0.035] p-5 sm:p-8">
-          <Link href="/nz-console" className="text-sm text-blue-400 transition-colors hover:text-blue-300">
-            ← В админку
-          </Link>
+          <BackLink href="/nz-console" label="В админку" variant="admin" />
 
           <div className="mt-5 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
             <div>

@@ -1,3 +1,4 @@
+import { BackLink } from "@/components/back-link";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { SupportReplyForm } from "@/components/admin/support-reply-form";
@@ -54,9 +55,7 @@ export default async function AdminSupportDetailPage({
         </header>
 
         <section className="mt-10">
-          <Link href="/nz-console/support" className="text-sm text-blue-400 transition-colors hover:text-blue-300">
-            ← Назад к обращениям
-          </Link>
+          <BackLink href="/nz-console/support" label="Назад к обращениям" variant="admin" />
 
           <div className="mt-8 rounded-[32px] border border-white/10 bg-white/[0.035] p-7">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">

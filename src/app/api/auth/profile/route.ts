@@ -4,7 +4,6 @@ import {
   createAuthSessionToken,
   getAuthCookieOptions,
   getAuthSession,
-  normalizeEmail,
   normalizeText,
 } from "@/lib/auth";
 import { prisma } from "@/lib/db";
@@ -179,27 +178,13 @@ export async function PATCH(request: Request) {
   }
 
   const body = (await request.json().catch(() => null)) as
-    | { firstName?: unknown; lastName?: unknown; phone?: unknown; email?: unknown }
+    | { firstName?: unknown; lastName?: unknown }
     | null;
   const firstName = normalizeText(body?.firstName);
   const lastName = normalizeText(body?.lastName);
-  const phone = normalizeText(body?.phone);
-  const email = normalizeEmail(normalizeText(body?.email));
 
-  if (!firstName || !lastName || !phone) {
-    return jsonError("Укажи имя, фамилию и телефон.");
-  }
-
-  const duplicate = await prisma.customer.findFirst({
-    where: {
-      id: { not: session.customerId },
-      OR: [{ phone }, ...(email ? [{ email }] : [])],
-    },
-    select: { id: true },
-  });
-
-  if (duplicate) {
-    return jsonError("Такой телефон или e-mail уже привязан к другому клиенту.", 409);
+  if (!firstName || !lastName) {
+    return jsonError("Укажите имя и фамилию.");
   }
 
   const customer = await prisma.customer.update({
@@ -207,8 +192,6 @@ export async function PATCH(request: Request) {
     data: {
       name: firstName,
       lastName,
-      phone,
-      email,
     },
     select: {
       id: true,

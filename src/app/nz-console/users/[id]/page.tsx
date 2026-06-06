@@ -1,3 +1,4 @@
+import { BackLink } from "@/components/back-link";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { CustomerStatusCard } from "@/components/admin/customer-status-card";
@@ -64,9 +65,7 @@ export default async function AdminCustomerDetailPage({
         </header>
 
         <section className="mt-10">
-          <Link href="/nz-console/users" className="text-sm text-blue-400 transition-colors hover:text-blue-300">
-            ← Назад к клиентам
-          </Link>
+          <BackLink href="/nz-console/users" label="Назад к клиентам" variant="admin" />
 
           <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
             <div className="rounded-[34px] border border-white/10 bg-white/[0.035] p-8">

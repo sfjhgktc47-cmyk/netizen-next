@@ -1,3 +1,4 @@
+import { BackLink } from "@/components/back-link";
 import Link from "next/link";
 
 import { PromocodesAdminClient } from "@/components/admin/promocodes-admin-client";
@@ -10,12 +11,7 @@ export default function PromocodesPage() {
       <div className="mx-auto max-w-[1500px]">
         <header className="flex min-h-[76px] items-center justify-between rounded-2xl border border-white/10 bg-white/[0.035] px-5">
           <Link href="/nz-console" className="text-xl font-bold">Netizen Console</Link>
-          <Link
-            href="/nz-console"
-            className="rounded-xl border border-white/10 px-4 py-3 text-sm transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
-          >
-            ← В админку
-          </Link>
+          <BackLink href="/nz-console" label="В админку" variant="admin" />
         </header>
         <section className="mt-9">
           <div className="text-sm font-semibold uppercase tracking-[0.18em] text-blue-400">Скидки</div>

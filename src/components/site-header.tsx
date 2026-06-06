@@ -342,7 +342,7 @@ export function SiteHeader() {
   return (
     <>
       <header
-        className={`flex h-[58px] items-center justify-between rounded-2xl border px-3 transition-all duration-700 sm:h-[64px] sm:px-5 lg:h-[76px] lg:px-8 ${
+        className={`sticky top-2 z-[100] flex h-[58px] items-center justify-between rounded-2xl border px-3 backdrop-blur-xl transition-all duration-700 sm:top-3 sm:h-[64px] sm:px-5 lg:h-[76px] lg:px-8 ${
           dark
             ? "border-white/10 bg-white/[0.035] shadow-[0_20px_80px_rgba(0,60,255,0.08)]"
             : "border-black/10 bg-white shadow-[0_20px_80px_rgba(15,23,42,0.08)]"

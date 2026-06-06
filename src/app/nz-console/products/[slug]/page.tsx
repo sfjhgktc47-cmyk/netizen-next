@@ -1,3 +1,4 @@
+import { BackLink } from "@/components/back-link";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -58,9 +59,7 @@ export default async function AdminProductDetailPage({
         </header>
 
         <section className="mt-10">
-          <Link href="/nz-console/products" className="text-sm text-blue-400 transition-colors hover:text-blue-300">
-            ← Назад к карточкам
-          </Link>
+          <BackLink href="/nz-console/products" label="Назад к карточкам" variant="admin" />
 
           <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
             <div className="rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
