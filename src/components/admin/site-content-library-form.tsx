@@ -362,13 +362,13 @@ export function SiteContentLibraryForm({ initialLibrary, onChange }: Props) {
         <div className="mt-6">
           <div className="mb-5 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4">
             <div className="text-sm font-bold text-blue-200">
-              Преимущества блока «Сервис и поддержка»
+              Редактор блока «Сервис и поддержка»
             </div>
             <p className="mt-1 text-sm leading-relaxed text-white/50">
-              Эти карточки показываются слева в блоке «Сервис и поддержка Нетизен».
+              Здесь редактируются обе части блока: преимущества слева и вопросы с ответами справа.
             </p>
           </div>
-          <SupportContentAdminClient mode="features" />
+          <SupportContentAdminClient />
         </div>
       )}
     </section>

@@ -1467,7 +1467,7 @@ function SupportBlock({ dark }: { dark: boolean }) {
           {supportCards.map((item) => (
             <div
               key={item.id}
-              className={`flex min-h-[74px] flex-col justify-start rounded-2xl border p-2.5 transition-colors duration-300 sm:h-[170px] sm:p-6 ${
+              className={`flex min-h-[110px] flex-col justify-start rounded-2xl border p-3 transition-colors duration-300 sm:min-h-[154px] sm:p-6 ${
                 dark
                   ? "border-white/10 bg-white/[0.025] hover:border-blue-500/25 hover:bg-blue-500/[0.03]"
                   : "border-black/10 bg-white/80 hover:border-blue-500/25 hover:bg-blue-50/40"
@@ -1496,7 +1496,7 @@ function SupportBlock({ dark }: { dark: boolean }) {
               <h3 className="mt-2 text-[12px] font-bold leading-tight sm:mt-6 sm:text-base">
                 {item.title}
               </h3>
-              <p className={`mt-1 line-clamp-2 text-[10px] leading-snug sm:mt-3 sm:text-sm ${mutedTextClass(dark)}`}>
+              <p className={`mt-1 text-[10px] leading-relaxed sm:mt-3 sm:text-sm ${mutedTextClass(dark)}`}>
                 {item.text}
               </p>
             </div>
@@ -1523,7 +1523,7 @@ function SupportBlock({ dark }: { dark: boolean }) {
                   onClick={() =>
                     setActiveFaqId((prev) => (prev === item.id ? null : item.id))
                   }
-                  className="group relative w-full px-3 py-3 text-left sm:px-6 sm:py-5"
+                  className="group relative flex min-h-[58px] w-full items-center px-4 py-3 text-left sm:min-h-[68px] sm:px-6 sm:py-4"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-[12px] font-semibold leading-tight sm:text-base">
@@ -1548,7 +1548,7 @@ function SupportBlock({ dark }: { dark: boolean }) {
                       animate={{ opacity: 1, height: "auto" }}
                       exit={{ opacity: 0, height: 0 }}
                       transition={{ duration: 0.22 }}
-                      className="px-3 pb-3 sm:px-6 sm:pb-6"
+                      className="border-t border-theme px-4 py-4 sm:px-6 sm:py-5"
                     >
                       <p className={`text-[11px] leading-relaxed sm:text-sm ${mutedTextClass(dark)}`}>
                         {item.answer}

@@ -26,8 +26,11 @@ const fieldClass =
 export function SupportContentAdminClient({
   mode = "all",
 }: {
-  mode?: "all" | "features";
+  mode?: "all" | "features" | "questions";
 }) {
+  const [activeEditor, setActiveEditor] = useState<"features" | "questions">(
+    mode === "questions" ? "questions" : "features",
+  );
   const [features, setFeatures] = useState<Feature[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
   const [saving, setSaving] = useState(false);
@@ -81,8 +84,39 @@ export function SupportContentAdminClient({
     }
   }
 
+  const showFeatures = mode === "features" || (mode === "all" && activeEditor === "features");
+  const showQuestions = mode === "questions" || (mode === "all" && activeEditor === "questions");
+
   return (
     <div className="grid gap-6">
+      {mode === "all" ? (
+        <div className="flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-black/20 p-2">
+          <button
+            type="button"
+            onClick={() => setActiveEditor("features")}
+            className={`rounded-xl px-5 py-3 text-sm font-semibold transition-colors ${
+              activeEditor === "features"
+                ? "bg-blue-600 text-white"
+                : "text-white/55 hover:bg-white/5 hover:text-white"
+            }`}
+          >
+            Преимущества слева
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveEditor("questions")}
+            className={`rounded-xl px-5 py-3 text-sm font-semibold transition-colors ${
+              activeEditor === "questions"
+                ? "bg-blue-600 text-white"
+                : "text-white/55 hover:bg-white/5 hover:text-white"
+            }`}
+          >
+            Вопросы справа
+          </button>
+        </div>
+      ) : null}
+
+      {showFeatures ? (
       <AdminSection
         title="Преимущества слева"
         buttonLabel="Добавить преимущество"
@@ -98,6 +132,11 @@ export function SupportContentAdminClient({
           })
         }
       >
+        {features.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-white/10 bg-black/10 p-6 text-sm text-white/45">
+            Преимуществ пока нет. Нажмите «Добавить преимущество».
+          </div>
+        ) : null}
         {features.map((item) => (
           <div key={item.id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
             <div className="grid gap-3 md:grid-cols-[90px_1fr_130px_150px]">
@@ -255,8 +294,9 @@ export function SupportContentAdminClient({
           </div>
         ))}
       </AdminSection>
+      ) : null}
 
-      {mode === "all" ? (
+      {showQuestions ? (
       <AdminSection
         title="Вопросы справа"
         buttonLabel="Добавить вопрос"
@@ -270,6 +310,11 @@ export function SupportContentAdminClient({
           })
         }
       >
+        {questions.length === 0 ? (
+          <div className="rounded-2xl border border-dashed border-white/10 bg-black/10 p-6 text-sm text-white/45">
+            Вопросов пока нет. Нажмите «Добавить вопрос».
+          </div>
+        ) : null}
         {questions.map((item) => (
           <div key={item.id} className="rounded-2xl border border-white/10 bg-black/20 p-4">
             <div className="grid gap-3 md:grid-cols-[1fr_130px_150px]">
