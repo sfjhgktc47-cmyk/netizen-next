@@ -1,4 +1,6 @@
 import Link from "next/link";
+import { getAuthSession } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 import {
   formatAdminDate,
   formatAdminPrice,
@@ -13,11 +15,13 @@ export const dynamic = "force-dynamic";
 
 type OrderStatusFilter = "all" | "new" | "confirming" | "in_work" | "ready" | "completed" | "cancelled";
 type DateFilter = "all" | "today" | "week" | "month";
+type ResponsibleFilter = "all" | "mine" | "unassigned";
 
 type SearchParams = {
   q?: string | string[];
   status?: string | string[];
   date?: string | string[];
+  responsible?: string | string[];
 };
 
 type AdminOrdersPageProps = {
@@ -72,6 +76,11 @@ function normalizeDateFilter(value: string): DateFilter {
   return "all";
 }
 
+function normalizeResponsibleFilter(value: string): ResponsibleFilter {
+  if (value === "mine" || value === "unassigned") return value;
+  return "all";
+}
+
 function getDateStart(filter: DateFilter) {
   const now = new Date();
 
@@ -116,6 +125,7 @@ function orderMatchesBaseFilters(
       order.email,
       order.address,
       order.pickupPoint,
+      order.assignedToName,
       getDeliveryLabel(order.deliveryType),
       getOrderStatusLabel(order.status, order.deliveryType),
       itemsText,
@@ -157,6 +167,7 @@ function createOrdersHref(params: {
   query: string;
   status: OrderStatusFilter;
   date: DateFilter;
+  responsible: ResponsibleFilter;
 }) {
   const queryParams = new URLSearchParams();
 
@@ -168,9 +179,8 @@ function createOrdersHref(params: {
     queryParams.set("status", params.status);
   }
 
-  if (params.date !== "all") {
-    queryParams.set("date", params.date);
-  }
+  if (params.date !== "all") queryParams.set("date", params.date);
+  if (params.responsible !== "all") queryParams.set("responsible", params.responsible);
 
   const queryString = queryParams.toString();
   return queryString ? `/nz-console/orders?${queryString}` : "/nz-console/orders";
@@ -178,11 +188,15 @@ function createOrdersHref(params: {
 
 export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageProps) {
   const rawParams = (await searchParams) ?? {};
-  const [allOrders, metrics] = await Promise.all([getAdminOrders(), getOrderMetrics()]);
+  const [allOrders, metrics, session] = await Promise.all([getAdminOrders(), getOrderMetrics(), getAuthSession()]);
+  const currentAdmin = session?.login
+    ? await prisma.adminUser.findUnique({ where: { login: session.login }, select: { id: true, name: true } })
+    : null;
 
   const searchQuery = readParam(rawParams.q);
   const selectedStatus = normalizeStatusFilter(readParam(rawParams.status));
   const selectedDate = normalizeDateFilter(readParam(rawParams.date));
+  const selectedResponsible = normalizeResponsibleFilter(readParam(rawParams.responsible));
 
   const baseFilteredOrders = allOrders.filter((order) =>
     orderMatchesBaseFilters(order, {
@@ -191,7 +205,12 @@ export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageP
     }),
   );
 
-  const orders = baseFilteredOrders.filter((order) => orderMatchesStatus(order, selectedStatus));
+  const responsibleOrders = baseFilteredOrders.filter((order) => {
+    if (selectedResponsible === "unassigned") return !order.assignedToId;
+    if (selectedResponsible === "mine") return Boolean(currentAdmin?.id && order.assignedToId === currentAdmin.id);
+    return true;
+  });
+  const orders = responsibleOrders.filter((order) => orderMatchesStatus(order, selectedStatus));
 
   return (
     <main className="min-h-screen bg-[#020814] px-4 py-4 text-white sm:px-6 sm:py-6">
@@ -238,6 +257,12 @@ export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageP
 
             <div className="flex flex-wrap gap-3">
               <Link
+                href="/nz-console/orders/new"
+                className="rounded-xl bg-blue-600 px-7 py-4 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+              >
+                + Создать заявку
+              </Link>
+              <Link
                 href="/catalog"
                 className="rounded-xl border border-white/10 bg-white/[0.03] px-7 py-4 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
               >
@@ -262,6 +287,7 @@ export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageP
                 query: searchQuery,
                 status: tab.value,
                 date: selectedDate,
+                responsible: selectedResponsible,
               });
 
               return (
@@ -278,7 +304,7 @@ export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageP
                       active ? "bg-blue-600 text-white" : "bg-white/10 text-white/45"
                     }`}
                   >
-                    {getTabCount(baseFilteredOrders, tab.value)}
+                    {getTabCount(responsibleOrders, tab.value)}
                   </span>
                   {active && <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full bg-blue-500" />}
                 </Link>
@@ -320,6 +346,16 @@ export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageP
               ))}
             </select>
 
+            <select
+              name="responsible"
+              defaultValue={selectedResponsible}
+              className="h-12 rounded-xl border border-white/10 bg-[#07101d] px-5 text-sm font-medium text-white outline-none focus:border-blue-500/50"
+            >
+              <option value="all">Все ответственные</option>
+              <option value="mine">Мои заявки</option>
+              <option value="unassigned">Без ответственного</option>
+            </select>
+
             <button
               type="submit"
               className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
@@ -327,7 +363,7 @@ export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageP
               Применить
             </button>
 
-            {(searchQuery || selectedStatus !== "all" || selectedDate !== "all") && (
+            {(searchQuery || selectedStatus !== "all" || selectedDate !== "all" || selectedResponsible !== "all") && (
               <Link
                 href="/nz-console/orders"
                 className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-semibold text-white/70 transition-colors hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-white"
@@ -339,13 +375,14 @@ export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageP
         </section>
 
         <section className="mt-6 overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.035]">
-          <div className="hidden grid-cols-[0.7fr_1fr_1.55fr_0.75fr_0.8fr_0.85fr_120px] border-b border-white/10 bg-black/25 px-5 py-4 text-sm text-white/45 xl:grid">
+          <div className="hidden grid-cols-[0.65fr_0.9fr_1.35fr_0.65fr_0.75fr_0.75fr_0.85fr_110px] border-b border-white/10 bg-black/25 px-5 py-4 text-sm text-white/45 xl:grid">
             <div>Заявка</div>
             <div>Клиент</div>
             <div>Товары</div>
             <div>Сумма</div>
             <div>Получение</div>
             <div>Статус</div>
+            <div>Ответственный</div>
             <div className="text-right">Открыть</div>
           </div>
 
@@ -363,7 +400,7 @@ export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageP
               return (
                 <div
                   key={order.id}
-                  className="grid gap-4 border-b border-white/10 px-5 py-5 last:border-b-0 xl:grid-cols-[0.7fr_1fr_1.55fr_0.75fr_0.8fr_0.85fr_120px] xl:items-center"
+                  className="grid gap-4 border-b border-white/10 px-5 py-5 last:border-b-0 xl:grid-cols-[0.65fr_0.9fr_1.35fr_0.65fr_0.75fr_0.75fr_0.85fr_110px] xl:items-center"
                 >
                   <div>
                     <div className="font-bold">{order.publicId}</div>
@@ -391,6 +428,10 @@ export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageP
                     <span className={`inline-flex rounded-full border px-3 py-1 text-xs ${getOrderStatusClass(order.status)}`}>
                       {getOrderStatusLabel(order.status, order.deliveryType)}
                     </span>
+                  </div>
+
+                  <div className="text-sm text-white/60">
+                    {order.assignedToName || "Не назначен"}
                   </div>
 
                   <div className="xl:text-right">

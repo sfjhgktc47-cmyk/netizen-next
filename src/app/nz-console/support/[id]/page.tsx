@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { SupportReplyForm } from "@/components/admin/support-reply-form";
+import { getAuthSession } from "@/lib/auth";
 import {
   formatSupportDate,
   getSupportRequest,
@@ -29,7 +31,7 @@ export default async function AdminSupportDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const ticket = await getSupportRequest(id);
+  const [ticket, session] = await Promise.all([getSupportRequest(id), getAuthSession()]);
 
   if (!ticket) {
     notFound();
@@ -80,6 +82,14 @@ export default async function AdminSupportDetailPage({
               <InfoBox label="Источник" value={ticket.source} />
               <InfoBox label="Менеджер" value={ticket.assignedTo} />
               <InfoBox label="Дата" value={formatSupportDate(ticket.createdAt)} />
+              {ticket.orderPublicId ? (
+                <div className="rounded-2xl border border-blue-500/25 bg-blue-500/10 p-4 md:col-span-3">
+                  <div className="text-xs text-blue-300/70">Связанная заявка</div>
+                  <Link href={`/nz-console/orders/${ticket.orderPublicId}`} className="mt-2 inline-block font-bold text-blue-300">
+                    {ticket.orderPublicId} →
+                  </Link>
+                </div>
+              ) : null}
             </div>
           </div>
         </section>
@@ -115,6 +125,7 @@ export default async function AdminSupportDetailPage({
               </div>
             ))}
           </div>
+          <SupportReplyForm requestId={ticket.number} managerName={session?.name || session?.login || "Менеджер Нетизен"} />
         </section>
       </div>
     </main>

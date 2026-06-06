@@ -283,7 +283,7 @@ export async function getAdminCustomer(id: string) {
       id: ticket.id,
       number: ticket.number,
       topic: ticket.topicTitle,
-      linkedOrder: "Без привязки к заказу",
+      linkedOrder: ticket.orderPublicId || "Без привязки к заказу",
       status: getSupportStatusLabel(ticket.status),
       date: formatSupportDate(ticket.updatedAt),
     })),

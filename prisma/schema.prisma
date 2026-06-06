@@ -212,6 +212,8 @@ model AdminUser {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
+  assignedOrders Order[] @relation("OrderAssignee")
+
   @@index([role])
   @@index([isActive])
 }
@@ -251,16 +253,26 @@ model Order {
   deliveryType   DeliveryType
   address        String       @default("")
   pickupPoint    String       @default("")
+  paymentMethod  String       @default("cash")
   total          Int
   status         OrderStatus  @default(new)
   comment        String       @default("")
+  managerComment String       @default("")
+  assignedToId   String?
+  assignedToName String       @default("")
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
   customer       Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  assignedTo     AdminUser?   @relation("OrderAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
   items          OrderItem[]
+  changes        OrderChange[]
+  supportRequests SupportRequest[]
+
   @@index([status, createdAt])
   @@index([phone])
+  @@index([customerId])
+  @@index([assignedToId, status])
 }
 
 model OrderItem {
@@ -284,10 +296,25 @@ model OrderItem {
   variant      ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
 }
 
+model OrderChange {
+  id        String   @id @default(cuid())
+  orderId   String
+  adminId   String?
+  adminName String   @default("Менеджер")
+  action    String
+  details   String   @default("")
+  createdAt DateTime @default(now())
+
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, createdAt])
+}
+
 model SupportRequest {
   id          String        @id @default(cuid())
   publicId    String        @unique
   customerId  String?
+  orderId     String?
   topic       String
   clientName  String
   phone       String
@@ -301,7 +328,10 @@ model SupportRequest {
   updatedAt   DateTime      @updatedAt
 
   customer    Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  order       Order?        @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
   @@index([status, createdAt])
+  @@index([orderId])
 }
 
 model SupportMessage {
