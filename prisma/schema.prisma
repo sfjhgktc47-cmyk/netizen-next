@@ -324,6 +324,7 @@ model FaqCategory {
   eyebrow     String        @default("")
   title       String
   icon        String        @default("?")
+  image       String        @default("")
   description String        @default("")
   isActive    Boolean       @default(true)
   sortOrder   Int           @default(100)
@@ -339,6 +340,7 @@ model FaqQuestion {
   categoryId String
   question   String
   answer     String
+  image      String      @default("")
   isActive   Boolean     @default(true)
   sortOrder  Int         @default(100)
   createdAt  DateTime    @default(now())
@@ -346,6 +348,21 @@ model FaqQuestion {
   category   FaqCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
 
   @@index([categoryId, isActive, sortOrder])
+}
+
+
+model FaqHighlight {
+  id          String   @id @default(cuid())
+  eyebrow     String   @default("")
+  title       String
+  description String   @default("")
+  image       String   @default("")
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(100)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
 }
 
 
@@ -418,12 +435,13 @@ model SiteBenefit {
   icon        String   @default("✓")
   image       String   @default("")
   href        String   @default("")
+  placement   String   @default("store")
   enabled     Boolean  @default(true)
   sortOrder   Int      @default(100)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@index([enabled, sortOrder])
+  @@index([placement, enabled, sortOrder])
 }
 
 model PageBlock {

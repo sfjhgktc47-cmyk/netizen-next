@@ -8,6 +8,7 @@ type FaqQuestion = {
   id: string;
   question: string;
   answer: string;
+  image: string;
 };
 
 type FaqCategory = {
@@ -16,8 +17,39 @@ type FaqCategory = {
   eyebrow: string;
   title: string;
   icon: string;
+  image: string;
   description: string;
   questions: FaqQuestion[];
+};
+
+type FaqHighlight = {
+  id: string;
+  eyebrow: string;
+  title: string;
+  description: string;
+  image: string;
+};
+
+type FaqHeader = {
+  title: string;
+  subtitle: string;
+  showSupportButton: boolean;
+  supportButtonText: string;
+  supportButtonHref: string;
+  showCatalogButton: boolean;
+  catalogButtonText: string;
+  catalogButtonHref: string;
+};
+
+const defaultHeader: FaqHeader = {
+  title: "Частые вопросы",
+  subtitle: "Коротко объясняем, как работает выбор техники, корзина, доставка, оплата и связь с менеджером.",
+  showSupportButton: true,
+  supportButtonText: "Написать в поддержку",
+  supportButtonHref: "/help",
+  showCatalogButton: true,
+  catalogButtonText: "Перейти в каталог",
+  catalogButtonHref: "/catalog",
 };
 
 const emptyCategory: FaqCategory = {
@@ -26,12 +58,15 @@ const emptyCategory: FaqCategory = {
   eyebrow: "",
   title: "FAQ пока не заполнен",
   icon: "?",
+  image: "",
   description: "Добавьте разделы и вопросы в админ-панели.",
   questions: [],
 };
 
 export default function FaqPage() {
   const [faqCategories, setFaqCategories] = useState<FaqCategory[]>([]);
+  const [faqHighlights, setFaqHighlights] = useState<FaqHighlight[]>([]);
+  const [faqHeader, setFaqHeader] = useState<FaqHeader>(defaultHeader);
   const [activeCategoryId, setActiveCategoryId] = useState("");
   const [faqLoading, setFaqLoading] = useState(true);
   const [activeQuestion, setActiveQuestion] = useState<number | null>(null);
@@ -52,7 +87,7 @@ export default function FaqPage() {
 
     fetch("/api/faq", { cache: "no-store" })
       .then((response) => (response.ok ? response.json() : Promise.reject()))
-      .then((payload: { categories?: FaqCategory[] }) => {
+      .then((payload: { categories?: FaqCategory[]; highlights?: FaqHighlight[]; header?: FaqHeader }) => {
         if (!mounted) return;
 
         const categories = Array.isArray(payload.categories)
@@ -60,6 +95,8 @@ export default function FaqPage() {
           : [];
 
         setFaqCategories(categories);
+        setFaqHighlights(Array.isArray(payload.highlights) ? payload.highlights : []);
+        setFaqHeader(payload.header ?? defaultHeader);
         setActiveCategoryId((current) =>
           categories.some((category) => category.id === current)
             ? current
@@ -155,28 +192,25 @@ export default function FaqPage() {
           <div className="mt-5 flex flex-col gap-5 border-b border-theme pb-7 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <h1 className="max-w-[820px] text-5xl font-bold tracking-[-0.055em] md:text-6xl">
-                Частые вопросы
+                {faqHeader.title}
               </h1>
 
               <p className="mt-3 max-w-[720px] text-base leading-relaxed text-muted md:text-lg">
-                Коротко объясняем, как работает выбор техники, корзина, доставка,
-                оплата наличными и связь с менеджером.
+                {faqHeader.subtitle}
               </p>
             </div>
 
             <div className="flex flex-wrap gap-3">
-              <Link
-                href="/help"
-                className="rounded-2xl bg-blue-600 px-6 py-4 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
-              >
-                Написать в поддержку →
-              </Link>
-              <Link
-                href="/catalog"
-                className="rounded-2xl border border-theme px-6 py-4 text-sm font-semibold transition-colors hover:border-blue-500/45 hover:text-blue-500"
-              >
-                Перейти в каталог
-              </Link>
+              {faqHeader.showSupportButton ? (
+                <Link href={faqHeader.supportButtonHref} className="rounded-2xl bg-blue-600 px-6 py-4 text-sm font-semibold text-white transition-colors hover:bg-blue-500">
+                  {faqHeader.supportButtonText} →
+                </Link>
+              ) : null}
+              {faqHeader.showCatalogButton ? (
+                <Link href={faqHeader.catalogButtonHref} className="rounded-2xl border border-theme px-6 py-4 text-sm font-semibold transition-colors hover:border-blue-500/45 hover:text-blue-500">
+                  {faqHeader.catalogButtonText}
+                </Link>
+              ) : null}
             </div>
           </div>
         </section>
@@ -216,7 +250,12 @@ export default function FaqPage() {
                           : "bg-blue-soft text-blue-500"
                       }`}
                     >
-                      {category.icon}
+                      {category.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={category.image} alt="" className="h-full w-full object-contain p-1" />
+                      ) : (
+                        category.icon
+                      )}
                     </div>
 
                     <div>
@@ -302,6 +341,12 @@ export default function FaqPage() {
                   <p className="mt-4 max-w-[860px] break-words text-sm leading-relaxed text-muted md:text-base">
                     {selectedQuestion.answer}
                   </p>
+                  {selectedQuestion.image ? (
+                    <div className="mt-5 overflow-hidden rounded-2xl border border-theme bg-white">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={selectedQuestion.image} alt="" className="max-h-[420px] w-full object-contain" />
+                    </div>
+                  ) : null}
                 </article>
               )}
 
@@ -341,43 +386,25 @@ export default function FaqPage() {
 
         ) : null}
 
-        <section className="mt-6 grid gap-5 md:grid-cols-3">
-          <div className="card rounded-[28px] p-7">
-            <div className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-500">
-              Подбор
-            </div>
-            <h3 className="mt-4 text-2xl font-bold tracking-[-0.04em]">
-              Не знаете модель?
-            </h3>
-            <p className="mt-3 text-sm leading-relaxed text-muted">
-              Напишите в поддержку задачу и бюджет — менеджер подскажет подходящую технику.
-            </p>
-          </div>
-
-          <div className="card rounded-[28px] p-7">
-            <div className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-500">
-              Заказ
-            </div>
-            <h3 className="mt-4 text-2xl font-bold tracking-[-0.04em]">
-              Всё подтверждается
-            </h3>
-            <p className="mt-3 text-sm leading-relaxed text-muted">
-              Наличие, доставка и итоговая сумма подтверждаются менеджером перед получением.
-            </p>
-          </div>
-
-          <div className="card rounded-[28px] p-7">
-            <div className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-500">
-              Оплата
-            </div>
-            <h3 className="mt-4 text-2xl font-bold tracking-[-0.04em]">
-              Только наличными
-            </h3>
-            <p className="mt-3 text-sm leading-relaxed text-muted">
-              Онлайн-оплаты нет. Клиент оплачивает заказ наличными при получении.
-            </p>
-          </div>
-        </section>
+        {faqHighlights.length > 0 ? (
+          <section className="mt-6 grid gap-5 md:grid-cols-3">
+            {faqHighlights.map((item) => (
+              <div key={item.id} className="card overflow-hidden rounded-[28px]">
+                {item.image ? (
+                  <div className="flex h-44 items-center justify-center border-b border-theme bg-white p-4">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={item.image} alt="" className="h-full w-full object-contain" />
+                  </div>
+                ) : null}
+                <div className="p-7">
+                  <div className="text-xs font-semibold uppercase tracking-[0.22em] text-blue-500">{item.eyebrow}</div>
+                  <h3 className="mt-4 text-2xl font-bold tracking-[-0.04em]">{item.title}</h3>
+                  <p className="mt-3 text-sm leading-relaxed text-muted">{item.description}</p>
+                </div>
+              </div>
+            ))}
+          </section>
+        ) : null}
       </div>
     </main>
   );

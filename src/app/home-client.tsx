@@ -181,9 +181,10 @@ export default function Home({ initialData = {} }: { initialData?: HomePayload }
   // Fallback client-side fetch if server data wasn't provided
   useEffect(() => {
     if (
-      categories.length > 0 ||
-      popularProducts.length > 0 ||
-      banners.length > 0
+      categories.length > 0 &&
+      popularProducts.length > 0 &&
+      banners.length > 0 &&
+      benefits.length > 0
     ) return;
 
     let mounted = true;
@@ -196,17 +197,17 @@ export default function Home({ initialData = {} }: { initialData?: HomePayload }
         const na = Array.isArray(payload.newArrivals)
           ? payload.newArrivals
           : all.filter((p) => p.isNew);
-        setCategories(Array.isArray(payload.categories) ? payload.categories : []);
-        setSiteSettings(payload.siteSettings ?? null);
-        setHomeBlocks(Array.isArray(payload.pageBlocks) ? payload.pageBlocks : []);
-        setBanners(Array.isArray(payload.banners) ? payload.banners : []);
-        setBenefits(Array.isArray(payload.benefits) ? payload.benefits : []);
+        if (Array.isArray(payload.categories)) setCategories(payload.categories);
+        if (payload.siteSettings) setSiteSettings(payload.siteSettings);
+        if (Array.isArray(payload.pageBlocks)) setHomeBlocks(payload.pageBlocks);
+        if (Array.isArray(payload.banners)) setBanners(payload.banners);
+        if (Array.isArray(payload.benefits)) setBenefits(payload.benefits);
         setPopularProducts(pop.filter(isConfiguredProduct));
         setNewArrivals(na.filter((p) => p.slug !== "catalog").slice(0, 3));
       })
       .catch(() => { if (mounted) { setCategories([]); } });
     return () => { mounted = false; };
-  }, []);
+  }, [banners.length, benefits.length, categories.length, popularProducts.length]);
 
   const visibleCategories = categories;
   const visibleHomeBlocks = (homeBlocks.length ? homeBlocks : defaultHomePageBlocks)

@@ -13,7 +13,7 @@ export async function GET() {
       getPublicCatalogData(),
       getSiteEditorSettings(),
       getPublicPageBlocks("home"),
-      getSiteContentLibrary({ activeOnly: true }),
+      getSiteContentLibrary({ activeOnly: true, benefitPlacement: "store" }),
     ]);
 
     const configuredProducts = catalog.productCards.filter((product) => {

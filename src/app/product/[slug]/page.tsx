@@ -57,7 +57,11 @@ export default async function ProductPage({
   const selectedPosition = sku
     ? data.positions.find((position) => position.sku === sku)
     : undefined;
-  const benefits = await getSiteBenefits({ activeOnly: true });
+  const benefits = await getSiteBenefits({
+    activeOnly: true,
+    placement: "product",
+    fallbackPlacement: "store",
+  });
 
   return (
     <ProductDetailView

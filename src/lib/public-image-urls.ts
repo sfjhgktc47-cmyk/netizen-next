@@ -1,4 +1,4 @@
-export type PublicImageKind = "category" | "product" | "variant" | "banner" | "benefit" | "setting";
+export type PublicImageKind = "category" | "product" | "variant" | "banner" | "benefit" | "setting" | "faq-category" | "faq-question" | "faq-highlight";
 
 function isBase64Image(value: string) {
   return /^data:image\/[^;]+;base64,/.test(value.trim());

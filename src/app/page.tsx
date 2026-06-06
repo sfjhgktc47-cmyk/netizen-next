@@ -12,7 +12,7 @@ export default async function Page() {
       getPublicCatalogData(),
       getSiteEditorSettings(),
       getPublicPageBlocks("home"),
-      getSiteContentLibrary({ activeOnly: true }),
+      getSiteContentLibrary({ activeOnly: true, benefitPlacement: "store" }),
     ]);
 
     const allProducts = catalog.productCards.filter(

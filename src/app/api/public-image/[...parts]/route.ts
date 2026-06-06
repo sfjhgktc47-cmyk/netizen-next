@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type ImageKind = "category" | "product" | "variant" | "banner" | "benefit" | "setting";
+type ImageKind = "category" | "product" | "variant" | "banner" | "benefit" | "setting" | "faq-category" | "faq-question" | "faq-highlight";
 
 function parseDataImage(value: string) {
   const marker = ";base64,";
@@ -144,6 +144,24 @@ async function getImage(kind: ImageKind, id: string, field: string, index: numbe
     return benefit?.image ?? "";
   }
 
+  if (kind === "faq-category") {
+    if (field !== "image") return "";
+    const item = await prisma.faqCategory.findUnique({ where: { id }, select: { image: true } });
+    return item?.image ?? "";
+  }
+
+  if (kind === "faq-question") {
+    if (field !== "image") return "";
+    const item = await prisma.faqQuestion.findUnique({ where: { id }, select: { image: true } });
+    return item?.image ?? "";
+  }
+
+  if (kind === "faq-highlight") {
+    if (field !== "image") return "";
+    const item = await prisma.faqHighlight.findUnique({ where: { id }, select: { image: true } });
+    return item?.image ?? "";
+  }
+
   if (kind === "setting") {
     if (id !== "branding") return "";
 
@@ -197,7 +215,7 @@ export async function GET(
     return new NextResponse("Image not found", { status: 404 });
   }
 
-  if (!["category", "product", "variant", "banner", "benefit", "setting"].includes(kind)) {
+  if (!["category", "product", "variant", "banner", "benefit", "setting", "faq-category", "faq-question", "faq-highlight"].includes(kind)) {
     return new NextResponse("Image not found", { status: 404 });
   }
 

@@ -2,7 +2,8 @@
 
 import Link from "next/link";
 import { SiteContentLibraryForm } from "@/components/admin/site-content-library-form";
-import { useMemo, useState, type ReactNode } from "react";
+import { FaqAdminClient } from "@/components/admin/faq-admin-client";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 
 import type {
   ModuleDefinition,
@@ -50,8 +51,17 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder, initialCon
     [activePage, pageBuilder.blocks]
   );
   const selectedBlock = activeBlocks.find((block) => block.id === selectedBlockId) ?? activeBlocks[0] ?? null;
-  const availableModules = pageBuilder.modules.filter((module) => module.pageKeys.includes(activePage));
+  const availableModules = useMemo(
+    () => pageBuilder.modules.filter((module) => module.pageKeys.includes(activePage)),
+    [activePage, pageBuilder.modules],
+  );
   const enabledBlocks = activeBlocks.filter((block) => block.enabled).length;
+
+  useEffect(() => {
+    if (availableModules.some((module) => module.type === moduleToAdd)) return;
+    const firstModule = availableModules[0];
+    if (firstModule) setModuleToAdd(firstModule.type);
+  }, [activePage, availableModules, moduleToAdd]);
 
   function updateBranding<K extends keyof SiteEditorSettings["branding"]>(key: K, value: SiteEditorSettings["branding"][K]) {
     setSettings((current) => ({
@@ -252,6 +262,11 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder, initialCon
   }
 
   async function addBlock() {
+    if (!availableModules.some((module) => module.type === moduleToAdd)) {
+      setBuilderState("error");
+      return;
+    }
+
     setBuilderState("saving");
 
     const response = await fetch("/api/admin/page-blocks", {
@@ -487,10 +502,12 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder, initialCon
           </section>
         </section>
 
-        <SiteContentLibraryForm
-          initialLibrary={contentLibrary}
-          onChange={setContentLibrary}
-        />
+        {activePage === "home" ? (
+          <SiteContentLibraryForm
+            initialLibrary={contentLibrary}
+            onChange={setContentLibrary}
+          />
+        ) : null}
 
         <details className="mt-6 rounded-[34px] border border-white/10 bg-white/[0.035] p-5 sm:p-8">
           <summary className="cursor-pointer list-none">
@@ -721,7 +738,7 @@ function ModuleSettings({ block, onSettingChange, contentLibrary }: { block: Sit
             checked={getSettingBoolean(settings, "showSupportButton", true)}
             onChange={(event) => onSettingChange("showSupportButton", event.target.checked)}
           />
-          Кнопка поддержки
+          Показывать кнопку поддержки
         </label>
 
         <label className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 text-sm text-white/70">
@@ -730,8 +747,40 @@ function ModuleSettings({ block, onSettingChange, contentLibrary }: { block: Sit
             checked={getSettingBoolean(settings, "showCatalogButton", true)}
             onChange={(event) => onSettingChange("showCatalogButton", event.target.checked)}
           />
-          Кнопка каталога
+          Показывать кнопку каталога
         </label>
+
+        <Field label="Текст кнопки поддержки">
+          <input
+            value={getSettingText(settings, "supportButtonText") || "Написать в поддержку"}
+            onChange={(event) => onSettingChange("supportButtonText", event.target.value)}
+            className="admin-input"
+          />
+        </Field>
+
+        <Field label="Ссылка кнопки поддержки">
+          <input
+            value={getSettingText(settings, "supportButtonHref") || "/help"}
+            onChange={(event) => onSettingChange("supportButtonHref", event.target.value)}
+            className="admin-input"
+          />
+        </Field>
+
+        <Field label="Текст кнопки каталога">
+          <input
+            value={getSettingText(settings, "catalogButtonText") || "Перейти в каталог"}
+            onChange={(event) => onSettingChange("catalogButtonText", event.target.value)}
+            className="admin-input"
+          />
+        </Field>
+
+        <Field label="Ссылка кнопки каталога">
+          <input
+            value={getSettingText(settings, "catalogButtonHref") || "/catalog"}
+            onChange={(event) => onSettingChange("catalogButtonHref", event.target.value)}
+            className="admin-input"
+          />
+        </Field>
       </div>
     );
   }
@@ -746,48 +795,17 @@ function ModuleSettings({ block, onSettingChange, contentLibrary }: { block: Sit
 
   if (block.type === "faq-content") {
     return (
-      <div className="mt-7 rounded-3xl border border-white/10 bg-black/20 p-5 sm:p-6">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-          <div>
-            <div className="text-xs font-medium uppercase tracking-[0.16em] text-white/35">
-              Контент FAQ
-            </div>
-            <h3 className="mt-2 text-xl font-bold tracking-[-0.035em]">
-              Разделы, вопросы, ответы, фото и преимущества
-            </h3>
-            <p className="mt-2 max-w-[720px] text-sm leading-relaxed text-white/45">
-              Сам контент FAQ редактируется в отдельной вкладке FAQ-админки:
-              разделы, вопросы, ответы, изображения и дополнительные преимущества.
-            </p>
+      <div className="mt-7">
+        <div className="mb-5 rounded-3xl border border-blue-500/20 bg-blue-500/10 p-5">
+          <div className="text-xs font-medium uppercase tracking-[0.16em] text-blue-300">
+            Контент страницы FAQ
           </div>
-
-          <Link
-            href="/nz-console/faq"
-            className="shrink-0 rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
-          >
-            Редактировать FAQ
-          </Link>
+          <h3 className="mt-2 text-xl font-bold">Разделы, вопросы, ответы, фото и нижние карточки</h3>
+          <p className="mt-2 text-sm leading-relaxed text-white/50">
+            Всё редактируется здесь. Отдельно переходить в другой раздел админки больше не нужно.
+          </p>
         </div>
-
-        <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <label className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 text-sm text-white/70">
-            <input
-              type="checkbox"
-              checked={getSettingBoolean(settings, "showImages", true)}
-              onChange={(event) => onSettingChange("showImages", event.target.checked)}
-            />
-            Показывать изображения в FAQ
-          </label>
-
-          <label className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 text-sm text-white/70">
-            <input
-              type="checkbox"
-              checked={getSettingBoolean(settings, "showBenefits", true)}
-              onChange={(event) => onSettingChange("showBenefits", event.target.checked)}
-            />
-            Показывать преимущества в FAQ
-          </label>
-        </div>
+        <FaqAdminClient />
       </div>
     );
   }
@@ -975,7 +993,7 @@ function BenefitsModuleEditor({
       </div>
 
       <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.025] p-4 text-sm text-white/45">
-        Активных преимуществ в библиотеке: {contentLibrary.benefits.filter((benefit) => benefit.enabled).length}.
+        Активных преимуществ в библиотеке: {contentLibrary.benefits.filter((benefit) => benefit.enabled && benefit.placement === "store").length}.
       </div>
     </div>
   );

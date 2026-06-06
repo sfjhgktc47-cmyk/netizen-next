@@ -6,7 +6,7 @@ import { ImageDropZone } from "@/components/admin/image-drop-zone";
 import type { SiteBanner, SiteBenefit, SiteContentLibrary } from "@/lib/site-content-library-db";
 import { SupportContentAdminClient } from "@/components/admin/support-content-admin-client";
 
-type LibraryTab = "banners" | "benefits" | "service";
+type LibraryTab = "banners" | "store" | "product" | "service";
 type SaveState = "idle" | "saving" | "saved" | "error";
 
 type Props = {
@@ -40,6 +40,7 @@ const emptyBenefit: Omit<SiteBenefit, "id" | "createdAt" | "updatedAt"> = {
   icon: "✓",
   image: "",
   href: "",
+  placement: "store",
   enabled: true,
   sortOrder: 100,
 };
@@ -52,7 +53,14 @@ export function SiteContentLibraryForm({ initialLibrary, onChange }: Props) {
   const [state, setState] = useState<SaveState>("idle");
 
   const selectedBanner = library.banners.find((banner) => banner.id === selectedBannerId) ?? library.banners[0] ?? null;
-  const selectedBenefit = library.benefits.find((benefit) => benefit.id === selectedBenefitId) ?? library.benefits[0] ?? null;
+  const activeBenefitPlacement = tab === "product" ? "product" : "store";
+  const visibleBenefits = library.benefits.filter(
+    (benefit) => benefit.placement === activeBenefitPlacement,
+  );
+  const selectedBenefit =
+    visibleBenefits.find((benefit) => benefit.id === selectedBenefitId) ??
+    visibleBenefits[0] ??
+    null;
 
   function updateLibrary(next: SiteContentLibrary) {
     setLibrary(next);
@@ -116,7 +124,10 @@ export function SiteContentLibraryForm({ initialLibrary, onChange }: Props) {
     const response = await fetch("/api/admin/site-benefits", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(emptyBenefit),
+      body: JSON.stringify({
+        ...emptyBenefit,
+        placement: activeBenefitPlacement,
+      }),
     }).catch(() => null);
 
     if (!response?.ok) {
@@ -210,40 +221,37 @@ export function SiteContentLibraryForm({ initialLibrary, onChange }: Props) {
             Баннеры и преимущества
           </h2>
           <p className="mt-3 max-w-[760px] text-sm leading-relaxed text-white/50">
-            Здесь редактируются баннеры и все группы преимуществ сайта.
+            Все группы находятся здесь и больше не повторяются под каждой страницей редактора.
           </p>
         </div>
 
         <div className="flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-black/20 p-1">
-          <button
-            type="button"
-            onClick={() => setTab("banners")}
-            className={`rounded-xl px-4 py-3 text-sm font-semibold ${
-              tab === "banners" ? "bg-blue-600 text-white" : "text-white/55 hover:text-white"
-            }`}
-          >
-            Баннеры
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setTab("benefits")}
-            className={`rounded-xl px-4 py-3 text-sm font-semibold ${
-              tab === "benefits" ? "bg-blue-600 text-white" : "text-white/55 hover:text-white"
-            }`}
-          >
-            Преимущества магазина
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setTab("service")}
-            className={`rounded-xl px-4 py-3 text-sm font-semibold ${
-              tab === "service" ? "bg-blue-600 text-white" : "text-white/55 hover:text-white"
-            }`}
-          >
-            Сервис и поддержка
-          </button>
+          {[
+            { key: "banners", label: "Баннеры" },
+            { key: "store", label: "Главная" },
+            { key: "product", label: "Карточка товара" },
+            { key: "service", label: "Сервис и поддержка" },
+          ].map((item) => (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => {
+                const nextTab = item.key as LibraryTab;
+                setTab(nextTab);
+                if (nextTab === "store" || nextTab === "product") {
+                  const placement = nextTab === "product" ? "product" : "store";
+                  setSelectedBenefitId(
+                    library.benefits.find((benefit) => benefit.placement === placement)?.id ?? "",
+                  );
+                }
+              }}
+              className={`rounded-xl px-4 py-3 text-sm font-semibold ${
+                tab === item.key ? "bg-blue-600 text-white" : "text-white/55 hover:text-white"
+              }`}
+            >
+              {item.label}
+            </button>
+          ))}
         </div>
       </div>
 
@@ -265,16 +273,12 @@ export function SiteContentLibraryForm({ initialLibrary, onChange }: Props) {
                 }`}
               >
                 <div className="text-sm font-bold">{banner.adminTitle}</div>
-                <div className="mt-1 line-clamp-1 text-xs text-white/45">
-                  {banner.title}
-                </div>
-                <div
-                  className={`mt-3 inline-flex rounded-full border px-2.5 py-1 text-[11px] ${
-                    banner.enabled
-                      ? "border-green-500/30 bg-green-500/10 text-green-300"
-                      : "border-red-500/30 bg-red-500/10 text-red-300"
-                  }`}
-                >
+                <div className="mt-1 line-clamp-1 text-xs text-white/45">{banner.title}</div>
+                <div className={`mt-3 inline-flex rounded-full border px-2.5 py-1 text-[11px] ${
+                  banner.enabled
+                    ? "border-green-500/30 bg-green-500/10 text-green-300"
+                    : "border-red-500/30 bg-red-500/10 text-red-300"
+                }`}>
                   {banner.enabled ? "Активен" : "Скрыт"}
                 </div>
               </button>
@@ -293,50 +297,66 @@ export function SiteContentLibraryForm({ initialLibrary, onChange }: Props) {
             <EmptyState>Создай или выбери баннер.</EmptyState>
           )}
         </div>
-      ) : tab === "benefits" ? (
-        <div className="mt-6 grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
-          <LibraryList
-            title="Преимущества"
-            onCreate={createBenefit}
-            createText="+ Создать преимущество"
-          >
-            {library.benefits.map((benefit) => (
-              <button
-                key={benefit.id}
-                type="button"
-                onClick={() => setSelectedBenefitId(benefit.id)}
-                className={`rounded-2xl border p-4 text-left transition-all ${
-                  selectedBenefit?.id === benefit.id
-                    ? "border-blue-500/50 bg-blue-500/15"
-                    : "border-white/10 bg-black/20 hover:border-blue-500/35"
-                }`}
-              >
-                <div className="flex items-center gap-3">
-                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-blue-500/30 bg-blue-500/10 text-blue-300">
-                    {benefit.icon || "✓"}
-                  </span>
-                  <div className="min-w-0">
-                    <div className="truncate text-sm font-bold">{benefit.title}</div>
-                    <div className="mt-1 line-clamp-1 text-xs text-white/45">
-                      {benefit.description}
+      ) : tab === "store" || tab === "product" ? (
+        <div className="mt-6">
+          <div className="mb-5 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4">
+            <div className="text-sm font-bold text-blue-200">
+              {tab === "product" ? "Преимущества в карточке товара" : "Преимущества на главной"}
+            </div>
+            <p className="mt-1 text-sm leading-relaxed text-white/50">
+              {tab === "product"
+                ? "Эта группа выводится во вкладке преимуществ на странице товара."
+                : "Эта группа выводится полосой под главным баннером на главной странице."}
+            </p>
+          </div>
+
+          <div className="grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
+            <LibraryList
+              title={tab === "product" ? "Преимущества товара" : "Преимущества главной"}
+              onCreate={createBenefit}
+              createText="+ Создать преимущество"
+            >
+              {visibleBenefits.map((benefit) => (
+                <button
+                  key={benefit.id}
+                  type="button"
+                  onClick={() => setSelectedBenefitId(benefit.id)}
+                  className={`rounded-2xl border p-4 text-left transition-all ${
+                    selectedBenefit?.id === benefit.id
+                      ? "border-blue-500/50 bg-blue-500/15"
+                      : "border-white/10 bg-black/20 hover:border-blue-500/35"
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-blue-500/30 bg-blue-500/10 text-blue-300">
+                      {benefit.image ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={benefit.image} alt="" className="h-7 w-7 object-contain" />
+                      ) : (
+                        benefit.icon || "✓"
+                      )}
+                    </span>
+                    <div className="min-w-0">
+                      <div className="truncate text-sm font-bold">{benefit.title}</div>
+                      <div className="mt-1 line-clamp-1 text-xs text-white/45">{benefit.description}</div>
                     </div>
                   </div>
-                </div>
-              </button>
-            ))}
-          </LibraryList>
+                </button>
+              ))}
+            </LibraryList>
 
-          {selectedBenefit ? (
-            <BenefitEditor
-              benefit={selectedBenefit}
-              disabled={state === "saving"}
-              updateBenefit={updateBenefit}
-              saveBenefit={saveBenefit}
-              deleteBenefit={deleteBenefit}
-            />
-          ) : (
-            <EmptyState>Создай или выбери преимущество.</EmptyState>
-          )}
+            {selectedBenefit ? (
+              <BenefitEditor
+                benefit={selectedBenefit}
+                disabled={state === "saving"}
+                updateBenefit={updateBenefit}
+                saveBenefit={saveBenefit}
+                deleteBenefit={deleteBenefit}
+              />
+            ) : (
+              <EmptyState>Создай первое преимущество для этой группы.</EmptyState>
+            )}
+          </div>
         </div>
       ) : (
         <div className="mt-6">
@@ -346,10 +366,8 @@ export function SiteContentLibraryForm({ initialLibrary, onChange }: Props) {
             </div>
             <p className="mt-1 text-sm leading-relaxed text-white/50">
               Эти карточки показываются слева в блоке «Сервис и поддержка Нетизен».
-              Здесь можно менять название, описание, иконку, фото, порядок и видимость.
             </p>
           </div>
-
           <SupportContentAdminClient mode="features" />
         </div>
       )}
