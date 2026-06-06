@@ -39,6 +39,11 @@ type SearchResponse = {
 };
 
 type HeaderSiteSettings = {
+  contacts?: {
+    phone?: string;
+    phoneText?: string;
+    workingHours?: string;
+  };
   branding?: {
     storeName?: string;
     logoLight?: string;
@@ -121,7 +126,9 @@ export function SiteHeader() {
   const [searchHistory, setSearchHistory] = useState<string[]>([]);
   const [searchProducts, setSearchProducts] = useState<SearchProduct[]>([]);
   const [isSearchLoading, setIsSearchLoading] = useState(false);
+  const [isPhoneOpen, setIsPhoneOpen] = useState(false);
   const searchRootRef = useRef<HTMLDivElement | null>(null);
+  const phoneRootRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     document.body.classList.add("has-mobile-bottom-nav");
@@ -151,6 +158,10 @@ export function SiteHeader() {
 
       if (searchRootRef.current && !searchRootRef.current.contains(target)) {
         setIsSearchOpen(false);
+      }
+
+      if (phoneRootRef.current && !phoneRootRef.current.contains(target)) {
+        setIsPhoneOpen(false);
       }
     }
 
@@ -288,16 +299,6 @@ export function SiteHeader() {
     [siteSettings?.branding]
   );
 
-  async function logout() {
-    await fetch("/api/auth/logout", { method: "POST" }).catch(() => null);
-    setAuthUser(null);
-    window.dispatchEvent(new Event("netizen-auth-updated"));
-
-    if (window.location.pathname.startsWith("/profile") || window.location.pathname.startsWith("/nz-console")) {
-      window.location.href = "/";
-    }
-  }
-
   function saveSearchHistory(query: string) {
     const nextHistory = [query, ...searchHistory.filter((item) => item.toLowerCase() !== query.toLowerCase())].slice(0, 8);
     setSearchHistory(nextHistory);
@@ -337,6 +338,12 @@ export function SiteHeader() {
   const logoDark = siteSettings?.branding?.logoDark?.trim() || "/logo-dark.png";
   const mobileLogo = siteSettings?.branding?.mobileLogo?.trim();
   const storeName = siteSettings?.branding?.storeName?.trim() || "Нетизен";
+  const storePhone = siteSettings?.contacts?.phone?.trim() || "8 (800) 123-45-67";
+  const storePhoneText =
+    siteSettings?.contacts?.phoneText?.trim() ||
+    siteSettings?.contacts?.workingHours?.trim() ||
+    "Связаться с магазином";
+  const phoneHref = `tel:${storePhone.replace(/[^\d+]/g, "")}`;
   const logoSrc = dark ? logoLight : logoDark;
 
   return (
@@ -585,6 +592,53 @@ export function SiteHeader() {
             </span>
           </button>
 
+          <div ref={phoneRootRef} className="relative">
+            <button
+              type="button"
+              onClick={() => setIsPhoneOpen((current) => !current)}
+              aria-label="Телефон магазина"
+              aria-expanded={isPhoneOpen}
+              className={`flex h-9 w-9 items-center justify-center rounded-xl border text-sm font-bold transition-all duration-300 sm:h-10 sm:w-10 lg:h-11 lg:w-11 ${
+                isPhoneOpen
+                  ? "border-blue-400 bg-blue-600 text-white shadow-[0_10px_30px_rgba(37,99,235,0.34)]"
+                  : dark
+                    ? "border-white/30 bg-white/[0.12] text-white hover:border-blue-400 hover:bg-blue-600/30"
+                    : "border-black/15 bg-white text-[#07111f] hover:border-blue-500/50 hover:bg-blue-50"
+              }`}
+            >
+              ☎
+            </button>
+
+            {isPhoneOpen ? (
+              <div
+                className={`absolute right-0 top-[calc(100%+10px)] z-[130] w-[280px] rounded-2xl border p-4 shadow-[0_24px_70px_rgba(0,0,0,0.34)] ${
+                  dark
+                    ? "border-white/20 bg-[#0a1424] text-white"
+                    : "border-black/10 bg-white text-[#07111f]"
+                }`}
+              >
+                <div className="text-xs font-semibold uppercase tracking-[0.14em] text-blue-500">
+                  Связь с магазином
+                </div>
+                <a
+                  href={phoneHref}
+                  className="mt-2 block text-lg font-bold transition-colors hover:text-blue-500"
+                >
+                  {storePhone}
+                </a>
+                <p className={`mt-1 text-xs leading-relaxed ${dark ? "text-white/65" : "text-black/55"}`}>
+                  {storePhoneText}
+                </p>
+                <a
+                  href={phoneHref}
+                  className="mt-4 flex min-h-10 items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+                >
+                  Позвонить
+                </a>
+              </div>
+            ) : null}
+          </div>
+
           <Link
             href="/cart"
             className={`relative hidden h-11 w-11 items-center justify-center rounded-xl border transition-all duration-300 lg:flex ${
@@ -616,22 +670,6 @@ export function SiteHeader() {
               >
                 {getUserInitial(authUser)}
               </Link>
-
-              {!pathname.startsWith("/profile") ? (
-                <button
-                  type="button"
-                  onClick={logout}
-                  aria-label="Выйти из аккаунта"
-                  title="Выйти"
-                  className={`hidden h-11 rounded-xl border px-4 text-sm font-medium transition-all duration-300 sm:inline-flex sm:items-center ${
-                    dark
-                      ? "border-white/10 bg-white/[0.03] text-white hover:border-red-500/40 hover:bg-red-500/10"
-                      : "border-black/10 bg-white text-[#07111f] hover:border-red-500/40 hover:bg-red-50"
-                  }`}
-                >
-                  Выйти
-                </button>
-              ) : null}
             </div>
           ) : (
             <button

@@ -120,3 +120,151 @@ body.has-mobile-bottom-nav {
     overflow-x: hidden;
   }
 }
+
+
+/* Единый контрастный дизайн тёмной темы */
+.dark {
+  --muted: rgba(255, 255, 255, 0.72);
+  --muted-soft: rgba(255, 255, 255, 0.52);
+  --card: rgba(10, 20, 36, 0.88);
+  --card-soft: rgba(14, 28, 49, 0.88);
+  --border: rgba(255, 255, 255, 0.20);
+  --blue-soft: rgba(37, 99, 235, 0.22);
+}
+
+.dark .card {
+  border-color: rgba(255, 255, 255, 0.20);
+  background:
+    linear-gradient(180deg, rgba(16, 30, 50, 0.94), rgba(8, 18, 33, 0.94));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    0 16px 44px rgba(0, 0, 0, 0.20);
+}
+
+.dark .soft-box,
+.dark .bg-blue-soft {
+  border-color: rgba(96, 165, 250, 0.22);
+  background-color: rgba(37, 99, 235, 0.17);
+}
+
+.dark .border-theme {
+  border-color: rgba(255, 255, 255, 0.20);
+}
+
+.dark [class*="border-white/10"],
+.dark [class*="border-white/[0.1]"] {
+  border-color: rgba(255, 255, 255, 0.21) !important;
+}
+
+.dark [class*="bg-white/[0.02]"],
+.dark [class*="bg-white/[0.025]"],
+.dark [class*="bg-white/[0.03]"],
+.dark [class*="bg-white/[0.035]"],
+.dark [class*="bg-white/[0.04]"],
+.dark [class*="bg-white/[0.045]"],
+.dark [class*="bg-white/[0.05]"] {
+  background-color: rgba(255, 255, 255, 0.085) !important;
+}
+
+.dark [class*="bg-black/15"],
+.dark [class*="bg-black/20"],
+.dark [class*="bg-black/25"],
+.dark [class*="bg-black/30"] {
+  background-color: rgba(4, 12, 24, 0.62) !important;
+}
+
+.dark [class*="text-white/35"] {
+  color: rgba(255, 255, 255, 0.58) !important;
+}
+
+.dark [class*="text-white/40"],
+.dark [class*="text-white/45"] {
+  color: rgba(255, 255, 255, 0.68) !important;
+}
+
+.dark [class*="text-white/50"],
+.dark [class*="text-white/55"] {
+  color: rgba(255, 255, 255, 0.74) !important;
+}
+
+.dark [class*="text-white/60"],
+.dark [class*="text-white/65"],
+.dark [class*="text-white/70"] {
+  color: rgba(255, 255, 255, 0.84) !important;
+}
+
+.dark input:not([type="checkbox"]):not([type="radio"]),
+.dark select,
+.dark textarea,
+.dark .admin-input,
+.dark .admin-textarea {
+  color-scheme: dark;
+}
+
+.dark input[class*="border"],
+.dark select[class*="border"],
+.dark textarea[class*="border"],
+.dark .admin-input,
+.dark .admin-textarea {
+  border-color: rgba(255, 255, 255, 0.23) !important;
+  background-color: rgba(5, 14, 28, 0.82) !important;
+  color: #ffffff !important;
+}
+
+.dark input[class*="border"]:focus,
+.dark select[class*="border"]:focus,
+.dark textarea[class*="border"]:focus,
+.dark .admin-input:focus,
+.dark .admin-textarea:focus {
+  border-color: rgba(96, 165, 250, 0.86) !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.18) !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+  color: rgba(255, 255, 255, 0.45) !important;
+}
+
+.dark button[class*="border"]:not([class*="bg-blue-"]):not([class*="bg-red-"]):not([class*="bg-green-"]),
+.dark a[class*="border"]:not([class*="bg-blue-"]):not([class*="bg-red-"]):not([class*="bg-green-"]) {
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  background-color: rgba(255, 255, 255, 0.10) !important;
+  color: rgba(255, 255, 255, 0.98) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.dark button[class*="border"]:not([class*="bg-blue-"]):not([class*="bg-red-"]):not([class*="bg-green-"]):hover,
+.dark a[class*="border"]:not([class*="bg-blue-"]):not([class*="bg-red-"]):not([class*="bg-green-"]):hover {
+  border-color: rgba(96, 165, 250, 0.78) !important;
+  background-color: rgba(37, 99, 235, 0.30) !important;
+  color: #ffffff !important;
+}
+
+.dark button[class*="border-blue-500"],
+.dark a[class*="border-blue-500"] {
+  border-color: rgba(96, 165, 250, 0.68) !important;
+  background-color: rgba(37, 99, 235, 0.27) !important;
+  color: #ffffff !important;
+}
+
+.dark details[class*="border"],
+.dark section[class*="border"][class*="bg-white/"],
+.dark article[class*="border"][class*="bg-white/"],
+.dark aside[class*="border"][class*="bg-white/"] {
+  border-color: rgba(255, 255, 255, 0.20) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.035),
+    0 14px 38px rgba(0, 0, 0, 0.16);
+}
+
+.dark [class*="border-dashed"] {
+  border-color: rgba(255, 255, 255, 0.25) !important;
+  background-color: rgba(255, 255, 255, 0.035);
+}
+
+/* Светлая подложка за товарными изображениями на тёмной теме */
+.dark img[class*="object-contain"] {
+  filter: drop-shadow(0 12px 24px rgba(70, 130, 255, 0.12));
+}
