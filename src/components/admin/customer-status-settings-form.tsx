@@ -5,10 +5,11 @@ import { useState } from "react";
 
 import type {
   CustomerStatusRules,
-  DiscountType,
+  StatusDiscountTier,
 } from "@/lib/customer-status-types";
 
 type SaveState = "idle" | "saving" | "saved" | "error";
+type TierKey = "regularDiscountTiers" | "vipDiscountTiers";
 
 export function CustomerStatusSettingsForm({
   initialRules,
@@ -26,6 +27,36 @@ export function CustomerStatusSettingsForm({
 
   function updateNumber(key: keyof CustomerStatusRules, value: number) {
     update(key, Math.max(0, Math.round(value || 0)) as CustomerStatusRules[typeof key]);
+  }
+
+  function addTier(key: TierKey, prefix: string) {
+    setRules((current) => {
+      const tiers = current[key];
+      const last = tiers[tiers.length - 1];
+      const next: StatusDiscountTier = {
+        id: `${prefix}-${Date.now()}`,
+        minOrderTotal: last ? last.minOrderTotal + 10000 : 10000,
+        minItemPrice: last?.minItemPrice ?? 0,
+        discountType: last?.discountType ?? "percent",
+        discountValue: last ? last.discountValue + 1 : 3,
+      };
+
+      return { ...current, [key]: [...tiers, next] };
+    });
+  }
+
+  function updateTier(key: TierKey, id: string, patch: Partial<StatusDiscountTier>) {
+    setRules((current) => ({
+      ...current,
+      [key]: current[key].map((tier) => (tier.id === id ? { ...tier, ...patch } : tier)),
+    }));
+  }
+
+  function removeTier(key: TierKey, id: string) {
+    setRules((current) => ({
+      ...current,
+      [key]: current[key].filter((tier) => tier.id !== id),
+    }));
   }
 
   async function save() {
@@ -57,15 +88,16 @@ export function CustomerStatusSettingsForm({
     <section className="rounded-[30px] border border-blue-500/25 bg-blue-500/10 p-6">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
         <div>
-          <div className="text-sm font-medium uppercase tracking-[0.18em] text-blue-400">
+          <div className="text-sm font-medium uppercase tracking-[0.18em] text-blue-500">
             Правила статусов и скидок
           </div>
           <h2 className="mt-2 text-3xl font-bold tracking-[-0.04em]">
             Новый → Постоянный → VIP
           </h2>
-          <p className="mt-3 max-w-[900px] text-sm leading-relaxed text-white/55">
-            Статусы считаются по завершённым заказам. Для постоянных и VIP можно назначить
-            скидку в процентах или рублях и ограничить её минимальной суммой заказа и ценой товара.
+          <p className="mt-3 max-w-[900px] text-sm leading-relaxed text-muted">
+            Статусы считаются по завершённым заказам. Для постоянных и VIP можно
+            создать несколько ступеней скидки: например, от 10 000 ₽ — 3%, а от
+            50 000 ₽ — уже 5%.
           </p>
         </div>
 
@@ -109,120 +141,185 @@ export function CustomerStatusSettingsForm({
       </div>
 
       <div className="mt-6 grid gap-5 xl:grid-cols-2">
-        <StatusDiscountEditor
-          title="Скидка постоянного клиента"
+        <StatusDiscountTiersEditor
+          title="Скидки постоянного клиента"
+          description="Выбирается самая высокая подходящая ступень по сумме текущего заказа."
           enabled={rules.regularDiscountEnabled}
-          type={rules.regularDiscountType}
-          value={rules.regularDiscountValue}
-          minOrderTotal={rules.regularDiscountMinOrderTotal}
-          minItemPrice={rules.regularDiscountMinItemPrice}
+          tiers={rules.regularDiscountTiers}
           onEnabled={(value) => update("regularDiscountEnabled", value)}
-          onType={(value) => update("regularDiscountType", value)}
-          onValue={(value) => updateNumber("regularDiscountValue", value)}
-          onMinOrder={(value) => updateNumber("regularDiscountMinOrderTotal", value)}
-          onMinItem={(value) => updateNumber("regularDiscountMinItemPrice", value)}
+          onAdd={() => addTier("regularDiscountTiers", "regular")}
+          onUpdate={(id, patch) => updateTier("regularDiscountTiers", id, patch)}
+          onRemove={(id) => removeTier("regularDiscountTiers", id)}
         />
-        <StatusDiscountEditor
-          title="Скидка VIP"
+
+        <StatusDiscountTiersEditor
+          title="Скидки VIP"
+          description="Для VIP можно сделать отдельные, более выгодные ступени скидки."
           enabled={rules.vipDiscountEnabled}
-          type={rules.vipDiscountType}
-          value={rules.vipDiscountValue}
-          minOrderTotal={rules.vipDiscountMinOrderTotal}
-          minItemPrice={rules.vipDiscountMinItemPrice}
+          tiers={rules.vipDiscountTiers}
           onEnabled={(value) => update("vipDiscountEnabled", value)}
-          onType={(value) => update("vipDiscountType", value)}
-          onValue={(value) => updateNumber("vipDiscountValue", value)}
-          onMinOrder={(value) => updateNumber("vipDiscountMinOrderTotal", value)}
-          onMinItem={(value) => updateNumber("vipDiscountMinItemPrice", value)}
+          onAdd={() => addTier("vipDiscountTiers", "vip")}
+          onUpdate={(id, patch) => updateTier("vipDiscountTiers", id, patch)}
+          onRemove={(id) => removeTier("vipDiscountTiers", id)}
         />
       </div>
 
-      <label className="mt-5 flex flex-col gap-3 rounded-2xl border border-white/10 bg-black/20 p-4 sm:flex-row sm:items-center sm:justify-between">
-        <div>
-          <div className="font-semibold">Совмещение скидки статуса и промокода</div>
-          <div className="mt-1 text-sm text-white/45">
-            «Суммировать» применяет обе скидки. «Лучшая» оставляет только более выгодную.
-          </div>
-        </div>
-        <select
-          value={rules.discountCombinationMode}
-          onChange={(event) =>
-            update("discountCombinationMode", event.target.value === "best" ? "best" : "stack")
-          }
-          className="h-12 rounded-xl border border-white/10 bg-[#06101f] px-4 text-sm outline-none"
-        >
-          <option value="stack">Суммировать</option>
-          <option value="best">Только лучшая скидка</option>
-        </select>
-      </label>
+      <div className="mt-5 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4 text-sm text-muted">
+        При промокоде правило задаётся в самом промокоде: можно разрешить его вместе
+        со скидкой статуса либо оставить только более выгодную скидку.
+      </div>
 
       {state === "saved" ? (
-        <div className="mt-4 text-sm text-green-300">Правила сохранены.</div>
+        <div className="mt-4 text-sm text-green-500">Правила сохранены.</div>
       ) : null}
-      {state === "error" ? <div className="mt-4 text-sm text-red-300">{error}</div> : null}
+      {state === "error" ? <div className="mt-4 text-sm text-red-500">{error}</div> : null}
     </section>
   );
 }
 
-function StatusDiscountEditor({
+function StatusDiscountTiersEditor({
   title,
+  description,
   enabled,
-  type,
-  value,
-  minOrderTotal,
-  minItemPrice,
+  tiers,
   onEnabled,
-  onType,
-  onValue,
-  onMinOrder,
-  onMinItem,
+  onAdd,
+  onUpdate,
+  onRemove,
 }: {
   title: string;
+  description: string;
   enabled: boolean;
-  type: DiscountType;
-  value: number;
-  minOrderTotal: number;
-  minItemPrice: number;
+  tiers: StatusDiscountTier[];
   onEnabled: (value: boolean) => void;
-  onType: (value: DiscountType) => void;
-  onValue: (value: number) => void;
-  onMinOrder: (value: number) => void;
-  onMinItem: (value: number) => void;
+  onAdd: () => void;
+  onUpdate: (id: string, patch: Partial<StatusDiscountTier>) => void;
+  onRemove: (id: string) => void;
 }) {
+  const sortedTiers = [...tiers].sort((first, second) => first.minOrderTotal - second.minOrderTotal);
+
   return (
-    <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
-      <label className="flex items-center justify-between gap-4">
-        <div className="font-bold">{title}</div>
+    <div className="rounded-2xl border border-theme bg-card p-5">
+      <div className="flex items-start justify-between gap-4">
+        <div>
+          <div className="font-bold">{title}</div>
+          <p className="mt-1 text-sm leading-relaxed text-muted">{description}</p>
+        </div>
         <input
           type="checkbox"
           checked={enabled}
           onChange={(event) => onEnabled(event.target.checked)}
-          className="h-5 w-5 accent-blue-600"
+          className="mt-1 h-5 w-5 accent-blue-600"
         />
-      </label>
+      </div>
 
-      <div className={`mt-4 grid gap-3 sm:grid-cols-2 ${enabled ? "" : "pointer-events-none opacity-45"}`}>
-        <label className="rounded-xl border border-white/10 bg-black/20 p-3">
-          <span className="text-xs text-white/45">Тип скидки</span>
-          <select
-            value={type}
-            onChange={(event) => onType(event.target.value === "fixed" ? "fixed" : "percent")}
-            className="mt-2 w-full bg-transparent text-sm font-semibold outline-none"
-          >
-            <option value="percent">Проценты</option>
-            <option value="fixed">Рубли</option>
-          </select>
-        </label>
-        <RuleField
-          label="Размер скидки"
-          value={value}
-          suffix={type === "percent" ? "%" : "₽"}
-          onChange={onValue}
-        />
-        <RuleField label="Заказ от" value={minOrderTotal} suffix="₽" onChange={onMinOrder} />
-        <RuleField label="Товар от" value={minItemPrice} suffix="₽" onChange={onMinItem} />
+      <div className={`mt-5 grid gap-3 ${enabled ? "" : "pointer-events-none opacity-45"}`}>
+        {sortedTiers.map((tier, index) => (
+          <div key={tier.id} className="rounded-2xl border border-theme bg-page p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="text-sm font-semibold">Ступень {index + 1}</div>
+              <button
+                type="button"
+                onClick={() => onRemove(tier.id)}
+                disabled={tiers.length <= 1}
+                className="rounded-lg border border-red-500/25 px-3 py-1.5 text-xs text-red-500 transition-colors hover:bg-red-500/10 disabled:cursor-not-allowed disabled:opacity-35"
+              >
+                Удалить
+              </button>
+            </div>
+
+            <div className="mt-3 grid gap-3 sm:grid-cols-2">
+              <CompactNumberField
+                label="Заказ от"
+                value={tier.minOrderTotal}
+                suffix="₽"
+                onChange={(value) => onUpdate(tier.id, { minOrderTotal: value })}
+              />
+              <CompactNumberField
+                label="Товар от"
+                value={tier.minItemPrice}
+                suffix="₽"
+                onChange={(value) => onUpdate(tier.id, { minItemPrice: value })}
+              />
+              <label className="rounded-xl border border-theme bg-card p-3">
+                <span className="text-xs text-muted">Тип скидки</span>
+                <select
+                  value={tier.discountType}
+                  onChange={(event) =>
+                    onUpdate(tier.id, {
+                      discountType: event.target.value === "fixed" ? "fixed" : "percent",
+                    })
+                  }
+                  className="mt-2 h-9 w-full bg-transparent text-sm font-semibold outline-none"
+                >
+                  <option value="percent">Проценты</option>
+                  <option value="fixed">Рубли</option>
+                </select>
+              </label>
+              <CompactNumberField
+                label="Размер скидки"
+                value={tier.discountValue}
+                suffix={tier.discountType === "percent" ? "%" : "₽"}
+                max={tier.discountType === "percent" ? 100 : undefined}
+                onChange={(value) => onUpdate(tier.id, { discountValue: value })}
+              />
+            </div>
+
+            <div className="mt-3 rounded-xl border border-blue-500/15 bg-blue-500/5 px-3 py-2 text-xs text-muted">
+              От {tier.minOrderTotal.toLocaleString("ru-RU")} ₽ — скидка {tier.discountValue.toLocaleString("ru-RU")}
+              {tier.discountType === "percent" ? "%" : " ₽"}
+              {tier.minItemPrice > 0
+                ? ` на товары от ${tier.minItemPrice.toLocaleString("ru-RU")} ₽`
+                : " на все товары"}.
+            </div>
+          </div>
+        ))}
+
+        <button
+          type="button"
+          onClick={onAdd}
+          className="rounded-xl border border-dashed border-blue-500/35 bg-blue-500/5 px-4 py-3 text-sm font-semibold text-blue-500 transition-colors hover:bg-blue-500/10"
+        >
+          + Добавить ступень скидки
+        </button>
       </div>
     </div>
+  );
+}
+
+function CompactNumberField({
+  label,
+  value,
+  suffix,
+  min = 0,
+  max,
+  onChange,
+}: {
+  label: string;
+  value: number;
+  suffix: string;
+  min?: number;
+  max?: number;
+  onChange: (value: number) => void;
+}) {
+  return (
+    <label className="rounded-xl border border-theme bg-card p-3">
+      <span className="text-xs text-muted">{label}</span>
+      <div className="mt-2 flex items-center gap-2">
+        <input
+          type="number"
+          min={min}
+          max={max}
+          value={value}
+          onChange={(event) => {
+            const next = Math.max(min, Math.round(Number(event.target.value) || 0));
+            onChange(max === undefined ? next : Math.min(max, next));
+          }}
+          className="min-w-0 flex-1 bg-transparent text-lg font-bold outline-none"
+        />
+        <span className="text-xs text-muted">{suffix}</span>
+      </div>
+    </label>
   );
 }
 
@@ -240,8 +337,8 @@ function RuleField({
   onChange: (value: number) => void;
 }) {
   return (
-    <label className="rounded-2xl border border-white/10 bg-black/20 p-4">
-      <span className="text-xs text-white/45">{label}</span>
+    <label className="rounded-2xl border border-theme bg-card p-4">
+      <span className="text-xs text-muted">{label}</span>
       <div className="mt-2 flex items-center gap-3">
         <input
           type="number"
@@ -250,7 +347,7 @@ function RuleField({
           onChange={(event) => onChange(Number(event.target.value))}
           className="min-w-0 flex-1 bg-transparent text-2xl font-bold outline-none"
         />
-        <span className="text-sm text-white/45">{suffix}</span>
+        <span className="text-sm text-muted">{suffix}</span>
       </div>
     </label>
   );

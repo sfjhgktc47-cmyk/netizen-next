@@ -1218,17 +1218,25 @@ export default function CartPage() {
                   {isAddingAddress ? (
                     <div className="rounded-2xl border border-theme bg-blue-soft p-4">
                       <div className="grid gap-3 md:grid-cols-[180px_1fr]">
-                        <input
+                        <AddressSuggestionInput
                           value={delivery.city}
-                          onChange={(event) =>
+                          city=""
+                          mode="city"
+                          placeholder="Начните вводить город"
+                          onChange={(value) =>
                             setDelivery((current) => ({
                               ...current,
                               method: "courier",
-                              city: event.target.value,
+                              city: value,
                             }))
                           }
-                          placeholder="Город"
-                          className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+                          onSelect={(suggestion) =>
+                            setDelivery((current) => ({
+                              ...current,
+                              method: "courier",
+                              city: suggestion.city || suggestion.value,
+                            }))
+                          }
                         />
                       <AddressSuggestionInput
                         value={newAddress}
@@ -1287,13 +1295,25 @@ export default function CartPage() {
                   </div>
 
                   <div className="grid gap-3 md:grid-cols-2">
-                    <input
+                    <AddressSuggestionInput
                       value={delivery.city}
-                      onChange={(event) =>
-                        setDelivery((current) => ({ ...current, method: "courier", city: event.target.value }))
+                      city=""
+                      mode="city"
+                      placeholder="Начните вводить город"
+                      onChange={(value) =>
+                        setDelivery((current) => ({
+                          ...current,
+                          method: "courier",
+                          city: value,
+                        }))
                       }
-                      placeholder="Город"
-                      className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+                      onSelect={(suggestion) =>
+                        setDelivery((current) => ({
+                          ...current,
+                          method: "courier",
+                          city: suggestion.city || suggestion.value,
+                        }))
+                      }
                     />
 
                     <AddressSuggestionInput
@@ -1437,12 +1457,14 @@ export default function CartPage() {
 function AddressSuggestionInput({
   value,
   city,
+  mode = "address",
   placeholder,
   onChange,
   onSelect,
 }: {
   value: string;
   city: string;
+  mode?: "city" | "address";
   placeholder: string;
   onChange: (value: string) => void;
   onSelect: (suggestion: AddressSuggestion) => void;
@@ -1450,10 +1472,11 @@ function AddressSuggestionInput({
   const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
   const [loading, setLoading] = useState(false);
   const [open, setOpen] = useState(false);
+  const [committedValue, setCommittedValue] = useState("");
 
   useEffect(() => {
     const query = value.trim();
-    if (query.length < 3) {
+    if (query.length < 2 || query === committedValue) {
       setSuggestions([]);
       setOpen(false);
       return;
@@ -1466,7 +1489,7 @@ function AddressSuggestionInput({
         const response = await fetch("/api/address-suggestions", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ query, city }),
+          body: JSON.stringify({ query, city, mode }),
         });
         const payload = (await response.json().catch(() => null)) as
           | { suggestions?: AddressSuggestion[] }
@@ -1489,20 +1512,21 @@ function AddressSuggestionInput({
       active = false;
       window.clearTimeout(timeout);
     };
-  }, [city, value]);
+  }, [city, committedValue, mode, value]);
 
   return (
     <div className="relative min-w-0">
       <input
         value={value}
         onChange={(event) => {
+          setCommittedValue("");
           onChange(event.target.value);
           setOpen(true);
         }}
         onFocus={() => setOpen(suggestions.length > 0)}
         onBlur={() => window.setTimeout(() => setOpen(false), 150)}
         placeholder={placeholder}
-        autoComplete="street-address"
+        autoComplete={mode === "city" ? "address-level2" : "street-address"}
         className="h-12 w-full rounded-xl border border-theme bg-transparent px-4 pr-10 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
       />
       {loading ? (
@@ -1516,14 +1540,24 @@ function AddressSuggestionInput({
               type="button"
               onMouseDown={(event) => event.preventDefault()}
               onClick={() => {
+                const selectedValue = mode === "city"
+                  ? suggestion.city || suggestion.value
+                  : suggestion.value;
+                setCommittedValue(selectedValue);
                 onSelect(suggestion);
+                onChange(selectedValue);
+                setSuggestions([]);
                 setOpen(false);
               }}
               className="block w-full rounded-xl px-3 py-3 text-left text-sm transition-colors hover:bg-blue-soft"
             >
               <span className="font-medium text-main">{suggestion.value}</span>
-              {suggestion.house ? (
-                <span className="mt-1 block text-xs text-muted-soft">Дом найден в ФИАС</span>
+              {suggestion.unrestrictedValue && suggestion.unrestrictedValue !== suggestion.value ? (
+                <span className="mt-1 block line-clamp-1 text-xs text-muted-soft">
+                  {suggestion.unrestrictedValue}
+                </span>
+              ) : suggestion.house ? (
+                <span className="mt-1 block text-xs text-muted-soft">Дом найден</span>
               ) : null}
             </button>
           ))}

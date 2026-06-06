@@ -141,24 +141,26 @@ function statusDiscountFor(
 ) {
   if (status === "new") return 0;
 
-  const prefix = status === "vip" ? "vip" : "regular";
-  const enabled = prefix === "vip" ? rules.vipDiscountEnabled : rules.regularDiscountEnabled;
-  const type = prefix === "vip" ? rules.vipDiscountType : rules.regularDiscountType;
-  const value = prefix === "vip" ? rules.vipDiscountValue : rules.regularDiscountValue;
-  const minOrder = prefix === "vip"
-    ? rules.vipDiscountMinOrderTotal
-    : rules.regularDiscountMinOrderTotal;
-  const minItem = prefix === "vip"
-    ? rules.vipDiscountMinItemPrice
-    : rules.regularDiscountMinItemPrice;
+  const enabled = status === "vip" ? rules.vipDiscountEnabled : rules.regularDiscountEnabled;
+  const tiers = status === "vip" ? rules.vipDiscountTiers : rules.regularDiscountTiers;
 
-  if (!enabled || subtotal < minOrder) return 0;
+  if (!enabled || !tiers.length) return 0;
+
+  const activeTier = [...tiers]
+    .filter((tier) => tier.discountValue > 0 && subtotal >= tier.minOrderTotal)
+    .sort((first, second) => second.minOrderTotal - first.minOrderTotal)[0];
+
+  if (!activeTier) return 0;
 
   const eligibleSubtotal = items
-    .filter((item) => item.price >= minItem)
+    .filter((item) => item.price >= activeTier.minItemPrice)
     .reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  return calculateDiscount(type, value, eligibleSubtotal);
+  return calculateDiscount(
+    activeTier.discountType,
+    activeTier.discountValue,
+    eligibleSubtotal,
+  );
 }
 
 export async function getCheckoutQuote(input: {
@@ -280,7 +282,7 @@ export async function getCheckoutQuote(input: {
     promo.maxDiscount,
   );
 
-  const canStack = promo.allowWithStatusDiscount && rules.discountCombinationMode === "stack";
+  const canStack = promo.allowWithStatusDiscount;
   if (!canStack && statusDiscount > 0 && promoDiscount > 0) {
     if (promoDiscount >= statusDiscount) statusDiscount = 0;
     else promoDiscount = 0;

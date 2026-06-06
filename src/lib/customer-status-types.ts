@@ -2,7 +2,14 @@ export const customerStatusValues = ["new", "regular", "vip"] as const;
 
 export type CustomerStatus = (typeof customerStatusValues)[number];
 export type DiscountType = "percent" | "fixed";
-export type DiscountCombinationMode = "stack" | "best";
+
+export type StatusDiscountTier = {
+  id: string;
+  minOrderTotal: number;
+  minItemPrice: number;
+  discountType: DiscountType;
+  discountValue: number;
+};
 
 export type CustomerStatusRules = {
   minOrderTotal: number;
@@ -10,16 +17,9 @@ export type CustomerStatusRules = {
   vipOrders: number;
   vipTotalSpent: number;
   regularDiscountEnabled: boolean;
-  regularDiscountType: DiscountType;
-  regularDiscountValue: number;
-  regularDiscountMinOrderTotal: number;
-  regularDiscountMinItemPrice: number;
+  regularDiscountTiers: StatusDiscountTier[];
   vipDiscountEnabled: boolean;
-  vipDiscountType: DiscountType;
-  vipDiscountValue: number;
-  vipDiscountMinOrderTotal: number;
-  vipDiscountMinItemPrice: number;
-  discountCombinationMode: DiscountCombinationMode;
+  vipDiscountTiers: StatusDiscountTier[];
 };
 
 export type CustomerStatusProgress = {
@@ -46,16 +46,39 @@ export const defaultCustomerStatusRules: CustomerStatusRules = {
   vipOrders: 10,
   vipTotalSpent: 500000,
   regularDiscountEnabled: true,
-  regularDiscountType: "percent",
-  regularDiscountValue: 3,
-  regularDiscountMinOrderTotal: 10000,
-  regularDiscountMinItemPrice: 0,
+  regularDiscountTiers: [
+    {
+      id: "regular-10000",
+      minOrderTotal: 10000,
+      minItemPrice: 0,
+      discountType: "percent",
+      discountValue: 3,
+    },
+    {
+      id: "regular-50000",
+      minOrderTotal: 50000,
+      minItemPrice: 0,
+      discountType: "percent",
+      discountValue: 5,
+    },
+  ],
   vipDiscountEnabled: true,
-  vipDiscountType: "percent",
-  vipDiscountValue: 5,
-  vipDiscountMinOrderTotal: 10000,
-  vipDiscountMinItemPrice: 0,
-  discountCombinationMode: "stack",
+  vipDiscountTiers: [
+    {
+      id: "vip-10000",
+      minOrderTotal: 10000,
+      minItemPrice: 0,
+      discountType: "percent",
+      discountValue: 5,
+    },
+    {
+      id: "vip-100000",
+      minOrderTotal: 100000,
+      minItemPrice: 0,
+      discountType: "percent",
+      discountValue: 10,
+    },
+  ],
 };
 
 export function getCustomerStatusLabel(status: CustomerStatus) {

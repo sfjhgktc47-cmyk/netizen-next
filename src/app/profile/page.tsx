@@ -5,6 +5,10 @@ import Image from 'next/image';
 import type { ReactNode } from "react";
 import { useEffect, useState } from "react";
 import { SiteHeader } from "@/components/site-header";
+import type {
+  CustomerStatusProgress,
+  StatusDiscountTier,
+} from "@/lib/customer-status-types";
 
 type CustomerProfile = {
   id: string;
@@ -12,6 +16,7 @@ type CustomerProfile = {
   lastName: string;
   phone: string;
   email: string;
+  createdAt: string;
 };
 
 type ProfileOrderItem = {
@@ -67,6 +72,11 @@ type ProfileFavorite = {
 
 type ProfileData = {
   profile: CustomerProfile;
+  statusProgress: CustomerStatusProgress;
+  statusDiscount: {
+    enabled: boolean;
+    tiers: StatusDiscountTier[];
+  };
   orders: ProfileOrder[];
   addresses: ProfileAddress[];
   supportRequests: ProfileSupportRequest[];
@@ -81,6 +91,7 @@ const emptyProfile: CustomerProfile = {
   lastName: "",
   phone: "",
   email: "",
+  createdAt: "",
 };
 
 function formatPrice(value: number) {
@@ -144,6 +155,51 @@ function getSupportStatusLabel(status: string) {
   return labels[status] ?? status;
 }
 
+function getStatusRank(status: CustomerStatusProgress["status"]) {
+  if (status === "vip") return 3;
+  if (status === "regular") return 2;
+  return 1;
+}
+
+function formatDiscountValue(tier: StatusDiscountTier) {
+  return tier.discountType === "percent"
+    ? `${tier.discountValue}%`
+    : formatPrice(tier.discountValue);
+}
+
+function getHighestDiscountLabel(tiers: StatusDiscountTier[]) {
+  if (!tiers.length) return "Пока недоступна";
+
+  const percentValues = tiers
+    .filter((tier) => tier.discountType === "percent")
+    .map((tier) => tier.discountValue);
+  const fixedValues = tiers
+    .filter((tier) => tier.discountType === "fixed")
+    .map((tier) => tier.discountValue);
+
+  if (percentValues.length && !fixedValues.length) {
+    return `до ${Math.max(...percentValues)}%`;
+  }
+
+  if (fixedValues.length && !percentValues.length) {
+    return `до ${formatPrice(Math.max(...fixedValues))}`;
+  }
+
+  return `${tiers.length} уровня`;
+}
+
+function formatMemberSince(value: string) {
+  if (!value) return "";
+
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return date.toLocaleDateString("ru-RU", {
+    month: "long",
+    year: "numeric",
+  });
+}
+
 export default function ProfilePage() {
   const [isLoaded, setIsLoaded] = useState(false);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -153,6 +209,11 @@ export default function ProfilePage() {
   const [addresses, setAddresses] = useState<ProfileAddress[]>([]);
   const [supportRequests, setSupportRequests] = useState<ProfileSupportRequest[]>([]);
   const [favorites, setFavorites] = useState<ProfileFavorite[]>([]);
+  const [statusProgress, setStatusProgress] = useState<CustomerStatusProgress | null>(null);
+  const [statusDiscount, setStatusDiscount] = useState<{
+    enabled: boolean;
+    tiers: StatusDiscountTier[];
+  }>({ enabled: false, tiers: [] });
   const [newAddress, setNewAddress] = useState("");
   const [activeModal, setActiveModal] = useState<ModalType>(null);
   const [isProfileSaved, setIsProfileSaved] = useState(false);
@@ -179,6 +240,8 @@ export default function ProfilePage() {
         setAddresses([]);
         setSupportRequests([]);
         setFavorites([]);
+        setStatusProgress(null);
+        setStatusDiscount({ enabled: false, tiers: [] });
         return;
       }
 
@@ -201,6 +264,8 @@ export default function ProfilePage() {
       setAddresses(data.addresses ?? []);
       setSupportRequests(data.supportRequests ?? []);
       setFavorites(data.favorites ?? []);
+      setStatusProgress(data.statusProgress ?? null);
+      setStatusDiscount(data.statusDiscount ?? { enabled: false, tiers: [] });
       setError("");
     } catch {
       setIsAuthenticated(false);
@@ -359,355 +424,445 @@ export default function ProfilePage() {
     );
   }
 
+  const completedOrders = orders.filter((order) => order.status === "completed");
+  const totalSpent = completedOrders.reduce((sum, order) => sum + order.total, 0);
+  const recentOrders = orders.slice(0, 4);
+  const recentFavorites = favorites.slice(0, 4);
+  const recentSupport = supportRequests.slice(0, 3);
+  const currentStatusRank = statusProgress ? getStatusRank(statusProgress.status) : 1;
+
   return (
     <main className="min-h-screen bg-page px-3 py-4 text-main transition-colors duration-700 sm:px-5 sm:py-6">
       <div className="mx-auto max-w-[1440px]">
         <SiteHeader />
 
-        <div className="mt-4 sm:mt-6">
+        <div className="mt-4 flex items-center justify-between gap-3 sm:mt-6">
           <Link
             href="/"
             className="text-sm text-blue-500 transition-colors hover:text-blue-400"
           >
             ← На главную
           </Link>
+
+          <span className="text-xs text-muted">
+            Личный кабинет
+          </span>
         </div>
 
-        <section className="mt-4 grid gap-5 lg:mt-6 lg:grid-cols-[1fr_360px] lg:items-start lg:gap-8">
-          <div className="space-y-5 sm:space-y-8">
-            <section className="card rounded-[22px] p-4 sm:rounded-[28px] sm:p-6">
-              <div className="inline-flex rounded-full border border-blue-500/35 bg-blue-500/10 px-3 py-1.5 text-xs font-medium text-blue-500 sm:px-4 sm:py-2 sm:text-sm">
-                Личный кабинет
+        {error ? (
+          <div className="mt-4 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-500">
+            {error}
+          </div>
+        ) : null}
+
+        <section className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-center">
+          <div className="card flex min-w-0 items-center gap-4 rounded-[24px] p-4 sm:gap-5 sm:p-5">
+            <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-xl font-bold text-white sm:h-16 sm:w-16 sm:text-2xl">
+              {getInitialLetter(profile)}
+            </div>
+
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-2">
+                <h1 className="truncate text-2xl font-bold tracking-[-0.045em] sm:text-3xl">
+                  {getFullName(profile) || "Клиент Нетизен"}
+                </h1>
+
+                {statusProgress ? (
+                  <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-xs font-semibold text-blue-500">
+                    {statusProgress.statusLabel}
+                  </span>
+                ) : null}
               </div>
 
-              <h1 className="mt-3 max-w-[760px] text-3xl font-bold tracking-[-0.05em] sm:mt-4 sm:text-4xl">
-                Ваши заказы, данные и обращения
-              </h1>
+              <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1 text-sm text-muted">
+                <span>{profile.phone || "Телефон не указан"}</span>
+                {profile.email ? <span>{profile.email}</span> : null}
+                {profile.createdAt ? (
+                  <span>С нами с {formatMemberSince(profile.createdAt)}</span>
+                ) : null}
+              </div>
+            </div>
+          </div>
 
-              <p className="mt-3 max-w-[620px] text-sm leading-relaxed text-muted sm:mt-4">
-                Здесь показываются только реальные данные клиента из базы: заявки,
-                адреса доставки, избранные товары и обращения.
-              </p>
+          <div className="flex gap-2">
+            <button
+              type="button"
+              onClick={() => {
+                setDraftProfile(profile);
+                setActiveModal("profile");
+              }}
+              className="rounded-xl border border-theme bg-card px-4 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
+            >
+              Редактировать
+            </button>
 
-              {error && (
-                <div className="mt-5 rounded-2xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-500">
-                  {error}
+            <button
+              type="button"
+              onClick={logout}
+              className="rounded-xl border border-red-500/25 bg-red-500/10 px-4 py-3 text-sm font-medium text-red-500 transition-colors hover:bg-red-500/15"
+            >
+              Выйти
+            </button>
+          </div>
+        </section>
+
+        {statusProgress ? (
+          <section className="card mt-4 rounded-[24px] p-4 sm:p-6">
+            <div className="grid gap-5 xl:grid-cols-[minmax(0,1.25fr)_minmax(320px,0.75fr)]">
+              <div>
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div>
+                    <div className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-500">
+                      Статус клиента
+                    </div>
+                    <h2 className="mt-2 text-2xl font-bold tracking-[-0.04em]">
+                      {statusProgress.statusLabel}
+                    </h2>
+                  </div>
+
+                  {statusProgress.isManual ? (
+                    <span className="rounded-full border border-amber-500/30 bg-amber-500/10 px-3 py-1.5 text-xs font-medium text-amber-500">
+                      Назначен менеджером
+                    </span>
+                  ) : (
+                    <span className="rounded-full border border-green-500/30 bg-green-500/10 px-3 py-1.5 text-xs font-medium text-green-500">
+                      Обновляется автоматически
+                    </span>
+                  )}
                 </div>
-              )}
 
-              <div className="mt-4 flex flex-wrap gap-2 sm:mt-6 sm:gap-4">
-                <Link
-                  href="/catalog"
-                  className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-blue-500 sm:px-6 sm:py-3.5"
-                >
-                  Перейти в каталог →
-                </Link>
+                <div className="mt-5 grid grid-cols-3 gap-2">
+                  {[
+                    { status: "new", label: "Новый" },
+                    { status: "regular", label: "Постоянный" },
+                    { status: "vip", label: "VIP" },
+                  ].map((step, index) => {
+                    const active = currentStatusRank >= index + 1;
 
-                <Link
-                  href="/help"
-                  className="rounded-xl border border-theme bg-transparent px-4 py-2.5 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-6 sm:py-3.5"
-                >
-                  Написать в поддержку
-                </Link>
+                    return (
+                      <div key={step.status} className="min-w-0">
+                        <div
+                          className={`h-2 rounded-full ${
+                            active ? "bg-blue-600" : "bg-blue-soft"
+                          }`}
+                        />
+                        <div
+                          className={`mt-2 truncate text-xs font-medium ${
+                            active ? "text-main" : "text-muted"
+                          }`}
+                        >
+                          {step.label}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
 
-                <button
-                  type="button"
-                  onClick={logout}
-                  className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm font-medium text-red-500 transition-colors hover:bg-red-500/15 sm:px-6 sm:py-3.5"
-                >
-                  Выйти
-                </button>
+                <div className="mt-5 rounded-2xl border border-theme bg-blue-soft p-4">
+                  <div className="flex items-center justify-between gap-4 text-sm">
+                    <span className="font-medium">
+                      {statusProgress.nextStatusLabel
+                        ? `До уровня «${statusProgress.nextStatusLabel}»`
+                        : "Максимальный уровень"}
+                    </span>
+                    <span className="font-bold text-blue-500">
+                      {statusProgress.progressPercent}%
+                    </span>
+                  </div>
+
+                  <div className="mt-3 h-2 overflow-hidden rounded-full bg-card">
+                    <div
+                      className="h-full rounded-full bg-blue-600 transition-all"
+                      style={{ width: `${Math.max(4, statusProgress.progressPercent)}%` }}
+                    />
+                  </div>
+
+                  <p className="mt-3 text-sm leading-relaxed text-muted">
+                    {statusProgress.explanation}
+                  </p>
+                </div>
               </div>
-            </section>
 
-            <section className="card rounded-[24px] p-4 sm:rounded-[34px] sm:p-8">
-              <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+              <div className="grid gap-3 sm:grid-cols-3 xl:grid-cols-1">
+                <CompactMetric
+                  label="Учтённые заказы"
+                  value={String(statusProgress.countedOrders)}
+                  hint={`Всего завершено: ${statusProgress.completedOrders}`}
+                />
+                <CompactMetric
+                  label="Сумма покупок"
+                  value={formatPrice(statusProgress.countedSpent)}
+                  hint="По заказам, которые участвуют в статусе"
+                />
+                <CompactMetric
+                  label="Персональная скидка"
+                  value={
+                    statusDiscount.enabled
+                      ? getHighestDiscountLabel(statusDiscount.tiers)
+                      : "Не активна"
+                  }
+                  hint={
+                    statusDiscount.enabled
+                      ? "Размер зависит от суммы корзины"
+                      : "Откроется на следующем уровне"
+                  }
+                />
+              </div>
+            </div>
+
+            {statusDiscount.enabled && statusDiscount.tiers.length > 0 ? (
+              <div className="mt-4 flex flex-wrap gap-2 border-t border-theme pt-4">
+                {statusDiscount.tiers.map((tier) => (
+                  <span
+                    key={tier.id}
+                    className="rounded-xl border border-theme bg-transparent px-3 py-2 text-xs text-muted"
+                  >
+                    От {formatPrice(tier.minOrderTotal)} →{" "}
+                    <b className="text-main">{formatDiscountValue(tier)}</b>
+                  </span>
+                ))}
+              </div>
+            ) : null}
+          </section>
+        ) : null}
+
+        <section className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          <SummaryCard label="Заявки" value={String(orders.length)} href="/cart" action="Новая заявка" />
+          <SummaryCard
+            label="Завершено"
+            value={String(completedOrders.length)}
+            hint={formatPrice(totalSpent)}
+          />
+          <SummaryCard label="Избранное" value={String(favorites.length)} href="#favorites" action="Открыть" />
+          <SummaryCard label="Обращения" value={String(supportRequests.length)} href="/help" action="Написать" />
+        </section>
+
+        <section className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_340px]">
+          <div className="grid gap-4">
+            <section className="card rounded-[24px] p-4 sm:p-5">
+              <div className="flex items-center justify-between gap-4">
                 <div>
-                  <div className="text-xs font-medium uppercase tracking-[0.18em] text-blue-500 sm:text-sm sm:tracking-[0.2em]">
+                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-500">
                     Заказы
                   </div>
-
-                  <h2 className="mt-2 text-2xl font-bold tracking-[-0.045em] sm:mt-3 sm:text-4xl">
-                    Мои заявки
-                  </h2>
+                  <h2 className="mt-1 text-xl font-bold sm:text-2xl">Последние заявки</h2>
                 </div>
 
-                <Link
-                  href="/cart"
-                  className="text-sm font-medium text-blue-500 transition-colors hover:text-blue-400"
-                >
-                  Оформить новую заявку →
+                <Link href="/cart" className="text-sm font-medium text-blue-500 hover:text-blue-400">
+                  Новая →
                 </Link>
               </div>
 
-              {orders.length > 0 ? (
-                <div className="mt-5 grid gap-3 sm:mt-8 sm:gap-4">
-                  {orders.map((order) => (
+              {recentOrders.length > 0 ? (
+                <div className="mt-4 divide-y divide-theme">
+                  {recentOrders.map((order) => (
                     <article
                       key={order.id}
-                      className="rounded-2xl border border-theme bg-blue-soft p-4 sm:p-5"
+                      className="grid gap-3 py-4 sm:grid-cols-[minmax(0,1fr)_auto_auto] sm:items-center"
                     >
-                      <div className="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
-                        <div>
-                          <div className="text-sm text-muted">{order.publicId}</div>
-
-                          <h3 className="mt-1 text-lg font-bold sm:text-xl">
-                            {getOrderTitle(order)}
-                          </h3>
-
-                          <p className="mt-2 text-sm text-muted">
-                            {formatDate(order.createdAt)} · {formatPrice(order.total)}
-                          </p>
-
-                          <p className="mt-1 text-sm text-muted">{order.delivery}</p>
-                        </div>
-
-                        <div className="flex flex-col gap-3 md:items-end">
-                          <span className="w-fit rounded-full border border-blue-500/35 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-500">
-                            {getOrderStatusLabel(order.status)}
-                          </span>
-
-                          <div className="text-sm text-muted">
-                            {order.items.length} позиц.
-                          </div>
+                      <div className="min-w-0">
+                        <div className="text-xs text-muted">{order.publicId} · {formatDate(order.createdAt)}</div>
+                        <h3 className="mt-1 truncate font-bold">{getOrderTitle(order)}</h3>
+                        <div className="mt-1 text-xs text-muted">
+                          {order.delivery} · {order.items.length} позиц.
                         </div>
                       </div>
+
+                      <div className="font-bold">{formatPrice(order.total)}</div>
+
+                      <span className="w-fit rounded-full border border-blue-500/25 bg-blue-500/10 px-3 py-1.5 text-xs font-medium text-blue-500">
+                        {getOrderStatusLabel(order.status)}
+                      </span>
                     </article>
                   ))}
                 </div>
               ) : (
-                <EmptyState
+                <CompactEmpty
                   title="Заявок пока нет"
-                  text="Когда клиент оформит заказ из корзины, заявка появится здесь из таблицы Order. Тестовые заявки больше не показываются."
+                  text="Выберите товар в каталоге и оформите первую заявку."
                   href="/catalog"
-                  action="Перейти в каталог →"
+                  action="Перейти в каталог"
                 />
               )}
             </section>
 
-            <section id="favorites" className="card rounded-[24px] p-4 sm:rounded-[34px] sm:p-8">
-              <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+            <section id="favorites" className="card rounded-[24px] p-4 sm:p-5">
+              <div className="flex items-center justify-between gap-4">
                 <div>
-                  <div className="text-xs font-medium uppercase tracking-[0.18em] text-blue-500 sm:text-sm sm:tracking-[0.2em]">
+                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-500">
                     Избранное
                   </div>
-
-                  <h2 className="mt-2 text-2xl font-bold tracking-[-0.045em] sm:mt-3 sm:text-4xl">
-                    Избранные товары
-                  </h2>
+                  <h2 className="mt-1 text-xl font-bold sm:text-2xl">Сохранённые товары</h2>
                 </div>
 
-                <Link
-                  href="/catalog"
-                  className="text-sm font-medium text-blue-500 transition-colors hover:text-blue-400"
-                >
-                  Добавить товары →
+                <Link href="/catalog" className="text-sm font-medium text-blue-500 hover:text-blue-400">
+                  Каталог →
                 </Link>
               </div>
 
-              {favorites.length > 0 ? (
-                <div className="mt-5 grid gap-3 sm:mt-8 md:grid-cols-2 md:gap-4">
-                  {favorites.map((favorite) => (
-                    <article
+              {recentFavorites.length > 0 ? (
+                <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                  {recentFavorites.map((favorite) => (
+                    <Link
                       key={favorite.id}
-                      className="rounded-2xl border border-theme bg-transparent p-3 transition-colors hover:border-blue-500/35 hover:bg-blue-soft sm:p-5"
+                      href={`/product/${favorite.product.slug}`}
+                      className="flex min-w-0 items-center gap-3 rounded-2xl border border-theme bg-blue-soft p-3 transition-colors hover:border-blue-500/35"
                     >
-                      <div className="flex gap-3 sm:gap-5">
-                        <div className="soft-box flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white text-xs text-muted-soft sm:h-24 sm:w-24">
-                          {favorite.product.image ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <Image quality={75} src={favorite.product.image}
-                              alt={favorite.product.name}
-                              className="h-full w-full object-contain"
-                            />
-                          ) : (
-                            "Фото"
-                          )}
-                        </div>
+                      <div className="flex h-16 w-16 shrink-0 items-center justify-center overflow-hidden rounded-xl bg-card">
+                        {favorite.product.image ? (
+                          <Image
+                            quality={70}
+                            src={favorite.product.image}
+                            alt={favorite.product.name}
+                            width={64}
+                            height={64}
+                            className="h-full w-full object-contain p-1"
+                          />
+                        ) : (
+                          <span className="text-xs text-muted">Фото</span>
+                        )}
+                      </div>
 
-                        <div className="flex min-w-0 flex-1 flex-col">
-                          <div className="text-sm text-muted">{favorite.product.brand}</div>
-                          <h3 className="mt-1 line-clamp-2 text-sm font-bold leading-tight sm:text-lg">
-                            {favorite.product.name}
-                          </h3>
-
-                          <div className="mt-auto pt-5 text-sm font-medium">
-                            <Link
-                              href={`/product/${favorite.product.slug}`}
-                              className="text-blue-500 transition-colors hover:text-blue-400"
-                            >
-                              Перейти →
-                            </Link>
-                          </div>
+                      <div className="min-w-0">
+                        <div className="text-xs text-muted">{favorite.product.brand}</div>
+                        <div className="mt-1 line-clamp-2 text-sm font-bold">
+                          {favorite.product.name}
                         </div>
                       </div>
-                    </article>
+                    </Link>
                   ))}
                 </div>
               ) : (
-                <EmptyState
-                  title="Избранных товаров пока нет"
-                  text="Избранное теперь хранится в базе. Когда добавим кнопку избранного в карточку товара, товары появятся здесь."
+                <CompactEmpty
+                  title="Список пуст"
+                  text="Сохраняйте товары, чтобы быстро вернуться к ним."
                   href="/catalog"
-                  action="Перейти в каталог →"
+                  action="Выбрать товары"
                 />
               )}
             </section>
 
-            <section className="card rounded-[24px] p-4 sm:rounded-[34px] sm:p-8">
-              <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-500">
-                Поддержка
+            <section className="card rounded-[24px] p-4 sm:p-5">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-500">
+                    Поддержка
+                  </div>
+                  <h2 className="mt-1 text-xl font-bold sm:text-2xl">Последние обращения</h2>
+                </div>
+
+                <Link href="/help" className="text-sm font-medium text-blue-500 hover:text-blue-400">
+                  Написать →
+                </Link>
               </div>
 
-              <h2 className="mt-2 text-2xl font-bold tracking-[-0.045em] sm:mt-3 sm:text-4xl">
-                Обращения
-              </h2>
-
-              {supportRequests.length > 0 ? (
-                <div className="mt-5 grid gap-3 sm:mt-8 sm:gap-4">
-                  {supportRequests.map((request) => (
-                    <article
-                      key={request.id}
-                      className="rounded-2xl border border-theme bg-transparent p-4 sm:p-5"
-                    >
-                      <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                        <div>
-                          <div className="text-sm text-muted">{request.publicId}</div>
-                          <h3 className="mt-1 text-lg font-bold sm:text-xl">{request.topic}</h3>
-
-                          <p className="mt-2 text-sm leading-relaxed text-muted">
-                            {request.message}
-                          </p>
-                        </div>
-
-                        <span className="w-fit rounded-full border border-theme px-4 py-2 text-sm text-muted">
-                          {getSupportStatusLabel(request.status)}
-                        </span>
+              {recentSupport.length > 0 ? (
+                <div className="mt-4 divide-y divide-theme">
+                  {recentSupport.map((request) => (
+                    <article key={request.id} className="flex items-start justify-between gap-4 py-4">
+                      <div className="min-w-0">
+                        <div className="text-xs text-muted">{request.publicId}</div>
+                        <h3 className="mt-1 truncate font-bold">{request.topic}</h3>
+                        <p className="mt-1 line-clamp-2 text-sm text-muted">{request.message}</p>
                       </div>
+
+                      <span className="shrink-0 rounded-full border border-theme px-3 py-1.5 text-xs text-muted">
+                        {getSupportStatusLabel(request.status)}
+                      </span>
                     </article>
                   ))}
                 </div>
               ) : (
-                <EmptyState
-                  title="Обращений пока нет"
-                  text="Когда клиент напишет в поддержку, обращение появится здесь из базы. Тестовые обращения больше не выводятся."
+                <CompactEmpty
+                  title="Обращений нет"
+                  text="Здесь появится история переписки с поддержкой."
                   href="/help"
-                  action="Написать в поддержку →"
+                  action="Написать"
                 />
               )}
             </section>
           </div>
 
-          <aside className="space-y-5 sm:space-y-8 lg:sticky lg:top-6">
-            <section className="card rounded-[22px] p-4 sm:rounded-[28px] sm:p-7">
-              <div className="flex items-center gap-4">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-blue-600 text-xl font-bold text-white sm:h-16 sm:w-16 sm:text-2xl">
-                  {getInitialLetter(profile)}
-                </div>
-
+          <aside className="grid content-start gap-4">
+            <section className="card rounded-[24px] p-4 sm:p-5">
+              <div className="flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-sm text-muted">Профиль</div>
-                  <h2 className="text-xl font-bold sm:text-2xl">
-                    {getFullName(profile) || "Клиент Нетизен"}
-                  </h2>
+                  <div className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-500">
+                    Доставка
+                  </div>
+                  <h2 className="mt-1 text-xl font-bold">Адреса</h2>
                 </div>
+                <span className="rounded-full bg-blue-soft px-2.5 py-1 text-xs text-muted">
+                  {addresses.length}
+                </span>
               </div>
-
-              <div className="mt-5 space-y-3 sm:mt-7 sm:space-y-4">
-                <ProfileField label="Имя" value={profile.name || "Не указано"} />
-                <ProfileField label="Фамилия" value={profile.lastName || "Не указана"} />
-                <ProfileField label="Телефон" value={profile.phone || "Не указан"} />
-                <ProfileField label="E-mail" value={profile.email || "Не указан"} />
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setDraftProfile(profile);
-                  setActiveModal("profile");
-                }}
-                className="mt-5 w-full rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500 sm:mt-7 sm:px-6 sm:py-4"
-              >
-                Редактировать данные
-              </button>
-
-              <button
-                type="button"
-                onClick={logout}
-                className="mt-3 w-full rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-3 text-sm font-medium text-red-500 transition-colors hover:bg-red-500/15 sm:px-6 sm:py-4"
-              >
-                Выйти из аккаунта
-              </button>
-
-              {isProfileSaved && (
-                <div className="mt-4 rounded-2xl border border-green-500/30 bg-green-500/10 p-3 text-sm text-green-500">
-                  Данные сохранены
-                </div>
-              )}
-            </section>
-
-            <section className="card rounded-[24px] p-4 sm:rounded-[34px] sm:p-8">
-              <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-500">
-                Доставка
-              </div>
-
-              <h2 className="mt-2 text-2xl font-bold tracking-[-0.04em] sm:mt-3 sm:text-3xl">
-                Адреса
-              </h2>
 
               {addresses.length > 0 ? (
-                <div className="mt-6 grid gap-3">
+                <div className="mt-4 grid gap-2">
                   {addresses.slice(0, 3).map((address) => (
                     <div
                       key={address.id}
-                      className="rounded-2xl border border-theme bg-blue-soft p-4 text-sm"
+                      className="rounded-xl border border-theme bg-blue-soft px-3 py-3 text-sm"
                     >
-                      {address.value}
+                      <div className="line-clamp-2">{address.value}</div>
+                      {address.isDefault ? (
+                        <div className="mt-1 text-xs text-blue-500">Основной адрес</div>
+                      ) : null}
                     </div>
                   ))}
                 </div>
               ) : (
-                <p className="mt-5 rounded-2xl border border-theme bg-blue-soft p-4 text-sm text-muted">
-                  Адреса пока не добавлены.
-                </p>
+                <p className="mt-4 text-sm text-muted">Адреса пока не добавлены.</p>
               )}
 
               <button
                 type="button"
                 onClick={() => setActiveModal("address")}
-                className="mt-6 w-full rounded-xl border border-theme bg-transparent px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
+                className="mt-4 w-full rounded-xl border border-theme px-4 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
               >
                 Добавить адрес
               </button>
             </section>
 
-            <section className="card rounded-[24px] p-4 sm:rounded-[34px] sm:p-8">
-              <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-500">
+            <section className="card rounded-[24px] p-4 sm:p-5">
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-500">
+                Скидки
+              </div>
+              <h2 className="mt-1 text-xl font-bold">Промокоды и цена</h2>
+
+              <p className="mt-3 text-sm leading-relaxed text-muted">
+                Персональная скидка применяется автоматически. Промокод можно ввести
+                в корзине перед оформлением заявки.
+              </p>
+
+              <Link
+                href="/cart"
+                className="mt-4 flex w-full items-center justify-center rounded-xl bg-blue-600 px-4 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500"
+              >
+                Перейти в корзину →
+              </Link>
+            </section>
+
+            <section className="card rounded-[24px] p-4 sm:p-5">
+              <div className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-500">
                 Быстро
               </div>
-
-              <h2 className="mt-2 text-2xl font-bold tracking-[-0.04em] sm:mt-3 sm:text-3xl">
-                Действия
-              </h2>
-
-              <div className="mt-6 grid gap-3">
+              <div className="mt-3 grid gap-2">
+                <Link
+                  href="/catalog"
+                  className="rounded-xl border border-theme px-4 py-3 text-center text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
+                >
+                  Каталог
+                </Link>
                 <Link
                   href="/cart"
-                  className="rounded-xl bg-blue-600 px-5 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-blue-500"
+                  className="rounded-xl border border-theme px-4 py-3 text-center text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
                 >
-                  Новая заявка →
+                  Корзина
                 </Link>
-
-                <Link
-                  href="#favorites"
-                  className="rounded-xl border border-theme bg-transparent px-5 py-3 text-center text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
-                >
-                  Избранные товары
-                </Link>
-
                 <Link
                   href="/help"
-                  className="rounded-xl border border-theme bg-transparent px-5 py-3 text-center text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
+                  className="rounded-xl border border-theme px-4 py-3 text-center text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft"
                 >
                   Поддержка
                 </Link>
@@ -715,6 +870,12 @@ export default function ProfilePage() {
             </section>
           </aside>
         </section>
+
+        {isProfileSaved ? (
+          <div className="fixed bottom-5 right-5 z-40 rounded-2xl border border-green-500/30 bg-green-500/10 px-4 py-3 text-sm font-medium text-green-500 backdrop-blur-xl">
+            Данные сохранены
+          </div>
+        ) : null}
       </div>
 
       {activeModal === "profile" && (
@@ -865,6 +1026,77 @@ function EmptyState({
         className="mt-5 inline-flex rounded-xl bg-blue-600 px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-blue-500"
       >
         {action}
+      </Link>
+    </div>
+  );
+}
+
+function CompactMetric({
+  label,
+  value,
+  hint,
+}: {
+  label: string;
+  value: string;
+  hint: string;
+}) {
+  return (
+    <div className="rounded-2xl border border-theme bg-blue-soft p-4">
+      <div className="text-xs font-medium uppercase tracking-[0.12em] text-muted">
+        {label}
+      </div>
+      <div className="mt-2 text-xl font-bold tracking-[-0.035em]">{value}</div>
+      <div className="mt-1 text-xs leading-relaxed text-muted">{hint}</div>
+    </div>
+  );
+}
+
+function SummaryCard({
+  label,
+  value,
+  hint,
+  href,
+  action,
+}: {
+  label: string;
+  value: string;
+  hint?: string;
+  href?: string;
+  action?: string;
+}) {
+  return (
+    <div className="card rounded-[20px] p-4">
+      <div className="text-xs font-medium uppercase tracking-[0.12em] text-muted">
+        {label}
+      </div>
+      <div className="mt-2 text-2xl font-bold tracking-[-0.04em]">{value}</div>
+      {hint ? <div className="mt-1 text-xs text-muted">{hint}</div> : null}
+      {href && action ? (
+        <Link href={href} className="mt-3 inline-flex text-xs font-medium text-blue-500 hover:text-blue-400">
+          {action} →
+        </Link>
+      ) : null}
+    </div>
+  );
+}
+
+function CompactEmpty({
+  title,
+  text,
+  href,
+  action,
+}: {
+  title: string;
+  text: string;
+  href: string;
+  action: string;
+}) {
+  return (
+    <div className="mt-4 rounded-2xl border border-dashed border-theme px-4 py-5">
+      <div className="font-bold">{title}</div>
+      <p className="mt-1 text-sm leading-relaxed text-muted">{text}</p>
+      <Link href={href} className="mt-3 inline-flex text-sm font-medium text-blue-500 hover:text-blue-400">
+        {action} →
       </Link>
     </div>
   );

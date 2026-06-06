@@ -10,6 +10,8 @@ import {
   type CustomerStatus,
   type CustomerStatusProgress,
   type CustomerStatusRules,
+  type DiscountType,
+  type StatusDiscountTier,
 } from "@/lib/customer-status-types";
 
 const CUSTOMER_STATUS_SETTINGS_KEY = "customer-status-rules";
@@ -32,6 +34,79 @@ function numberValue(value: unknown, fallback: number, min: number, max: number)
   return Math.min(max, Math.max(min, Math.round(parsed)));
 }
 
+function stringValue(value: unknown, fallback: string) {
+  return typeof value === "string" && value.trim() ? value.trim() : fallback;
+}
+
+function discountType(value: unknown, fallback: DiscountType): DiscountType {
+  return value === "fixed" || value === "percent" ? value : fallback;
+}
+
+function normalizeDiscountTiers(
+  value: unknown,
+  fallback: StatusDiscountTier[],
+  legacy: {
+    enabledValue?: unknown;
+    type?: unknown;
+    value?: unknown;
+    minOrderTotal?: unknown;
+    minItemPrice?: unknown;
+    prefix: string;
+  },
+) {
+  const source = Array.isArray(value) ? value : [];
+  const normalized = source
+    .map((item, index): StatusDiscountTier | null => {
+      if (!item || typeof item !== "object" || Array.isArray(item)) return null;
+      const raw = item as Record<string, unknown>;
+      const type = discountType(raw.discountType, "percent");
+
+      return {
+        id: stringValue(raw.id, `${legacy.prefix}-${index + 1}`),
+        minOrderTotal: numberValue(raw.minOrderTotal, 0, 0, 100_000_000),
+        minItemPrice: numberValue(raw.minItemPrice, 0, 0, 100_000_000),
+        discountType: type,
+        discountValue: numberValue(
+          raw.discountValue,
+          0,
+          0,
+          type === "percent" ? 100 : 100_000_000,
+        ),
+      };
+    })
+    .filter((item): item is StatusDiscountTier => Boolean(item))
+    .filter((item) => item.discountValue > 0)
+    .sort((first, second) => first.minOrderTotal - second.minOrderTotal);
+
+  if (normalized.length) return normalized;
+
+  const hasLegacy =
+    legacy.type !== undefined ||
+    legacy.value !== undefined ||
+    legacy.minOrderTotal !== undefined ||
+    legacy.minItemPrice !== undefined;
+
+  if (hasLegacy) {
+    const type = discountType(legacy.type, "percent");
+    const tier = {
+      id: `${legacy.prefix}-legacy`,
+      minOrderTotal: numberValue(legacy.minOrderTotal, 0, 0, 100_000_000),
+      minItemPrice: numberValue(legacy.minItemPrice, 0, 0, 100_000_000),
+      discountType: type,
+      discountValue: numberValue(
+        legacy.value,
+        0,
+        0,
+        type === "percent" ? 100 : 100_000_000,
+      ),
+    } satisfies StatusDiscountTier;
+
+    if (tier.discountValue > 0) return [tier];
+  }
+
+  return fallback.map((tier) => ({ ...tier }));
+}
+
 export function normalizeCustomerStatusRules(value: unknown): CustomerStatusRules {
   const raw = value && typeof value === "object" && !Array.isArray(value)
     ? (value as Record<string, unknown>)
@@ -48,52 +123,53 @@ export function normalizeCustomerStatusRules(value: unknown): CustomerStatusRule
     numberValue(raw.vipOrders, defaultCustomerStatusRules.vipOrders, 1, 1000),
   );
 
-  const discountType = (value: unknown, fallback: "percent" | "fixed") =>
-    value === "fixed" || value === "percent" ? value : fallback;
-  const combinationMode = raw.discountCombinationMode === "best" ? "best" : "stack";
-
   return {
-    minOrderTotal: numberValue(raw.minOrderTotal, defaultCustomerStatusRules.minOrderTotal, 0, 100_000_000),
+    minOrderTotal: numberValue(
+      raw.minOrderTotal,
+      defaultCustomerStatusRules.minOrderTotal,
+      0,
+      100_000_000,
+    ),
     regularOrders,
     vipOrders,
-    vipTotalSpent: numberValue(raw.vipTotalSpent, defaultCustomerStatusRules.vipTotalSpent, 1, 1_000_000_000),
+    vipTotalSpent: numberValue(
+      raw.vipTotalSpent,
+      defaultCustomerStatusRules.vipTotalSpent,
+      1,
+      1_000_000_000,
+    ),
     regularDiscountEnabled:
       typeof raw.regularDiscountEnabled === "boolean"
         ? raw.regularDiscountEnabled
         : defaultCustomerStatusRules.regularDiscountEnabled,
-    regularDiscountType: discountType(raw.regularDiscountType, defaultCustomerStatusRules.regularDiscountType),
-    regularDiscountValue: numberValue(raw.regularDiscountValue, defaultCustomerStatusRules.regularDiscountValue, 0, 100_000_000),
-    regularDiscountMinOrderTotal: numberValue(
-      raw.regularDiscountMinOrderTotal,
-      defaultCustomerStatusRules.regularDiscountMinOrderTotal,
-      0,
-      100_000_000,
-    ),
-    regularDiscountMinItemPrice: numberValue(
-      raw.regularDiscountMinItemPrice,
-      defaultCustomerStatusRules.regularDiscountMinItemPrice,
-      0,
-      100_000_000,
+    regularDiscountTiers: normalizeDiscountTiers(
+      raw.regularDiscountTiers,
+      defaultCustomerStatusRules.regularDiscountTiers,
+      {
+        prefix: "regular",
+        enabledValue: raw.regularDiscountEnabled,
+        type: raw.regularDiscountType,
+        value: raw.regularDiscountValue,
+        minOrderTotal: raw.regularDiscountMinOrderTotal,
+        minItemPrice: raw.regularDiscountMinItemPrice,
+      },
     ),
     vipDiscountEnabled:
       typeof raw.vipDiscountEnabled === "boolean"
         ? raw.vipDiscountEnabled
         : defaultCustomerStatusRules.vipDiscountEnabled,
-    vipDiscountType: discountType(raw.vipDiscountType, defaultCustomerStatusRules.vipDiscountType),
-    vipDiscountValue: numberValue(raw.vipDiscountValue, defaultCustomerStatusRules.vipDiscountValue, 0, 100_000_000),
-    vipDiscountMinOrderTotal: numberValue(
-      raw.vipDiscountMinOrderTotal,
-      defaultCustomerStatusRules.vipDiscountMinOrderTotal,
-      0,
-      100_000_000,
+    vipDiscountTiers: normalizeDiscountTiers(
+      raw.vipDiscountTiers,
+      defaultCustomerStatusRules.vipDiscountTiers,
+      {
+        prefix: "vip",
+        enabledValue: raw.vipDiscountEnabled,
+        type: raw.vipDiscountType,
+        value: raw.vipDiscountValue,
+        minOrderTotal: raw.vipDiscountMinOrderTotal,
+        minItemPrice: raw.vipDiscountMinItemPrice,
+      },
     ),
-    vipDiscountMinItemPrice: numberValue(
-      raw.vipDiscountMinItemPrice,
-      defaultCustomerStatusRules.vipDiscountMinItemPrice,
-      0,
-      100_000_000,
-    ),
-    discountCombinationMode: combinationMode,
   };
 }
 

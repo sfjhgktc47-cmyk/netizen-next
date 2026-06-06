@@ -126,6 +126,71 @@ export function PromocodesAdminClient() {
 
   return (
     <div className="mt-8 grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
+      <style jsx global>{`
+        .promo-admin-input,
+        .promo-admin-textarea {
+          width: 100%;
+          border: 1px solid rgba(255, 255, 255, 0.12);
+          border-radius: 0.9rem;
+          background: rgba(0, 0, 0, 0.22);
+          padding: 0.85rem 1rem;
+          color: #ffffff;
+          outline: none;
+          transition:
+            border-color 0.2s ease,
+            box-shadow 0.2s ease,
+            background-color 0.2s ease;
+        }
+
+        .promo-admin-input {
+          min-height: 48px;
+        }
+
+        .promo-admin-textarea {
+          resize: vertical;
+        }
+
+        .promo-admin-input:focus,
+        .promo-admin-textarea:focus {
+          border-color: rgba(59, 130, 246, 0.72);
+          box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.12);
+          background: rgba(0, 0, 0, 0.3);
+        }
+
+        .promo-admin-input::placeholder,
+        .promo-admin-textarea::placeholder {
+          color: rgba(255, 255, 255, 0.32);
+        }
+
+        .promo-admin-input option {
+          background: #050b16;
+          color: #ffffff;
+        }
+
+        [data-admin-theme="light"] .admin-theme-scope .promo-admin-input,
+        [data-admin-theme="light"] .admin-theme-scope .promo-admin-textarea {
+          border-color: rgba(15, 23, 42, 0.16) !important;
+          background: #ffffff !important;
+          color: #101828 !important;
+          box-shadow: none;
+        }
+
+        [data-admin-theme="light"] .admin-theme-scope .promo-admin-input:focus,
+        [data-admin-theme="light"] .admin-theme-scope .promo-admin-textarea:focus {
+          border-color: rgba(37, 99, 235, 0.65) !important;
+          box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+        }
+
+        [data-admin-theme="light"] .admin-theme-scope .promo-admin-input::placeholder,
+        [data-admin-theme="light"] .admin-theme-scope .promo-admin-textarea::placeholder {
+          color: rgba(16, 24, 40, 0.4) !important;
+        }
+
+        [data-admin-theme="light"] .admin-theme-scope .promo-admin-input option {
+          background: #ffffff;
+          color: #101828;
+        }
+      `}</style>
       <aside className="rounded-[28px] border border-white/10 bg-white/[0.035] p-4">
         <button
           type="button"
@@ -174,18 +239,18 @@ export function PromocodesAdminClient() {
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <Field label="Код">
-            <input value={selected.code} onChange={(event) => patch("code", event.target.value.toUpperCase())} className="admin-input" placeholder="NETIZEN10" />
+            <input value={selected.code} onChange={(event) => patch("code", event.target.value.toUpperCase())} className="promo-admin-input" placeholder="NETIZEN10" />
           </Field>
           <Field label="Название">
-            <input value={selected.name} onChange={(event) => patch("name", event.target.value)} className="admin-input" placeholder="Скидка 10%" />
+            <input value={selected.name} onChange={(event) => patch("name", event.target.value)} className="promo-admin-input" placeholder="Скидка 10%" />
           </Field>
           <div className="md:col-span-2">
             <Field label="Описание для менеджера">
-              <textarea value={selected.description} onChange={(event) => patch("description", event.target.value)} className="admin-textarea min-h-[90px]" />
+              <textarea value={selected.description} onChange={(event) => patch("description", event.target.value)} className="promo-admin-textarea min-h-[110px]" />
             </Field>
           </div>
           <Field label="Тип скидки">
-            <select value={selected.discountType} onChange={(event) => patch("discountType", event.target.value)} className="admin-input">
+            <select value={selected.discountType} onChange={(event) => patch("discountType", event.target.value)} className="promo-admin-input">
               <option value="percent">Проценты</option>
               <option value="fixed">Рубли</option>
             </select>
@@ -199,25 +264,25 @@ export function PromocodesAdminClient() {
           <NumberField label="После завершённых заказов" value={selected.minCompletedOrders} onChange={(value) => patch("minCompletedOrders", value)} />
           <NumberField label="После суммы покупок, ₽" value={selected.minTotalSpent} onChange={(value) => patch("minTotalSpent", value)} />
           <Field label="Начало действия">
-            <input type="datetime-local" value={localDate(selected.startsAt)} onChange={(event) => patch("startsAt", event.target.value || null)} className="admin-input" />
+            <input type="datetime-local" value={localDate(selected.startsAt)} onChange={(event) => patch("startsAt", event.target.value || null)} className="promo-admin-input" />
           </Field>
           <Field label="Конец действия">
-            <input type="datetime-local" value={localDate(selected.endsAt)} onChange={(event) => patch("endsAt", event.target.value || null)} className="admin-input" />
+            <input type="datetime-local" value={localDate(selected.endsAt)} onChange={(event) => patch("endsAt", event.target.value || null)} className="promo-admin-input" />
           </Field>
         </div>
 
         <div className="mt-5 grid gap-4 md:grid-cols-2">
-          <label className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 p-4 text-sm">
+          <label className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 p-4 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
             <input type="checkbox" checked={selected.firstOrderOnly} onChange={(event) => patch("firstOrderOnly", event.target.checked)} />
             Только первый заказ
           </label>
-          <label className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 p-4 text-sm">
+          <label className="flex items-center gap-3 rounded-xl border border-white/10 bg-black/20 p-4 text-sm shadow-[inset_0_1px_0_rgba(255,255,255,0.02)]">
             <input type="checkbox" checked={selected.allowWithStatusDiscount} onChange={(event) => patch("allowWithStatusDiscount", event.target.checked)} />
             Разрешить вместе со скидкой статуса
           </label>
         </div>
 
-        <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-4">
+        <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 p-5">
           <div className="font-semibold">Условия доступа</div>
           <div className="mt-3 flex flex-wrap gap-4">
             {(["new", "regular", "vip"] as CustomerStatus[]).map((status) => (
@@ -238,7 +303,7 @@ export function PromocodesAdminClient() {
               </label>
             ))}
           </div>
-          <select value={selected.conditionMode} onChange={(event) => patch("conditionMode", event.target.value)} className="admin-input mt-4">
+          <select value={selected.conditionMode} onChange={(event) => patch("conditionMode", event.target.value)} className="promo-admin-input mt-4">
             <option value="all">Все заданные условия должны выполняться</option>
             <option value="any">Достаточно одного условия</option>
           </select>
@@ -257,9 +322,14 @@ export function PromocodesAdminClient() {
 }
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
-  return <label className="grid gap-2 text-sm text-white/55"><span>{label}</span>{children}</label>;
+  return (
+    <label className="grid gap-2">
+      <span className="text-sm font-medium text-white/65">{label}</span>
+      {children}
+    </label>
+  );
 }
 
 function NumberField({ label, value, onChange }: { label: string; value: number; onChange: (value: number) => void }) {
-  return <Field label={label}><input type="number" min={0} value={value} onChange={(event) => onChange(Math.max(0, Number(event.target.value) || 0))} className="admin-input" /></Field>;
+  return <Field label={label}><input type="number" min={0} value={value} onChange={(event) => onChange(Math.max(0, Number(event.target.value) || 0))} className="promo-admin-input" /></Field>;
 }

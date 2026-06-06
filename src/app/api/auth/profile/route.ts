@@ -9,6 +9,10 @@ import {
 } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getSupportTopic } from "@/lib/support-topics";
+import {
+  calculateCustomerStatus,
+  getCustomerStatusRules,
+} from "@/lib/customer-status-db";
 
 function jsonError(message: string, status = 400) {
   return NextResponse.json({ ok: false, message }, { status });
@@ -35,6 +39,9 @@ async function getCustomerProfile(customerId: string) {
       lastName: true,
       phone: true,
       email: true,
+      createdAt: true,
+      statusOverride: true,
+      statusOverrideAt: true,
       orders: {
         orderBy: { createdAt: "desc" },
         take: 20,
@@ -65,6 +72,21 @@ async function getCustomerProfile(customerId: string) {
     return null;
   }
 
+  const statusRules = await getCustomerStatusRules();
+  const statusProgress = calculateCustomerStatus(customer, statusRules);
+  const statusDiscountEnabled =
+    statusProgress.status === "vip"
+      ? statusRules.vipDiscountEnabled
+      : statusProgress.status === "regular"
+        ? statusRules.regularDiscountEnabled
+        : false;
+  const statusDiscountTiers =
+    statusProgress.status === "vip"
+      ? statusRules.vipDiscountTiers
+      : statusProgress.status === "regular"
+        ? statusRules.regularDiscountTiers
+        : [];
+
   return {
     profile: {
       id: customer.id,
@@ -72,6 +94,12 @@ async function getCustomerProfile(customerId: string) {
       lastName: customer.lastName,
       phone: customer.phone,
       email: customer.email,
+      createdAt: customer.createdAt.toISOString(),
+    },
+    statusProgress,
+    statusDiscount: {
+      enabled: statusDiscountEnabled,
+      tiers: statusDiscountTiers,
     },
     orders: customer.orders.map((order) => ({
       id: order.id,
