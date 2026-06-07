@@ -162,7 +162,7 @@ export function ProductCarousel({
               onClick={actionOnClick}
               className={`inline-flex h-10 items-center justify-center rounded-xl border px-4 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 ${
                 dark
-                  ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
+                  ? "border-blue-500 bg-blue-600 text-white shadow-[0_8px_20px_rgba(37,99,235,0.18)] hover:border-blue-400 hover:bg-blue-500"
                   : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
               }`}
             >
@@ -173,7 +173,7 @@ export function ProductCarousel({
               href={actionHref}
               className={`inline-flex h-10 items-center justify-center rounded-xl border px-4 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 ${
                 dark
-                  ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
+                  ? "border-blue-500 bg-blue-600 text-white shadow-[0_8px_20px_rgba(37,99,235,0.18)] hover:border-blue-400 hover:bg-blue-500"
                   : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
               }`}
             >
@@ -187,7 +187,7 @@ export function ProductCarousel({
               onClick={() => scrollProducts("prev")}
               className={`flex h-10 w-10 items-center justify-center rounded-xl border text-base font-medium transition-all duration-300 hover:-translate-y-0.5 ${
                 dark
-                  ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
+                  ? "border-blue-500 bg-blue-600 text-white shadow-[0_8px_20px_rgba(37,99,235,0.18)] hover:border-blue-400 hover:bg-blue-500"
                   : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
               }`}
               aria-label="Предыдущие товары"
@@ -200,7 +200,7 @@ export function ProductCarousel({
               onClick={() => scrollProducts("next")}
               className={`flex h-10 w-10 items-center justify-center rounded-xl border text-base font-medium transition-all duration-300 hover:-translate-y-0.5 ${
                 dark
-                  ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
+                  ? "border-blue-500 bg-blue-600 text-white shadow-[0_8px_20px_rgba(37,99,235,0.18)] hover:border-blue-400 hover:bg-blue-500"
                   : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
               }`}
               aria-label="Следующие товары"

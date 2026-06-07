@@ -391,22 +391,15 @@ export function SiteHeader() {
             <Link
               key={item.label}
               href={item.href}
-              className={`group relative px-3 py-2 transition-colors duration-200 ${
+              className={`rounded-xl border px-4 py-2.5 transition-all duration-200 ${
                 pathname === item.href || pathname.startsWith(`${item.href}/`)
-                  ? "text-blue-400"
+                  ? "border-blue-500/60 bg-blue-500/10 text-blue-400"
                   : dark
-                    ? "text-white/82 hover:text-blue-400"
-                    : "text-[#07111f] hover:text-blue-600"
+                    ? "border-transparent text-white/82 hover:border-blue-500/60 hover:bg-blue-500/10 hover:text-white"
+                    : "border-transparent text-[#07111f] hover:border-blue-500/45 hover:bg-blue-50 hover:text-blue-600"
               }`}
             >
               {item.label}
-              <span
-                className={`absolute bottom-0 left-3 right-3 h-px origin-left bg-blue-500 transition-transform duration-200 ${
-                  pathname === item.href || pathname.startsWith(`${item.href}/`)
-                    ? "scale-x-100"
-                    : "scale-x-0 group-hover:scale-x-100"
-                }`}
-              />
             </Link>
           ))}
         </nav>

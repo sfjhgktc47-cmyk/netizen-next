@@ -575,7 +575,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
                 href={slide.secondaryHref}
                 className={`hidden min-h-11 items-center justify-center rounded-xl border px-4 py-2.5 text-[11px] font-medium transition-all duration-300 hover:-translate-y-0.5 min-[390px]:inline-flex sm:min-h-12 sm:px-7 sm:py-4 sm:text-sm ${
                   dark
-                    ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
+                    ? "border-blue-500 bg-blue-600 text-white shadow-[0_8px_20px_rgba(37,99,235,0.18)] hover:border-blue-400 hover:bg-blue-500"
                     : "border-black/10 bg-white text-black hover:border-blue-500/40 hover:bg-blue-50"
                 }`}
               >
@@ -749,7 +749,7 @@ function Categories({
             href={buttonHref}
             className={`mt-4 hidden shrink-0 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 sm:inline-flex ${
               dark
-                ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
+                ? "border-blue-500 bg-blue-600 text-white shadow-[0_10px_26px_rgba(37,99,235,0.20)] hover:border-blue-400 hover:bg-blue-500"
                 : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
             }`}
           >
@@ -815,7 +815,7 @@ function Categories({
               <div
                 className={`relative z-10 mt-5 hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl border text-base font-bold transition-all duration-300 group-hover:translate-x-1 sm:flex ${
                   dark
-                    ? "border-blue-500/35 bg-blue-500/10 text-blue-400 group-hover:bg-blue-600 group-hover:text-white"
+                    ? "border-blue-500 bg-blue-600 text-white shadow-[0_8px_20px_rgba(37,99,235,0.18)] group-hover:bg-blue-500"
                     : "border-black/10 bg-white text-black shadow-sm group-hover:border-blue-500 group-hover:bg-blue-600 group-hover:text-white"
                 }`}
               >
@@ -834,7 +834,7 @@ function Categories({
             href={buttonHref}
             className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-300 ${
               dark
-                ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
+                ? "border-blue-500 bg-blue-600 text-white shadow-[0_10px_26px_rgba(37,99,235,0.20)] hover:border-blue-400 hover:bg-blue-500"
                 : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
             }`}
           >
@@ -963,7 +963,7 @@ function PopularProducts({
               href={buttonHref}
               className={`shrink-0 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 ${
                 dark
-                  ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
+                  ? "border-blue-500 bg-blue-600 text-white shadow-[0_10px_26px_rgba(37,99,235,0.20)] hover:border-blue-400 hover:bg-blue-500"
                   : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
               }`}
             >
@@ -975,7 +975,7 @@ function PopularProducts({
             onClick={() => scrollProducts("prev")}
             className={`flex h-11 w-11 items-center justify-center rounded-xl border text-lg transition-all duration-300 hover:-translate-y-0.5 ${
               dark
-                ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
+                ? "border-blue-500 bg-blue-600 text-white shadow-[0_8px_20px_rgba(37,99,235,0.18)] hover:border-blue-400 hover:bg-blue-500"
                 : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
             }`}
             aria-label="Предыдущие товары"
@@ -988,7 +988,7 @@ function PopularProducts({
             onClick={() => scrollProducts("next")}
             className={`flex h-11 w-11 items-center justify-center rounded-xl border text-lg transition-all duration-300 hover:-translate-y-0.5 ${
               dark
-                ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
+                ? "border-blue-500 bg-blue-600 text-white shadow-[0_8px_20px_rgba(37,99,235,0.18)] hover:border-blue-400 hover:bg-blue-500"
                 : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
             }`}
             aria-label="Следующие товары"
@@ -1047,7 +1047,7 @@ function PopularProducts({
             href={buttonHref}
             className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-300 ${
               dark
-                ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
+                ? "border-blue-500 bg-blue-600 text-white shadow-[0_10px_26px_rgba(37,99,235,0.20)] hover:border-blue-400 hover:bg-blue-500"
                 : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
             }`}
           >
@@ -1160,7 +1160,7 @@ function NewArrivals({
             href="/new"
             className={`mt-4 hidden shrink-0 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 sm:inline-flex ${
               dark
-                ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
+                ? "border-blue-500 bg-blue-600 text-white shadow-[0_10px_26px_rgba(37,99,235,0.20)] hover:border-blue-400 hover:bg-blue-500"
                 : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
             }`}
           >
@@ -1199,7 +1199,7 @@ function NewArrivals({
           href="/new"
           className={`hidden shrink-0 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 sm:inline-flex ${
             dark
-              ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
+              ? "border-blue-500 bg-blue-600 text-white shadow-[0_10px_26px_rgba(37,99,235,0.20)] hover:border-blue-400 hover:bg-blue-500"
               : "border-black/10 bg-white text-black shadow-sm hover:border-blue-500/40 hover:bg-blue-50"
           }`}
         >

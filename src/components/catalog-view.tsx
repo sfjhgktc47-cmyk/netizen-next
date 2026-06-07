@@ -1109,13 +1109,13 @@ export function CatalogView({
                 <button
                   type="button"
                   onClick={() => setCategoryPanelVisible(false)}
-                  className="shrink-0 rounded-xl border border-theme bg-transparent px-4 py-2.5 text-xs font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:text-sm"
+                  className="shrink-0 rounded-xl border border-blue-500 bg-blue-600 px-4 py-2.5 text-xs font-semibold text-white shadow-[0_8px_20px_rgba(37,99,235,0.18)] transition-colors hover:border-blue-400 hover:bg-blue-500 sm:text-sm"
                 >
                   Скрыть категории
                 </button>
               </div>
 
-              <div className="mt-4 grid grid-cols-1 gap-3 sm:mt-5 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:mt-5 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-5">
                 {categories.map((category) => {
                   const isActive =
                     category.id === selectedCategoryId && !hasActiveFilters;
@@ -1125,19 +1125,19 @@ export function CatalogView({
                       key={category.id}
                       type="button"
                       onClick={() => handleSelectCategory(category.id)}
-                      className={`group relative min-h-[142px] overflow-hidden rounded-2xl border p-5 text-left transition-all duration-300 hover:-translate-y-0.5 sm:min-h-[154px] ${
+                      className={`group relative min-h-[132px] overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 hover:-translate-y-0.5 sm:min-h-[144px] ${
                         isActive
                           ? "border-blue-500/65 bg-blue-500/[0.07]"
                           : "border-theme bg-card hover:border-blue-500/40"
                       }`}
                     >
-                      <div className="relative z-10 max-w-[52%]">
-                        <h3 className="text-base font-bold leading-tight sm:text-lg">
+                      <div className="relative z-10 max-w-[54%] pb-11">
+                        <h3 className="line-clamp-2 text-sm font-bold leading-tight sm:text-base">
                           {category.name}
                         </h3>
 
                         {category.description ? (
-                          <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted">
+                          <p className="mt-2 line-clamp-2 text-[11px] leading-relaxed text-muted">
                             {category.description}
                           </p>
                         ) : null}
@@ -1146,15 +1146,15 @@ export function CatalogView({
                       <span
                         className={`absolute bottom-4 left-5 z-20 flex h-9 w-9 items-center justify-center rounded-xl border text-sm transition-colors ${
                           isActive
-                            ? "border-blue-400/55 bg-blue-500/15 text-blue-300"
-                            : "border-theme bg-transparent text-blue-400 group-hover:border-blue-500/45 group-hover:bg-blue-soft"
+                            ? "border-blue-400 bg-blue-500 text-white"
+                            : "border-blue-500 bg-blue-600 text-white shadow-[0_8px_18px_rgba(37,99,235,0.16)] group-hover:border-blue-400 group-hover:bg-blue-500"
                         }`}
                         aria-hidden="true"
                       >
                         →
                       </span>
 
-                      <div className="absolute bottom-3 right-3 top-3 flex w-[46%] items-center justify-center">
+                      <div className="absolute bottom-3 right-3 top-3 flex w-[43%] items-center justify-center">
                         {category.image ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
