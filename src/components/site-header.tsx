@@ -78,25 +78,24 @@ function isImageIcon(value: string) {
 }
 
 function PhoneHeaderIcon({ className = "" }: { className?: string }) {
- return (
- <svg
- viewBox="0 0 24 24"
- fill="none"
- className={className}
- aria-hidden="true"
- focusable="false"
- shapeRendering="geometricPrecision"
- >
- <path
- d="M22 16.92v3a2 2 0 0 1-2.18 2A19.79 19.79 0 0 1 3.09 5.18 2 2 0 0 1 5.08 3h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.69 2.8a2 2 0 0 1-.45 2.11L9.04 10.9a16 16 0 0 0 4.06 4.06l1.27-1.27a2 2 0 0 1 2.11-.45c.9.33 1.84.56 2.8.69A2 2 0 0 1 22 16.92Z"
- stroke="currentColor"
- strokeWidth="2.15"
- strokeLinecap="round"
- strokeLinejoin="round"
- vectorEffect="non-scaling-stroke"
- />
- </svg>
- );
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      className={className}
+      aria-hidden="true"
+      focusable="false"
+      shapeRendering="geometricPrecision"
+    >
+      <path
+        d="M6.7 3.6h2.6c.72 0 1.34.5 1.48 1.2l.55 2.76a1.55 1.55 0 0 1-.46 1.45L9.25 10.5a14.25 14.25 0 0 0 4.25 4.25l1.49-1.62a1.55 1.55 0 0 1 1.45-.46l2.76.55c.7.14 1.2.76 1.2 1.48v2.6c0 .94-.76 1.7-1.7 1.7C10.57 19 5 13.43 5 6.3c0-.94.76-1.7 1.7-1.7Z"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
 }
 
 function CartHeaderIcon({ className = "" }: { className?: string }) {
@@ -778,7 +777,7 @@ export function SiteHeader() {
  onClick={() => setIsPhoneOpen((current) => !current)}
  aria-label="Телефон магазина"
  aria-expanded={isPhoneOpen}
- className={`group flex h-10 w-10 items-center justify-center overflow-visible rounded-xl border text-sm font-bold outline-none focus:outline-none transition-all duration-300 sm:h-10 sm:w-10 lg:h-11 lg:w-11 ${
+ className={`group flex h-10 w-10 items-center justify-center overflow-hidden rounded-xl border text-sm font-bold outline-none focus:outline-none transition-all duration-300 sm:h-10 sm:w-10 lg:h-11 lg:w-11 ${
  isPhoneOpen
  ? "border-transparent bg-blue-600 text-white "
  : dark
@@ -787,7 +786,7 @@ export function SiteHeader() {
  }`}
  >
  <PhoneHeaderIcon
- className={`h-[23px] w-[23px] shrink-0 ${
+ className={`block h-[22px] w-[22px] shrink-0 ${
  isPhoneOpen
  ? "text-white"
  : "text-blue-500 transition-colors group-hover:text-white"
