@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { getSiteEditorSettings } from "@/lib/site-settings-db";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 type SuggestionMode = "city" | "address";
 
@@ -19,6 +20,7 @@ type DadataSuggestion = {
   value?: string;
   unrestricted_value?: string;
   data?: {
+    region_with_type?: string;
     city?: string;
     city_with_type?: string;
     settlement?: string;
@@ -27,8 +29,25 @@ type DadataSuggestion = {
     street_with_type?: string;
     house?: string;
     house_type?: string;
+    block?: string;
+    block_type?: string;
     fias_id?: string;
   };
+};
+
+type YandexComponent = {
+  name?: string;
+  kind?: string;
+};
+
+type YandexSuggestion = {
+  title?: { text?: string };
+  subtitle?: { text?: string };
+  address?: {
+    formatted_address?: string;
+    component?: YandexComponent[];
+  };
+  uri?: string;
 };
 
 type PhotonFeature = {
@@ -37,14 +56,18 @@ type PhotonFeature = {
     city?: string;
     town?: string;
     village?: string;
+    hamlet?: string;
     locality?: string;
     district?: string;
+    county?: string;
     state?: string;
     street?: string;
     housenumber?: string;
     postcode?: string;
     countrycode?: string;
     type?: string;
+    osm_key?: string;
+    osm_value?: string;
     osm_id?: number | string;
   };
 };
@@ -55,19 +78,43 @@ function text(value: unknown, max = 300) {
 
 function cleanCity(value: string) {
   return value
-    .replace(/^(г\.?|город|пос\.?|поселок|пгт)\s+/i, "")
+    .replace(/^(г\.?|город|пос\.?|поселок|посёлок|пгт|с\.?|село|дер\.?|деревня)\s+/i, "")
     .trim();
 }
 
-function uniqueSuggestions(items: AddressSuggestion[]) {
-  const seen = new Set<string>();
+function normalizeKey(value: string) {
+  return value
+    .toLowerCase()
+    .replace(/[ё]/g, "е")
+    .replace(/\s+/g, " ")
+    .trim();
+}
 
-  return items.filter((item) => {
-    const key = `${item.value.toLowerCase()}|${item.house.toLowerCase()}`;
-    if (!item.value || seen.has(key)) return false;
+function uniqueSuggestions(items: AddressSuggestion[], limit = 12) {
+  const seen = new Set<string>();
+  const result: AddressSuggestion[] = [];
+
+  for (const item of items) {
+    const key = normalizeKey(
+      [item.city, item.street, item.house, item.value].filter(Boolean).join("|")
+    );
+
+    if (!item.value || !key || seen.has(key)) continue;
     seen.add(key);
-    return true;
-  });
+    result.push(item);
+
+    if (result.length >= limit) break;
+  }
+
+  return result;
+}
+
+function componentValue(components: YandexComponent[] | undefined, kinds: string[]) {
+  return (
+    components?.find((component) =>
+      kinds.includes(String(component.kind || "").toLowerCase())
+    )?.name || ""
+  );
 }
 
 async function getDadataSuggestions(input: {
@@ -76,24 +123,31 @@ async function getDadataSuggestions(input: {
   city: string;
   mode: SuggestionMode;
 }) {
-  const query = input.mode === "address" && input.city
-    ? `${input.city}, ${input.query}`
-    : input.query;
+  const combinedQuery =
+    input.mode === "address" && input.city
+      ? `${input.city}, ${input.query}`
+      : input.query;
 
   const body: Record<string, unknown> = {
-    query,
-    count: 10,
+    query: combinedQuery,
+    count: 15,
   };
 
   if (input.mode === "city") {
+    // Cities, towns, villages and other settlements across Russia.
     body.from_bound = { value: "city" };
     body.to_bound = { value: "settlement" };
   } else {
     body.from_bound = { value: "street" };
     body.to_bound = { value: "house" };
+
+    // Boost the selected city but do not hard-restrict the result. A hard
+    // restriction often returns an empty list for towns stored as settlements.
     if (input.city) {
-      body.locations = [{ city: input.city }, { settlement: input.city }];
-      body.restrict_value = false;
+      body.locations_boost = [
+        { city: input.city },
+        { settlement: input.city },
+      ];
     }
   }
 
@@ -108,8 +162,8 @@ async function getDadataSuggestions(input: {
       },
       body: JSON.stringify(body),
       cache: "no-store",
-      signal: AbortSignal.timeout(4500),
-    },
+      signal: AbortSignal.timeout(4000),
+    }
   );
 
   if (!response.ok) return [];
@@ -118,28 +172,109 @@ async function getDadataSuggestions(input: {
 
   return uniqueSuggestions(
     (payload.suggestions ?? []).map((item): AddressSuggestion => {
+      const data = item.data ?? {};
       const city = cleanCity(
-        item.data?.city ||
-          item.data?.settlement ||
-          item.data?.city_with_type ||
-          item.data?.settlement_with_type ||
-          input.city,
+        data.city ||
+          data.settlement ||
+          data.city_with_type ||
+          data.settlement_with_type ||
+          input.city
       );
-      const street = item.data?.street_with_type || item.data?.street || "";
-      const house = item.data?.house || "";
-      const shortAddress = [street, house ? `${item.data?.house_type || "д"}. ${house}` : ""]
+      const street = data.street_with_type || data.street || "";
+      const houseParts = [
+        data.house ? `${data.house_type || "д"}. ${data.house}` : "",
+        data.block ? `${data.block_type || "стр"}. ${data.block}` : "",
+      ].filter(Boolean);
+      const house = data.house || "";
+      const shortAddress = [street, ...houseParts].filter(Boolean).join(", ");
+      const fullAddress =
+        item.unrestricted_value ||
+        item.value ||
+        [data.region_with_type, city, shortAddress].filter(Boolean).join(", ");
+
+      return {
+        value:
+          input.mode === "city"
+            ? city || item.value || ""
+            : shortAddress || item.value || "",
+        unrestrictedValue: fullAddress,
+        city,
+        street,
+        house,
+        fiasId: data.fias_id || "",
+      };
+    })
+  );
+}
+
+async function getYandexSuggestions(input: {
+  apiKey: string;
+  query: string;
+  city: string;
+  mode: SuggestionMode;
+  sessionToken: string;
+}) {
+  const url = new URL("https://suggest-maps.yandex.ru/v1/suggest");
+  const combinedQuery =
+    input.mode === "address" && input.city
+      ? `${input.city}, ${input.query}`
+      : input.query;
+
+  url.searchParams.set("apikey", input.apiKey);
+  url.searchParams.set("text", combinedQuery);
+  url.searchParams.set("lang", "ru");
+  url.searchParams.set("results", "10");
+  url.searchParams.set("highlight", "0");
+  url.searchParams.set("countries", "ru");
+  url.searchParams.set("print_address", "1");
+  url.searchParams.set(
+    "types",
+    input.mode === "city" ? "locality" : "street,house"
+  );
+
+  if (input.sessionToken) {
+    url.searchParams.set("sessiontoken", input.sessionToken);
+  }
+
+  const response = await fetch(url, {
+    headers: { Accept: "application/json" },
+    cache: "no-store",
+    signal: AbortSignal.timeout(4000),
+  });
+
+  if (!response.ok) return [];
+
+  const payload = (await response.json()) as { results?: YandexSuggestion[] };
+
+  return uniqueSuggestions(
+    (payload.results ?? []).map((item): AddressSuggestion => {
+      const components = item.address?.component;
+      const title = text(item.title?.text);
+      const subtitle = text(item.subtitle?.text);
+      const formattedAddress = text(item.address?.formatted_address);
+      const city = cleanCity(
+        componentValue(components, ["locality"]) ||
+          (input.mode === "city" ? title : input.city)
+      );
+      const street = componentValue(components, ["street", "route"]);
+      const house = componentValue(components, ["house"]);
+      const shortAddress = [street, house ? `д. ${house}` : ""]
         .filter(Boolean)
         .join(", ");
 
       return {
-        value: input.mode === "city" ? city || item.value || "" : shortAddress || item.value || "",
-        unrestrictedValue: item.unrestricted_value || item.value || "",
+        value:
+          input.mode === "city"
+            ? city || title
+            : shortAddress || title || formattedAddress,
+        unrestrictedValue:
+          formattedAddress || [subtitle, title].filter(Boolean).join(", "),
         city,
         street,
         house,
-        fiasId: item.data?.fias_id || "",
+        fiasId: item.uri || "",
       };
-    }),
+    })
   );
 }
 
@@ -148,13 +283,17 @@ async function getPhotonSuggestions(input: {
   city: string;
   mode: SuggestionMode;
 }) {
-  const search = input.mode === "address" && input.city
-    ? `${input.city} ${input.query}`
-    : input.query;
+  const search = [
+    input.mode === "address" ? input.city : "",
+    input.query,
+    "Россия",
+  ]
+    .filter(Boolean)
+    .join(", ");
   const url = new URL("https://photon.komoot.io/api/");
   url.searchParams.set("q", search);
   url.searchParams.set("lang", "ru");
-  url.searchParams.set("limit", "10");
+  url.searchParams.set("limit", "15");
 
   const response = await fetch(url, {
     headers: {
@@ -162,12 +301,13 @@ async function getPhotonSuggestions(input: {
       "User-Agent": "NetizenStore/1.0 address-autocomplete",
     },
     cache: "no-store",
-    signal: AbortSignal.timeout(4500),
+    signal: AbortSignal.timeout(4000),
   });
 
   if (!response.ok) return [];
 
   const payload = (await response.json()) as { features?: PhotonFeature[] };
+
   const mapped = (payload.features ?? [])
     .filter((feature) => {
       const country = feature.properties?.countrycode?.toUpperCase();
@@ -179,19 +319,29 @@ async function getPhotonSuggestions(input: {
         properties.city ||
           properties.town ||
           properties.village ||
+          properties.hamlet ||
           properties.locality ||
-          (input.mode === "city" ? properties.name || "" : input.city),
+          (input.mode === "city" ? properties.name || "" : input.city)
       );
-      const street = properties.street || (input.mode === "address" ? properties.name || "" : "");
+      const street =
+        properties.street ||
+        (input.mode === "address" ? properties.name || "" : "");
       const house = properties.housenumber || "";
-      const addressValue = [street, house ? `д. ${house}` : ""].filter(Boolean).join(", ");
-      const full = [city, addressValue].filter(Boolean).join(", ");
+      const addressValue = [street, house ? `д. ${house}` : ""]
+        .filter(Boolean)
+        .join(", ");
+      const full = [
+        properties.postcode,
+        properties.state,
+        city,
+        addressValue,
+      ]
+        .filter(Boolean)
+        .join(", ");
 
       return {
         value: input.mode === "city" ? city : addressValue || full,
-        unrestrictedValue: [properties.postcode, full, properties.state]
-          .filter(Boolean)
-          .join(", "),
+        unrestrictedValue: full,
         city,
         street,
         house,
@@ -199,68 +349,128 @@ async function getPhotonSuggestions(input: {
       };
     });
 
-  const cityTypes = new Set(["city", "town", "village", "locality", "municipality"]);
-  const modeFiltered = input.mode === "city"
-    ? mapped.filter((_, index) => {
-        const type = payload.features?.[index]?.properties?.type;
-        return !type || cityTypes.has(type);
-      })
-    : mapped;
+  const cityValues = new Set([
+    "city",
+    "town",
+    "village",
+    "hamlet",
+    "locality",
+    "municipality",
+  ]);
+
+  const modeFiltered =
+    input.mode === "city"
+      ? mapped.filter((item, index) => {
+          const properties = payload.features?.[index]?.properties;
+          const placeType = String(
+            properties?.osm_value || properties?.type || ""
+          ).toLowerCase();
+          return Boolean(item.city) && (!placeType || cityValues.has(placeType));
+        })
+      : mapped.filter((item) => Boolean(item.street || item.house));
 
   return uniqueSuggestions(modeFiltered.length ? modeFiltered : mapped);
 }
 
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as
-    | { query?: string; city?: string; mode?: SuggestionMode }
+    | {
+        query?: string;
+        city?: string;
+        mode?: SuggestionMode;
+        sessionToken?: string;
+      }
     | null;
   const query = text(body?.query);
-  const city = text(body?.city, 100);
+  const city = text(body?.city, 120);
+  const sessionToken = text(body?.sessionToken, 100);
   const mode: SuggestionMode = body?.mode === "city" ? "city" : "address";
 
   if (query.length < 2) {
-    return NextResponse.json({ suggestions: [], configured: Boolean(process.env.DADATA_API_KEY) });
+    return NextResponse.json({ suggestions: [], configured: false });
   }
 
-  const token = process.env.DADATA_API_KEY?.trim();
+  const dadataToken = process.env.DADATA_API_KEY?.trim() || "";
+  const yandexKey =
+    process.env.YANDEX_GEOSUGGEST_API_KEY?.trim() ||
+    process.env.YANDEX_MAPS_API_KEY?.trim() ||
+    "";
 
-  if (token) {
-    try {
-      const suggestions = await getDadataSuggestions({ token, query, city, mode });
-      if (suggestions.length) {
-        return NextResponse.json({ suggestions, configured: true, source: "dadata" });
-      }
-    } catch (error) {
-      console.error("DaData address suggestions error", error);
-    }
+  const providerCalls: Array<Promise<AddressSuggestion[]>> = [];
+  const providerNames: string[] = [];
+
+  if (dadataToken) {
+    providerNames.push("dadata");
+    providerCalls.push(
+      getDadataSuggestions({ token: dadataToken, query, city, mode })
+    );
   }
 
-  try {
-    const suggestions = await getPhotonSuggestions({ query, city, mode });
-    if (suggestions.length) {
-      return NextResponse.json({ suggestions, configured: Boolean(token), source: "photon" });
-    }
-  } catch (error) {
-    console.error("Photon address suggestions error", error);
+  if (yandexKey) {
+    providerNames.push("yandex");
+    providerCalls.push(
+      getYandexSuggestions({
+        apiKey: yandexKey,
+        query,
+        city,
+        mode,
+        sessionToken,
+      })
+    );
   }
 
+  // Open fallback. It keeps the form usable when commercial API keys are not
+  // configured, but DaData/Yandex remain the authoritative full-address source.
+  providerNames.push("photon");
+  providerCalls.push(getPhotonSuggestions({ query, city, mode }));
+
+  const settled = await Promise.allSettled(providerCalls);
+  const merged = uniqueSuggestions(
+    settled.flatMap((result) =>
+      result.status === "fulfilled" ? result.value : []
+    )
+  );
+
+  if (merged.length > 0) {
+    return NextResponse.json(
+      {
+        suggestions: merged,
+        configured: Boolean(dadataToken || yandexKey),
+        source: providerNames.join("+"),
+      },
+      { headers: { "Cache-Control": "no-store" } }
+    );
+  }
+
+  // Final local fallback: active store/pickup addresses from site settings.
   const settings = await getSiteEditorSettings();
-  const needle = query.toLowerCase();
-  const suggestions = uniqueSuggestions(
+  const needle = normalizeKey(query);
+  const localSuggestions = uniqueSuggestions(
     settings.contacts.addresses
       .filter((address) => address.active)
       .map((address): AddressSuggestion => ({
         value: mode === "city" ? address.city : address.address,
-        unrestrictedValue: [address.city, address.address].filter(Boolean).join(", "),
+        unrestrictedValue: [address.city, address.address]
+          .filter(Boolean)
+          .join(", "),
         city: address.city,
         street: address.address,
         house: "",
-        fiasId: "",
+        fiasId: address.id,
       }))
       .filter((item) =>
-        (mode === "city" ? item.city : item.unrestrictedValue).toLowerCase().includes(needle),
-      ),
-  ).slice(0, 8);
+        normalizeKey(
+          mode === "city" ? item.city : item.unrestrictedValue
+        ).includes(needle)
+      )
+  );
 
-  return NextResponse.json({ suggestions, configured: Boolean(token), source: "settings" });
+  return NextResponse.json(
+    {
+      suggestions: localSuggestions,
+      configured: Boolean(dadataToken || yandexKey),
+      source: "settings",
+    },
+    { headers: { "Cache-Control": "no-store" } }
+  );
 }

@@ -1218,26 +1218,32 @@ export default function CartPage() {
  value={delivery.city}
  city=""
  mode="city"
- placeholder="Начните вводить город"
- onChange={(value) =>
+ placeholder="Город или населённый пункт"
+ onChange={(value) => {
+ setNewAddress("");
  setDelivery((current) => ({
  ...current,
  method: "courier",
  city: value,
- }))
- }
- onSelect={(suggestion) =>
+ address: "",
+ savedAddress: "",
+ }));
+ }}
+ onSelect={(suggestion) => {
+ setNewAddress("");
  setDelivery((current) => ({
  ...current,
  method: "courier",
  city: suggestion.city || suggestion.value,
- }))
- }
+ address: "",
+ savedAddress: "",
+ }));
+ }}
  />
  <AddressSuggestionInput
  value={newAddress}
  city={delivery.city}
- placeholder="Начните вводить улицу и дом"
+ placeholder="Улица и дом"
  onChange={setNewAddress}
  onSelect={(suggestion) => {
  setNewAddress(suggestion.value);
@@ -1295,12 +1301,14 @@ export default function CartPage() {
  value={delivery.city}
  city=""
  mode="city"
- placeholder="Начните вводить город"
+ placeholder="Город или населённый пункт"
  onChange={(value) =>
  setDelivery((current) => ({
  ...current,
  method: "courier",
  city: value,
+ address: "",
+ savedAddress: "",
  }))
  }
  onSelect={(suggestion) =>
@@ -1308,6 +1316,8 @@ export default function CartPage() {
  ...current,
  method: "courier",
  city: suggestion.city || suggestion.value,
+ address: "",
+ savedAddress: "",
  }))
  }
  />
@@ -1468,95 +1478,194 @@ function AddressSuggestionInput({
  const [suggestions, setSuggestions] = useState<AddressSuggestion[]>([]);
  const [loading, setLoading] = useState(false);
  const [open, setOpen] = useState(false);
+ const [searched, setSearched] = useState(false);
  const [committedValue, setCommittedValue] = useState("");
+ const [activeIndex, setActiveIndex] = useState(-1);
+ const [sessionToken] = useState(() => {
+ if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+ return crypto.randomUUID();
+ }
+ return `address-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+ });
 
  useEffect(() => {
  const query = value.trim();
+
  if (query.length < 2 || query === committedValue) {
  setSuggestions([]);
  setOpen(false);
+ setSearched(false);
+ setActiveIndex(-1);
  return;
  }
 
  let active = true;
+ const controller = new AbortController();
  const timeout = window.setTimeout(async () => {
  setLoading(true);
+ setSearched(false);
+
  try {
  const response = await fetch("/api/address-suggestions", {
  method: "POST",
  headers: { "Content-Type": "application/json" },
- body: JSON.stringify({ query, city, mode }),
+ body: JSON.stringify({ query, city, mode, sessionToken }),
+ cache: "no-store",
+ signal: controller.signal,
  });
  const payload = (await response.json().catch(() => null)) as
  | { suggestions?: AddressSuggestion[] }
  | null;
+
  if (!active) return;
- const next = Array.isArray(payload?.suggestions) ? payload.suggestions : [];
+
+ const next = Array.isArray(payload?.suggestions)
+ ? payload.suggestions.slice(0, 12)
+ : [];
  setSuggestions(next);
- setOpen(next.length > 0);
- } catch {
- if (active) {
- setSuggestions([]);
- setOpen(false);
+ setSearched(true);
+ setOpen(true);
+ setActiveIndex(next.length > 0 ? 0 : -1);
+ } catch (error) {
+ if (!active || (error instanceof DOMException && error.name === "AbortError")) {
+ return;
  }
+ setSuggestions([]);
+ setSearched(true);
+ setOpen(true);
+ setActiveIndex(-1);
  } finally {
  if (active) setLoading(false);
  }
- }, 300);
+ }, 250);
 
  return () => {
  active = false;
+ controller.abort();
  window.clearTimeout(timeout);
  };
- }, [city, committedValue, mode, value]);
+ }, [city, committedValue, mode, sessionToken, value]);
 
- return (
- <div className="relative min-w-0">
- <input
- value={value}
- onChange={(event) => {
- setCommittedValue("");
- onChange(event.target.value);
- setOpen(true);
- }}
- onFocus={() => setOpen(suggestions.length > 0)}
- onBlur={() => window.setTimeout(() => setOpen(false), 150)}
- placeholder={placeholder}
- autoComplete={mode === "city" ? "address-level2" : "street-address"}
- className="h-12 w-full rounded-xl border border-theme bg-transparent px-4 pr-10 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
- />
- {loading ? (
- <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-soft">…</span>
- ) : null}
- {open && suggestions.length ? (
- <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-50 max-h-72 overflow-y-auto rounded-2xl border border-theme bg-card p-1 ">
- {suggestions.map((suggestion) => (
- <button
- key={`${suggestion.fiasId}-${suggestion.value}`}
- type="button"
- onMouseDown={(event) => event.preventDefault()}
- onClick={() => {
- const selectedValue = mode === "city"
- ? suggestion.city || suggestion.value
- : suggestion.value;
+ function chooseSuggestion(suggestion: AddressSuggestion) {
+ const selectedValue =
+ mode === "city" ? suggestion.city || suggestion.value : suggestion.value;
  setCommittedValue(selectedValue);
  onSelect(suggestion);
  onChange(selectedValue);
  setSuggestions([]);
  setOpen(false);
+ setSearched(false);
+ setActiveIndex(-1);
+ }
+
+ return (
+ <div className="min-w-0">
+ <div className="relative">
+ <input
+ value={value}
+ onChange={(event) => {
+ setCommittedValue("");
+ onChange(event.target.value);
+ setOpen(event.target.value.trim().length >= 2);
  }}
- className="block w-full rounded-xl px-3 py-3 text-left text-sm transition-colors hover:bg-blue-soft"
+ onFocus={() => {
+ if (value.trim().length >= 2) setOpen(true);
+ }}
+ onBlur={() => window.setTimeout(() => setOpen(false), 180)}
+ onKeyDown={(event) => {
+ if (!open) return;
+
+ if (event.key === "ArrowDown") {
+ event.preventDefault();
+ setActiveIndex((current) =>
+ Math.min(current + 1, suggestions.length - 1)
+ );
+ }
+
+ if (event.key === "ArrowUp") {
+ event.preventDefault();
+ setActiveIndex((current) => Math.max(current - 1, 0));
+ }
+
+ if (event.key === "Enter" && activeIndex >= 0 && suggestions[activeIndex]) {
+ event.preventDefault();
+ chooseSuggestion(suggestions[activeIndex]);
+ }
+
+ if (event.key === "Escape") {
+ setOpen(false);
+ }
+ }}
+ placeholder={placeholder}
+ autoComplete={mode === "city" ? "address-level2" : "street-address"}
+ aria-expanded={open}
+ aria-autocomplete="list"
+ className="h-12 w-full rounded-xl border border-theme bg-transparent px-4 pr-10 outline-none placeholder:text-muted-soft focus:border-blue-500/50"
+ />
+ {loading ? (
+ <span className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 text-xs text-blue-500">
+ …
+ </span>
+ ) : null}
+ </div>
+
+ <div className="mt-1.5 min-h-[18px] px-1 text-[11px] leading-4 text-muted-soft">
+ {mode === "city"
+ ? "Поиск городов, посёлков и других населённых пунктов по всей России."
+ : city
+ ? `Улицы и дома в городе: ${city}.`
+ : "Можно ввести полный адрес вместе с городом."}
+ </div>
+
+ {open ? (
+ <div
+ role="listbox"
+ className="relative z-[200] mt-2 max-h-72 overflow-y-auto rounded-2xl border border-blue-500/25 bg-white p-1.5 text-[#07111f] dark:bg-[#07111f] dark:text-white"
  >
- <span className="font-medium text-main">{suggestion.value}</span>
- {suggestion.unrestrictedValue && suggestion.unrestrictedValue !== suggestion.value ? (
- <span className="mt-1 block line-clamp-1 text-xs text-muted-soft">
+ {suggestions.length > 0 ? (
+ suggestions.map((suggestion, index) => (
+ <button
+ key={`${suggestion.fiasId || "address"}-${suggestion.unrestrictedValue}-${index}`}
+ type="button"
+ role="option"
+ aria-selected={index === activeIndex}
+ onMouseEnter={() => setActiveIndex(index)}
+ onMouseDown={(event) => {
+ event.preventDefault();
+ chooseSuggestion(suggestion);
+ }}
+ className={`block w-full rounded-xl px-3 py-3 text-left text-sm transition-colors ${
+ index === activeIndex
+ ? "bg-blue-600 text-white"
+ : "hover:bg-blue-50 dark:hover:bg-white/[0.06]"
+ }`}
+ >
+ <span className="block font-semibold">
+ {suggestion.value}
+ </span>
+ {suggestion.unrestrictedValue &&
+ suggestion.unrestrictedValue !== suggestion.value ? (
+ <span
+ className={`mt-1 block text-xs leading-5 ${
+ index === activeIndex
+ ? "text-white/75"
+ : "text-black/55 dark:text-white/55"
+ }`}
+ >
  {suggestion.unrestrictedValue}
  </span>
- ) : suggestion.house ? (
- <span className="mt-1 block text-xs text-muted-soft">Дом найден</span>
  ) : null}
  </button>
- ))}
+ ))
+ ) : searched && !loading ? (
+ <div className="px-3 py-4 text-sm text-black/55 dark:text-white/55">
+ Ничего не найдено. Проверьте написание или введите город и адрес полностью.
+ </div>
+ ) : (
+ <div className="px-3 py-4 text-sm text-black/55 dark:text-white/55">
+ Ищем варианты…
+ </div>
+ )}
  </div>
  ) : null}
  </div>
