@@ -80,26 +80,26 @@ function isImageIcon(value: string) {
 function PhoneHeaderIcon({ className = "" }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 24 24"
+      viewBox="0 0 32 32"
       fill="none"
       className={className}
       aria-hidden="true"
       focusable="false"
+      preserveAspectRatio="xMidYMid meet"
+      shapeRendering="geometricPrecision"
     >
       <path
-        d="M22 16.92v3a2 2 0 0 1-2.18 2A19.8 19.8 0 0 1 3.09 5.18 2 2 0 0 1 5.08 3h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.8a2 2 0 0 1-.45 2.11L9.03 10.9a16 16 0 0 0 4.07 4.07l1.27-1.28a2 2 0 0 1 2.11-.45c.9.32 1.84.55 2.8.68A2 2 0 0 1 22 16.92Z"
+        d="M8.4 4.8 12 10.4c.65 1.02.5 2.35-.37 3.2l-2.1 2.08c2.2 4.25 4.52 6.57 8.77 8.77l2.08-2.1a2.63 2.63 0 0 1 3.2-.37l5.62 3.6a2.55 2.55 0 0 1 1.08 2.86l-.42 1.7a3.05 3.05 0 0 1-2.96 2.32C13.65 32.46-.46 18.35.04 5.1A3.05 3.05 0 0 1 2.36 2.14l1.7-.42A2.55 2.55 0 0 1 6.92 2.8L8.4 4.8Z"
         stroke="currentColor"
-        strokeWidth="2.15"
+        strokeWidth="3.2"
         strokeLinecap="round"
         strokeLinejoin="round"
-        vectorEffect="non-scaling-stroke"
       />
       <path
-        d="M15.5 5.25a5.8 5.8 0 0 1 3.25 3.25M15.5 1.75a9.3 9.3 0 0 1 6.75 6.75"
+        d="M20.5 4.2a9 9 0 0 1 7.3 7.3M20.5 9a4.2 4.2 0 0 1 2.5 2.5"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="3"
         strokeLinecap="round"
-        vectorEffect="non-scaling-stroke"
       />
     </svg>
   );
@@ -108,29 +108,29 @@ function PhoneHeaderIcon({ className = "" }: { className?: string }) {
 function CartHeaderIcon({ className = "" }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 24 24"
+      viewBox="0 0 32 32"
       fill="none"
       className={className}
       aria-hidden="true"
       focusable="false"
+      preserveAspectRatio="xMidYMid meet"
+      shapeRendering="geometricPrecision"
     >
       <path
-        d="M3 3h2.2l2.1 10.15a2 2 0 0 0 1.96 1.6h7.96a2 2 0 0 0 1.94-1.52L21 6.5H6.05"
+        d="M2.8 4.8h4.5l2.25 17.25h15.7l3.3-12.65H8.05"
         stroke="currentColor"
-        strokeWidth="2.15"
+        strokeWidth="3.05"
         strokeLinecap="round"
         strokeLinejoin="round"
-        vectorEffect="non-scaling-stroke"
       />
       <path
-        d="M9 9.25h8.9M10 12h7.2"
+        d="M10.2 13.5h16.8M10.95 18.1h14.9M15 9.7l1.2 12M22 9.7l-1.1 12"
         stroke="currentColor"
-        strokeWidth="1.8"
+        strokeWidth="2.25"
         strokeLinecap="round"
-        vectorEffect="non-scaling-stroke"
       />
-      <circle cx="9.25" cy="19.25" r="1.25" fill="currentColor" />
-      <circle cx="17.25" cy="19.25" r="1.25" fill="currentColor" />
+      <circle cx="12" cy="27.2" r="2.15" stroke="currentColor" strokeWidth="2.8" />
+      <circle cx="24.2" cy="27.2" r="2.15" stroke="currentColor" strokeWidth="2.8" />
     </svg>
   );
 }
@@ -138,27 +138,27 @@ function CartHeaderIcon({ className = "" }: { className?: string }) {
 function UserHeaderIcon({ className = "" }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 24 24"
+      viewBox="0 0 32 32"
       fill="none"
       className={className}
       aria-hidden="true"
       focusable="false"
+      preserveAspectRatio="xMidYMid meet"
+      shapeRendering="geometricPrecision"
     >
       <circle
-        cx="12"
-        cy="7.35"
-        r="4.1"
+        cx="16"
+        cy="9.2"
+        r="6.1"
         stroke="currentColor"
-        strokeWidth="2.15"
-        vectorEffect="non-scaling-stroke"
+        strokeWidth="3.15"
       />
       <path
-        d="M4.5 21c.35-4.45 3.2-7.15 7.5-7.15s7.15 2.7 7.5 7.15"
+        d="M4.25 29.2c.55-7.4 4.95-11.6 11.75-11.6s11.2 4.2 11.75 11.6"
         stroke="currentColor"
-        strokeWidth="2.15"
+        strokeWidth="3.15"
         strokeLinecap="round"
         strokeLinejoin="round"
-        vectorEffect="non-scaling-stroke"
       />
     </svg>
   );
@@ -170,7 +170,7 @@ function renderNavIcon(icon: string, label: string, active = false) {
   if (value === "__cart__") {
     return (
       <CartHeaderIcon
-        className={`h-[19px] w-[19px] ${active ? "text-white" : "text-blue-500"}`}
+        className={`h-[22px] w-[22px] ${active ? "text-white" : "text-blue-500"}`}
       />
     );
   }
@@ -691,7 +691,7 @@ export function SiteHeader() {
               onClick={() => setIsPhoneOpen((current) => !current)}
               aria-label="Телефон магазина"
               aria-expanded={isPhoneOpen}
-              className={`group flex h-9 w-9 items-center justify-center rounded-xl border text-sm font-bold outline-none focus:outline-none transition-all duration-300 sm:h-10 sm:w-10 lg:h-11 lg:w-11 ${
+              className={`group flex h-10 w-10 items-center justify-center overflow-visible rounded-xl border text-sm font-bold outline-none focus:outline-none transition-all duration-300 sm:h-10 sm:w-10 lg:h-11 lg:w-11 ${
                 isPhoneOpen
                   ? "border-transparent bg-blue-600 text-white shadow-[0_10px_30px_rgba(37,99,235,0.34)]"
                   : dark
@@ -700,7 +700,7 @@ export function SiteHeader() {
               }`}
             >
               <PhoneHeaderIcon
-                className={`h-[21px] w-[21px] shrink-0 ${
+                className={`h-[26px] w-[26px] shrink-0 ${
                   isPhoneOpen
                     ? "text-white"
                     : "text-blue-500 transition-colors group-hover:text-white"
@@ -740,13 +740,13 @@ export function SiteHeader() {
 
           <Link
             href="/cart"
-            className={`group relative hidden h-11 w-11 items-center justify-center rounded-xl border outline-none focus:outline-none transition-all duration-300 lg:flex ${
+            className={`group relative hidden h-11 w-11 items-center justify-center overflow-visible rounded-xl border outline-none focus:outline-none transition-all duration-300 lg:flex ${
               dark
                 ? "border-white/10 bg-white/[0.03] text-white hover:border-transparent hover:bg-blue-600"
                 : "border-black/10 bg-white text-[#07111f] hover:border-transparent hover:bg-blue-50"
             }`}
           >
-            <CartHeaderIcon className="h-[21px] w-[21px] shrink-0 text-blue-500 transition-colors group-hover:text-white" />
+            <CartHeaderIcon className="h-[26px] w-[26px] shrink-0 text-blue-500 transition-colors group-hover:text-white" />
 
             {cartCount > 0 && (
               <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white shadow-lg shadow-red-500/30">
@@ -761,13 +761,13 @@ export function SiteHeader() {
                 href={accountHref}
                 aria-label={accountLabel}
                 title={accountLabel}
-                className={`group flex h-9 w-9 items-center justify-center rounded-xl border text-sm font-bold outline-none focus:outline-none transition-all duration-300 sm:h-10 sm:w-10 lg:h-11 lg:w-11 ${
+                className={`group flex h-10 w-10 items-center justify-center overflow-visible rounded-xl border text-sm font-bold outline-none focus:outline-none transition-all duration-300 sm:h-10 sm:w-10 lg:h-11 lg:w-11 ${
                   dark
                     ? "border-white/10 bg-white/[0.03] text-white hover:border-transparent hover:bg-blue-600"
                     : "border-black/10 bg-white text-[#07111f] hover:border-transparent hover:bg-blue-50"
                 }`}
               >
-                <UserHeaderIcon className="h-[21px] w-[21px] shrink-0 text-blue-500 transition-colors group-hover:text-white" />
+                <UserHeaderIcon className="h-[25px] w-[25px] shrink-0 text-blue-500 transition-colors group-hover:text-white" />
               </Link>
             </div>
           ) : (
