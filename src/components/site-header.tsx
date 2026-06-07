@@ -391,12 +391,12 @@ export function SiteHeader() {
             <Link
               key={item.label}
               href={item.href}
-              className={`rounded-xl border px-4 py-2.5 transition-all duration-200 ${
+              className={`rounded-xl border px-4 py-2.5 outline-none focus:outline-none transition-all duration-200 ${
                 pathname === item.href || pathname.startsWith(`${item.href}/`)
-                  ? "border-blue-500 bg-blue-600 text-white shadow-[0_10px_26px_rgba(37,99,235,0.22)]"
+                  ? "border-transparent bg-blue-600 text-white shadow-[0_10px_26px_rgba(37,99,235,0.22)]"
                   : dark
-                    ? "border-white/10 bg-white/[0.035] text-white hover:border-blue-500/60 hover:bg-blue-500/12 hover:text-white"
-                    : "border-transparent text-[#07111f] hover:border-blue-500/45 hover:bg-blue-50 hover:text-blue-600"
+                    ? "border-white/10 bg-transparent text-white hover:border-transparent hover:bg-blue-600 hover:text-white"
+                    : "border-transparent text-[#07111f] hover:border-transparent hover:bg-blue-50 hover:text-blue-600"
               }`}
             >
               {item.label}
@@ -602,12 +602,12 @@ export function SiteHeader() {
               onClick={() => setIsPhoneOpen((current) => !current)}
               aria-label="Телефон магазина"
               aria-expanded={isPhoneOpen}
-              className={`flex h-9 w-9 items-center justify-center rounded-xl border text-sm font-bold transition-all duration-300 sm:h-10 sm:w-10 lg:h-11 lg:w-11 ${
+              className={`flex h-9 w-9 items-center justify-center rounded-xl border text-sm font-bold outline-none focus:outline-none transition-all duration-300 sm:h-10 sm:w-10 lg:h-11 lg:w-11 ${
                 isPhoneOpen
-                  ? "border-blue-400 bg-blue-600 text-white shadow-[0_10px_30px_rgba(37,99,235,0.34)]"
+                  ? "border-transparent bg-blue-600 text-white shadow-[0_10px_30px_rgba(37,99,235,0.34)]"
                   : dark
-                    ? "border-white/30 bg-white/[0.12] text-white hover:border-blue-400 hover:bg-blue-600/30"
-                    : "border-black/15 bg-white text-[#07111f] hover:border-blue-500/50 hover:bg-blue-50"
+                    ? "border-white/20 bg-white/[0.08] text-white hover:border-transparent hover:bg-blue-600"
+                    : "border-black/15 bg-white text-[#07111f] hover:border-transparent hover:bg-blue-50"
               }`}
             >
               ☎
@@ -645,10 +645,10 @@ export function SiteHeader() {
 
           <Link
             href="/cart"
-            className={`relative hidden h-11 w-11 items-center justify-center rounded-xl border transition-all duration-300 lg:flex ${
+            className={`relative hidden h-11 w-11 items-center justify-center rounded-xl border outline-none focus:outline-none transition-all duration-300 lg:flex ${
               dark
-                ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
-                : "border-black/10 bg-white text-[#07111f] hover:border-blue-500/40 hover:bg-blue-50"
+                ? "border-white/10 bg-white/[0.03] text-white hover:border-transparent hover:bg-blue-600"
+                : "border-black/10 bg-white text-[#07111f] hover:border-transparent hover:bg-blue-50"
             }`}
           >
             🛒
@@ -666,10 +666,10 @@ export function SiteHeader() {
                 href={accountHref}
                 aria-label={accountLabel}
                 title={accountLabel}
-                className={`flex h-9 w-9 items-center justify-center rounded-xl border text-sm font-bold transition-all duration-300 sm:h-10 sm:w-10 lg:h-11 lg:w-11 ${
+                className={`flex h-9 w-9 items-center justify-center rounded-xl border text-sm font-bold outline-none focus:outline-none transition-all duration-300 sm:h-10 sm:w-10 lg:h-11 lg:w-11 ${
                   dark
-                    ? "border-white/10 bg-white/[0.03] text-white hover:border-blue-500/40 hover:bg-blue-500/10"
-                    : "border-black/10 bg-white text-[#07111f] hover:border-blue-500/40 hover:bg-blue-50"
+                    ? "border-white/10 bg-white/[0.03] text-white hover:border-transparent hover:bg-blue-600"
+                    : "border-black/10 bg-white text-[#07111f] hover:border-transparent hover:bg-blue-50"
                 }`}
               >
                 {getUserInitial(authUser)}
@@ -682,7 +682,7 @@ export function SiteHeader() {
                 setAuthMode("login");
                 setIsAuthModalOpen(true);
               }}
-              className="rounded-xl border border-theme bg-transparent px-3 py-2 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-4 sm:py-2.5 lg:px-5 lg:py-3"
+              className="rounded-xl border border-theme bg-transparent px-3 py-2 text-sm font-medium transition-colors hover:border-theme hover:bg-blue-soft sm:px-4 sm:py-2.5 lg:px-5 lg:py-3"
             >
               Войти
             </button>
