@@ -212,6 +212,8 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
               onChange={setImages}
               label="Фотографии карточки"
               hint="Перетащите несколько общих фото модели. Первое фото будет главным до выбора конкретной позиции/SKU."
+              recommendedSize="1600×1600 px"
+              recommendedFormat="PNG / WEBP, квадрат"
               maxImages={10}
             />
 
@@ -219,7 +221,9 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
               value={promoImages}
               onChange={setPromoImages}
               label="Фото для блока «Новинки»"
-              hint="Отдельное широкое промо-фото для главной. Лучше загружать баннер 16:9 или широкий PNG/WebP."
+              hint="Отдельное широкое промо-фото для главной."
+              recommendedSize="1920×1080 px"
+              recommendedFormat="JPG / WEBP, 16:9"
               maxImages={1}
             />
           </div>

@@ -408,18 +408,24 @@ function BannerEditor({ banner, disabled, updateBanner, saveBanner, deleteBanner
           <ImageDropZone
             label="Фото светлая тема"
             hint="Загрузите фото баннера для светлой темы или вставьте ссылку ниже."
+            recommendedSize="1920×800 px"
+            recommendedFormat="JPG / WEBP, широкий баннер"
             value={banner.imageLight}
             onChange={(value) => updateBanner(banner.id, { imageLight: value })}
           />
           <ImageDropZone
             label="Фото тёмная тема"
             hint="Можно загрузить отдельную картинку для тёмной темы."
+            recommendedSize="1920×800 px"
+            recommendedFormat="JPG / WEBP, широкий баннер"
             value={banner.imageDark}
             onChange={(value) => updateBanner(banner.id, { imageDark: value })}
           />
           <ImageDropZone
             label="Фото для телефона"
             hint="Вертикальная или компактная версия для мобильного экрана."
+            recommendedSize="900×1200 px"
+            recommendedFormat="JPG / WEBP, 3:4"
             value={banner.imageMobile}
             onChange={(value) => updateBanner(banner.id, { imageMobile: value })}
           />
@@ -444,7 +450,9 @@ function BenefitEditor({ benefit, disabled, updateBenefit, saveBenefit, deleteBe
         <div className="md:col-span-2">
           <ImageDropZone
             label="Фото / иконка преимущества"
-            hint="Можно загрузить PNG/JPG/WebP. Если фото пустое, покажется текстовая иконка."
+            hint="Если фото пустое, покажется текстовая иконка."
+            recommendedSize="256×256 px"
+            recommendedFormat="PNG / SVG / WEBP, прозрачный фон"
             value={benefit.image}
             onChange={(value) => updateBenefit(benefit.id, { image: value })}
           />

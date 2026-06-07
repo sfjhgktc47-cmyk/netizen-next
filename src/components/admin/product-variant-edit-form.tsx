@@ -415,7 +415,14 @@ export function ProductVariantEditForm({ productId, variant, relatedProductOptio
       </div>
 
       <div className="mt-8">
-        <ImageLibraryField value={images} onChange={setImages} />
+        <ImageLibraryField
+          value={images}
+          onChange={setImages}
+          label="Фотографии позиции / SKU"
+          hint="Фотографии конкретной конфигурации товара."
+          recommendedSize="1600×1600 px"
+          recommendedFormat="PNG / WEBP, квадрат"
+        />
       </div>
 
       {error ? <div className="mt-5 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">{error}</div> : null}

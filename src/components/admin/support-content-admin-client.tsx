@@ -200,6 +200,9 @@ export function SupportContentAdminClient({
               <div className="text-xs font-semibold uppercase tracking-[0.14em] text-white/40">
                 Фото / иконка преимущества
               </div>
+              <div className="mt-2 inline-flex rounded-full border border-blue-500/25 bg-blue-500/10 px-2.5 py-1 text-[11px] font-semibold text-blue-300">
+                Рекомендуемый размер: 256×256 px · PNG / SVG / WEBP · прозрачный фон
+              </div>
 
               <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
                 <div className="flex h-20 w-20 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-white/10 bg-white">

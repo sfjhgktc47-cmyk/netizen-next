@@ -849,7 +849,7 @@ function ModuleSettings({ block, onSettingChange, contentLibrary }: { block: Sit
         )}
 
         {hasImageField && (
-          <Field label="Картинка / баннер">
+          <Field label="Картинка / баннер · рекомендуется 1600×900 px">
             <input value={getSettingText(settings, "image")} onChange={(event) => onSettingChange("image", event.target.value)} className="admin-input" placeholder="/uploads/banner.png или https://..." />
           </Field>
         )}
@@ -941,7 +941,7 @@ function BannerModuleEditor({
         <Field label="Ручное описание">
           <input value={getSettingText(settings, "subtitle")} onChange={(event) => onSettingChange("subtitle", event.target.value)} className="admin-input" />
         </Field>
-        <Field label="Ручная картинка">
+        <Field label="Ручная картинка · рекомендуется 1920×800 px">
           <input value={getSettingText(settings, "image")} onChange={(event) => onSettingChange("image", event.target.value)} className="admin-input" />
         </Field>
       </div>
@@ -1010,10 +1010,10 @@ function BrandingEditor({ settings, updateBranding }: { settings: SiteEditorSett
             <option value="dark">Тёмная</option>
           </select>
         </Field>
-        <Field label="Логотип для тёмной темы"><input value={settings.branding.logoLight} onChange={(event) => updateBranding("logoLight", event.target.value)} className="admin-input" placeholder="/logo-light.png" /></Field>
-        <Field label="Логотип для светлой темы"><input value={settings.branding.logoDark} onChange={(event) => updateBranding("logoDark", event.target.value)} className="admin-input" placeholder="/logo-dark.png" /></Field>
-        <Field label="Мобильный логотип"><input value={settings.branding.mobileLogo} onChange={(event) => updateBranding("mobileLogo", event.target.value)} className="admin-input" placeholder="Можно оставить пустым — возьмётся основной" /></Field>
-        <Field label="Favicon / иконка вкладки"><input value={settings.branding.favicon} onChange={(event) => updateBranding("favicon", event.target.value)} className="admin-input" placeholder="/favicon.ico" /></Field>
+        <Field label="Логотип для тёмной темы · рекомендуется 600×200 px, PNG/SVG"><input value={settings.branding.logoLight} onChange={(event) => updateBranding("logoLight", event.target.value)} className="admin-input" placeholder="/logo-light.png" /></Field>
+        <Field label="Логотип для светлой темы · рекомендуется 600×200 px, PNG/SVG"><input value={settings.branding.logoDark} onChange={(event) => updateBranding("logoDark", event.target.value)} className="admin-input" placeholder="/logo-dark.png" /></Field>
+        <Field label="Мобильный логотип · рекомендуется 256×256 px, PNG/SVG"><input value={settings.branding.mobileLogo} onChange={(event) => updateBranding("mobileLogo", event.target.value)} className="admin-input" placeholder="Можно оставить пустым — возьмётся основной" /></Field>
+        <Field label="Favicon / иконка вкладки · рекомендуется 64×64 px, PNG/ICO"><input value={settings.branding.favicon} onChange={(event) => updateBranding("favicon", event.target.value)} className="admin-input" placeholder="/favicon.ico" /></Field>
         <Field label="Основной цвет"><input value={settings.branding.primaryColor} onChange={(event) => updateBranding("primaryColor", event.target.value)} className="admin-input" /></Field>
         <Field label="Акцентный цвет"><input value={settings.branding.accentColor} onChange={(event) => updateBranding("accentColor", event.target.value)} className="admin-input" /></Field>
       </div>
@@ -1022,7 +1022,7 @@ function BrandingEditor({ settings, updateBranding }: { settings: SiteEditorSett
         <div className="text-xs font-medium uppercase tracking-[0.16em] text-white/35">Мобильная нижняя панель</div>
         <h3 className="mt-2 text-xl font-bold tracking-[-0.035em]">Иконки навигации</h3>
         <p className="mt-2 text-sm leading-relaxed text-white/45">
-          Можно поставить эмодзи, короткий символ или путь к картинке, например /uploads/home.svg.
+          Можно поставить эмодзи, короткий символ или путь к картинке. Для загружаемых иконок рекомендуется 128×128 px, SVG или PNG с прозрачным фоном.
         </p>
 
         <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
@@ -1152,6 +1152,9 @@ function NavIconEditor({
   return (
     <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
       <div className="text-sm font-semibold text-white/80">{label}</div>
+      <div className="mt-1 text-[11px] leading-relaxed text-white/40">
+        Рекомендуемый размер: 128×128 px · SVG / PNG · прозрачный фон
+      </div>
 
       <div className="mt-3 flex h-16 items-center justify-center rounded-xl border border-white/10 bg-white">
         {isImage ? (

@@ -222,7 +222,7 @@ export function FaqAdminClient() {
                     <Field label="Порядок"><input type="number" value={selected.sortOrder} onChange={(e) => patchCategory(selected.id, { sortOrder: Number(e.target.value) })} className={inputClass} /></Field>
                     <Field label="Статус"><select value={selected.isActive ? "active" : "hidden"} onChange={(e) => patchCategory(selected.id, { isActive: e.target.value === "active" })} className={inputClass}><option value="active">Показывать</option><option value="hidden">Скрыть</option></select></Field>
                     <div className="md:col-span-2"><Field label="Описание"><textarea value={selected.description} onChange={(e) => patchCategory(selected.id, { description: e.target.value })} className={`${inputClass} min-h-[100px]`} /></Field></div>
-                    <div className="md:col-span-2"><ImageDropZone label="Фото раздела" hint="Показывается вместо символа в карточке раздела." value={selected.image} onChange={(value) => patchCategory(selected.id, { image: value })} /></div>
+                    <div className="md:col-span-2"><ImageDropZone label="Фото раздела" hint="Показывается вместо символа в карточке раздела." recommendedSize="800×800 px" recommendedFormat="PNG / WEBP, прозрачный фон" value={selected.image} onChange={(value) => patchCategory(selected.id, { image: value })} /></div>
                   </div>
                 </div>
 
@@ -237,7 +237,7 @@ export function FaqAdminClient() {
                           <Field label="Статус"><select value={item.isActive ? "active" : "hidden"} onChange={(e) => patchQuestion(item.id, { isActive: e.target.value === "active" })} className={inputClass}><option value="active">Показывать</option><option value="hidden">Скрыть</option></select></Field>
                         </div>
                         <div className="mt-4"><Field label="Ответ"><textarea value={item.answer} onChange={(e) => patchQuestion(item.id, { answer: e.target.value })} className={`${inputClass} min-h-[120px]`} /></Field></div>
-                        <div className="mt-4"><ImageDropZone label="Фото к ответу" hint="Необязательно. Показывается внутри раскрытого ответа." value={item.image} onChange={(value) => patchQuestion(item.id, { image: value })} /></div>
+                        <div className="mt-4"><ImageDropZone label="Фото к ответу" hint="Необязательно. Показывается внутри раскрытого ответа." recommendedSize="1200×800 px" recommendedFormat="JPG / WEBP" value={item.image} onChange={(value) => patchQuestion(item.id, { image: value })} /></div>
                         <div className="mt-4 flex justify-end gap-2"><button type="button" onClick={() => void save("PATCH", { entity: "question", ...item })} className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold">Сохранить</button><button type="button" onClick={() => void remove("question", item.id)} className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-200">Удалить</button></div>
                       </div>
                     ))}
@@ -259,7 +259,7 @@ export function FaqAdminClient() {
                   <Field label="Порядок"><input type="number" value={item.sortOrder} onChange={(e) => patchHighlight(item.id, { sortOrder: Number(e.target.value) })} className={inputClass} /></Field>
                   <Field label="Статус"><select value={item.isActive ? "active" : "hidden"} onChange={(e) => patchHighlight(item.id, { isActive: e.target.value === "active" })} className={inputClass}><option value="active">Показывать</option><option value="hidden">Скрыть</option></select></Field>
                   <div className="md:col-span-2"><Field label="Описание"><textarea value={item.description} onChange={(e) => patchHighlight(item.id, { description: e.target.value })} className={`${inputClass} min-h-[100px]`} /></Field></div>
-                  <div className="md:col-span-2"><ImageDropZone label="Фото карточки" hint="Необязательно. Фото отображается над текстом." value={item.image} onChange={(value) => patchHighlight(item.id, { image: value })} /></div>
+                  <div className="md:col-span-2"><ImageDropZone label="Фото карточки" hint="Необязательно. Фото отображается над текстом." recommendedSize="1200×800 px" recommendedFormat="JPG / WEBP" value={item.image} onChange={(value) => patchHighlight(item.id, { image: value })} /></div>
                 </div>
                 <div className="mt-4 flex justify-end gap-2"><button type="button" onClick={() => void save("PATCH", { entity: "highlight", ...item })} className="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold">Сохранить</button><button type="button" onClick={() => void remove("highlight", item.id)} className="rounded-xl border border-red-500/30 bg-red-500/10 px-4 py-2.5 text-sm text-red-200">Удалить</button></div>
               </div>

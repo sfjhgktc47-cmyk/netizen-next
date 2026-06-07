@@ -231,7 +231,9 @@ export function ProductDescriptionBlocksEditor({ value, onChange }: Props) {
                   value={block.image ? [block.image] : []}
                   onChange={(images) => updateBlock(block.id, { image: images[0] ?? "" })}
                   label="Картинка блока"
-                  hint="Широкая или предметная картинка для секции описания. Лучше PNG/WebP без лишних рамок."
+                  hint="Широкая или предметная картинка для секции описания."
+                  recommendedSize="1600×900 px"
+                  recommendedFormat="JPG / WEBP, 16:9"
                   maxImages={1}
                 />
 
