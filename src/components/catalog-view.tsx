@@ -1115,7 +1115,7 @@ export function CatalogView({
                 </button>
               </div>
 
-              <div className="mt-4 grid grid-cols-2 gap-2.5 sm:mt-5 sm:grid-cols-3 sm:gap-4 xl:grid-cols-5">
+              <div className="mt-4 grid grid-cols-1 gap-3 sm:mt-5 sm:grid-cols-2 sm:gap-4 xl:grid-cols-4">
                 {categories.map((category) => {
                   const isActive =
                     category.id === selectedCategoryId && !hasActiveFilters;
@@ -1125,24 +1125,36 @@ export function CatalogView({
                       key={category.id}
                       type="button"
                       onClick={() => handleSelectCategory(category.id)}
-                      className={`group relative min-h-[118px] overflow-hidden rounded-2xl border p-4 xl:p-5 text-left transition-all duration-300 hover:-translate-y-0.5 sm:min-h-[150px] sm:p-4 ${
+                      className={`group relative min-h-[142px] overflow-hidden rounded-2xl border p-5 text-left transition-all duration-300 hover:-translate-y-0.5 sm:min-h-[154px] ${
                         isActive
-                          ? "border-blue-500 bg-blue-soft"
+                          ? "border-blue-500/65 bg-blue-500/[0.07]"
                           : "border-theme bg-card hover:border-blue-500/40"
                       }`}
                     >
-                      <div className="relative z-10 max-w-[58%]">
-                        <h3 className="text-sm font-bold leading-tight sm:text-base">
+                      <div className="relative z-10 max-w-[52%]">
+                        <h3 className="text-base font-bold leading-tight sm:text-lg">
                           {category.name}
                         </h3>
+
                         {category.description ? (
-                          <p className="mt-2 hidden line-clamp-2 text-xs leading-relaxed text-muted sm:block">
+                          <p className="mt-2 line-clamp-2 text-xs leading-relaxed text-muted">
                             {category.description}
                           </p>
                         ) : null}
                       </div>
 
-                      <div className="absolute bottom-2 right-2 top-2 flex w-[43%] items-center justify-center sm:bottom-3 sm:right-3 sm:top-3">
+                      <span
+                        className={`absolute bottom-4 left-5 z-20 flex h-9 w-9 items-center justify-center rounded-xl border text-sm transition-colors ${
+                          isActive
+                            ? "border-blue-400/55 bg-blue-500/15 text-blue-300"
+                            : "border-theme bg-transparent text-blue-400 group-hover:border-blue-500/45 group-hover:bg-blue-soft"
+                        }`}
+                        aria-hidden="true"
+                      >
+                        →
+                      </span>
+
+                      <div className="absolute bottom-3 right-3 top-3 flex w-[46%] items-center justify-center">
                         {category.image ? (
                           // eslint-disable-next-line @next/next/no-img-element
                           <img
@@ -1150,7 +1162,7 @@ export function CatalogView({
                             alt=""
                             loading="lazy"
                             decoding="async"
-                            className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                            className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-[1.03]"
                           />
                         ) : (
                           <div className="h-full w-full rounded-xl bg-blue-soft" />

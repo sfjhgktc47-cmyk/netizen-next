@@ -1523,7 +1523,7 @@ function SupportBlock({ dark }: { dark: boolean }) {
                   onClick={() =>
                     setActiveFaqId((prev) => (prev === item.id ? null : item.id))
                   }
-                  className="group relative flex min-h-[58px] w-full items-center px-4 py-3 text-left sm:min-h-[68px] sm:px-6 sm:py-4"
+                  className="group relative flex min-h-[58px] w-full items-center justify-between bg-transparent px-4 py-3 text-left sm:min-h-[68px] sm:px-6 sm:py-4"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <span className="text-[12px] font-semibold leading-tight sm:text-base">

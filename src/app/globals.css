@@ -121,85 +121,29 @@ body.has-mobile-bottom-nav {
   }
 }
 
-/* Плоские карточки и единые синие кнопки в тёмной теме */
+/* Спокойная тёмная тема без глобальной синей заливки */
 .dark {
-  --muted: rgba(255, 255, 255, 0.64);
-  --muted-soft: rgba(255, 255, 255, 0.43);
-  --card: rgba(255, 255, 255, 0.018);
-  --card-soft: rgba(255, 255, 255, 0.026);
+  --muted: rgba(255, 255, 255, 0.62);
+  --muted-soft: rgba(255, 255, 255, 0.42);
+  --card: rgba(255, 255, 255, 0.025);
+  --card-soft: rgba(255, 255, 255, 0.035);
   --border: rgba(255, 255, 255, 0.13);
-  --blue-soft: rgba(37, 99, 235, 0.08);
+  --blue-soft: rgba(37, 99, 235, 0.09);
 }
 
 .dark .card {
   border-color: rgba(255, 255, 255, 0.13);
-  background: rgba(255, 255, 255, 0.018);
+  background: rgba(255, 255, 255, 0.025);
   box-shadow: none;
 }
 
 .dark .soft-box,
 .dark .bg-blue-soft {
-  border-color: rgba(255, 255, 255, 0.11);
-  background-color: rgba(255, 255, 255, 0.022);
+  background-color: rgba(37, 99, 235, 0.09);
 }
 
 .dark .border-theme {
   border-color: rgba(255, 255, 255, 0.13);
-}
-
-.dark [class*="border-white/10"],
-.dark [class*="border-white/[0.1]"] {
-  border-color: rgba(255, 255, 255, 0.13) !important;
-}
-
-.dark [class*="bg-white/[0.02]"],
-.dark [class*="bg-white/[0.025]"],
-.dark [class*="bg-white/[0.03]"],
-.dark [class*="bg-white/[0.035]"],
-.dark [class*="bg-white/[0.04]"],
-.dark [class*="bg-white/[0.045]"],
-.dark [class*="bg-white/[0.05]"] {
-  background-color: rgba(255, 255, 255, 0.018) !important;
-}
-
-.dark [class*="bg-black/15"],
-.dark [class*="bg-black/20"],
-.dark [class*="bg-black/25"],
-.dark [class*="bg-black/30"] {
-  background-color: rgba(0, 0, 0, 0.18) !important;
-}
-
-.dark [class*="shadow-[0_20px_80px_rgba(0,60,255"],
-.dark [class*="shadow-[0_24px_90px_rgba(0,60,255"] {
-  box-shadow: none !important;
-}
-
-.dark [class*="text-white/35"] {
-  color: rgba(255, 255, 255, 0.48) !important;
-}
-
-.dark [class*="text-white/40"],
-.dark [class*="text-white/45"] {
-  color: rgba(255, 255, 255, 0.57) !important;
-}
-
-.dark [class*="text-white/50"],
-.dark [class*="text-white/55"] {
-  color: rgba(255, 255, 255, 0.65) !important;
-}
-
-.dark [class*="text-white/60"],
-.dark [class*="text-white/65"],
-.dark [class*="text-white/70"] {
-  color: rgba(255, 255, 255, 0.76) !important;
-}
-
-.dark input:not([type="checkbox"]):not([type="radio"]),
-.dark select,
-.dark textarea,
-.dark .admin-input,
-.dark .admin-textarea {
-  color-scheme: dark;
 }
 
 .dark input[class*="border"],
@@ -208,7 +152,7 @@ body.has-mobile-bottom-nav {
 .dark .admin-input,
 .dark .admin-textarea {
   border-color: rgba(255, 255, 255, 0.15) !important;
-  background-color: rgba(255, 255, 255, 0.025) !important;
+  background-color: rgba(255, 255, 255, 0.028) !important;
   color: #ffffff !important;
 }
 
@@ -217,53 +161,25 @@ body.has-mobile-bottom-nav {
 .dark textarea[class*="border"]:focus,
 .dark .admin-input:focus,
 .dark .admin-textarea:focus {
-  border-color: rgba(59, 130, 246, 0.72) !important;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12) !important;
+  border-color: rgba(59, 130, 246, 0.65) !important;
+  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.11) !important;
 }
 
-.dark input::placeholder,
-.dark textarea::placeholder {
-  color: rgba(255, 255, 255, 0.38) !important;
+/* Вторичные кнопки тёмные; синими остаются только явные CTA с bg-blue-* */
+.dark button[class*="border-theme"],
+.dark a[class*="border-theme"] {
+  border-color: rgba(255, 255, 255, 0.15);
+  background-color: rgba(255, 255, 255, 0.035);
+  color: #ffffff;
 }
 
-/* Все обычные кнопки на тёмной теме — единый ярко-синий стиль. */
-.dark button:not([disabled]):not([aria-label="Переключить тему"]):not([aria-label="Телефон магазина"]):not([class*="bg-red-"]):not([class*="text-red-"]):not([class*="border-red-"]):not([class*="bg-green-"]):not([class*="text-green-"]):not([class*="border-green-"]):not([class*="bg-amber-"]):not([class*="text-amber-"]),
-.dark a[class*="rounded"][class*="px-"]:not([class*="bg-red-"]):not([class*="text-red-"]):not([class*="border-red-"]):not([class*="bg-green-"]):not([class*="text-green-"]):not([class*="border-green-"]):not([class*="bg-amber-"]):not([class*="text-amber-"]),
-.dark a[class*="rounded"][class*="py-"]:not([class*="bg-red-"]):not([class*="text-red-"]):not([class*="border-red-"]):not([class*="bg-green-"]):not([class*="text-green-"]):not([class*="border-green-"]):not([class*="bg-amber-"]):not([class*="text-amber-"]) {
-  border-color: #3b82f6 !important;
-  background: #2563eb !important;
-  color: #ffffff !important;
-  box-shadow: none !important;
-}
-
-.dark button:not([disabled]):not([aria-label="Переключить тему"]):not([aria-label="Телефон магазина"]):not([class*="bg-red-"]):not([class*="text-red-"]):not([class*="border-red-"]):not([class*="bg-green-"]):not([class*="text-green-"]):not([class*="border-green-"]):not([class*="bg-amber-"]):not([class*="text-amber-"]):hover,
-.dark a[class*="rounded"][class*="px-"]:not([class*="bg-red-"]):not([class*="text-red-"]):not([class*="border-red-"]):not([class*="bg-green-"]):not([class*="text-green-"]):not([class*="border-green-"]):not([class*="bg-amber-"]):not([class*="text-amber-"]):hover,
-.dark a[class*="rounded"][class*="py-"]:not([class*="bg-red-"]):not([class*="text-red-"]):not([class*="border-red-"]):not([class*="bg-green-"]):not([class*="text-green-"]):not([class*="border-green-"]):not([class*="bg-amber-"]):not([class*="text-amber-"]):hover {
-  border-color: #60a5fa !important;
-  background: #3b82f6 !important;
-  color: #ffffff !important;
-  transform: none !important;
-}
-
-.dark button:disabled,
-.dark a[aria-disabled="true"] {
-  opacity: 0.48;
-}
-
-.dark details[class*="border"],
-.dark section[class*="border"][class*="bg-white/"],
-.dark article[class*="border"][class*="bg-white/"],
-.dark aside[class*="border"][class*="bg-white/"] {
-  border-color: rgba(255, 255, 255, 0.13) !important;
-  background-color: rgba(255, 255, 255, 0.018) !important;
-  box-shadow: none !important;
+.dark button[class*="border-theme"]:hover,
+.dark a[class*="border-theme"]:hover {
+  border-color: rgba(96, 165, 250, 0.45);
+  background-color: rgba(37, 99, 235, 0.10);
 }
 
 .dark [class*="border-dashed"] {
   border-color: rgba(255, 255, 255, 0.16) !important;
-  background-color: rgba(255, 255, 255, 0.01);
-}
-
-.dark img[class*="object-contain"] {
-  filter: none;
+  background-color: rgba(255, 255, 255, 0.012);
 }
