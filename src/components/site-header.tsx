@@ -80,7 +80,7 @@ function isImageIcon(value: string) {
 function PhoneHeaderIcon({ className = "" }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 24 24"
+      viewBox="0 0 64 64"
       fill="none"
       className={className}
       aria-hidden="true"
@@ -88,11 +88,23 @@ function PhoneHeaderIcon({ className = "" }: { className?: string }) {
       shapeRendering="geometricPrecision"
     >
       <path
-        d="M6.7 3.6h2.6c.72 0 1.34.5 1.48 1.2l.55 2.76a1.55 1.55 0 0 1-.46 1.45L9.25 10.5a14.25 14.25 0 0 0 4.25 4.25l1.49-1.62a1.55 1.55 0 0 1 1.45-.46l2.76.55c.7.14 1.2.76 1.2 1.48v2.6c0 .94-.76 1.7-1.7 1.7C10.57 19 5 13.43 5 6.3c0-.94.76-1.7 1.7-1.7Z"
+        d="M18.2 10.8h6.2c1.8 0 3.35 1.24 3.7 2.98l1.42 7.1a3.9 3.9 0 0 1-1.15 3.74l-4.1 4.1a30.44 30.44 0 0 0 11 11l4.1-4.1a3.9 3.9 0 0 1 3.74-1.15l7.1 1.42a3.78 3.78 0 0 1 2.98 3.7v6.2A4.63 4.63 0 0 1 48.6 50.4C29.73 50.4 13.6 34.27 13.6 15.4a4.63 4.63 0 0 1 4.6-4.6Z"
         stroke="currentColor"
-        strokeWidth="2"
+        strokeWidth="5"
         strokeLinecap="round"
         strokeLinejoin="round"
+      />
+      <path
+        d="M39.4 17.8a14.4 14.4 0 0 1 6.8 6.8"
+        stroke="currentColor"
+        strokeWidth="4.5"
+        strokeLinecap="round"
+      />
+      <path
+        d="M40.3 10.8a21.7 21.7 0 0 1 12.9 12.9"
+        stroke="currentColor"
+        strokeWidth="4.5"
+        strokeLinecap="round"
       />
     </svg>
   );
@@ -786,7 +798,7 @@ export function SiteHeader() {
  }`}
  >
  <PhoneHeaderIcon
- className={`block h-[22px] w-[22px] shrink-0 ${
+ className={`block h-[24px] w-[24px] shrink-0 ${
  isPhoneOpen
  ? "text-white"
  : "text-blue-500 transition-colors group-hover:text-white"

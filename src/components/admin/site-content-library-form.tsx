@@ -331,7 +331,7 @@ export function SiteContentLibraryForm({ initialLibrary, onChange }: Props) {
                     <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-blue-500/30 bg-blue-500/10 text-blue-300">
                       {benefit.image ? (
                         // eslint-disable-next-line @next/next/no-img-element
-                        <img src={benefit.image} alt="" className="h-7 w-7 object-contain" />
+                        <img src={benefit.image} alt="" className="h-9 w-9 object-contain" />
                       ) : (
                         benefit.icon || "✓"
                       )}

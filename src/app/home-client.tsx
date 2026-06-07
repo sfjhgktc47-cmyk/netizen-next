@@ -664,7 +664,7 @@ function BenefitIcon({ image, icon }: { image?: string; icon?: string }) {
  }, [cleanImage]);
 
  return (
- <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl text-blue-500 sm:h-11 sm:w-11">
+ <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl text-blue-500 sm:h-14 sm:w-14">
  {showImage ? (
  // eslint-disable-next-line @next/next/no-img-element
  <img
@@ -673,10 +673,10 @@ function BenefitIcon({ image, icon }: { image?: string; icon?: string }) {
  loading="eager"
  decoding="async"
  onError={() => setFailed(true)}
- className="block h-6 w-6 object-contain sm:h-7 sm:w-7"
+ className="block h-8 w-8 object-contain sm:h-10 sm:w-10"
  />
  ) : (
- <span className="flex h-7 w-7 items-center justify-center text-[22px] font-medium leading-none text-blue-500">
+ <span className="flex h-8 w-8 items-center justify-center text-[24px] font-medium leading-none text-blue-500 sm:h-10 sm:w-10 sm:text-[28px]">
  {fallbackIcon}
  </span>
  )}
@@ -713,7 +713,7 @@ function Benefits({
  <div className="grid grid-cols-1 gap-2.5 min-[480px]:grid-cols-2 lg:grid-cols-4">
  {items.map((item) => {
  const card = (
- <div className="flex h-[82px] w-full min-w-0 items-start gap-3 overflow-hidden rounded-xl px-2 py-2 sm:h-[88px] sm:gap-3.5 sm:px-3">
+ <div className="flex h-[94px] w-full min-w-0 items-start gap-3.5 overflow-hidden rounded-xl px-2.5 py-2.5 sm:h-[102px] sm:gap-4 sm:px-3.5">
  <BenefitIcon image={item.image} icon={item.icon} />
 
  <div className="min-w-0 flex-1 pt-0.5">
@@ -1515,7 +1515,7 @@ function SupportBlock({ dark }: { dark: boolean }) {
  : "border-black/10 bg-white/80 hover:border-blue-500/25 hover:bg-blue-50/40"
  }`}
  >
- <div className="relative flex h-10 w-10 items-center justify-center sm:h-12 sm:w-12">
+ <div className="relative flex h-12 w-12 items-center justify-center sm:h-14 sm:w-14">
  {dark && item.image ? (
  <div
  aria-hidden="true"
@@ -1527,10 +1527,10 @@ function SupportBlock({ dark }: { dark: boolean }) {
  <img
  src={item.image}
  alt=""
- className="relative z-10 h-8 w-8 object-contain sm:h-10 sm:w-10"
+ className="relative z-10 h-10 w-10 object-contain sm:h-12 sm:w-12"
  />
  ) : (
- <span className="relative z-10 text-sm leading-none text-blue-500 sm:text-lg">
+ <span className="relative z-10 text-base leading-none text-blue-500 sm:text-xl">
  {item.icon || "✓"}
  </span>
  )}
