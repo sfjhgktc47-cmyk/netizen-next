@@ -70,15 +70,110 @@ const bottomNavItems: BottomNavItem[] = [
   { key: "catalog", label: "Каталог", href: "/catalog", fallbackIcon: "▦" },
   { key: "new", label: "Новинки", href: "/new", fallbackIcon: "✦" },
   { key: "support", label: "Поддержка", href: "/help", fallbackIcon: "?" },
-  { key: "cart", label: "Корзина", href: "/cart", fallbackIcon: "/icons/cart-blue.svg" },
+  { key: "cart", label: "Корзина", href: "/cart", fallbackIcon: "__cart__" },
 ];
 
 function isImageIcon(value: string) {
   return /^(\/|https?:\/\/|data:image\/)/i.test(value.trim());
 }
 
+function PhoneHeaderIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      className={className}
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d="M22 16.92v3a2 2 0 0 1-2.18 2A19.8 19.8 0 0 1 3.09 5.18 2 2 0 0 1 5.08 3h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.8a2 2 0 0 1-.45 2.11L9.03 10.9a16 16 0 0 0 4.07 4.07l1.27-1.28a2 2 0 0 1 2.11-.45c.9.32 1.84.55 2.8.68A2 2 0 0 1 22 16.92Z"
+        stroke="currentColor"
+        strokeWidth="2.15"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      />
+      <path
+        d="M15.5 5.25a5.8 5.8 0 0 1 3.25 3.25M15.5 1.75a9.3 9.3 0 0 1 6.75 6.75"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
+}
+
+function CartHeaderIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      className={className}
+      aria-hidden="true"
+      focusable="false"
+    >
+      <path
+        d="M3 3h2.2l2.1 10.15a2 2 0 0 0 1.96 1.6h7.96a2 2 0 0 0 1.94-1.52L21 6.5H6.05"
+        stroke="currentColor"
+        strokeWidth="2.15"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      />
+      <path
+        d="M9 9.25h8.9M10 12h7.2"
+        stroke="currentColor"
+        strokeWidth="1.8"
+        strokeLinecap="round"
+        vectorEffect="non-scaling-stroke"
+      />
+      <circle cx="9.25" cy="19.25" r="1.25" fill="currentColor" />
+      <circle cx="17.25" cy="19.25" r="1.25" fill="currentColor" />
+    </svg>
+  );
+}
+
+function UserHeaderIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg
+      viewBox="0 0 24 24"
+      fill="none"
+      className={className}
+      aria-hidden="true"
+      focusable="false"
+    >
+      <circle
+        cx="12"
+        cy="7.35"
+        r="4.1"
+        stroke="currentColor"
+        strokeWidth="2.15"
+        vectorEffect="non-scaling-stroke"
+      />
+      <path
+        d="M4.5 21c.35-4.45 3.2-7.15 7.5-7.15s7.15 2.7 7.5 7.15"
+        stroke="currentColor"
+        strokeWidth="2.15"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  );
+}
+
 function renderNavIcon(icon: string, label: string, active = false) {
   const value = icon.trim();
+
+  if (value === "__cart__") {
+    return (
+      <CartHeaderIcon
+        className={`h-[19px] w-[19px] ${active ? "text-white" : "text-blue-500"}`}
+      />
+    );
+  }
 
   if (value && isImageIcon(value)) {
     return (
@@ -288,7 +383,7 @@ export function SiteHeader() {
       catalog: siteSettings?.branding?.navIconCatalog?.trim() || "▦",
       new: siteSettings?.branding?.navIconNew?.trim() || "✦",
       support: siteSettings?.branding?.navIconSupport?.trim() || "?",
-      cart: siteSettings?.branding?.navIconCart?.trim() || "/icons/cart-blue.svg",
+      cart: siteSettings?.branding?.navIconCart?.trim() || "__cart__",
     }),
     [siteSettings?.branding]
   );
@@ -604,15 +699,12 @@ export function SiteHeader() {
                     : "border-black/15 bg-white text-[#07111f] hover:border-transparent hover:bg-blue-50"
               }`}
             >
-              <Image
-                src="/icons/phone-blue.svg"
-                alt=""
-                width={24}
-                height={24}
-                className={`h-5 w-5 object-contain transition-all sm:h-[22px] sm:w-[22px] ${
-                  isPhoneOpen ? "brightness-0 invert" : "group-hover:brightness-0 group-hover:invert"
+              <PhoneHeaderIcon
+                className={`h-[21px] w-[21px] shrink-0 ${
+                  isPhoneOpen
+                    ? "text-white"
+                    : "text-blue-500 transition-colors group-hover:text-white"
                 }`}
-                aria-hidden="true"
               />
             </button>
 
@@ -654,14 +746,7 @@ export function SiteHeader() {
                 : "border-black/10 bg-white text-[#07111f] hover:border-transparent hover:bg-blue-50"
             }`}
           >
-            <Image
-              src="/icons/cart-blue.svg"
-              alt=""
-              width={24}
-              height={24}
-              className="h-5 w-5 object-contain transition-all group-hover:brightness-0 group-hover:invert"
-              aria-hidden="true"
-            />
+            <CartHeaderIcon className="h-[21px] w-[21px] shrink-0 text-blue-500 transition-colors group-hover:text-white" />
 
             {cartCount > 0 && (
               <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white shadow-lg shadow-red-500/30">
@@ -682,14 +767,7 @@ export function SiteHeader() {
                     : "border-black/10 bg-white text-[#07111f] hover:border-transparent hover:bg-blue-50"
                 }`}
               >
-                <Image
-                  src="/icons/profile-blue.svg"
-                  alt=""
-                  width={24}
-                  height={24}
-                  className="h-5 w-5 object-contain transition-all group-hover:brightness-0 group-hover:invert"
-                  aria-hidden="true"
-                />
+                <UserHeaderIcon className="h-[21px] w-[21px] shrink-0 text-blue-500 transition-colors group-hover:text-white" />
               </Link>
             </div>
           ) : (
