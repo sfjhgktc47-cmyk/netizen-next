@@ -1213,7 +1213,7 @@ export default function CartPage() {
 
  {isAddingAddress ? (
  <div className="rounded-2xl border border-theme bg-blue-soft p-4">
- <div className="grid gap-3 md:grid-cols-[180px_1fr]">
+ <div className="grid items-start gap-3 md:grid-cols-[minmax(220px,0.9fr)_minmax(0,1.5fr)]">
  <AddressSuggestionInput
  value={delivery.city}
  city=""
@@ -1479,6 +1479,7 @@ function AddressSuggestionInput({
  const [loading, setLoading] = useState(false);
  const [open, setOpen] = useState(false);
  const [searched, setSearched] = useState(false);
+ const [configured, setConfigured] = useState<boolean | null>(null);
  const [committedValue, setCommittedValue] = useState("");
  const [activeIndex, setActiveIndex] = useState(-1);
  const [sessionToken] = useState(() => {
@@ -1514,7 +1515,7 @@ function AddressSuggestionInput({
  signal: controller.signal,
  });
  const payload = (await response.json().catch(() => null)) as
- | { suggestions?: AddressSuggestion[] }
+ | { suggestions?: AddressSuggestion[]; configured?: boolean }
  | null;
 
  if (!active) return;
@@ -1523,8 +1524,9 @@ function AddressSuggestionInput({
  ? payload.suggestions.slice(0, 12)
  : [];
  setSuggestions(next);
+ setConfigured(typeof payload?.configured === "boolean" ? payload.configured : null);
  setSearched(true);
- setOpen(true);
+ setOpen(next.length > 0);
  setActiveIndex(next.length > 0 ? 0 : -1);
  } catch (error) {
  if (!active || (error instanceof DOMException && error.name === "AbortError")) {
@@ -1532,7 +1534,7 @@ function AddressSuggestionInput({
  }
  setSuggestions([]);
  setSearched(true);
- setOpen(true);
+ setOpen(false);
  setActiveIndex(-1);
  } finally {
  if (active) setLoading(false);
@@ -1566,10 +1568,10 @@ function AddressSuggestionInput({
  onChange={(event) => {
  setCommittedValue("");
  onChange(event.target.value);
- setOpen(event.target.value.trim().length >= 2);
+ setOpen(false);
  }}
  onFocus={() => {
- if (value.trim().length >= 2) setOpen(true);
+ if (suggestions.length > 0) setOpen(true);
  }}
  onBlur={() => window.setTimeout(() => setOpen(false), 180)}
  onKeyDown={(event) => {
@@ -1609,21 +1611,32 @@ function AddressSuggestionInput({
  ) : null}
  </div>
 
- <div className="mt-1.5 min-h-[18px] px-1 text-[11px] leading-4 text-muted-soft">
+ <div className="mt-1.5 min-h-[18px] px-1 text-[11px] leading-4">
+ {loading ? (
+ <span className="text-blue-500">Ищем варианты…</span>
+ ) : searched && suggestions.length === 0 ? (
+ <span className="text-muted-soft">
+ Ничего не найдено. Проверьте написание или продолжите ввод.
+ </span>
+ ) : (
+ <span className="text-muted-soft">
  {mode === "city"
- ? "Поиск городов, посёлков и других населённых пунктов по всей России."
+ ? configured === false
+ ? "Базовый поиск по России. Для полного справочника подключите ключ подсказок."
+ : "Города, посёлки и другие населённые пункты по всей России."
  : city
  ? `Улицы и дома в городе: ${city}.`
- : "Можно ввести полный адрес вместе с городом."}
+ : "Сначала выберите город, затем улицу и дом."}
+ </span>
+ )}
  </div>
 
- {open ? (
+ {open && suggestions.length > 0 ? (
  <div
  role="listbox"
- className="relative z-[200] mt-2 max-h-72 overflow-y-auto rounded-2xl border border-blue-500/25 bg-white p-1.5 text-[#07111f] dark:bg-[#07111f] dark:text-white"
+ className="relative z-[200] mt-2 max-h-64 min-w-0 overflow-y-auto rounded-2xl border border-theme bg-card p-1.5 text-main"
  >
- {suggestions.length > 0 ? (
- suggestions.map((suggestion, index) => (
+ {suggestions.map((suggestion, index) => (
  <button
  key={`${suggestion.fiasId || "address"}-${suggestion.unrestrictedValue}-${index}`}
  type="button"
@@ -1637,7 +1650,7 @@ function AddressSuggestionInput({
  className={`block w-full rounded-xl px-3 py-3 text-left text-sm transition-colors ${
  index === activeIndex
  ? "bg-blue-600 text-white"
- : "hover:bg-blue-50 dark:hover:bg-white/[0.06]"
+ : "hover:bg-blue-soft"
  }`}
  >
  <span className="block font-semibold">
@@ -1649,23 +1662,14 @@ function AddressSuggestionInput({
  className={`mt-1 block text-xs leading-5 ${
  index === activeIndex
  ? "text-white/75"
- : "text-black/55 dark:text-white/55"
+ : "text-muted"
  }`}
  >
  {suggestion.unrestrictedValue}
  </span>
  ) : null}
  </button>
- ))
- ) : searched && !loading ? (
- <div className="px-3 py-4 text-sm text-black/55 dark:text-white/55">
- Ничего не найдено. Проверьте написание или введите город и адрес полностью.
- </div>
- ) : (
- <div className="px-3 py-4 text-sm text-black/55 dark:text-white/55">
- Ищем варианты…
- </div>
- )}
+ ))}
  </div>
  ) : null}
  </div>
