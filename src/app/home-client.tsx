@@ -177,37 +177,80 @@ export default function Home({ initialData = {} }: { initialData?: HomePayload }
  const [siteSettings, setSiteSettings] = useState<PublicSiteSettings | null>(
  initialData.siteSettings ?? null
  );
+ const fallbackFetchStarted = useRef(false);
+ const shouldFetchFallback = useRef(
+ categories.length === 0 ||
+ popularProducts.length === 0 ||
+ banners.length === 0 ||
+ benefits.length === 0
+ );
 
- // Fallback client-side fetch if server data wasn't provided
+ // Fallback client-side fetch if server data wasn't provided.
+ // It runs once and never wipes valid server data with empty arrays.
  useEffect(() => {
- if (
- categories.length > 0 &&
- popularProducts.length > 0 &&
- banners.length > 0 &&
- benefits.length > 0
- ) return;
+ if (!shouldFetchFallback.current || fallbackFetchStarted.current) return;
 
- let mounted = true;
- fetch("/api/home")
- .then((r) => (r.ok ? r.json() : Promise.reject()))
- .then((payload: HomePayload) => {
- if (!mounted) return;
- const all = Array.isArray(payload.products) ? payload.products : [];
- const pop = Array.isArray(payload.popularProducts) ? payload.popularProducts : all;
- const na = Array.isArray(payload.newArrivals)
- ? payload.newArrivals
- : all.filter((p) => p.isNew);
- if (Array.isArray(payload.categories)) setCategories(payload.categories);
- if (payload.siteSettings) setSiteSettings(payload.siteSettings);
- if (Array.isArray(payload.pageBlocks)) setHomeBlocks(payload.pageBlocks);
- if (Array.isArray(payload.banners)) setBanners(payload.banners);
- if (Array.isArray(payload.benefits)) setBenefits(payload.benefits);
- setPopularProducts(pop.filter(isConfiguredProduct));
- setNewArrivals(na.filter((p) => p.slug !== "catalog").slice(0, 3));
+ fallbackFetchStarted.current = true;
+ const controller = new AbortController();
+
+ fetch("/api/home", {
+ cache: "no-store",
+ signal: controller.signal,
  })
- .catch(() => { if (mounted) { setCategories([]); } });
- return () => { mounted = false; };
- }, [banners.length, benefits.length, categories.length, popularProducts.length]);
+ .then((response) => (response.ok ? response.json() : Promise.reject()))
+ .then((payload: HomePayload) => {
+ const all = Array.isArray(payload.products) ? payload.products : [];
+ const pop = Array.isArray(payload.popularProducts)
+ ? payload.popularProducts
+ : all;
+ const arrivals = Array.isArray(payload.newArrivals)
+ ? payload.newArrivals
+ : all.filter((product) => product.isNew);
+
+ if (Array.isArray(payload.categories) && payload.categories.length > 0) {
+ setCategories((current) => current.length > 0 ? current : payload.categories!);
+ }
+
+ if (payload.siteSettings) {
+ setSiteSettings((current) => current ?? payload.siteSettings!);
+ }
+
+ if (Array.isArray(payload.pageBlocks) && payload.pageBlocks.length > 0) {
+ setHomeBlocks((current) => current.length > 0 ? current : payload.pageBlocks!);
+ }
+
+ if (Array.isArray(payload.banners) && payload.banners.length > 0) {
+ setBanners((current) => current.length > 0 ? current : payload.banners!);
+ }
+
+ if (Array.isArray(payload.benefits) && payload.benefits.length > 0) {
+ setBenefits((current) => current.length > 0 ? current : payload.benefits!);
+ }
+
+ const configuredPopular = pop.filter(isConfiguredProduct);
+ if (configuredPopular.length > 0) {
+ setPopularProducts((current) =>
+ current.length > 0 ? current : configuredPopular
+ );
+ }
+
+ const configuredArrivals = arrivals
+ .filter((product) => product.slug !== "catalog")
+ .slice(0, 3);
+
+ if (configuredArrivals.length > 0) {
+ setNewArrivals((current) =>
+ current.length > 0 ? current : configuredArrivals
+ );
+ }
+ })
+ .catch((error: unknown) => {
+ if (error instanceof DOMException && error.name === "AbortError") return;
+ })
+ ;
+
+ return () => controller.abort();
+ }, []);
 
  const visibleCategories = categories;
  const visibleHomeBlocks = (homeBlocks.length ? homeBlocks : defaultHomePageBlocks)
@@ -611,49 +654,32 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
 
 
 function BenefitIcon({ image, icon }: { image?: string; icon?: string }) {
- const [loaded, setLoaded] = useState(false);
+ const [failed, setFailed] = useState(false);
  const cleanImage = typeof image === "string" ? image.trim() : "";
  const fallbackIcon = icon?.trim() || "✓";
+ const showImage = Boolean(cleanImage) && !failed;
 
  useEffect(() => {
- setLoaded(false);
+ setFailed(false);
  }, [cleanImage]);
 
  return (
- <div className="relative flex h-10 w-10 shrink-0 items-center justify-center overflow-visible text-sm text-blue-500 sm:h-12 sm:w-12 sm:text-base">
- {cleanImage ? (
- <>
- <span
- aria-hidden="true"
- className="pointer-events-none absolute left-1/2 top-1/2 h-[120%] w-[120%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-500/20 opacity-0 blur-xl transition-opacity duration-300 dark:opacity-40"
- />
- <span
- aria-hidden="true"
- className="pointer-events-none absolute left-1/2 top-1/2 h-[80%] w-[80%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-white/10 opacity-0 blur-lg transition-opacity duration-300 dark:opacity-40"
- />
- </>
- ) : null}
- <span
- className={`absolute inset-0 flex items-center justify-center transition-opacity duration-300 ${
- cleanImage && loaded ? "opacity-0" : "opacity-100"
- }`}
- >
- {fallbackIcon}
- </span>
-
- {cleanImage ? (
+ <div className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl text-blue-500 sm:h-11 sm:w-11">
+ {showImage ? (
  // eslint-disable-next-line @next/next/no-img-element
  <img
  src={cleanImage}
  alt=""
- loading="lazy"
+ loading="eager"
  decoding="async"
- onLoad={() => setLoaded(true)}
- className={`relative z-10 max-h-full max-w-full object-contain transition-opacity duration-300 dark: ${
- loaded ? "opacity-100" : "opacity-0"
- }`}
+ onError={() => setFailed(true)}
+ className="block h-6 w-6 object-contain sm:h-7 sm:w-7"
  />
- ) : null}
+ ) : (
+ <span className="flex h-7 w-7 items-center justify-center text-[22px] font-medium leading-none text-blue-500">
+ {fallbackIcon}
+ </span>
+ )}
  </div>
  );
 }
@@ -662,32 +688,43 @@ function BenefitIcon({ image, icon }: { image?: string; icon?: string }) {
 function Benefits({
  dark,
  benefits,
- title = "Преимущества",
- subtitle = "Почему выбирают Netizen",
 }: {
  dark: boolean;
  benefits: HomeBenefit[];
  title?: string;
  subtitle?: string;
 }) {
- if (benefits.length === 0) {
+ const items = benefits
+ .filter((item) => item && item.id && item.title)
+ .sort((a, b) => {
+ const orderA = Number.isFinite(Number(a.sortOrder)) ? Number(a.sortOrder) : 0;
+ const orderB = Number.isFinite(Number(b.sortOrder)) ? Number(b.sortOrder) : 0;
+ return orderA - orderB;
+ });
+
+ if (items.length === 0) {
  return null;
  }
 
- const items = benefits;
-
  return (
- <section className={`mt-3 rounded-2xl border p-3 transition-all duration-700 sm:mt-6 sm:p-5 ${panelClass(dark)}`}>
- <div className="grid w-full items-start gap-x-5 gap-y-4 [grid-template-columns:repeat(auto-fit,minmax(220px,1fr))] sm:gap-x-7">
+ <section
+ className={`mt-3 rounded-2xl border p-3 transition-colors duration-300 sm:mt-6 sm:p-4 ${panelClass(dark)}`}
+ >
+ <div className="grid grid-cols-1 gap-2.5 min-[480px]:grid-cols-2 lg:grid-cols-4">
  {items.map((item) => {
  const card = (
- <div className="flex h-full w-full items-start gap-3 px-1 py-1 sm:gap-4 sm:px-2">
+ <div className="flex h-[82px] w-full min-w-0 items-start gap-3 overflow-hidden rounded-xl px-2 py-2 sm:h-[88px] sm:gap-3.5 sm:px-3">
  <BenefitIcon image={item.image} icon={item.icon} />
 
- <div className="min-w-0 flex-1">
- <div className="whitespace-normal text-[12px] font-semibold leading-snug sm:text-[13px] lg:text-[14px]">{item.title}</div>
+ <div className="min-w-0 flex-1 pt-0.5">
+ <div className="line-clamp-2 text-[12px] font-semibold leading-[1.25] sm:text-[13px] lg:text-[14px]">
+ {item.title}
+ </div>
+
  {item.description ? (
- <div className={`mt-1 break-words text-[11px] leading-snug sm:text-xs ${mutedTextClass(dark)}`}>
+ <div
+ className={`mt-1 line-clamp-2 break-words text-[11px] leading-[1.35] sm:text-xs ${mutedTextClass(dark)}`}
+ >
  {item.description}
  </div>
  ) : null}
@@ -695,14 +732,19 @@ function Benefits({
  </div>
  );
 
- const itemClass = "w-full min-w-0";
-
  return item.href ? (
- <Link key={item.id} href={item.href} className={`${itemClass} rounded-2xl transition-opacity hover:opacity-80`} prefetch={false}>
+ <Link
+ key={item.id}
+ href={item.href}
+ className="block min-w-0 rounded-xl transition-colors hover:bg-blue-500/[0.04]"
+ prefetch={false}
+ >
  {card}
  </Link>
  ) : (
- <div key={item.id} className={itemClass}>{card}</div>
+ <div key={item.id} className="min-w-0 rounded-xl">
+ {card}
+ </div>
  );
  })}
  </div>

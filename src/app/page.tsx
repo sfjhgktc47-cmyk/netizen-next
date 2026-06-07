@@ -1,49 +1,81 @@
 import { getPublicCatalogData } from "@/lib/public-catalog-db";
 import { getPublicPageBlocks } from "@/lib/page-builder-db";
 import { getSiteEditorSettings } from "@/lib/site-settings-db";
-import { getSiteContentLibrary } from "@/lib/site-content-library-db";
+import {
+  getSiteBanners,
+  getSiteBenefits,
+} from "@/lib/site-content-library-db";
 import HomeClient from "./home-client";
 
 export const dynamic = "force-dynamic";
+export const revalidate = 0;
 
 export default async function Page() {
-  try {
-    const [catalog, siteSettings, pageBlocks, contentLibrary] = await Promise.all([
-      getPublicCatalogData(),
-      getSiteEditorSettings(),
-      getPublicPageBlocks("home"),
-      getSiteContentLibrary({ activeOnly: true, benefitPlacement: "store" }),
-    ]);
+  const [
+    catalogResult,
+    siteSettingsResult,
+    pageBlocksResult,
+    bannersResult,
+    benefitsResult,
+  ] = await Promise.allSettled([
+    getPublicCatalogData(),
+    getSiteEditorSettings(),
+    getPublicPageBlocks("home"),
+    getSiteBanners({ activeOnly: true }),
+    getSiteBenefits({ activeOnly: true, placement: "store" }),
+  ]);
 
-    const allProducts = catalog.productCards.filter(
-      (p) => p.slug !== "catalog"
-    );
-    const configuredProducts = allProducts.filter((p) => {
-      const imgs = [p.image, ...(Array.isArray(p.images) ? p.images : [])]
-        .map((img) => String(img ?? "").trim())
-        .filter(Boolean);
-      return imgs.length > 0;
-    });
-    const explicitNew = allProducts.filter((p) => p.isNew);
+  const catalog =
+    catalogResult.status === "fulfilled"
+      ? catalogResult.value
+      : { categories: [], productCards: [] };
 
-    const initialData = {
-      categories: catalog.categories.map((c) => ({
-        ...c,
-        image: c.image || "",
-      })),
-      products: configuredProducts,
-      popularProducts: configuredProducts.filter((p) => p.isPopular),
-      newArrivals: explicitNew.length > 0 ? explicitNew : allProducts.slice(0, 3),
-      pageBlocks,
-      siteSettings,
-      banners: contentLibrary.banners,
-      benefits: contentLibrary.benefits,
-    };
+  const allProducts = catalog.productCards.filter(
+    (product) => product.slug !== "catalog"
+  );
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    return <HomeClient initialData={initialData as any} />;
-  } catch (err) {
-    console.error("Home page server fetch failed:", err);
-    return <HomeClient initialData={{}} />;
-  }
+  const configuredProducts = allProducts.filter((product) => {
+    const images = [
+      product.image,
+      ...(Array.isArray(product.images) ? product.images : []),
+    ]
+      .map((image) => String(image ?? "").trim())
+      .filter(Boolean);
+
+    return images.length > 0;
+  });
+
+  const explicitNew = allProducts.filter((product) => product.isNew);
+
+  const initialData = {
+    categories: catalog.categories.map((category) => ({
+      ...category,
+      image: category.image || "",
+    })),
+    products: configuredProducts,
+    popularProducts: configuredProducts.filter(
+      (product) => product.isPopular
+    ),
+    newArrivals:
+      explicitNew.length > 0 ? explicitNew : allProducts.slice(0, 3),
+    pageBlocks:
+      pageBlocksResult.status === "fulfilled"
+        ? pageBlocksResult.value
+        : [],
+    siteSettings:
+      siteSettingsResult.status === "fulfilled"
+        ? siteSettingsResult.value
+        : undefined,
+    banners:
+      bannersResult.status === "fulfilled"
+        ? bannersResult.value
+        : [],
+    benefits:
+      benefitsResult.status === "fulfilled"
+        ? benefitsResult.value
+        : [],
+  };
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return <HomeClient initialData={initialData as any} />;
 }
