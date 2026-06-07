@@ -16,6 +16,13 @@ type AddressSuggestion = {
   fiasId: string;
 };
 
+type ProviderResult = {
+  suggestions: AddressSuggestion[];
+  configured: boolean;
+  status: number | null;
+  message: string;
+};
+
 type DadataSuggestion = {
   value?: string;
   unrestricted_value?: string;
@@ -76,6 +83,30 @@ function text(value: unknown, max = 300) {
   return typeof value === "string" ? value.trim().slice(0, max) : "";
 }
 
+function normalizeSecret(value: string | undefined) {
+  return String(value ?? "")
+    .trim()
+    .replace(/^["']|["']$/g, "")
+    .replace(/^Token\s+/i, "")
+    .trim();
+}
+
+function providerErrorMessage(provider: string, status: number) {
+  if (status === 401) {
+    return `${provider}: ключ не принят. Скопируйте только значение API-ключа, без слова Token и без кавычек.`;
+  }
+
+  if (status === 403) {
+    return `${provider}: доступ запрещён. Подтвердите почту и проверьте, что ключ активен для API подсказок.`;
+  }
+
+  if (status === 429) {
+    return `${provider}: превышен лимит запросов.`;
+  }
+
+  return `${provider}: сервис ответил с ошибкой ${status}.`;
+}
+
 function cleanCity(value: string) {
   return value
     .replace(/^(г\.?|город|пос\.?|поселок|посёлок|пгт|с\.?|село|дер\.?|деревня)\s+/i, "")
@@ -122,7 +153,7 @@ async function getDadataSuggestions(input: {
   query: string;
   city: string;
   mode: SuggestionMode;
-}) {
+}): Promise<ProviderResult> {
   const combinedQuery =
     input.mode === "address" && input.city
       ? `${input.city}, ${input.query}`
@@ -130,19 +161,18 @@ async function getDadataSuggestions(input: {
 
   const body: Record<string, unknown> = {
     query: combinedQuery,
-    count: 15,
+    count: 20,
   };
 
   if (input.mode === "city") {
-    // Cities, towns, villages and other settlements across Russia.
-    body.from_bound = { value: "city" };
+    // Do not start strictly from "city": federal cities and some settlements
+    // can be represented at a higher administrative level in FIAS.
+    body.from_bound = { value: "region" };
     body.to_bound = { value: "settlement" };
   } else {
     body.from_bound = { value: "street" };
     body.to_bound = { value: "house" };
 
-    // Boost the selected city but do not hard-restrict the result. A hard
-    // restriction often returns an empty list for towns stored as settlements.
     if (input.city) {
       body.locations_boost = [
         { city: input.city },
@@ -151,60 +181,107 @@ async function getDadataSuggestions(input: {
     }
   }
 
-  const response = await fetch(
-    "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address",
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Accept: "application/json",
-        Authorization: `Token ${input.token}`,
-      },
-      body: JSON.stringify(body),
-      cache: "no-store",
-      signal: AbortSignal.timeout(4000),
-    }
-  );
+  try {
+    const response = await fetch(
+      "https://suggestions.dadata.ru/suggestions/api/4_1/rs/suggest/address",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Accept: "application/json",
+          Authorization: `Token ${input.token}`,
+        },
+        body: JSON.stringify(body),
+        cache: "no-store",
+        signal: AbortSignal.timeout(8000),
+      }
+    );
 
-  if (!response.ok) return [];
-
-  const payload = (await response.json()) as { suggestions?: DadataSuggestion[] };
-
-  return uniqueSuggestions(
-    (payload.suggestions ?? []).map((item): AddressSuggestion => {
-      const data = item.data ?? {};
-      const city = cleanCity(
-        data.city ||
-          data.settlement ||
-          data.city_with_type ||
-          data.settlement_with_type ||
-          input.city
-      );
-      const street = data.street_with_type || data.street || "";
-      const houseParts = [
-        data.house ? `${data.house_type || "д"}. ${data.house}` : "",
-        data.block ? `${data.block_type || "стр"}. ${data.block}` : "",
-      ].filter(Boolean);
-      const house = data.house || "";
-      const shortAddress = [street, ...houseParts].filter(Boolean).join(", ");
-      const fullAddress =
-        item.unrestricted_value ||
-        item.value ||
-        [data.region_with_type, city, shortAddress].filter(Boolean).join(", ");
+    if (!response.ok) {
+      const message = providerErrorMessage("DaData", response.status);
+      console.error("DaData address suggestions failed", {
+        status: response.status,
+        mode: input.mode,
+      });
 
       return {
-        value:
-          input.mode === "city"
-            ? city || item.value || ""
-            : shortAddress || item.value || "",
-        unrestrictedValue: fullAddress,
-        city,
-        street,
-        house,
-        fiasId: data.fias_id || "",
+        suggestions: [],
+        configured: true,
+        status: response.status,
+        message,
       };
-    })
-  );
+    }
+
+    const payload = (await response.json()) as {
+      suggestions?: DadataSuggestion[];
+    };
+
+    const mapped = (payload.suggestions ?? []).map(
+      (item): AddressSuggestion => {
+        const data = item.data ?? {};
+        const city = cleanCity(
+          data.city ||
+            data.settlement ||
+            data.city_with_type ||
+            data.settlement_with_type ||
+            ""
+        );
+        const street = data.street_with_type || data.street || "";
+        const houseParts = [
+          data.house ? `${data.house_type || "д"}. ${data.house}` : "",
+          data.block ? `${data.block_type || "стр"}. ${data.block}` : "",
+        ].filter(Boolean);
+        const house = data.house || "";
+        const shortAddress = [street, ...houseParts]
+          .filter(Boolean)
+          .join(", ");
+        const fullAddress =
+          item.unrestricted_value ||
+          item.value ||
+          [data.region_with_type, city, shortAddress]
+            .filter(Boolean)
+            .join(", ");
+
+        return {
+          value:
+            input.mode === "city"
+              ? city
+              : shortAddress || item.value || "",
+          unrestrictedValue: fullAddress,
+          city,
+          street,
+          house,
+          fiasId: data.fias_id || "",
+        };
+      }
+    );
+
+    const suggestions = uniqueSuggestions(
+      input.mode === "city"
+        ? mapped.filter((item) => Boolean(item.city))
+        : mapped.filter((item) => Boolean(item.street || item.house || item.value))
+    );
+
+    return {
+      suggestions,
+      configured: true,
+      status: 200,
+      message:
+        suggestions.length > 0
+          ? "DaData подключена."
+          : "DaData подключена, но по этому запросу вариантов не найдено.",
+    };
+  } catch (error) {
+    console.error("DaData address suggestions request failed", error);
+
+    return {
+      suggestions: [],
+      configured: true,
+      status: null,
+      message:
+        "DaData не ответила вовремя. Проверьте Railway Logs и повторите запрос.",
+    };
+  }
 }
 
 async function getYandexSuggestions(input: {
@@ -372,6 +449,27 @@ async function getPhotonSuggestions(input: {
   return uniqueSuggestions(modeFiltered.length ? modeFiltered : mapped);
 }
 
+export async function GET() {
+  const dadataToken = normalizeSecret(
+    process.env.DADATA_API_KEY ||
+      process.env.DADATA_TOKEN ||
+      process.env.DADATA_KEY
+  );
+  const yandexKey = normalizeSecret(
+    process.env.YANDEX_GEOSUGGEST_API_KEY ||
+      process.env.YANDEX_MAPS_API_KEY
+  );
+
+  return NextResponse.json(
+    {
+      ok: true,
+      dadataConfigured: Boolean(dadataToken),
+      yandexConfigured: Boolean(yandexKey),
+    },
+    { headers: { "Cache-Control": "no-store" } }
+  );
+}
+
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as
     | {
@@ -386,63 +484,106 @@ export async function POST(request: Request) {
   const sessionToken = text(body?.sessionToken, 100);
   const mode: SuggestionMode = body?.mode === "city" ? "city" : "address";
 
+  const dadataToken = normalizeSecret(
+    process.env.DADATA_API_KEY ||
+      process.env.DADATA_TOKEN ||
+      process.env.DADATA_KEY
+  );
+  const yandexKey = normalizeSecret(
+    process.env.YANDEX_GEOSUGGEST_API_KEY ||
+      process.env.YANDEX_MAPS_API_KEY
+  );
+
   if (query.length < 2) {
-    return NextResponse.json({ suggestions: [], configured: false });
+    return NextResponse.json({
+      suggestions: [],
+      configured: Boolean(dadataToken || yandexKey),
+      providerMessage: "",
+    });
   }
 
-  const dadataToken = process.env.DADATA_API_KEY?.trim() || "";
-  const yandexKey =
-    process.env.YANDEX_GEOSUGGEST_API_KEY?.trim() ||
-    process.env.YANDEX_MAPS_API_KEY?.trim() ||
-    "";
+  let providerMessage = "";
 
-  const providerCalls: Array<Promise<AddressSuggestion[]>> = [];
-  const providerNames: string[] = [];
-
+  // Use DaData first and return immediately when it has matches. This avoids
+  // waiting for slow fallback providers after the paid/full provider succeeded.
   if (dadataToken) {
-    providerNames.push("dadata");
-    providerCalls.push(
-      getDadataSuggestions({ token: dadataToken, query, city, mode })
-    );
+    const dadataResult = await getDadataSuggestions({
+      token: dadataToken,
+      query,
+      city,
+      mode,
+    });
+
+    providerMessage = dadataResult.message;
+
+    if (dadataResult.suggestions.length > 0) {
+      return NextResponse.json(
+        {
+          suggestions: dadataResult.suggestions,
+          configured: true,
+          source: "dadata",
+          providerMessage,
+        },
+        { headers: { "Cache-Control": "no-store" } }
+      );
+    }
+  } else {
+    providerMessage =
+      "Приложение не видит DADATA_API_KEY. Добавьте переменную именно в веб-сервис Railway и примените новый Deploy.";
   }
 
   if (yandexKey) {
-    providerNames.push("yandex");
-    providerCalls.push(
-      getYandexSuggestions({
+    try {
+      const yandexSuggestions = await getYandexSuggestions({
         apiKey: yandexKey,
         query,
         city,
         mode,
         sessionToken,
-      })
-    );
+      });
+
+      if (yandexSuggestions.length > 0) {
+        return NextResponse.json(
+          {
+            suggestions: yandexSuggestions,
+            configured: true,
+            source: "yandex",
+            providerMessage: "Яндекс Геосаджест подключён.",
+          },
+          { headers: { "Cache-Control": "no-store" } }
+        );
+      }
+    } catch (error) {
+      console.error("Yandex address suggestions request failed", error);
+    }
   }
 
-  // Open fallback. It keeps the form usable when commercial API keys are not
-  // configured, but DaData/Yandex remain the authoritative full-address source.
-  providerNames.push("photon");
-  providerCalls.push(getPhotonSuggestions({ query, city, mode }));
+  // Open fallback remains available, but it no longer delays a successful
+  // DaData response.
+  try {
+    const photonSuggestions = await getPhotonSuggestions({
+      query,
+      city,
+      mode,
+    });
 
-  const settled = await Promise.allSettled(providerCalls);
-  const merged = uniqueSuggestions(
-    settled.flatMap((result) =>
-      result.status === "fulfilled" ? result.value : []
-    )
-  );
-
-  if (merged.length > 0) {
-    return NextResponse.json(
-      {
-        suggestions: merged,
-        configured: Boolean(dadataToken || yandexKey),
-        source: providerNames.join("+"),
-      },
-      { headers: { "Cache-Control": "no-store" } }
-    );
+    if (photonSuggestions.length > 0) {
+      return NextResponse.json(
+        {
+          suggestions: photonSuggestions,
+          configured: Boolean(dadataToken || yandexKey),
+          source: "photon",
+          providerMessage:
+            providerMessage ||
+            "Используется базовый резервный поиск. Для полного справочника подключите DaData.",
+        },
+        { headers: { "Cache-Control": "no-store" } }
+      );
+    }
+  } catch (error) {
+    console.error("Photon address suggestions request failed", error);
   }
 
-  // Final local fallback: active store/pickup addresses from site settings.
   const settings = await getSiteEditorSettings();
   const needle = normalizeKey(query);
   const localSuggestions = uniqueSuggestions(
@@ -470,6 +611,7 @@ export async function POST(request: Request) {
       suggestions: localSuggestions,
       configured: Boolean(dadataToken || yandexKey),
       source: "settings",
+      providerMessage,
     },
     { headers: { "Cache-Control": "no-store" } }
   );

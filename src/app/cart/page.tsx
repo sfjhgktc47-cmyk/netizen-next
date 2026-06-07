@@ -1480,6 +1480,7 @@ function AddressSuggestionInput({
  const [open, setOpen] = useState(false);
  const [searched, setSearched] = useState(false);
  const [configured, setConfigured] = useState<boolean | null>(null);
+ const [providerMessage, setProviderMessage] = useState("");
  const [committedValue, setCommittedValue] = useState("");
  const [activeIndex, setActiveIndex] = useState(-1);
  const [sessionToken] = useState(() => {
@@ -1515,7 +1516,12 @@ function AddressSuggestionInput({
  signal: controller.signal,
  });
  const payload = (await response.json().catch(() => null)) as
- | { suggestions?: AddressSuggestion[]; configured?: boolean }
+ | {
+ suggestions?: AddressSuggestion[];
+ configured?: boolean;
+ providerMessage?: string;
+ source?: string;
+ }
  | null;
 
  if (!active) return;
@@ -1525,6 +1531,11 @@ function AddressSuggestionInput({
  : [];
  setSuggestions(next);
  setConfigured(typeof payload?.configured === "boolean" ? payload.configured : null);
+ setProviderMessage(
+ typeof payload?.providerMessage === "string"
+ ? payload.providerMessage
+ : ""
+ );
  setSearched(true);
  setOpen(next.length > 0);
  setActiveIndex(next.length > 0 ? 0 : -1);
@@ -1533,6 +1544,7 @@ function AddressSuggestionInput({
  return;
  }
  setSuggestions([]);
+ setProviderMessage("Не удалось выполнить поиск. Проверьте соединение и Railway Logs.");
  setSearched(true);
  setOpen(false);
  setActiveIndex(-1);
@@ -1561,7 +1573,7 @@ function AddressSuggestionInput({
  }
 
  return (
- <div className="min-w-0">
+ <div className={`relative min-w-0 ${open ? "z-[400]" : "z-0"}`}>
  <div className="relative">
  <input
  value={value}
@@ -1615,8 +1627,9 @@ function AddressSuggestionInput({
  {loading ? (
  <span className="text-blue-500">Ищем варианты…</span>
  ) : searched && suggestions.length === 0 ? (
- <span className="text-muted-soft">
- Ничего не найдено. Проверьте написание или продолжите ввод.
+ <span className={providerMessage ? "text-red-500" : "text-muted-soft"}>
+ {providerMessage ||
+ "Ничего не найдено. Проверьте написание или продолжите ввод."}
  </span>
  ) : (
  <span className="text-muted-soft">
@@ -1631,10 +1644,20 @@ function AddressSuggestionInput({
  )}
  </div>
 
+ {suggestions.length > 0 && providerMessage ? (
+ <div className="mt-1 px-1 text-[10px] leading-4 text-green-600">
+ {providerMessage}
+ </div>
+ ) : null}
+
  {open && suggestions.length > 0 ? (
  <div
  role="listbox"
- className="relative z-[200] mt-2 max-h-64 min-w-0 overflow-y-auto rounded-2xl border border-theme bg-card p-1.5 text-main"
+ className={`absolute left-0 top-[54px] z-[500] max-h-72 overflow-y-auto rounded-2xl border border-theme bg-card p-1.5 text-main ${
+ mode === "city"
+ ? "w-[360px] max-w-[calc(100vw-48px)]"
+ : "w-full min-w-[280px]"
+ }`}
  >
  {suggestions.map((suggestion, index) => (
  <button
@@ -1772,7 +1795,7 @@ function Modal({
 }) {
  return (
  <div className="fixed inset-0 z-50 flex items-end justify-center bg-black/70 px-4 py-4 backdrop-blur-sm md:items-center md:px-6">
- <div className="card max-h-[92vh] w-full max-w-[720px] overflow-y-auto rounded-[24px] p-5 sm:rounded-[28px] sm:p-6 md:p-8">
+ <div className="card relative max-h-[92vh] w-full max-w-[720px] overflow-visible rounded-[24px] p-5 sm:rounded-[28px] sm:p-6 md:p-8">
  <div className="flex items-start justify-between gap-4">
  <h2 className="text-2xl font-bold tracking-[-0.04em] sm:text-3xl">{title}</h2>
 
@@ -1786,7 +1809,7 @@ function Modal({
  </button>
  </div>
 
- <div className="mt-3 sm:mt-6">{children}</div>
+ <div className="mt-3 max-h-[calc(92vh-96px)] overflow-y-auto overflow-x-visible pr-1 sm:mt-6">{children}</div>
  </div>
  </div>
  );
