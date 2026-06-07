@@ -1,5 +1,12 @@
 [phases.install]
-cmds = ["npm install"]
+cmds = [
+  "npm config set registry https://registry.npmjs.org/",
+  "npm config set fetch-retries 5",
+  "npm config set fetch-retry-mintimeout 20000",
+  "npm config set fetch-retry-maxtimeout 120000",
+  "npm config set fetch-timeout 300000",
+  "npm ci --include=dev --prefer-offline --no-audit --no-fund"
+]
 
 [phases.build]
 cmds = ["npm run build"]
