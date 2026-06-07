@@ -162,7 +162,7 @@ body.has-mobile-bottom-nav {
 .dark .admin-input:focus,
 .dark .admin-textarea:focus {
   border-color: rgba(59, 130, 246, 0.65) !important;
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.11) !important;
+  box-shadow: none;
 }
 
 /* Вторичные кнопки тёмные; синими остаются только явные CTA с bg-blue-* */
@@ -182,4 +182,22 @@ body.has-mobile-bottom-nav {
 .dark [class*="border-dashed"] {
   border-color: rgba(255, 255, 255, 0.16) !important;
   background-color: rgba(255, 255, 255, 0.012);
+}
+
+
+/* Клиентский интерфейс без теней и свечения */
+header button,
+header a,
+nav button,
+nav a,
+main button,
+main a,
+main section,
+main article,
+main aside,
+main [class*="card"],
+.fixed.bottom-0 button,
+.fixed.bottom-0 a {
+  box-shadow: none !important;
+  filter: none !important;
 }
