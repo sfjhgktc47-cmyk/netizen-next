@@ -80,25 +80,24 @@ function isImageIcon(value: string) {
 function PhoneHeaderIcon({ className = "" }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 32 32"
+      viewBox="0 0 64 64"
       fill="none"
       className={className}
       aria-hidden="true"
       focusable="false"
-      preserveAspectRatio="xMidYMid meet"
       shapeRendering="geometricPrecision"
     >
       <path
-        d="M8.4 4.8 12 10.4c.65 1.02.5 2.35-.37 3.2l-2.1 2.08c2.2 4.25 4.52 6.57 8.77 8.77l2.08-2.1a2.63 2.63 0 0 1 3.2-.37l5.62 3.6a2.55 2.55 0 0 1 1.08 2.86l-.42 1.7a3.05 3.05 0 0 1-2.96 2.32C13.65 32.46-.46 18.35.04 5.1A3.05 3.05 0 0 1 2.36 2.14l1.7-.42A2.55 2.55 0 0 1 6.92 2.8L8.4 4.8Z"
+        d="M16.1 6.4c-2.35.28-5.1 2.83-6.3 5.47-2.05 4.55-.25 11.84 4.94 20.18 6.14 9.85 16.65 20.36 26.5 26.5 8.34 5.2 15.63 7 20.18 4.94 2.64-1.2 5.2-3.95 5.47-6.3.12-1-.18-1.96-.9-2.68L48.3 36.83a4.43 4.43 0 0 0-5.88-.35l-7.04 5.8c-5.43-2.8-10.84-8.2-13.64-13.63l5.8-7.04a4.43 4.43 0 0 0-.35-5.88L19.51 7.3a3.77 3.77 0 0 0-3.41-.9Z"
         stroke="currentColor"
-        strokeWidth="3.2"
+        strokeWidth="5.8"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M20.5 4.2a9 9 0 0 1 7.3 7.3M20.5 9a4.2 4.2 0 0 1 2.5 2.5"
+        d="M41.2 8.4a16.4 16.4 0 0 1 14.4 14.4M41.2 18.2a6.6 6.6 0 0 1 4.6 4.6"
         stroke="currentColor"
-        strokeWidth="3"
+        strokeWidth="5.2"
         strokeLinecap="round"
       />
     </svg>
@@ -108,29 +107,28 @@ function PhoneHeaderIcon({ className = "" }: { className?: string }) {
 function CartHeaderIcon({ className = "" }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 32 32"
+      viewBox="0 0 64 64"
       fill="none"
       className={className}
       aria-hidden="true"
       focusable="false"
-      preserveAspectRatio="xMidYMid meet"
       shapeRendering="geometricPrecision"
     >
       <path
-        d="M2.8 4.8h4.5l2.25 17.25h15.7l3.3-12.65H8.05"
+        d="M4.8 8h10.4l7.2 34.6c.45 2.2 2.4 3.8 4.65 3.8H51.7c2.3 0 4.3-1.65 4.72-3.92L62 16.7H17.05"
         stroke="currentColor"
-        strokeWidth="3.05"
+        strokeWidth="5.6"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
       <path
-        d="M10.2 13.5h16.8M10.95 18.1h14.9M15 9.7l1.2 12M22 9.7l-1.1 12"
+        d="M20.6 26.2h37.2M22.8 36.1h32.9M31.4 17l2.3 29M46.2 17l-2.35 29"
         stroke="currentColor"
-        strokeWidth="2.25"
+        strokeWidth="4.45"
         strokeLinecap="round"
       />
-      <circle cx="12" cy="27.2" r="2.15" stroke="currentColor" strokeWidth="2.8" />
-      <circle cx="24.2" cy="27.2" r="2.15" stroke="currentColor" strokeWidth="2.8" />
+      <circle cx="29" cy="55.2" r="4.7" stroke="currentColor" strokeWidth="5" />
+      <circle cx="51.8" cy="55.2" r="4.7" stroke="currentColor" strokeWidth="5" />
     </svg>
   );
 }
@@ -138,25 +136,24 @@ function CartHeaderIcon({ className = "" }: { className?: string }) {
 function UserHeaderIcon({ className = "" }: { className?: string }) {
   return (
     <svg
-      viewBox="0 0 32 32"
+      viewBox="0 0 64 64"
       fill="none"
       className={className}
       aria-hidden="true"
       focusable="false"
-      preserveAspectRatio="xMidYMid meet"
       shapeRendering="geometricPrecision"
     >
       <circle
-        cx="16"
-        cy="9.2"
-        r="6.1"
+        cx="32"
+        cy="18.2"
+        r="13.2"
         stroke="currentColor"
-        strokeWidth="3.15"
+        strokeWidth="5.8"
       />
       <path
-        d="M4.25 29.2c.55-7.4 4.95-11.6 11.75-11.6s11.2 4.2 11.75 11.6"
+        d="M8.2 59.1c.9-15.6 10.1-24.3 23.8-24.3s22.9 8.7 23.8 24.3"
         stroke="currentColor"
-        strokeWidth="3.15"
+        strokeWidth="5.8"
         strokeLinecap="round"
         strokeLinejoin="round"
       />
@@ -170,7 +167,7 @@ function renderNavIcon(icon: string, label: string, active = false) {
   if (value === "__cart__") {
     return (
       <CartHeaderIcon
-        className={`h-[22px] w-[22px] ${active ? "text-white" : "text-blue-500"}`}
+        className={`h-[21px] w-[21px] overflow-visible ${active ? "text-white" : "text-blue-500"}`}
       />
     );
   }
@@ -700,7 +697,7 @@ export function SiteHeader() {
               }`}
             >
               <PhoneHeaderIcon
-                className={`h-[26px] w-[26px] shrink-0 ${
+                className={`h-[24px] w-[24px] shrink-0 overflow-visible ${
                   isPhoneOpen
                     ? "text-white"
                     : "text-blue-500 transition-colors group-hover:text-white"
@@ -746,7 +743,7 @@ export function SiteHeader() {
                 : "border-black/10 bg-white text-[#07111f] hover:border-transparent hover:bg-blue-50"
             }`}
           >
-            <CartHeaderIcon className="h-[26px] w-[26px] shrink-0 text-blue-500 transition-colors group-hover:text-white" />
+            <CartHeaderIcon className="h-[25px] w-[25px] shrink-0 overflow-visible text-blue-500 transition-colors group-hover:text-white" />
 
             {cartCount > 0 && (
               <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white shadow-lg shadow-red-500/30">
@@ -767,7 +764,7 @@ export function SiteHeader() {
                     : "border-black/10 bg-white text-[#07111f] hover:border-transparent hover:bg-blue-50"
                 }`}
               >
-                <UserHeaderIcon className="h-[25px] w-[25px] shrink-0 text-blue-500 transition-colors group-hover:text-white" />
+                <UserHeaderIcon className="h-[24px] w-[24px] shrink-0 overflow-visible text-blue-500 transition-colors group-hover:text-white" />
               </Link>
             </div>
           ) : (
