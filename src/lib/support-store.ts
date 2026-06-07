@@ -223,6 +223,7 @@ export async function getSupportRequest(idOrNumber: string) {
 export async function createSupportRequest(input: {
   topicId: string;
   message: string;
+  customerId?: string;
   customerName?: string;
   phone?: string;
   email?: string;
@@ -234,9 +235,9 @@ export async function createSupportRequest(input: {
   const email = normalizeText(input.email);
   const customerName = normalizeText(input.customerName) || "Гость Нетизен";
 
-  let customerId: string | undefined;
+  let customerId = normalizeText(input.customerId) || undefined;
 
-  if (phone) {
+  if (!customerId && phone) {
     const customer = await prisma.customer.findFirst({ where: { phone } });
     const savedCustomer = customer
       ? await prisma.customer.update({

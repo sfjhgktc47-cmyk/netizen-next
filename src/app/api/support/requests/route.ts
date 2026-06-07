@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { getAuthSession } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 import { createSupportRequest, listSupportRequests } from "@/lib/support-store";
 
 export async function GET(request: Request) {
@@ -28,13 +30,26 @@ export async function POST(request: Request) {
     );
   }
 
+  const session = await getAuthSession();
+  const customer =
+    session?.role === "customer" && session.customerId
+      ? await prisma.customer.findUnique({
+          where: { id: session.customerId },
+          select: { id: true, name: true, lastName: true, phone: true, email: true },
+        })
+      : null;
+  const customerName = customer
+    ? [customer.name, customer.lastName].filter(Boolean).join(" ").trim()
+    : body.customerName;
+
   const supportRequest = await createSupportRequest({
     topicId: body.topicId,
     message: body.message,
-    customerName: body.customerName,
-    phone: body.phone,
-    email: body.email,
-    source: body.source,
+    customerId: customer?.id,
+    customerName,
+    phone: customer?.phone || body.phone,
+    email: customer?.email || body.email,
+    source: customer ? "Личный кабинет" : body.source,
   });
 
   return NextResponse.json({ request: supportRequest }, { status: 201 });

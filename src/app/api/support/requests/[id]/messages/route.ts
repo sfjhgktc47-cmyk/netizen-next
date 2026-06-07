@@ -1,4 +1,6 @@
 import { NextResponse } from "next/server";
+import { getAuthSession } from "@/lib/auth";
+import { prisma } from "@/lib/db";
 import { addSupportMessage, type SupportMessageRole } from "@/lib/support-store";
 
 export async function POST(
@@ -16,10 +18,28 @@ export async function POST(
     return NextResponse.json({ error: "Сообщение пустое." }, { status: 400 });
   }
 
+  const role: SupportMessageRole = body.role === "MANAGER" ? "MANAGER" : "CLIENT";
+  let senderName = body.name;
+
+  if (role === "CLIENT") {
+    const session = await getAuthSession();
+    const customer =
+      session?.role === "customer" && session.customerId
+        ? await prisma.customer.findUnique({
+            where: { id: session.customerId },
+            select: { name: true, lastName: true },
+          })
+        : null;
+
+    if (customer) {
+      senderName = [customer.name, customer.lastName].filter(Boolean).join(" ").trim();
+    }
+  }
+
   const supportRequest = await addSupportMessage(id, {
     text: body.text,
-    role: body.role === "MANAGER" ? "MANAGER" : "CLIENT",
-    name: body.name,
+    role,
+    name: senderName,
   });
 
   if (!supportRequest) {
