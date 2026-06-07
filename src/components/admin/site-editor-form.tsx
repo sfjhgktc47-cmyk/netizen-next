@@ -1122,8 +1122,13 @@ function NavIconEditor({
   value: string;
   onChange: (value: string) => void;
 }) {
+  const [imageFailed, setImageFailed] = useState(false);
   const presets = ["⌂", "▦", "✦", "?", "🛒", "●", "◆", "■"];
-  const isImage = /^(data:image\/|\/|https?:\/\/)/i.test(value.trim());
+  const isImage = /^(data:image\/|\/|https?:\/\/)/i.test(value.trim()) && !imageFailed;
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [value]);
 
   function uploadIcon(file: File | undefined) {
     if (!file || !file.type.startsWith("image/")) return;
@@ -1147,7 +1152,12 @@ function NavIconEditor({
       <div className="mt-3 flex h-16 items-center justify-center rounded-xl border border-white/10 bg-white">
         {isImage ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={value} alt="" className="h-10 w-10 object-contain" />
+          <img
+            src={value}
+            alt=""
+            className="h-10 w-10 object-contain"
+            onError={() => setImageFailed(true)}
+          />
         ) : (
           <span className="text-2xl text-black">{value || "●"}</span>
         )}

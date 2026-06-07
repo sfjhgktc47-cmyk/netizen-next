@@ -338,21 +338,34 @@ function booleanValue(value: unknown, fallback: boolean) {
   return typeof value === "boolean" ? value : fallback;
 }
 
-function normalizeBranding(value: unknown): SiteBrandingSettings {
+function normalizeBranding(value: unknown, exposePublicImages = true): SiteBrandingSettings {
   const raw = isRecord(value) ? value : {};
   const defaultTheme = stringValue(raw.defaultTheme, defaultSiteEditorSettings.branding.defaultTheme);
 
+  const imageValue = (field: keyof SiteBrandingSettings) => {
+    const fallback = defaultSiteEditorSettings.branding[field];
+
+    if (typeof fallback !== "string") {
+      return "";
+    }
+
+    const value = stringValue(raw[field], fallback);
+    return exposePublicImages
+      ? publicImageUrl("setting", "branding", field, value)
+      : value;
+  };
+
   return {
     storeName: stringValue(raw.storeName, defaultSiteEditorSettings.branding.storeName),
-    logoLight: publicImageUrl("setting", "branding", "logoLight", stringValue(raw.logoLight, defaultSiteEditorSettings.branding.logoLight)),
-    logoDark: publicImageUrl("setting", "branding", "logoDark", stringValue(raw.logoDark, defaultSiteEditorSettings.branding.logoDark)),
-    mobileLogo: publicImageUrl("setting", "branding", "mobileLogo", stringValue(raw.mobileLogo, defaultSiteEditorSettings.branding.mobileLogo)),
-    favicon: publicImageUrl("setting", "branding", "favicon", stringValue(raw.favicon, defaultSiteEditorSettings.branding.favicon)),
-    navIconHome: publicImageUrl("setting", "branding", "navIconHome", stringValue(raw.navIconHome, defaultSiteEditorSettings.branding.navIconHome)),
-    navIconCatalog: publicImageUrl("setting", "branding", "navIconCatalog", stringValue(raw.navIconCatalog, defaultSiteEditorSettings.branding.navIconCatalog)),
-    navIconNew: publicImageUrl("setting", "branding", "navIconNew", stringValue(raw.navIconNew, defaultSiteEditorSettings.branding.navIconNew)),
-    navIconSupport: publicImageUrl("setting", "branding", "navIconSupport", stringValue(raw.navIconSupport, defaultSiteEditorSettings.branding.navIconSupport)),
-    navIconCart: publicImageUrl("setting", "branding", "navIconCart", stringValue(raw.navIconCart, defaultSiteEditorSettings.branding.navIconCart)),
+    logoLight: imageValue("logoLight"),
+    logoDark: imageValue("logoDark"),
+    mobileLogo: imageValue("mobileLogo"),
+    favicon: imageValue("favicon"),
+    navIconHome: imageValue("navIconHome"),
+    navIconCatalog: imageValue("navIconCatalog"),
+    navIconNew: imageValue("navIconNew"),
+    navIconSupport: imageValue("navIconSupport"),
+    navIconCart: imageValue("navIconCart"),
     defaultTheme: defaultTheme === "light" || defaultTheme === "dark" ? defaultTheme : "system",
     accentColor: stringValue(raw.accentColor, defaultSiteEditorSettings.branding.accentColor),
     primaryColor: stringValue(raw.primaryColor, defaultSiteEditorSettings.branding.primaryColor),
@@ -485,11 +498,11 @@ function normalizeSeo(value: unknown): SiteSeoSettings {
   };
 }
 
-export function normalizeSiteEditorSettings(value: unknown): SiteEditorSettings {
+export function normalizeSiteEditorSettings(value: unknown, exposePublicImages = true): SiteEditorSettings {
   const raw = isRecord(value) ? value : {};
 
   return {
-    branding: normalizeBranding(raw.branding),
+    branding: normalizeBranding(raw.branding, exposePublicImages),
     contacts: normalizeContacts(raw.contacts),
     homeBlocks: normalizeHomeBlocks(raw.homeBlocks),
     catalog: normalizeCatalog(raw.catalog),
@@ -583,9 +596,9 @@ export async function getSiteEditorSettings() {
 }
 
 export async function saveSiteEditorSettings(value: unknown) {
-  const settings = normalizeSiteEditorSettings(value);
-  await upsertSettingValue("site", settings);
-  return settings;
+  const settingsForStorage = normalizeSiteEditorSettings(value, false);
+  await upsertSettingValue("site", settingsForStorage);
+  return normalizeSiteEditorSettings(settingsForStorage, true);
 }
 
 export async function getSystemSettings() {

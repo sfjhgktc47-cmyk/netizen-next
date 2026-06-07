@@ -14,7 +14,7 @@ export function publicImageUrl(
 ) {
   const cleanValue = typeof value === "string" ? value.trim() : "";
 
-  if (!cleanValue || !isBase64Image(cleanValue)) {
+  if (!cleanValue || cleanValue.startsWith("/api/public-image/") || !isBase64Image(cleanValue)) {
     return cleanValue;
   }
 
