@@ -1653,7 +1653,7 @@ function AddressSuggestionInput({
  {open && suggestions.length > 0 ? (
  <div
  role="listbox"
- className={`absolute left-0 top-[54px] z-[500] max-h-72 overflow-y-auto rounded-2xl border border-theme bg-card p-1.5 text-main ${
+ className={`absolute left-0 top-[54px] z-[500] max-h-72 overflow-y-auto rounded-2xl border border-black/10 bg-white p-1.5 text-[#07111f] dark:border-white/15 dark:bg-[#081526] dark:text-white ${
  mode === "city"
  ? "w-[360px] max-w-[calc(100vw-48px)]"
  : "w-full min-w-[280px]"
@@ -1673,7 +1673,7 @@ function AddressSuggestionInput({
  className={`block w-full rounded-xl px-3 py-3 text-left text-sm transition-colors ${
  index === activeIndex
  ? "bg-blue-600 text-white"
- : "hover:bg-blue-soft"
+ : "bg-white text-[#07111f] hover:bg-[#eef4ff] dark:bg-[#081526] dark:text-white dark:hover:bg-[#10233d]"
  }`}
  >
  <span className="block font-semibold">
@@ -1684,8 +1684,8 @@ function AddressSuggestionInput({
  <span
  className={`mt-1 block text-xs leading-5 ${
  index === activeIndex
- ? "text-white/75"
- : "text-muted"
+ ? "text-white/80"
+ : "text-black/55 dark:text-white/60"
  }`}
  >
  {suggestion.unrestrictedValue}
