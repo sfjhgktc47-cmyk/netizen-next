@@ -1073,7 +1073,7 @@ export function CatalogView({
                 onClick={() => setIsFilterOpen((prev) => !prev)}
                 className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-300 sm:px-6 sm:py-4 ${
                   isFilterOpen
-                    ? "border-blue-500 bg-blue-600 text-white"
+                    ? "border-transparent bg-blue-600 text-white"
                     : "border-theme bg-transparent hover:border-blue-500/40 hover:bg-blue-soft"
                 }`}
               >
@@ -1146,8 +1146,8 @@ export function CatalogView({
                       <span
                         className={`absolute bottom-4 left-5 z-20 flex h-9 w-9 items-center justify-center rounded-xl border text-sm transition-colors ${
                           isActive
-                            ? "border-blue-400 bg-blue-500 text-white"
-                            : "border-blue-500 bg-blue-600 text-white shadow-[0_8px_18px_rgba(37,99,235,0.16)] group-hover:border-blue-400 group-hover:bg-blue-500"
+                            ? "border-transparent bg-blue-500 text-white"
+                            : "border-transparent bg-blue-600 text-white shadow-[0_8px_18px_rgba(37,99,235,0.16)] group-hover:border-transparent group-hover:bg-blue-500"
                         }`}
                         aria-hidden="true"
                       >
@@ -1181,7 +1181,7 @@ export function CatalogView({
                   onClick={handleResetCatalogState}
                   className={`snap-start whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-medium transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
                     !onlyPopular && !selectedCategoryId && !selectedBrand && !hasSpecificationFilters
-                      ? "border-blue-500 bg-blue-600 text-white"
+                      ? "border-transparent bg-blue-600 text-white"
                       : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
                   }`}
                 >
@@ -1201,7 +1201,7 @@ export function CatalogView({
                   }}
                   className={`snap-start whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-medium transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
                     onlyPopular && !selectedCategoryId && !selectedBrand && !hasSpecificationFilters
-                      ? "border-blue-500 bg-blue-600 text-white"
+                      ? "border-transparent bg-blue-600 text-white"
                       : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
                   }`}
                 >
@@ -1220,7 +1220,7 @@ export function CatalogView({
                         onClick={() => handleSelectCategory(category.id)}
                         className={`snap-start whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-medium transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
                           isActive
-                            ? "border-blue-500 bg-blue-600 text-white"
+                            ? "border-transparent bg-blue-600 text-white"
                             : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
                         }`}
                       >

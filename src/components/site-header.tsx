@@ -70,35 +70,29 @@ const bottomNavItems: BottomNavItem[] = [
   { key: "catalog", label: "Каталог", href: "/catalog", fallbackIcon: "▦" },
   { key: "new", label: "Новинки", href: "/new", fallbackIcon: "✦" },
   { key: "support", label: "Поддержка", href: "/help", fallbackIcon: "?" },
-  { key: "cart", label: "Корзина", href: "/cart", fallbackIcon: "🛒" },
+  { key: "cart", label: "Корзина", href: "/cart", fallbackIcon: "/icons/cart-blue.svg" },
 ];
-
-function getUserInitial(user: HeaderAuthUser | null) {
-  if (!user) {
-    return "П";
-  }
-
-  if (user.role === "admin") {
-    return "A";
-  }
-
-  const source =
-    user.profile?.name || user.profile?.lastName || user.profile?.phone || user.profile?.email || "П";
-
-  return source.trim()[0]?.toUpperCase() ?? "П";
-}
 
 function isImageIcon(value: string) {
   return /^(\/|https?:\/\/|data:image\/)/i.test(value.trim());
 }
 
-function renderNavIcon(icon: string, label: string) {
+function renderNavIcon(icon: string, label: string, active = false) {
   const value = icon.trim();
 
   if (value && isImageIcon(value)) {
     return (
-      // eslint-disable-next-line @next/next/no-img-element
-      <Image quality={75} src={value} alt="" className="h-[18px] w-[18px] object-contain" aria-hidden="true" />
+      <Image
+        quality={75}
+        src={value}
+        alt=""
+        width={20}
+        height={20}
+        className={`h-[18px] w-[18px] object-contain transition-all ${
+          active ? "brightness-0 invert" : ""
+        }`}
+        aria-hidden="true"
+      />
     );
   }
 
@@ -294,7 +288,7 @@ export function SiteHeader() {
       catalog: siteSettings?.branding?.navIconCatalog?.trim() || "▦",
       new: siteSettings?.branding?.navIconNew?.trim() || "✦",
       support: siteSettings?.branding?.navIconSupport?.trim() || "?",
-      cart: siteSettings?.branding?.navIconCart?.trim() || "🛒",
+      cart: siteSettings?.branding?.navIconCart?.trim() || "/icons/cart-blue.svg",
     }),
     [siteSettings?.branding]
   );
@@ -395,7 +389,7 @@ export function SiteHeader() {
                 pathname === item.href || pathname.startsWith(`${item.href}/`)
                   ? "border-transparent bg-blue-600 text-white shadow-[0_10px_26px_rgba(37,99,235,0.22)]"
                   : dark
-                    ? "border-white/10 bg-transparent text-white hover:border-transparent hover:bg-blue-600 hover:text-white"
+                    ? "border-white/10 bg-transparent text-white hover:border-white/10 hover:bg-blue-600 hover:text-white"
                     : "border-transparent text-[#07111f] hover:border-transparent hover:bg-blue-50 hover:text-blue-600"
               }`}
             >
@@ -602,7 +596,7 @@ export function SiteHeader() {
               onClick={() => setIsPhoneOpen((current) => !current)}
               aria-label="Телефон магазина"
               aria-expanded={isPhoneOpen}
-              className={`flex h-9 w-9 items-center justify-center rounded-xl border text-sm font-bold outline-none focus:outline-none transition-all duration-300 sm:h-10 sm:w-10 lg:h-11 lg:w-11 ${
+              className={`group flex h-9 w-9 items-center justify-center rounded-xl border text-sm font-bold outline-none focus:outline-none transition-all duration-300 sm:h-10 sm:w-10 lg:h-11 lg:w-11 ${
                 isPhoneOpen
                   ? "border-transparent bg-blue-600 text-white shadow-[0_10px_30px_rgba(37,99,235,0.34)]"
                   : dark
@@ -610,7 +604,16 @@ export function SiteHeader() {
                     : "border-black/15 bg-white text-[#07111f] hover:border-transparent hover:bg-blue-50"
               }`}
             >
-              ☎
+              <Image
+                src="/icons/phone-blue.svg"
+                alt=""
+                width={24}
+                height={24}
+                className={`h-5 w-5 object-contain transition-all sm:h-[22px] sm:w-[22px] ${
+                  isPhoneOpen ? "brightness-0 invert" : "group-hover:brightness-0 group-hover:invert"
+                }`}
+                aria-hidden="true"
+              />
             </button>
 
             {isPhoneOpen ? (
@@ -645,13 +648,20 @@ export function SiteHeader() {
 
           <Link
             href="/cart"
-            className={`relative hidden h-11 w-11 items-center justify-center rounded-xl border outline-none focus:outline-none transition-all duration-300 lg:flex ${
+            className={`group relative hidden h-11 w-11 items-center justify-center rounded-xl border outline-none focus:outline-none transition-all duration-300 lg:flex ${
               dark
                 ? "border-white/10 bg-white/[0.03] text-white hover:border-transparent hover:bg-blue-600"
                 : "border-black/10 bg-white text-[#07111f] hover:border-transparent hover:bg-blue-50"
             }`}
           >
-            🛒
+            <Image
+              src="/icons/cart-blue.svg"
+              alt=""
+              width={24}
+              height={24}
+              className="h-5 w-5 object-contain transition-all group-hover:brightness-0 group-hover:invert"
+              aria-hidden="true"
+            />
 
             {cartCount > 0 && (
               <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white shadow-lg shadow-red-500/30">
@@ -666,13 +676,20 @@ export function SiteHeader() {
                 href={accountHref}
                 aria-label={accountLabel}
                 title={accountLabel}
-                className={`flex h-9 w-9 items-center justify-center rounded-xl border text-sm font-bold outline-none focus:outline-none transition-all duration-300 sm:h-10 sm:w-10 lg:h-11 lg:w-11 ${
+                className={`group flex h-9 w-9 items-center justify-center rounded-xl border text-sm font-bold outline-none focus:outline-none transition-all duration-300 sm:h-10 sm:w-10 lg:h-11 lg:w-11 ${
                   dark
                     ? "border-white/10 bg-white/[0.03] text-white hover:border-transparent hover:bg-blue-600"
                     : "border-black/10 bg-white text-[#07111f] hover:border-transparent hover:bg-blue-50"
                 }`}
               >
-                {getUserInitial(authUser)}
+                <Image
+                  src="/icons/profile-blue.svg"
+                  alt=""
+                  width={24}
+                  height={24}
+                  className="h-5 w-5 object-contain transition-all group-hover:brightness-0 group-hover:invert"
+                  aria-hidden="true"
+                />
               </Link>
             </div>
           ) : (
@@ -735,7 +752,7 @@ export function SiteHeader() {
                       : "text-slate-500 hover:bg-blue-50 hover:text-blue-600"
                 }`}
               >
-                <span className="flex h-5 items-center justify-center">{renderNavIcon(icon, item.label)}</span>
+                <span className="flex h-5 items-center justify-center">{renderNavIcon(icon, item.label, active)}</span>
                 <span className="max-w-full truncate leading-none">{item.label}</span>
 
                 {item.key === "cart" && cartCount > 0 && (
