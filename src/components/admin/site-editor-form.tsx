@@ -1124,7 +1124,11 @@ function NavIconEditor({
 }) {
   const [imageFailed, setImageFailed] = useState(false);
   const presets = ["⌂", "▦", "✦", "?", "🛒", "●", "◆", "■"];
-  const isImage = /^(data:image\/|\/|https?:\/\/)/i.test(value.trim()) && !imageFailed;
+  const isImage =
+    /^(data:image\/|\/|https?:\/\/)/i.test(value.trim()) && !imageFailed;
+  const storedInDatabase =
+    value.startsWith("/api/public-image/setting/") ||
+    value.startsWith("data:image/");
 
   useEffect(() => {
     setImageFailed(false);
@@ -1162,6 +1166,12 @@ function NavIconEditor({
           <span className="text-2xl text-black">{value || "●"}</span>
         )}
       </div>
+
+      {storedInDatabase ? (
+        <div className="mt-2 rounded-lg border border-green-500/25 bg-green-500/10 px-2.5 py-2 text-[11px] font-medium text-green-300">
+          Сохранено в БД. Путь ниже используется только для показа.
+        </div>
+      ) : null}
 
       <div className="mt-3 flex flex-wrap gap-1.5">
         {presets.map((preset) => (

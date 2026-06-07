@@ -34,7 +34,7 @@ function parseDataImage(value: string) {
   };
 }
 
-function imageResponse(value: string) {
+function imageResponse(value: string, cacheControl?: string) {
   const image = parseDataImage(value.trim());
 
   if (!image) {
@@ -44,7 +44,9 @@ function imageResponse(value: string) {
   return new NextResponse(image.body, {
     headers: {
       "Content-Type": image.contentType,
-      "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
+      "Cache-Control":
+        cacheControl ??
+        "public, max-age=86400, stale-while-revalidate=604800",
     },
   });
 }
@@ -272,7 +274,12 @@ export async function GET(
       return svgResponse(fallbackSvg);
     }
 
-    return imageResponse(value);
+    return imageResponse(
+      value,
+      kind === "setting"
+        ? "private, no-cache, no-store, max-age=0, must-revalidate"
+        : undefined,
+    );
   } catch (error) {
     console.error("Public image loading failed", error);
     return new NextResponse("Image loading failed", { status: 500 });

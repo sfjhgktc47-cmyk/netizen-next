@@ -474,10 +474,10 @@ export function SiteHeader() {
               href={item.href}
               className={`rounded-xl border px-4 py-2.5 outline-none focus:outline-none transition-all duration-200 ${
                 pathname === item.href || pathname.startsWith(`${item.href}/`)
-                  ? "border-transparent bg-blue-600 text-white shadow-[0_10px_26px_rgba(37,99,235,0.22)]"
+                  ? "border-transparent bg-blue-600 text-white shadow-[0_10px_26px_rgba(37,99,235,0.18)]"
                   : dark
                     ? "border-white/10 bg-transparent text-white hover:border-white/10 hover:bg-blue-600 hover:text-white"
-                    : "border-transparent text-[#07111f] hover:border-transparent hover:bg-blue-50 hover:text-blue-600"
+                    : "border-transparent bg-transparent text-[#07111f] hover:border-transparent hover:bg-blue-600 hover:text-white"
               }`}
             >
               {item.label}
