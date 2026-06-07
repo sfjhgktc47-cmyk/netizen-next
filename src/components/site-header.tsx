@@ -66,10 +66,10 @@ type BottomNavItem = {
 };
 
 const bottomNavItems: BottomNavItem[] = [
-  { key: "home", label: "Главная", href: "/", fallbackIcon: "⌂" },
-  { key: "catalog", label: "Каталог", href: "/catalog", fallbackIcon: "▦" },
-  { key: "new", label: "Новинки", href: "/new", fallbackIcon: "✦" },
-  { key: "support", label: "Поддержка", href: "/help", fallbackIcon: "?" },
+  { key: "home", label: "Главная", href: "/", fallbackIcon: "__home__" },
+  { key: "catalog", label: "Каталог", href: "/catalog", fallbackIcon: "__catalog__" },
+  { key: "new", label: "Новинки", href: "/new", fallbackIcon: "__new__" },
+  { key: "support", label: "Поддержка", href: "/help", fallbackIcon: "__support__" },
   { key: "cart", label: "Корзина", href: "/cart", fallbackIcon: "__cart__" },
 ];
 
@@ -156,34 +156,129 @@ function UserHeaderIcon({ className = "" }: { className?: string }) {
   );
 }
 
-function renderNavIcon(icon: string, label: string, active = false) {
+function HomeBottomNavIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <path
+        d="M3.5 10.8 12 3.8l8.5 7"
+        stroke="currentColor"
+        strokeWidth="2.1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M5.5 9.8V20h13V9.8M9.5 20v-5.4h5V20"
+        stroke="currentColor"
+        strokeWidth="2.1"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function CatalogBottomNavIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <rect x="3.8" y="3.8" width="6.2" height="6.2" rx="1" stroke="currentColor" strokeWidth="2" />
+      <rect x="14" y="3.8" width="6.2" height="6.2" rx="1" stroke="currentColor" strokeWidth="2" />
+      <rect x="3.8" y="14" width="6.2" height="6.2" rx="1" stroke="currentColor" strokeWidth="2" />
+      <rect x="14" y="14" width="6.2" height="6.2" rx="1" stroke="currentColor" strokeWidth="2" />
+    </svg>
+  );
+}
+
+function NewBottomNavIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <path
+        d="m12 2.8 1.75 6.05L20 10.75l-6.25 1.9L12 18.8l-1.75-6.15L4 10.75l6.25-1.9L12 2.8Z"
+        stroke="currentColor"
+        strokeWidth="1.95"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path d="m18.4 16.4.65 2.15 2.15.65-2.15.65-.65 2.15-.65-2.15-2.15-.65 2.15-.65.65-2.15Z" fill="currentColor" />
+    </svg>
+  );
+}
+
+function SupportBottomNavIcon({ className = "" }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" className={className} aria-hidden="true">
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="2" />
+      <path
+        d="M9.55 9.1a2.7 2.7 0 1 1 4.45 2.05c-1.15.95-2 1.65-2 3.1"
+        stroke="currentColor"
+        strokeWidth="2"
+        strokeLinecap="round"
+      />
+      <circle cx="12" cy="17.85" r="1.05" fill="currentColor" />
+    </svg>
+  );
+}
+
+function DefaultBottomNavIcon({
+  itemKey,
+  className = "",
+}: {
+  itemKey: BottomNavItem["key"];
+  className?: string;
+}) {
+  if (itemKey === "home") return <HomeBottomNavIcon className={className} />;
+  if (itemKey === "catalog") return <CatalogBottomNavIcon className={className} />;
+  if (itemKey === "new") return <NewBottomNavIcon className={className} />;
+  if (itemKey === "support") return <SupportBottomNavIcon className={className} />;
+  return <CartHeaderIcon className={className} />;
+}
+
+function BottomNavIcon({
+  icon,
+  itemKey,
+  label,
+  active,
+}: {
+  icon: string;
+  itemKey: BottomNavItem["key"];
+  label: string;
+  active: boolean;
+}) {
+  const [imageFailed, setImageFailed] = useState(false);
   const value = icon.trim();
 
-  if (value === "__cart__") {
-    return (
-      <CartHeaderIcon
-        className={`h-[21px] w-[21px] overflow-visible ${active ? "text-white" : "text-blue-500"}`}
-      />
-    );
-  }
+  useEffect(() => {
+    setImageFailed(false);
+  }, [value]);
 
-  if (value && isImageIcon(value)) {
+  const isDefaultMarker = value.startsWith("__") && value.endsWith("__");
+  const iconClassName = `h-[20px] w-[20px] shrink-0 overflow-visible ${
+    active ? "text-white" : "text-blue-500"
+  }`;
+
+  if (value && isImageIcon(value) && !imageFailed) {
     return (
-      <Image
-        quality={75}
+      // eslint-disable-next-line @next/next/no-img-element
+      <img
         src={value}
         alt=""
         width={20}
         height={20}
-        className={`h-[18px] w-[18px] object-contain transition-all ${
-          active ? "brightness-0 invert" : ""
-        }`}
+        className={`h-[20px] w-[20px] shrink-0 object-contain ${active ? "brightness-0 invert" : ""}`}
         aria-hidden="true"
+        onError={() => setImageFailed(true)}
       />
     );
   }
 
-  return <span className="text-[17px] leading-none">{value || label[0]}</span>;
+  if (!value || isDefaultMarker || imageFailed || ["⌂", "▦", "✦", "?", "🛒"].includes(value)) {
+    return <DefaultBottomNavIcon itemKey={itemKey} className={iconClassName} />;
+  }
+
+  return (
+    <span className={`text-[17px] leading-none ${active ? "text-white" : "text-blue-500"}`}>
+      {value || label[0]}
+    </span>
+  );
 }
 
 function isActivePath(pathname: string, item: BottomNavItem) {
@@ -822,7 +917,7 @@ export function SiteHeader() {
                       : "text-slate-500 hover:bg-blue-50 hover:text-blue-600"
                 }`}
               >
-                <span className="flex h-5 items-center justify-center">{renderNavIcon(icon, item.label, active)}</span>
+                <span className="flex h-5 items-center justify-center"><BottomNavIcon icon={icon} itemKey={item.key} label={item.label} active={active} /></span>
                 <span className="max-w-full truncate leading-none">{item.label}</span>
 
                 {item.key === "cart" && cartCount > 0 && (
