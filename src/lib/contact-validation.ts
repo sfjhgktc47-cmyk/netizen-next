@@ -40,7 +40,16 @@ export function isValidRuPhone(value: unknown) {
 }
 
 export function normalizeEmailStrict(value: unknown) {
-  const email = typeof value === "string" ? value.trim().toLowerCase() : "";
+  const email =
+    typeof value === "string"
+      ? value
+          .normalize("NFKC")
+          .replace(/[\u200B-\u200D\uFEFF]/g, "")
+          .trim()
+          .toLowerCase()
+          .replace(/\s*@\s*/g, "@")
+          .replace(/\s*\.\s*/g, ".")
+      : "";
 
   if (!email) {
     return "";

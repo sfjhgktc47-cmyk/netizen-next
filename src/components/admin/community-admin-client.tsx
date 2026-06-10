@@ -55,6 +55,15 @@ export function CommunityAdminClient({
   const [loading, setLoading] = useState(true);
   const [message, setMessage] = useState("");
 
+  // При переходе между ?section=reviews и ?section=questions Next.js может
+  // сохранить экземпляр клиентского компонента. Синхронизируем внутреннюю
+  // вкладку с серверным параметром, чтобы не оставаться на старом разделе.
+  useEffect(() => {
+    setTab(initialTab);
+    setSearch("");
+    setMessage("");
+  }, [initialTab]);
+
   async function load() {
     setLoading(true);
     try {

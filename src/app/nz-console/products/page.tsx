@@ -522,6 +522,7 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
         ) : (
           <section className="mt-8 pb-10">
             <CommunityAdminClient
+              key={selectedSection}
               initialTab={selectedSection === "reviews" ? "reviews" : "questions"}
               hideTabs
             />

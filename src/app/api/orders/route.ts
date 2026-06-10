@@ -67,9 +67,27 @@ export async function POST(request: Request) {
   try {
     const session = await getAuthSession();
     const body = (await request.json()) as IncomingOrderBody;
-    const customerName = normalizeText(body.customer?.name);
-    const phone = normalizeRuPhone(body.customer?.phone);
-    const rawEmail = normalizeText(body.customer?.email);
+    const sessionCustomer =
+      session?.role === "customer" && session.customerId
+        ? await prisma.customer.findUnique({
+            where: { id: session.customerId },
+          })
+        : null;
+    const profileName = sessionCustomer
+      ? [sessionCustomer.name, sessionCustomer.lastName]
+          .map((part) => normalizeText(part))
+          .filter(Boolean)
+          .join(" ")
+      : "";
+    const customerName =
+      profileName || normalizeText(body.customer?.name);
+    const phone =
+      normalizeRuPhone(sessionCustomer?.phone) ||
+      normalizeRuPhone(body.customer?.phone);
+    const rawEmail =
+      normalizeText(sessionCustomer?.email) ||
+      normalizeText(body.customer?.email);
+    // E-mail is optional. Legacy/incorrect profile values must not block checkout.
     const email = rawEmail ? normalizeEmailStrict(rawEmail) : "";
     const deliveryMethod = body.delivery?.method === "pickup" ? "pickup" : "courier";
     const city = normalizeText(body.delivery?.city);
@@ -83,16 +101,26 @@ export async function POST(request: Request) {
     const comment = normalizeText(body.comment);
     const incomingItems = Array.isArray(body.items) ? body.items : [];
 
-    if (!customerName || !phone) {
+    if (!customerName) {
       return NextResponse.json(
-        { ok: false, error: "Укажите имя и корректный телефон РФ." },
+        {
+          ok: false,
+          error: sessionCustomer
+            ? "В профиле не указано имя. Добавьте имя в личном кабинете."
+            : "Укажите имя для заказа.",
+        },
         { status: 400 }
       );
     }
 
-    if (rawEmail && !email) {
+    if (!phone) {
       return NextResponse.json(
-        { ok: false, error: "Укажите корректный e-mail." },
+        {
+          ok: false,
+          error: sessionCustomer
+            ? "В профиле не указан корректный телефон РФ. Измените телефон в личном кабинете."
+            : "Укажите корректный телефон РФ.",
+        },
         { status: 400 }
       );
     }
@@ -164,11 +192,11 @@ export async function POST(request: Request) {
       );
     }
 
-    const customer = session?.role === "customer" && session.customerId
-      ? await prisma.customer.findUnique({ where: { id: session.customerId } })
-      : phone
+    const customer =
+      sessionCustomer ||
+      (phone
         ? await prisma.customer.findFirst({ where: { phone } })
-        : null;
+        : null);
 
     const savedCustomer = customer
       ? await prisma.customer.update({

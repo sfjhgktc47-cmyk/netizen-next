@@ -10,7 +10,7 @@ import { SiteHeader } from "@/components/site-header";
 import { formatPrice, getPriceNumber } from "@/lib/product-pricing";
 import {
  formatRuPhone,
- isValidEmail,
+ normalizeEmailStrict,
  normalizeRuPhone,
  validateCourierAddress,
 } from "@/lib/contact-validation";
@@ -137,10 +137,6 @@ function getContactValidationError(customer: CustomerData) {
 
  if (!normalizeRuPhone(customer.phone)) {
  return "Укажите корректный телефон РФ.";
- }
-
- if (customer.email.trim() && !isValidEmail(customer.email)) {
- return "Укажите корректный e-mail.";
  }
 
  return "";
@@ -340,10 +336,40 @@ export default function CartPage() {
  setPromoInput(storedPromo);
  setAppliedPromoCode(storedPromo);
 
- fetch("/api/auth/me")
+ fetch("/api/auth/me", { cache: "no-store" })
  .then((res) => res.json())
- .then((data: { authenticated?: boolean }) => {
- setIsRegistered(Boolean(data.authenticated));
+ .then((data: {
+ authenticated?: boolean;
+ user?: {
+ role?: string;
+ profile?: {
+ name?: string;
+ lastName?: string;
+ phone?: string;
+ email?: string;
+ };
+ };
+ }) => {
+ const profile = data.user?.profile;
+ const isCustomer =
+ Boolean(data.authenticated) &&
+ data.user?.role === "customer" &&
+ Boolean(profile);
+
+ setIsRegistered(isCustomer);
+
+ if (isCustomer && profile) {
+ const fullName = [profile.name, profile.lastName]
+ .map((part) => String(part ?? "").trim())
+ .filter(Boolean)
+ .join(" ");
+
+ setCustomer({
+ name: fullName,
+ phone: formatRuPhone(profile.phone ?? ""),
+ email: normalizeEmailStrict(profile.email ?? ""),
+ });
+ }
  })
  .catch(() => {
  setIsRegistered(false);
@@ -677,13 +703,13 @@ export default function CartPage() {
  ? {
  ...customer,
  phone: normalizeRuPhone(customer.phone),
- email: customer.email.trim().toLowerCase(),
+ email: normalizeEmailStrict(customer.email),
  source: "profile",
  }
  : {
  ...customer,
  phone: normalizeRuPhone(customer.phone),
- email: customer.email.trim().toLowerCase(),
+ email: normalizeEmailStrict(customer.email),
  source: "guest",
  },
  delivery: {
@@ -1399,7 +1425,7 @@ export default function CartPage() {
  <input
  value={customer.email}
  onChange={(event) => setCustomer((current) => ({ ...current, email: event.target.value }))}
- placeholder="E-mail, если удобно"
+ placeholder="E-mail, необязательно"
  type="email"
  inputMode="email"
  className="h-12 rounded-xl border border-theme bg-transparent px-4 outline-none placeholder:text-muted-soft focus:border-blue-500/50 md:col-span-2"
