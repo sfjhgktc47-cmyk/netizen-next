@@ -318,7 +318,7 @@ export function ProductDetailView({
  fetch("/api/checkout/quote", {
  method: "POST",
  headers: { "Content-Type": "application/json" },
- body: JSON.stringify({ items: [{ sku: activePosition.sku, quantity: 1 }] }),
+ body: JSON.stringify({ items: [{ sku: activePosition.sku, quantity }] }),
  })
  .then((response) => response.json())
  .then((payload: { quote?: PositionDiscountQuote }) => {
@@ -331,7 +331,7 @@ export function ProductDetailView({
  return () => {
  active = false;
  };
- }, [activePosition?.sku]);
+ }, [activePosition?.sku, quantity]);
 
  async function loadCommunity() {
  setCommunityLoading(true);
@@ -617,6 +617,23 @@ export function ProductDetailView({
 
  return `от ${formatPrice(minPrice)} до ${formatPrice(maxPrice)}`;
  }, [positions]);
+
+ const unitPrice = activePosition ? getPriceNumber(activePosition.price) : 0;
+ const oldUnitPrice = activePosition ? getPriceNumber(activePosition.oldPrice) : 0;
+ const finalTotalPrice =
+ activePosition && positionDiscountQuote
+ ? positionDiscountQuote.total
+ : unitPrice * quantity;
+ const finalUnitPrice =
+ quantity > 0 ? Math.round(finalTotalPrice / quantity) : finalTotalPrice;
+ const oldTotalPrice = oldUnitPrice > 0 ? oldUnitPrice * quantity : 0;
+ const baseTotalPrice = unitPrice * quantity;
+ const crossedTotalPrice =
+ positionDiscountQuote?.statusDiscount && baseTotalPrice > finalTotalPrice
+ ? baseTotalPrice
+ : oldTotalPrice;
+ const quantityPriceLabel =
+ quantity > 1 ? `Итого за ${quantity} шт.` : "Цена за 1 шт.";
 
  useEffect(() => {
  setIsFavorite(getFavoriteSlugs().includes(product.slug));
@@ -1268,19 +1285,26 @@ export function ProductDetailView({
  <div className="mt-5 border-t border-theme pt-5 sm:mt-8 sm:pt-7">
  <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
  <div>
- {(activePosition.oldPrice || (positionDiscountQuote?.statusDiscount ?? 0) > 0) && (
+ {crossedTotalPrice > 0 && (
  <div className="text-sm text-muted line-through">
- {positionDiscountQuote?.statusDiscount
- ? activePosition.price
- : activePosition.oldPrice}
+ {formatPrice(crossedTotalPrice)}
  </div>
  )}
 
- <div className="mt-1 text-[28px] font-bold tracking-[-0.045em] sm:text-4xl">
- {positionDiscountQuote?.statusDiscount
- ? formatPrice(positionDiscountQuote.total)
- : activePosition.price}
+ <div className="mt-1 text-xs font-semibold uppercase tracking-[0.12em] text-muted">
+ {quantityPriceLabel}
  </div>
+
+ <div className="mt-1 text-[28px] font-bold tracking-[-0.045em] sm:text-4xl">
+ {finalTotalPrice > 0 ? formatPrice(finalTotalPrice) : activePosition.price}
+ </div>
+
+ {quantity > 1 && finalUnitPrice > 0 ? (
+ <div className="mt-1 text-xs font-medium text-muted sm:text-sm">
+ {formatPrice(finalUnitPrice)} за 1 шт.
+ </div>
+ ) : null}
+
  {positionDiscountQuote?.statusDiscount ? (
  <div className="mt-1 text-xs font-medium text-green-500 sm:text-sm">
  Ваша цена · {positionDiscountQuote.statusLabel} · скидка {formatPrice(positionDiscountQuote.statusDiscount)}
@@ -1331,7 +1355,7 @@ export function ProductDetailView({
 
  {activePosition.stock > 0 ? (
  <div className="text-sm text-muted">
- Можно добавить до {activePosition.stock} шт.
+ Цена пересчитывается по количеству · максимум {activePosition.stock} шт.
  </div>
  ) : (
  <div className="text-sm text-orange-500">
