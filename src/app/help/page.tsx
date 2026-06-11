@@ -223,11 +223,11 @@ export default function HelpPage() {
   }
 
   return (
-    <main className="min-h-screen bg-page px-2 py-2.5 text-main transition-colors duration-700 sm:px-4 sm:py-5 lg:px-5 lg:py-6">
-      <div className="mx-auto max-w-[1440px]">
+    <main className="min-h-[100dvh] bg-page px-2 py-2.5 text-main transition-colors duration-700 sm:px-4 sm:py-5 lg:px-5 lg:py-6">
+      <div className="mx-auto flex min-h-[calc(100dvh-48px)] max-w-[1440px] flex-col">
         <SiteHeader />
 
-        <section className="mt-4 sm:mt-7 lg:mt-10">
+        <section className="mt-4 shrink-0 sm:mt-6 lg:mt-7">
           <nav aria-label="Хлебные крошки" className="hidden items-center gap-2 text-sm text-muted sm:flex">
             <Link href="/" className="transition-colors hover:text-blue-500">Главная</Link>
             <span className="text-muted-soft">›</span>
@@ -245,8 +245,8 @@ export default function HelpPage() {
           </p>
         </section>
 
-        <section className="mt-4 grid gap-3 sm:mt-6 lg:grid-cols-[270px_minmax(0,1fr)] lg:gap-6">
-          <aside className="-mx-2 flex snap-x gap-2 overflow-x-auto px-2 pb-1 sm:-mx-4 sm:px-4 lg:mx-0 lg:grid lg:content-start lg:overflow-visible lg:px-0">
+        <section className="mt-4 grid gap-3 sm:mt-5 lg:min-h-0 lg:flex-1 lg:grid-cols-[270px_minmax(0,1fr)] lg:gap-6">
+          <aside className="-mx-2 flex snap-x gap-2 overflow-x-auto px-2 pb-1 sm:-mx-4 sm:px-4 lg:mx-0 lg:grid lg:h-full lg:min-h-0 lg:content-start lg:overflow-y-auto lg:overflow-x-hidden lg:px-0 lg:pr-1">
             {topics.map((topic) => {
               const isActive = topic.id === activeTopic.id;
               const request = requestsByTopic[topic.id];
@@ -274,7 +274,7 @@ export default function HelpPage() {
             })}
           </aside>
 
-          <section className="card flex min-h-[660px] flex-col overflow-hidden rounded-[22px] sm:min-h-[740px] sm:rounded-[28px] lg:min-h-[820px] lg:rounded-[32px]">
+          <section className="card flex min-h-[620px] flex-col overflow-hidden rounded-[22px] sm:min-h-[700px] sm:rounded-[28px] lg:h-full lg:min-h-[680px] lg:rounded-[32px]">
             <header className="flex items-center gap-3 border-b border-theme px-4 py-3.5 sm:px-5 sm:py-4 lg:px-7 lg:py-5">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-base font-bold text-white sm:h-11 sm:w-11">
                 {activeTopic.icon}
@@ -293,7 +293,7 @@ export default function HelpPage() {
             </header>
 
             <div className="flex min-h-0 flex-1 flex-col">
-              <div className="min-h-0 min-h-[430px] flex-1 space-y-3 overflow-y-auto bg-blue-500/[0.025] px-3 py-4 sm:px-5 sm:py-5 lg:px-7 lg:py-7 sm:min-h-[520px] lg:min-h-[560px] xl:min-h-[620px]">
+              <div className="min-h-[390px] flex-1 space-y-3 overflow-y-auto bg-blue-500/[0.025] px-3 py-4 sm:min-h-[470px] sm:px-5 sm:py-5 lg:min-h-0 lg:px-7 lg:py-7">
                 <div className="flex items-end gap-2.5">
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-[11px] font-bold text-white">
                     Н
@@ -404,7 +404,7 @@ export default function HelpPage() {
           </section>
         </section>
 
-        <details className="card mt-3 rounded-2xl lg:hidden">
+        <details className="card mt-3 shrink-0 rounded-2xl lg:hidden">
           <summary className="cursor-pointer list-none px-4 py-3 text-sm font-semibold text-blue-500">
             Контакты магазина
           </summary>
