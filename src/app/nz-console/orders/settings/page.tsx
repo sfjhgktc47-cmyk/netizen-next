@@ -10,8 +10,8 @@ export const dynamic = "force-dynamic";
 
 export default async function OrderSettingsPage() {
   const session = await getAuthSession();
-  if (session?.role !== "admin" || !canAccessAdminSection(session, "orders")) {
-    redirect("/nz-console");
+  if (session?.role !== "admin" || !canAccessAdminSection(session, "order-settings")) {
+    redirect("/nz-console/orders");
   }
 
   const settings = await getOrderWorkflowSettings();

@@ -2,6 +2,7 @@ import "server-only";
 
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/product-pricing";
+import { calculateCustomerStatus, getCustomerStatusRules } from "@/lib/customer-status-db";
 import {
   formatSupportDate,
   getSupportStatusLabel,
@@ -9,8 +10,6 @@ import {
   type SupportRequest,
 } from "@/lib/support-store";
 
-const activeOrderStatuses = ["new", "confirming", "in_work", "ready", "completed"] as const;
-const openSupportStatuses = ["NEW", "IN_PROGRESS", "WAITING_CLIENT"];
 
 type CustomerWithRelations = Awaited<ReturnType<typeof getCustomerRecords>>[number];
 
@@ -77,7 +76,7 @@ function getCustomerSupportRequests(customer: Pick<CustomerWithRelations, "phone
 
 function getCustomerTotal(customer: CustomerWithRelations) {
   return customer.orders
-    .filter((order) => activeOrderStatuses.includes(order.status as (typeof activeOrderStatuses)[number]))
+    .filter((order) => order.status === "completed")
     .reduce((sum, order) => sum + order.total, 0);
 }
 
@@ -96,29 +95,6 @@ function isRegisteredCustomer(customer: Pick<CustomerWithRelations, "passwordHas
   return Boolean(customer.passwordHash.trim());
 }
 
-function getCustomerStatus(customer: CustomerWithRelations, supportRequests: SupportRequest[]) {
-  const total = getCustomerTotal(customer);
-  const ordersCount = customer.orders.length;
-  const hasOpenSupport = supportRequests.some((request) => openSupportStatuses.includes(request.status));
-
-  if (hasOpenSupport && ordersCount === 0) {
-    return "Требует внимания";
-  }
-
-  if (total >= 250000 || ordersCount >= 3) {
-    return "VIP";
-  }
-
-  if (ordersCount >= 2) {
-    return "Постоянный";
-  }
-
-  if (isRegisteredCustomer(customer)) {
-    return "Зарегистрирован";
-  }
-
-  return "Новый";
-}
 
 export function formatAdminDate(value: Date) {
   return new Intl.DateTimeFormat("ru-RU", {
@@ -142,15 +118,11 @@ export function getClientStatusClass(status: string) {
     return "border-purple-500/35 bg-purple-500/10 text-purple-300";
   }
 
-  if (status === "Постоянный") {
+  if (status === "Постоянный клиент") {
     return "border-blue-500/35 bg-blue-500/10 text-blue-400";
   }
 
-  if (status === "Зарегистрирован") {
-    return "border-cyan-500/35 bg-cyan-500/10 text-cyan-300";
-  }
-
-  if (status === "Новый") {
+  if (status === "Новый клиент") {
     return "border-green-500/35 bg-green-500/10 text-green-300";
   }
 
@@ -158,16 +130,17 @@ export function getClientStatusClass(status: string) {
 }
 
 export async function getAdminCustomers() {
-  const [customers, supportRequests] = await Promise.all([
+  const [customers, supportRequests, statusRules] = await Promise.all([
     getCustomerRecords(),
     listSupportRequests(),
+    getCustomerStatusRules(),
   ]);
 
   return customers.map((customer) => {
     const tickets = getCustomerSupportRequests(customer, supportRequests);
     const totalSpent = getCustomerTotal(customer);
     const lastActivity = getCustomerLastActivity(customer, tickets);
-    const status = getCustomerStatus(customer, tickets);
+    const statusProgress = calculateCustomerStatus(customer, statusRules);
     const fullName = getCustomerFullName(customer);
     const isRegistered = isRegisteredCustomer(customer);
 
@@ -186,10 +159,15 @@ export async function getAdminCustomers() {
       registeredAt: customer.createdAt,
       registeredAtLabel: formatAdminDate(customer.createdAt),
       ordersCount: customer.orders.length,
+      completedOrdersCount: statusProgress.completedOrders,
+      countedOrdersCount: statusProgress.countedOrders,
       ticketsCount: tickets.length,
       totalSpent,
       totalSpentLabel: formatAdminPrice(totalSpent),
-      status,
+      countedSpent: statusProgress.countedSpent,
+      countedSpentLabel: formatAdminPrice(statusProgress.countedSpent),
+      status: statusProgress.statusLabel,
+      statusProgress,
       lastActivity,
       lastActivityLabel: formatAdminDate(lastActivity),
     };
@@ -202,8 +180,8 @@ export async function getCustomerMetrics() {
   return {
     total: customers.length,
     registered: customers.filter((customer) => customer.isRegistered).length,
-    new: customers.filter((customer) => customer.status === "Новый").length,
-    regular: customers.filter((customer) => customer.status === "Постоянный").length,
+    new: customers.filter((customer) => customer.status === "Новый клиент").length,
+    regular: customers.filter((customer) => customer.status === "Постоянный клиент").length,
     vip: customers.filter((customer) => customer.status === "VIP").length,
     attention: customers.filter((customer) => customer.status === "Требует внимания").length,
     totalSpent: customers.reduce((sum, customer) => sum + customer.totalSpent, 0),
@@ -211,7 +189,7 @@ export async function getCustomerMetrics() {
 }
 
 export async function getAdminCustomer(id: string) {
-  const [customer, supportRequests] = await Promise.all([
+  const [customer, supportRequests, statusRules] = await Promise.all([
     prisma.customer.findUnique({
       where: { id },
       include: {
@@ -231,6 +209,7 @@ export async function getAdminCustomer(id: string) {
       },
     }),
     listSupportRequests(),
+    getCustomerStatusRules(),
   ]);
 
   if (!customer) {
@@ -240,7 +219,7 @@ export async function getAdminCustomer(id: string) {
   const tickets = getCustomerSupportRequests(customer, supportRequests);
   const totalSpent = getCustomerTotal(customer);
   const lastActivity = getCustomerLastActivity(customer, tickets);
-  const status = getCustomerStatus(customer, tickets);
+  const statusProgress = calculateCustomerStatus(customer, statusRules);
   const isRegistered = isRegisteredCustomer(customer);
 
   return {
@@ -257,7 +236,9 @@ export async function getAdminCustomer(id: string) {
     authLabel: isRegistered ? "Аккаунт создан" : "Без аккаунта",
     registeredAt: customer.createdAt,
     registeredAtLabel: formatAdminDate(customer.createdAt),
-    status,
+    status: statusProgress.statusLabel,
+    statusProgress,
+    statusRules,
     totalSpent,
     totalSpentLabel: formatAdminPrice(totalSpent),
     ordersCount: customer.orders.length,
@@ -283,7 +264,7 @@ export async function getAdminCustomer(id: string) {
       id: ticket.id,
       number: ticket.number,
       topic: ticket.topicTitle,
-      linkedOrder: "Без привязки к заказу",
+      linkedOrder: ticket.orderPublicId || "Без привязки к заказу",
       status: getSupportStatusLabel(ticket.status),
       date: formatSupportDate(ticket.updatedAt),
     })),

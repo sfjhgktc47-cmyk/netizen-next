@@ -1,6 +1,8 @@
+import { BackLink } from "@/components/back-link";
 import Link from "next/link";
+import { CustomerStatusSettingsForm } from "@/components/admin/customer-status-settings-form";
+import { getCustomerStatusRules } from "@/lib/customer-status-db";
 import {
-  formatAdminPrice,
   getAdminCustomers,
   getClientStatusClass,
   getCustomerMetrics,
@@ -10,11 +12,9 @@ export const dynamic = "force-dynamic";
 
 const statusTabs = [
   { label: "Все", value: "all" },
-  { label: "Зарегистрированные", value: "registered" },
   { label: "Новые", value: "new" },
   { label: "Постоянные", value: "regular" },
   { label: "VIP", value: "vip" },
-  { label: "Требуют внимания", value: "attention" },
 ];
 
 function normalize(value: string | undefined) {
@@ -22,11 +22,9 @@ function normalize(value: string | undefined) {
 }
 
 function matchesStatus(status: string, filter: string) {
-  if (filter === "registered") return status === "Зарегистрирован";
-  if (filter === "new") return status === "Новый";
-  if (filter === "regular") return status === "Постоянный";
+  if (filter === "new") return status === "Новый клиент";
+  if (filter === "regular") return status === "Постоянный клиент";
   if (filter === "vip") return status === "VIP";
-  if (filter === "attention") return status === "Требует внимания";
   return true;
 }
 
@@ -38,7 +36,11 @@ export default async function AdminUsersPage({
   const params = await searchParams;
   const query = params?.q?.trim() ?? "";
   const statusFilter = params?.status ?? "all";
-  const [customers, metrics] = await Promise.all([getAdminCustomers(), getCustomerMetrics()]);
+  const [customers, metrics, statusRules] = await Promise.all([
+    getAdminCustomers(),
+    getCustomerMetrics(),
+    getCustomerStatusRules(),
+  ]);
   const normalizedQuery = normalize(query);
 
   const filteredCustomers = customers.filter((customer) => {
@@ -77,14 +79,12 @@ export default async function AdminUsersPage({
             href="/"
             className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
           >
-            На сайт →
+            На сайт
           </Link>
         </header>
 
         <section className="mt-10">
-          <Link href="/nz-console" className="text-sm text-blue-400 transition-colors hover:text-blue-300">
-            ← В админку
-          </Link>
+          <BackLink href="/nz-console" label="В админку" variant="admin" />
 
           <div className="mt-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -114,7 +114,7 @@ export default async function AdminUsersPage({
                 href="/catalog"
                 className="rounded-xl bg-blue-600 px-7 py-4 text-sm font-medium text-white transition-colors hover:bg-blue-500"
               >
-                Создать клиента через заказ →
+                Создать клиента через заказ
               </Link>
             </div>
           </div>
@@ -122,10 +122,14 @@ export default async function AdminUsersPage({
 
         <section className="mt-8 grid gap-5 md:grid-cols-4">
           <MetricCard label="Всего клиентов" value={String(metrics.total)} />
-          <MetricCard label="С аккаунтом" value={String(metrics.registered)} />
+          <MetricCard label="Новые" value={String(metrics.new)} />
+          <MetricCard label="Постоянные" value={String(metrics.regular)} />
           <MetricCard label="VIP" value={String(metrics.vip)} />
-          <MetricCard label="Сумма покупок" value={formatAdminPrice(metrics.totalSpent)} />
         </section>
+
+        <div className="mt-8">
+          <CustomerStatusSettingsForm initialRules={statusRules} />
+        </div>
 
         <section className="mt-8">
           <div className="flex flex-wrap gap-2 border-b border-white/10">
@@ -223,6 +227,11 @@ export default async function AdminUsersPage({
                           <span className={`rounded-full border px-3 py-1 text-sm ${getClientStatusClass(customer.status)}`}>
                             {customer.status}
                           </span>
+                          {customer.statusProgress.isManual ? (
+                            <span className="rounded-full border border-orange-500/30 bg-orange-500/10 px-2.5 py-1 text-xs text-orange-300">
+                              вручную
+                            </span>
+                          ) : null}
                         </div>
 
                         <div className="mt-2 text-sm text-white/45">
@@ -242,10 +251,10 @@ export default async function AdminUsersPage({
                     </div>
 
                     <div className="grid gap-3 sm:grid-cols-4 lg:min-w-[560px]">
-                      <MiniStat label="Заявок" value={String(customer.ordersCount)} />
-                      <MiniStat label="Обращений" value={String(customer.ticketsCount)} />
+                      <MiniStat label="Завершено" value={String(customer.completedOrdersCount)} />
+                      <MiniStat label="Учтено" value={String(customer.countedOrdersCount)} />
                       <MiniStat label="Покупки" value={customer.totalSpentLabel} />
-                      <MiniStat label="Регистрация" value={customer.registeredAtLabel} />
+                      <MiniStat label="До уровня" value={`${customer.statusProgress.progressPercent}%`} />
                     </div>
                   </div>
                 </Link>
@@ -268,7 +277,8 @@ export default async function AdminUsersPage({
                 <InfoLine label="Заявки" value="история покупок" />
                 <InfoLine label="Обращения" value="чаты и темы" />
                 <InfoLine label="Доставка" value="адреса / ПВЗ" />
-                <InfoLine label="Статус" value="автоматически" />
+                <InfoLine label="Статусы" value="Новый / Постоянный / VIP" />
+                <InfoLine label="Расчёт" value="автоматически или вручную" />
               </div>
             </section>
 

@@ -1,3 +1,4 @@
+import { BackLink } from "@/components/back-link";
 import type { ReactNode } from "react";
 import Image from 'next/image';
 import Link from "next/link";
@@ -224,14 +225,12 @@ export default async function AdminPositionsPage({
             href="/"
             className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
           >
-            На сайт →
+            На сайт
           </Link>
         </header>
 
         <section className="mt-10">
-          <Link href="/nz-console" className="text-sm text-blue-400 transition-colors hover:text-blue-300">
-            ← В админку
-          </Link>
+          <BackLink href="/nz-console" label="В админку" variant="admin" />
 
           <div className="mt-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -253,7 +252,7 @@ export default async function AdminPositionsPage({
                 href="/nz-console/positions/new"
                 className="rounded-xl bg-blue-600 px-7 py-4 text-sm font-medium text-white transition-colors hover:bg-blue-500"
               >
-                Добавить позицию →
+                Добавить позицию
               </Link>
             </div>
           </div>

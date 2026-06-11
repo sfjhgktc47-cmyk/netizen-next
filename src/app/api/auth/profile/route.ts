@@ -4,11 +4,14 @@ import {
   createAuthSessionToken,
   getAuthCookieOptions,
   getAuthSession,
-  normalizeEmail,
   normalizeText,
 } from "@/lib/auth";
 import { prisma } from "@/lib/db";
 import { getSupportTopic } from "@/lib/support-topics";
+import {
+  calculateCustomerStatus,
+  getCustomerStatusRules,
+} from "@/lib/customer-status-db";
 
 function jsonError(message: string, status = 400) {
   return NextResponse.json({ ok: false, message }, { status });
@@ -35,6 +38,9 @@ async function getCustomerProfile(customerId: string) {
       lastName: true,
       phone: true,
       email: true,
+      createdAt: true,
+      statusOverride: true,
+      statusOverrideAt: true,
       orders: {
         orderBy: { createdAt: "desc" },
         take: 20,
@@ -65,6 +71,21 @@ async function getCustomerProfile(customerId: string) {
     return null;
   }
 
+  const statusRules = await getCustomerStatusRules();
+  const statusProgress = calculateCustomerStatus(customer, statusRules);
+  const statusDiscountEnabled =
+    statusProgress.status === "vip"
+      ? statusRules.vipDiscountEnabled
+      : statusProgress.status === "regular"
+        ? statusRules.regularDiscountEnabled
+        : false;
+  const statusDiscountTiers =
+    statusProgress.status === "vip"
+      ? statusRules.vipDiscountTiers
+      : statusProgress.status === "regular"
+        ? statusRules.regularDiscountTiers
+        : [];
+
   return {
     profile: {
       id: customer.id,
@@ -72,6 +93,12 @@ async function getCustomerProfile(customerId: string) {
       lastName: customer.lastName,
       phone: customer.phone,
       email: customer.email,
+      createdAt: customer.createdAt.toISOString(),
+    },
+    statusProgress,
+    statusDiscount: {
+      enabled: statusDiscountEnabled,
+      tiers: statusDiscountTiers,
     },
     orders: customer.orders.map((order) => ({
       id: order.id,
@@ -151,27 +178,13 @@ export async function PATCH(request: Request) {
   }
 
   const body = (await request.json().catch(() => null)) as
-    | { firstName?: unknown; lastName?: unknown; phone?: unknown; email?: unknown }
+    | { firstName?: unknown; lastName?: unknown }
     | null;
   const firstName = normalizeText(body?.firstName);
   const lastName = normalizeText(body?.lastName);
-  const phone = normalizeText(body?.phone);
-  const email = normalizeEmail(normalizeText(body?.email));
 
-  if (!firstName || !lastName || !phone) {
-    return jsonError("Укажи имя, фамилию и телефон.");
-  }
-
-  const duplicate = await prisma.customer.findFirst({
-    where: {
-      id: { not: session.customerId },
-      OR: [{ phone }, ...(email ? [{ email }] : [])],
-    },
-    select: { id: true },
-  });
-
-  if (duplicate) {
-    return jsonError("Такой телефон или e-mail уже привязан к другому клиенту.", 409);
+  if (!firstName || !lastName) {
+    return jsonError("Укажите имя и фамилию.");
   }
 
   const customer = await prisma.customer.update({
@@ -179,8 +192,6 @@ export async function PATCH(request: Request) {
     data: {
       name: firstName,
       lastName,
-      phone,
-      email,
     },
     select: {
       id: true,

@@ -1,7 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
-import Image from 'next/image';
+import { useEffect, useState, type ReactNode } from "react";
 
 type ProductBenefit = {
   id: string;
@@ -172,7 +171,7 @@ export function ProductTabs({
               Почему у нас удобно покупать
             </h2>
 
-            <div className="mt-6 grid gap-4 md:grid-cols-2">
+            <div className="mt-6 grid auto-rows-fr gap-4 md:grid-cols-2">
               {visibleBenefits.map((item) => (
                 <BenefitCard key={item.id || item.title} item={item} />
               ))}
@@ -185,21 +184,39 @@ export function ProductTabs({
 }
 
 function BenefitCard({ item }: { item: ProductBenefit }) {
+  const [imageFailed, setImageFailed] = useState(false);
+  const cleanImage = item.image?.trim() || "";
+
+  useEffect(() => {
+    setImageFailed(false);
+  }, [cleanImage]);
+
   const content = (
-    <div className="rounded-2xl border border-theme bg-blue-soft p-5 transition-colors hover:border-blue-500/40">
-      <div className="flex gap-4">
+    <div className="h-full min-h-[126px] rounded-2xl border border-theme bg-blue-soft p-5 transition-colors hover:border-blue-500/40">
+      <div className="flex h-full items-start gap-4">
         <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-theme bg-card text-lg text-blue-500">
-          {item.image ? (
+          {cleanImage && !imageFailed ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <Image quality={75} src={item.image} alt={item.title} className="h-full w-full object-cover" />
+            <img
+              src={cleanImage}
+              alt=""
+              loading="eager"
+              decoding="async"
+              onError={() => setImageFailed(true)}
+              className="h-7 w-7 object-contain"
+            />
           ) : (
-            item.icon || "✦"
+            <span className="flex h-7 w-7 items-center justify-center leading-none">
+              {item.icon || "✦"}
+            </span>
           )}
         </div>
 
-        <div>
-          <div className="font-bold text-main">{item.title}</div>
-          <p className="mt-1 text-sm leading-6 text-muted">{item.description}</p>
+        <div className="min-w-0 flex-1">
+          <div className="line-clamp-2 font-bold text-main">{item.title}</div>
+          <p className="mt-1 line-clamp-3 text-sm leading-6 text-muted">
+            {item.description}
+          </p>
         </div>
       </div>
     </div>
@@ -210,7 +227,7 @@ function BenefitCard({ item }: { item: ProductBenefit }) {
   }
 
   return (
-    <a href={item.href} className="block">
+    <a href={item.href} className="block h-full">
       {content}
     </a>
   );

@@ -6,13 +6,13 @@ import { getOrderWorkflowSettings, saveOrderWorkflowSettings } from "@/lib/order
 
 export const dynamic = "force-dynamic";
 
-async function canManageOrders() {
+async function canManageOrderSettings() {
   const session = await getAuthSession();
-  return session?.role === "admin" && canAccessAdminSection(session, "orders");
+  return session?.role === "admin" && canAccessAdminSection(session, "order-settings");
 }
 
 export async function GET() {
-  if (!(await canManageOrders())) {
+  if (!(await canManageOrderSettings())) {
     return NextResponse.json({ ok: false, error: "Недостаточно прав." }, { status: 403 });
   }
 
@@ -20,7 +20,7 @@ export async function GET() {
 }
 
 export async function PATCH(request: Request) {
-  if (!(await canManageOrders())) {
+  if (!(await canManageOrderSettings())) {
     return NextResponse.json({ ok: false, error: "Недостаточно прав." }, { status: 403 });
   }
 

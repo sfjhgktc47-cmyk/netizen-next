@@ -27,7 +27,13 @@ export async function GET(request: Request) {
   }
 
   const url = new URL(request.url);
-  const entity = url.searchParams.get("entity") || "all";
+  const rawEntity = url.searchParams.get("entity") || "all";
+  const entity =
+    rawEntity === "question" || rawEntity === "questions"
+      ? "question"
+      : rawEntity === "review" || rawEntity === "reviews"
+        ? "review"
+        : "all";
   const search = clean(url.searchParams.get("search"), 200);
   const limit = Math.min(Math.max(Number(url.searchParams.get("limit")) || 100, 1), 300);
 

@@ -30,6 +30,8 @@ export type SupportRequest = {
   createdAt: string;
   updatedAt: string;
   messages: SupportMessage[];
+  orderId?: string;
+  orderPublicId?: string;
 };
 
 const statusToDb: Record<SupportStatus, "new" | "in_work" | "waiting_client" | "closed"> = {
@@ -95,6 +97,7 @@ async function generateSupportPublicId() {
 }
 
 type DbSupportRequest = Awaited<ReturnType<typeof prisma.supportRequest.findFirst>> & {
+  order?: { id: string; publicId: string } | null;
   messages?: Array<{
     id: string;
     role: string;
@@ -140,6 +143,8 @@ function mapSupportRequest(request: NonNullable<DbSupportRequest>): SupportReque
     createdAt: request.createdAt.toISOString(),
     updatedAt: request.updatedAt.toISOString(),
     messages: normalizedMessages,
+    orderId: request.order?.id,
+    orderPublicId: request.order?.publicId,
   };
 }
 
@@ -167,6 +172,7 @@ export async function listSupportRequests() {
   const requests = await prisma.supportRequest.findMany({
     orderBy: { updatedAt: "desc" },
     include: {
+      order: { select: { id: true, publicId: true } },
       messages: {
         orderBy: { createdAt: "asc" },
       },
@@ -204,6 +210,7 @@ export async function getSupportRequest(idOrNumber: string) {
       OR: [{ id: idOrNumber }, { publicId: idOrNumber }],
     },
     include: {
+      order: { select: { id: true, publicId: true } },
       messages: {
         orderBy: { createdAt: "asc" },
       },
@@ -216,6 +223,7 @@ export async function getSupportRequest(idOrNumber: string) {
 export async function createSupportRequest(input: {
   topicId: string;
   message: string;
+  customerId?: string;
   customerName?: string;
   phone?: string;
   email?: string;
@@ -227,9 +235,9 @@ export async function createSupportRequest(input: {
   const email = normalizeText(input.email);
   const customerName = normalizeText(input.customerName) || "Гость Нетизен";
 
-  let customerId: string | undefined;
+  let customerId = normalizeText(input.customerId) || undefined;
 
-  if (phone) {
+  if (!customerId && phone) {
     const customer = await prisma.customer.findFirst({ where: { phone } });
     const savedCustomer = customer
       ? await prisma.customer.update({
@@ -275,6 +283,7 @@ export async function createSupportRequest(input: {
       },
     },
     include: {
+      order: { select: { id: true, publicId: true } },
       messages: {
         orderBy: { createdAt: "asc" },
       },
