@@ -1,4 +1,3 @@
-import { BackLink } from "@/components/back-link";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
@@ -54,12 +53,14 @@ export default async function AdminProductDetailPage({
             href="/nz-console/products"
             className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
           >
-            К карточкам
+            К карточкам →
           </Link>
         </header>
 
         <section className="mt-10">
-          <BackLink href="/nz-console/products" label="Назад к карточкам" variant="admin" />
+          <Link href="/nz-console/products" className="text-sm text-blue-400 transition-colors hover:text-blue-300">
+            ← Назад к карточкам
+          </Link>
 
           <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
             <div className="rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
@@ -214,7 +215,7 @@ export default async function AdminProductDetailPage({
           <div className="mt-8 rounded-[28px] border border-blue-500/20 bg-blue-500/10 p-6 text-sm leading-relaxed text-blue-100/80">
             Позиции редактируются в отдельном разделе «Позиции / SKU», чтобы карточка товара не смешивалась с конкретными комплектациями.
             <Link href="/nz-console/positions" className="ml-2 font-semibold text-blue-200 hover:text-white">
-              Открыть позиции
+              Открыть позиции →
             </Link>
           </div>
         </section>

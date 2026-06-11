@@ -4,9 +4,8 @@ import { useState, type ReactNode } from "react";
 
 import { ImageDropZone } from "@/components/admin/image-drop-zone";
 import type { SiteBanner, SiteBenefit, SiteContentLibrary } from "@/lib/site-content-library-db";
-import { SupportContentAdminClient } from "@/components/admin/support-content-admin-client";
 
-type LibraryTab = "banners" | "store" | "product" | "service";
+type LibraryTab = "banners" | "benefits";
 type SaveState = "idle" | "saving" | "saved" | "error";
 
 type Props = {
@@ -20,7 +19,7 @@ const emptyBanner: Omit<SiteBanner, "id" | "createdAt" | "updatedAt"> = {
   title: "Новый баннер",
   subtitle: "",
   description: "",
-  buttonText: "Подробнее",
+  buttonText: "Подробнее →",
   buttonHref: "/catalog",
   imageLight: "",
   imageDark: "",
@@ -40,7 +39,6 @@ const emptyBenefit: Omit<SiteBenefit, "id" | "createdAt" | "updatedAt"> = {
   icon: "✓",
   image: "",
   href: "",
-  placement: "store",
   enabled: true,
   sortOrder: 100,
 };
@@ -53,14 +51,7 @@ export function SiteContentLibraryForm({ initialLibrary, onChange }: Props) {
   const [state, setState] = useState<SaveState>("idle");
 
   const selectedBanner = library.banners.find((banner) => banner.id === selectedBannerId) ?? library.banners[0] ?? null;
-  const activeBenefitPlacement = tab === "product" ? "product" : "store";
-  const visibleBenefits = library.benefits.filter(
-    (benefit) => benefit.placement === activeBenefitPlacement,
-  );
-  const selectedBenefit =
-    visibleBenefits.find((benefit) => benefit.id === selectedBenefitId) ??
-    visibleBenefits[0] ??
-    null;
+  const selectedBenefit = library.benefits.find((benefit) => benefit.id === selectedBenefitId) ?? library.benefits[0] ?? null;
 
   function updateLibrary(next: SiteContentLibrary) {
     setLibrary(next);
@@ -124,10 +115,7 @@ export function SiteContentLibraryForm({ initialLibrary, onChange }: Props) {
     const response = await fetch("/api/admin/site-benefits", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        ...emptyBenefit,
-        placement: activeBenefitPlacement,
-      }),
+      body: JSON.stringify(emptyBenefit),
     }).catch(() => null);
 
     if (!response?.ok) {
@@ -214,44 +202,15 @@ export function SiteContentLibraryForm({ initialLibrary, onChange }: Props) {
     <section className="mt-6 rounded-[34px] border border-white/10 bg-white/[0.035] p-5 sm:p-8">
       <div className="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <div className="text-xs font-medium uppercase tracking-[0.18em] text-blue-400">
-            Библиотека контента
-          </div>
-          <h2 className="mt-2 text-3xl font-bold tracking-[-0.045em]">
-            Баннеры и преимущества
-          </h2>
+          <div className="text-xs font-medium uppercase tracking-[0.18em] text-blue-400">Библиотека контента</div>
+          <h2 className="mt-2 text-3xl font-bold tracking-[-0.045em]">Баннеры и преимущества</h2>
           <p className="mt-3 max-w-[760px] text-sm leading-relaxed text-white/50">
-            Все группы находятся здесь и больше не повторяются под каждой страницей редактора.
+            Здесь создаются готовые баннеры и карточки преимуществ. Потом модуль на главной просто выбирает их из библиотеки.
           </p>
         </div>
-
-        <div className="flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-black/20 p-1">
-          {[
-            { key: "banners", label: "Баннеры" },
-            { key: "store", label: "Главная" },
-            { key: "product", label: "Карточка товара" },
-            { key: "service", label: "Сервис и поддержка" },
-          ].map((item) => (
-            <button
-              key={item.key}
-              type="button"
-              onClick={() => {
-                const nextTab = item.key as LibraryTab;
-                setTab(nextTab);
-                if (nextTab === "store" || nextTab === "product") {
-                  const placement = nextTab === "product" ? "product" : "store";
-                  setSelectedBenefitId(
-                    library.benefits.find((benefit) => benefit.placement === placement)?.id ?? "",
-                  );
-                }
-              }}
-              className={`rounded-xl px-4 py-3 text-sm font-semibold ${
-                tab === item.key ? "bg-blue-600 text-white" : "text-white/55 hover:text-white"
-              }`}
-            >
-              {item.label}
-            </button>
-          ))}
+        <div className="flex gap-2 rounded-2xl border border-white/10 bg-black/20 p-1">
+          <button type="button" onClick={() => setTab("banners")} className={`rounded-xl px-4 py-3 text-sm font-semibold ${tab === "banners" ? "bg-blue-600 text-white" : "text-white/55 hover:text-white"}`}>Баннеры</button>
+          <button type="button" onClick={() => setTab("benefits")} className={`rounded-xl px-4 py-3 text-sm font-semibold ${tab === "benefits" ? "bg-blue-600 text-white" : "text-white/55 hover:text-white"}`}>Преимущества</button>
         </div>
       </div>
 
@@ -262,113 +221,41 @@ export function SiteContentLibraryForm({ initialLibrary, onChange }: Props) {
         <div className="mt-6 grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
           <LibraryList title="Баннеры" onCreate={createBanner} createText="+ Создать баннер">
             {library.banners.map((banner) => (
-              <button
-                key={banner.id}
-                type="button"
-                onClick={() => setSelectedBannerId(banner.id)}
-                className={`rounded-2xl border p-4 text-left transition-all ${
-                  selectedBanner?.id === banner.id
-                    ? "border-blue-500/50 bg-blue-500/15"
-                    : "border-white/10 bg-black/20 hover:border-blue-500/35"
-                }`}
-              >
+              <button key={banner.id} type="button" onClick={() => setSelectedBannerId(banner.id)} className={`rounded-2xl border p-4 text-left transition-all ${selectedBanner?.id === banner.id ? "border-blue-500/50 bg-blue-500/15" : "border-white/10 bg-black/20 hover:border-blue-500/35"}`}>
                 <div className="text-sm font-bold">{banner.adminTitle}</div>
                 <div className="mt-1 line-clamp-1 text-xs text-white/45">{banner.title}</div>
-                <div className={`mt-3 inline-flex rounded-full border px-2.5 py-1 text-[11px] ${
-                  banner.enabled
-                    ? "border-green-500/30 bg-green-500/10 text-green-300"
-                    : "border-red-500/30 bg-red-500/10 text-red-300"
-                }`}>
-                  {banner.enabled ? "Активен" : "Скрыт"}
-                </div>
+                <div className={`mt-3 inline-flex rounded-full border px-2.5 py-1 text-[11px] ${banner.enabled ? "border-green-500/30 bg-green-500/10 text-green-300" : "border-red-500/30 bg-red-500/10 text-red-300"}`}>{banner.enabled ? "Активен" : "Скрыт"}</div>
               </button>
             ))}
           </LibraryList>
 
           {selectedBanner ? (
-            <BannerEditor
-              banner={selectedBanner}
-              disabled={state === "saving"}
-              updateBanner={updateBanner}
-              saveBanner={saveBanner}
-              deleteBanner={deleteBanner}
-            />
+            <BannerEditor banner={selectedBanner} disabled={state === "saving"} updateBanner={updateBanner} saveBanner={saveBanner} deleteBanner={deleteBanner} />
           ) : (
             <EmptyState>Создай или выбери баннер.</EmptyState>
           )}
         </div>
-      ) : tab === "store" || tab === "product" ? (
-        <div className="mt-6">
-          <div className="mb-5 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4">
-            <div className="text-sm font-bold text-blue-200">
-              {tab === "product" ? "Преимущества в карточке товара" : "Преимущества на главной"}
-            </div>
-            <p className="mt-1 text-sm leading-relaxed text-white/50">
-              {tab === "product"
-                ? "Эта группа выводится во вкладке преимуществ на странице товара."
-                : "Эта группа выводится полосой под главным баннером на главной странице."}
-            </p>
-          </div>
-
-          <div className="grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
-            <LibraryList
-              title={tab === "product" ? "Преимущества товара" : "Преимущества главной"}
-              onCreate={createBenefit}
-              createText="+ Создать преимущество"
-            >
-              {visibleBenefits.map((benefit) => (
-                <button
-                  key={benefit.id}
-                  type="button"
-                  onClick={() => setSelectedBenefitId(benefit.id)}
-                  className={`rounded-2xl border p-4 text-left transition-all ${
-                    selectedBenefit?.id === benefit.id
-                      ? "border-blue-500/50 bg-blue-500/15"
-                      : "border-white/10 bg-black/20 hover:border-blue-500/35"
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-blue-500/30 bg-blue-500/10 text-blue-300">
-                      {benefit.image ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={benefit.image} alt="" className="h-9 w-9 object-contain" />
-                      ) : (
-                        benefit.icon || "✓"
-                      )}
-                    </span>
-                    <div className="min-w-0">
-                      <div className="truncate text-sm font-bold">{benefit.title}</div>
-                      <div className="mt-1 line-clamp-1 text-xs text-white/45">{benefit.description}</div>
-                    </div>
-                  </div>
-                </button>
-              ))}
-            </LibraryList>
-
-            {selectedBenefit ? (
-              <BenefitEditor
-                benefit={selectedBenefit}
-                disabled={state === "saving"}
-                updateBenefit={updateBenefit}
-                saveBenefit={saveBenefit}
-                deleteBenefit={deleteBenefit}
-              />
-            ) : (
-              <EmptyState>Создай первое преимущество для этой группы.</EmptyState>
-            )}
-          </div>
-        </div>
       ) : (
-        <div className="mt-6">
-          <div className="mb-5 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4">
-            <div className="text-sm font-bold text-blue-200">
-              Редактор блока «Сервис и поддержка»
-            </div>
-            <p className="mt-1 text-sm leading-relaxed text-white/50">
-              Здесь редактируются обе части блока: преимущества слева и вопросы с ответами справа.
-            </p>
-          </div>
-          <SupportContentAdminClient />
+        <div className="mt-6 grid gap-6 xl:grid-cols-[340px_minmax(0,1fr)]">
+          <LibraryList title="Преимущества" onCreate={createBenefit} createText="+ Создать преимущество">
+            {library.benefits.map((benefit) => (
+              <button key={benefit.id} type="button" onClick={() => setSelectedBenefitId(benefit.id)} className={`rounded-2xl border p-4 text-left transition-all ${selectedBenefit?.id === benefit.id ? "border-blue-500/50 bg-blue-500/15" : "border-white/10 bg-black/20 hover:border-blue-500/35"}`}>
+                <div className="flex items-center gap-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-blue-500/30 bg-blue-500/10 text-blue-300">{benefit.icon || "✓"}</span>
+                  <div className="min-w-0">
+                    <div className="truncate text-sm font-bold">{benefit.title}</div>
+                    <div className="mt-1 line-clamp-1 text-xs text-white/45">{benefit.description}</div>
+                  </div>
+                </div>
+              </button>
+            ))}
+          </LibraryList>
+
+          {selectedBenefit ? (
+            <BenefitEditor benefit={selectedBenefit} disabled={state === "saving"} updateBenefit={updateBenefit} saveBenefit={saveBenefit} deleteBenefit={deleteBenefit} />
+          ) : (
+            <EmptyState>Создай или выбери преимущество.</EmptyState>
+          )}
         </div>
       )}
     </section>
@@ -408,24 +295,18 @@ function BannerEditor({ banner, disabled, updateBanner, saveBanner, deleteBanner
           <ImageDropZone
             label="Фото светлая тема"
             hint="Загрузите фото баннера для светлой темы или вставьте ссылку ниже."
-            recommendedSize="1920×800 px"
-            recommendedFormat="JPG / WEBP, широкий баннер"
             value={banner.imageLight}
             onChange={(value) => updateBanner(banner.id, { imageLight: value })}
           />
           <ImageDropZone
             label="Фото тёмная тема"
             hint="Можно загрузить отдельную картинку для тёмной темы."
-            recommendedSize="1920×800 px"
-            recommendedFormat="JPG / WEBP, широкий баннер"
             value={banner.imageDark}
             onChange={(value) => updateBanner(banner.id, { imageDark: value })}
           />
           <ImageDropZone
             label="Фото для телефона"
             hint="Вертикальная или компактная версия для мобильного экрана."
-            recommendedSize="900×1200 px"
-            recommendedFormat="JPG / WEBP, 3:4"
             value={banner.imageMobile}
             onChange={(value) => updateBanner(banner.id, { imageMobile: value })}
           />
@@ -450,9 +331,7 @@ function BenefitEditor({ benefit, disabled, updateBenefit, saveBenefit, deleteBe
         <div className="md:col-span-2">
           <ImageDropZone
             label="Фото / иконка преимущества"
-            hint="Если фото пустое, покажется текстовая иконка."
-            recommendedSize="256×256 px"
-            recommendedFormat="PNG / SVG / WEBP, прозрачный фон"
+            hint="Можно загрузить PNG/JPG/WebP. Если фото пустое, покажется текстовая иконка."
             value={benefit.image}
             onChange={(value) => updateBenefit(benefit.id, { image: value })}
           />

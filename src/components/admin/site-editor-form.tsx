@@ -1,10 +1,8 @@
 "use client";
 
-import { BackLink } from "@/components/back-link";
 import Link from "next/link";
 import { SiteContentLibraryForm } from "@/components/admin/site-content-library-form";
-import { FaqAdminClient } from "@/components/admin/faq-admin-client";
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 
 import type {
   ModuleDefinition,
@@ -52,17 +50,8 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder, initialCon
     [activePage, pageBuilder.blocks]
   );
   const selectedBlock = activeBlocks.find((block) => block.id === selectedBlockId) ?? activeBlocks[0] ?? null;
-  const availableModules = useMemo(
-    () => pageBuilder.modules.filter((module) => module.pageKeys.includes(activePage)),
-    [activePage, pageBuilder.modules],
-  );
+  const availableModules = pageBuilder.modules.filter((module) => module.pageKeys.includes(activePage));
   const enabledBlocks = activeBlocks.filter((block) => block.enabled).length;
-
-  useEffect(() => {
-    if (availableModules.some((module) => module.type === moduleToAdd)) return;
-    const firstModule = availableModules[0];
-    if (firstModule) setModuleToAdd(firstModule.type);
-  }, [activePage, availableModules, moduleToAdd]);
 
   function updateBranding<K extends keyof SiteEditorSettings["branding"]>(key: K, value: SiteEditorSettings["branding"][K]) {
     setSettings((current) => ({
@@ -263,11 +252,6 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder, initialCon
   }
 
   async function addBlock() {
-    if (!availableModules.some((module) => module.type === moduleToAdd)) {
-      setBuilderState("error");
-      return;
-    }
-
     setBuilderState("saving");
 
     const response = await fetch("/api/admin/page-blocks", {
@@ -351,12 +335,14 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder, initialCon
             target="_blank"
             className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
           >
-            Предпросмотр
+            Предпросмотр →
           </Link>
         </header>
 
         <section className="mt-8 rounded-[34px] border border-white/10 bg-white/[0.035] p-5 sm:p-8">
-          <BackLink href="/nz-console" label="В админку" variant="admin" />
+          <Link href="/nz-console" className="text-sm text-blue-400 transition-colors hover:text-blue-300">
+            ← В админку
+          </Link>
 
           <div className="mt-5 flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
             <div>
@@ -501,12 +487,10 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder, initialCon
           </section>
         </section>
 
-        {activePage === "home" ? (
-          <SiteContentLibraryForm
-            initialLibrary={contentLibrary}
-            onChange={setContentLibrary}
-          />
-        ) : null}
+        <SiteContentLibraryForm
+          initialLibrary={contentLibrary}
+          onChange={setContentLibrary}
+        />
 
         <details className="mt-6 rounded-[34px] border border-white/10 bg-white/[0.035] p-5 sm:p-8">
           <summary className="cursor-pointer list-none">
@@ -712,101 +696,12 @@ function ModuleInspector({
 function ModuleSettings({ block, onSettingChange, contentLibrary }: { block: SitePageBlock; onSettingChange: (key: string, value: PageBlockSettings[string]) => void; contentLibrary: SiteContentLibrary }) {
   const settings = block.settings;
 
-  if (block.type === "faq-header") {
-    return (
-      <div className="mt-7 grid gap-4 rounded-3xl border border-white/10 bg-black/20 p-5 sm:p-6 md:grid-cols-2">
-        <Field label="Заголовок страницы">
-          <input
-            value={getSettingText(settings, "title")}
-            onChange={(event) => onSettingChange("title", event.target.value)}
-            className="admin-input"
-          />
-        </Field>
-
-        <Field label="Подзаголовок">
-          <input
-            value={getSettingText(settings, "subtitle")}
-            onChange={(event) => onSettingChange("subtitle", event.target.value)}
-            className="admin-input"
-          />
-        </Field>
-
-        <label className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 text-sm text-white/70">
-          <input
-            type="checkbox"
-            checked={getSettingBoolean(settings, "showSupportButton", true)}
-            onChange={(event) => onSettingChange("showSupportButton", event.target.checked)}
-          />
-          Показывать кнопку поддержки
-        </label>
-
-        <label className="flex items-center gap-3 rounded-xl border border-white/10 bg-white/[0.025] px-4 py-3 text-sm text-white/70">
-          <input
-            type="checkbox"
-            checked={getSettingBoolean(settings, "showCatalogButton", true)}
-            onChange={(event) => onSettingChange("showCatalogButton", event.target.checked)}
-          />
-          Показывать кнопку каталога
-        </label>
-
-        <Field label="Текст кнопки поддержки">
-          <input
-            value={getSettingText(settings, "supportButtonText") || "Написать в поддержку"}
-            onChange={(event) => onSettingChange("supportButtonText", event.target.value)}
-            className="admin-input"
-          />
-        </Field>
-
-        <Field label="Ссылка кнопки поддержки">
-          <input
-            value={getSettingText(settings, "supportButtonHref") || "/help"}
-            onChange={(event) => onSettingChange("supportButtonHref", event.target.value)}
-            className="admin-input"
-          />
-        </Field>
-
-        <Field label="Текст кнопки каталога">
-          <input
-            value={getSettingText(settings, "catalogButtonText") || "Перейти в каталог"}
-            onChange={(event) => onSettingChange("catalogButtonText", event.target.value)}
-            className="admin-input"
-          />
-        </Field>
-
-        <Field label="Ссылка кнопки каталога">
-          <input
-            value={getSettingText(settings, "catalogButtonHref") || "/catalog"}
-            onChange={(event) => onSettingChange("catalogButtonHref", event.target.value)}
-            className="admin-input"
-          />
-        </Field>
-      </div>
-    );
-  }
-
   if (block.type === "promo-banner") {
     return <BannerModuleEditor settings={settings} onSettingChange={onSettingChange} contentLibrary={contentLibrary} />;
   }
 
   if (block.type === "benefits") {
     return <BenefitsModuleEditor settings={settings} onSettingChange={onSettingChange} contentLibrary={contentLibrary} />;
-  }
-
-  if (block.type === "faq-content") {
-    return (
-      <div className="mt-7">
-        <div className="mb-5 rounded-3xl border border-blue-500/20 bg-blue-500/10 p-5">
-          <div className="text-xs font-medium uppercase tracking-[0.16em] text-blue-300">
-            Контент страницы FAQ
-          </div>
-          <h3 className="mt-2 text-xl font-bold">Разделы, вопросы, ответы, фото и нижние карточки</h3>
-          <p className="mt-2 text-sm leading-relaxed text-white/50">
-            Всё редактируется здесь. Отдельно переходить в другой раздел админки больше не нужно.
-          </p>
-        </div>
-        <FaqAdminClient />
-      </div>
-    );
   }
 
   const hasTextFields = ["category-grid", "popular-products", "new-arrivals", "text-image", "product-carousel", "catalog-header", "catalog-empty", "support"].includes(block.type);
@@ -849,7 +744,7 @@ function ModuleSettings({ block, onSettingChange, contentLibrary }: { block: Sit
         )}
 
         {hasImageField && (
-          <Field label="Картинка / баннер · рекомендуется 1600×900 px">
+          <Field label="Картинка / баннер">
             <input value={getSettingText(settings, "image")} onChange={(event) => onSettingChange("image", event.target.value)} className="admin-input" placeholder="/uploads/banner.png или https://..." />
           </Field>
         )}
@@ -941,7 +836,7 @@ function BannerModuleEditor({
         <Field label="Ручное описание">
           <input value={getSettingText(settings, "subtitle")} onChange={(event) => onSettingChange("subtitle", event.target.value)} className="admin-input" />
         </Field>
-        <Field label="Ручная картинка · рекомендуется 1920×800 px">
+        <Field label="Ручная картинка">
           <input value={getSettingText(settings, "image")} onChange={(event) => onSettingChange("image", event.target.value)} className="admin-input" />
         </Field>
       </div>
@@ -992,7 +887,7 @@ function BenefitsModuleEditor({
       </div>
 
       <div className="mt-5 rounded-2xl border border-white/10 bg-white/[0.025] p-4 text-sm text-white/45">
-        Активных преимуществ в библиотеке: {contentLibrary.benefits.filter((benefit) => benefit.enabled && benefit.placement === "store").length}.
+        Активных преимуществ в библиотеке: {contentLibrary.benefits.filter((benefit) => benefit.enabled).length}.
       </div>
     </div>
   );
@@ -1010,10 +905,10 @@ function BrandingEditor({ settings, updateBranding }: { settings: SiteEditorSett
             <option value="dark">Тёмная</option>
           </select>
         </Field>
-        <Field label="Логотип для тёмной темы · рекомендуется 600×200 px, PNG/SVG"><input value={settings.branding.logoLight} onChange={(event) => updateBranding("logoLight", event.target.value)} className="admin-input" placeholder="/logo-light.png" /></Field>
-        <Field label="Логотип для светлой темы · рекомендуется 600×200 px, PNG/SVG"><input value={settings.branding.logoDark} onChange={(event) => updateBranding("logoDark", event.target.value)} className="admin-input" placeholder="/logo-dark.png" /></Field>
-        <Field label="Мобильный логотип · рекомендуется 256×256 px, PNG/SVG"><input value={settings.branding.mobileLogo} onChange={(event) => updateBranding("mobileLogo", event.target.value)} className="admin-input" placeholder="Можно оставить пустым — возьмётся основной" /></Field>
-        <Field label="Favicon / иконка вкладки · рекомендуется 64×64 px, PNG/ICO"><input value={settings.branding.favicon} onChange={(event) => updateBranding("favicon", event.target.value)} className="admin-input" placeholder="/favicon.ico" /></Field>
+        <Field label="Логотип для тёмной темы"><input value={settings.branding.logoLight} onChange={(event) => updateBranding("logoLight", event.target.value)} className="admin-input" placeholder="/logo-light.png" /></Field>
+        <Field label="Логотип для светлой темы"><input value={settings.branding.logoDark} onChange={(event) => updateBranding("logoDark", event.target.value)} className="admin-input" placeholder="/logo-dark.png" /></Field>
+        <Field label="Мобильный логотип"><input value={settings.branding.mobileLogo} onChange={(event) => updateBranding("mobileLogo", event.target.value)} className="admin-input" placeholder="Можно оставить пустым — возьмётся основной" /></Field>
+        <Field label="Favicon / иконка вкладки"><input value={settings.branding.favicon} onChange={(event) => updateBranding("favicon", event.target.value)} className="admin-input" placeholder="/favicon.ico" /></Field>
         <Field label="Основной цвет"><input value={settings.branding.primaryColor} onChange={(event) => updateBranding("primaryColor", event.target.value)} className="admin-input" /></Field>
         <Field label="Акцентный цвет"><input value={settings.branding.accentColor} onChange={(event) => updateBranding("accentColor", event.target.value)} className="admin-input" /></Field>
       </div>
@@ -1022,15 +917,15 @@ function BrandingEditor({ settings, updateBranding }: { settings: SiteEditorSett
         <div className="text-xs font-medium uppercase tracking-[0.16em] text-white/35">Мобильная нижняя панель</div>
         <h3 className="mt-2 text-xl font-bold tracking-[-0.035em]">Иконки навигации</h3>
         <p className="mt-2 text-sm leading-relaxed text-white/45">
-          Можно поставить эмодзи, короткий символ или путь к картинке. Для загружаемых иконок рекомендуется 128×128 px, SVG или PNG с прозрачным фоном.
+          Можно поставить эмодзи, короткий символ или путь к картинке, например /uploads/home.svg.
         </p>
 
-        <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-          <NavIconEditor label="Главная" value={settings.branding.navIconHome} onChange={(value) => updateBranding("navIconHome", value)} />
-          <NavIconEditor label="Каталог" value={settings.branding.navIconCatalog} onChange={(value) => updateBranding("navIconCatalog", value)} />
-          <NavIconEditor label="Новинки" value={settings.branding.navIconNew} onChange={(value) => updateBranding("navIconNew", value)} />
-          <NavIconEditor label="Поддержка" value={settings.branding.navIconSupport} onChange={(value) => updateBranding("navIconSupport", value)} />
-          <NavIconEditor label="Корзина" value={settings.branding.navIconCart} onChange={(value) => updateBranding("navIconCart", value)} />
+        <div className="mt-5 grid gap-5 md:grid-cols-2 xl:grid-cols-5">
+          <Field label="Главная"><input value={settings.branding.navIconHome} onChange={(event) => updateBranding("navIconHome", event.target.value)} className="admin-input" /></Field>
+          <Field label="Каталог"><input value={settings.branding.navIconCatalog} onChange={(event) => updateBranding("navIconCatalog", event.target.value)} className="admin-input" /></Field>
+          <Field label="Новинки"><input value={settings.branding.navIconNew} onChange={(event) => updateBranding("navIconNew", event.target.value)} className="admin-input" /></Field>
+          <Field label="Поддержка"><input value={settings.branding.navIconSupport} onChange={(event) => updateBranding("navIconSupport", event.target.value)} className="admin-input" /></Field>
+          <Field label="Корзина"><input value={settings.branding.navIconCart} onChange={(event) => updateBranding("navIconCart", event.target.value)} className="admin-input" /></Field>
         </div>
       </div>
     </div>
@@ -1069,7 +964,7 @@ function ContactsEditor({
             <h3 className="text-xl font-bold tracking-[-0.035em]">Адреса и точки выдачи</h3>
             <p className="mt-2 text-sm leading-relaxed text-white/50">Эти адреса потом выбираются в способах получения.</p>
           </div>
-          <button type="button" onClick={addAddress} className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500">Добавить адрес</button>
+          <button type="button" onClick={addAddress} className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500">Добавить адрес →</button>
         </div>
       </div>
 
@@ -1109,119 +1004,6 @@ function SeoEditor({ settings, updateSeo }: { settings: SiteEditorSettings; upda
       <Field label="Title главной"><input value={settings.seo.homeTitle} onChange={(event) => updateSeo("homeTitle", event.target.value)} className="admin-input" /></Field>
       <Field label="Description главной"><textarea value={settings.seo.homeDescription} onChange={(event) => updateSeo("homeDescription", event.target.value)} className="admin-textarea min-h-[110px]" /></Field>
       <Field label="Keywords"><input value={settings.seo.keywords} onChange={(event) => updateSeo("keywords", event.target.value)} className="admin-input" /></Field>
-    </div>
-  );
-}
-
-function NavIconEditor({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  const [imageFailed, setImageFailed] = useState(false);
-  const presets = ["⌂", "▦", "✦", "?", "🛒", "●", "◆", "■"];
-  const isImage =
-    /^(data:image\/|\/|https?:\/\/)/i.test(value.trim()) && !imageFailed;
-  const storedInDatabase =
-    value.startsWith("/api/public-image/setting/") ||
-    value.startsWith("data:image/");
-
-  useEffect(() => {
-    setImageFailed(false);
-  }, [value]);
-
-  function uploadIcon(file: File | undefined) {
-    if (!file || !file.type.startsWith("image/")) return;
-
-    if (file.size > 800 * 1024) {
-      window.alert("Иконка должна быть не больше 800 КБ.");
-      return;
-    }
-
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === "string") onChange(reader.result);
-    };
-    reader.readAsDataURL(file);
-  }
-
-  return (
-    <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-      <div className="text-sm font-semibold text-white/80">{label}</div>
-      <div className="mt-1 text-[11px] leading-relaxed text-white/40">
-        Рекомендуемый размер: 128×128 px · SVG / PNG · прозрачный фон
-      </div>
-
-      <div className="mt-3 flex h-16 items-center justify-center rounded-xl border border-white/10 bg-white">
-        {isImage ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={value}
-            alt=""
-            className="h-10 w-10 object-contain"
-            onError={() => setImageFailed(true)}
-          />
-        ) : (
-          <span className="text-2xl text-black">{value || "●"}</span>
-        )}
-      </div>
-
-      {storedInDatabase ? (
-        <div className="mt-2 rounded-lg border border-green-500/25 bg-green-500/10 px-2.5 py-2 text-[11px] font-medium text-green-300">
-          Сохранено в БД. Путь ниже используется только для показа.
-        </div>
-      ) : null}
-
-      <div className="mt-3 flex flex-wrap gap-1.5">
-        {presets.map((preset) => (
-          <button
-            key={preset}
-            type="button"
-            onClick={() => onChange(preset)}
-            className={`flex h-8 w-8 items-center justify-center rounded-lg border text-sm ${
-              value === preset
-                ? "border-blue-500 bg-blue-500/15 text-blue-300"
-                : "border-white/10 bg-white/[0.03] text-white/70"
-            }`}
-          >
-            {preset}
-          </button>
-        ))}
-      </div>
-
-      <label className="mt-3 flex cursor-pointer items-center justify-center rounded-xl bg-blue-600 px-3 py-2.5 text-xs font-semibold text-white hover:bg-blue-500">
-        Загрузить картинку
-        <input
-          type="file"
-          accept="image/png,image/jpeg,image/webp,image/svg+xml"
-          className="hidden"
-          onChange={(event) => {
-            uploadIcon(event.target.files?.[0]);
-            event.currentTarget.value = "";
-          }}
-        />
-      </label>
-
-      <input
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="admin-input mt-2"
-        placeholder="Символ или путь к файлу"
-      />
-
-      {value ? (
-        <button
-          type="button"
-          onClick={() => onChange("")}
-          className="mt-2 w-full rounded-xl border border-red-500/25 bg-red-500/10 px-3 py-2 text-xs font-semibold text-red-300"
-        >
-          Удалить иконку
-        </button>
-      ) : null}
     </div>
   );
 }

@@ -1,4 +1,4 @@
-export type PublicImageKind = "category" | "product" | "variant" | "banner" | "benefit" | "setting" | "faq-category" | "faq-question" | "faq-highlight";
+export type PublicImageKind = "category" | "product" | "variant" | "banner" | "benefit" | "setting";
 
 function isBase64Image(value: string) {
   return /^data:image\/[^;]+;base64,/.test(value.trim());
@@ -14,7 +14,7 @@ export function publicImageUrl(
 ) {
   const cleanValue = typeof value === "string" ? value.trim() : "";
 
-  if (!cleanValue || cleanValue.startsWith("/api/public-image/") || !isBase64Image(cleanValue)) {
+  if (!cleanValue || !isBase64Image(cleanValue)) {
     return cleanValue;
   }
 

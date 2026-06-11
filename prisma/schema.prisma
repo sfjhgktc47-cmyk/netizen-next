@@ -14,15 +14,6 @@ enum EntityStatus {
   out_of_stock
 }
 
-enum OrderStatus {
-  new
-  confirming
-  in_work
-  ready
-  completed
-  cancelled
-}
-
 enum DeliveryType {
   courier
   pickup
@@ -123,15 +114,12 @@ model Customer {
   phone       String
   email       String    @default("")
   passwordHash String   @default("")
-  city             String    @default("")
-  crmId            String    @default("")
-  statusOverride   String    @default("")
-  statusOverrideAt DateTime?
-  createdAt        DateTime  @default(now())
+  city        String    @default("")
+  crmId       String    @default("")
+  createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
   orders      Order[]
-  promoUsages PromoCodeUsage[]
   addresses   Address[]
   tickets     SupportRequest[]
   favorites   CustomerFavorite[]
@@ -215,8 +203,6 @@ model AdminUser {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
-  assignedOrders Order[] @relation("OrderAssignee")
-
   @@index([role])
   @@index([isActive])
 }
@@ -256,32 +242,16 @@ model Order {
   deliveryType   DeliveryType
   address        String       @default("")
   pickupPoint    String       @default("")
-  paymentMethod  String       @default("cash")
-  subtotal       Int          @default(0)
-  statusDiscount Int          @default(0)
-  promoDiscount  Int          @default(0)
-  promoCode      String       @default("")
-  discountTotal  Int          @default(0)
   total          Int
-  status         OrderStatus  @default(new)
+  status         String       @default("new")
   comment        String       @default("")
-  managerComment String       @default("")
-  assignedToId   String?
-  assignedToName String       @default("")
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
   customer       Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  assignedTo     AdminUser?   @relation("OrderAssignee", fields: [assignedToId], references: [id], onDelete: SetNull)
   items          OrderItem[]
-  changes        OrderChange[]
-  supportRequests SupportRequest[]
-  promoUsage      PromoCodeUsage?
-
   @@index([status, createdAt])
   @@index([phone])
-  @@index([customerId])
-  @@index([assignedToId, status])
 }
 
 model OrderItem {
@@ -305,71 +275,10 @@ model OrderItem {
   variant      ProductVariant? @relation(fields: [variantId], references: [id], onDelete: SetNull)
 }
 
-model OrderChange {
-  id        String   @id @default(cuid())
-  orderId   String
-  adminId   String?
-  adminName String   @default("Менеджер")
-  action    String
-  details   String   @default("")
-  createdAt DateTime @default(now())
-
-  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  @@index([orderId, createdAt])
-}
-
-
-model PromoCode {
-  id                      String           @id @default(cuid())
-  code                    String           @unique
-  name                    String
-  description             String           @default("")
-  discountType            String           @default("percent")
-  discountValue           Int
-  maxDiscount             Int              @default(0)
-  minOrderTotal           Int              @default(0)
-  minItemPrice            Int              @default(0)
-  startsAt                DateTime?
-  endsAt                  DateTime?
-  usageLimit              Int              @default(0)
-  perCustomerLimit        Int              @default(1)
-  firstOrderOnly          Boolean          @default(false)
-  minCompletedOrders      Int              @default(0)
-  minTotalSpent           Int              @default(0)
-  conditionMode           String           @default("all")
-  allowedStatuses         String[]         @default([])
-  allowWithStatusDiscount Boolean          @default(true)
-  active                  Boolean          @default(true)
-  createdAt               DateTime         @default(now())
-  updatedAt               DateTime         @updatedAt
-  usages                  PromoCodeUsage[]
-
-  @@index([active, startsAt, endsAt])
-}
-
-model PromoCodeUsage {
-  id          String    @id @default(cuid())
-  promoCodeId String
-  customerId  String?
-  orderId     String    @unique
-  code        String
-  discount    Int
-  createdAt   DateTime  @default(now())
-
-  promoCode   PromoCode @relation(fields: [promoCodeId], references: [id], onDelete: Cascade)
-  customer    Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  order       Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  @@index([promoCodeId, customerId])
-  @@index([code, createdAt])
-}
-
 model SupportRequest {
   id          String        @id @default(cuid())
   publicId    String        @unique
   customerId  String?
-  orderId     String?
   topic       String
   clientName  String
   phone       String
@@ -383,10 +292,7 @@ model SupportRequest {
   updatedAt   DateTime      @updatedAt
 
   customer    Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  order       Order?        @relation(fields: [orderId], references: [id], onDelete: SetNull)
-
   @@index([status, createdAt])
-  @@index([orderId])
 }
 
 model SupportMessage {
@@ -409,7 +315,6 @@ model FaqCategory {
   eyebrow     String        @default("")
   title       String
   icon        String        @default("?")
-  image       String        @default("")
   description String        @default("")
   isActive    Boolean       @default(true)
   sortOrder   Int           @default(100)
@@ -425,7 +330,6 @@ model FaqQuestion {
   categoryId String
   question   String
   answer     String
-  image      String      @default("")
   isActive   Boolean     @default(true)
   sortOrder  Int         @default(100)
   createdAt  DateTime    @default(now())
@@ -436,27 +340,11 @@ model FaqQuestion {
 }
 
 
-model FaqHighlight {
-  id          String   @id @default(cuid())
-  eyebrow     String   @default("")
-  title       String
-  description String   @default("")
-  image       String   @default("")
-  isActive    Boolean  @default(true)
-  sortOrder   Int      @default(100)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([isActive, sortOrder])
-}
-
-
 model SupportFeature {
   id          String   @id @default(cuid())
   title       String
   text        String   @default("")
   icon        String   @default("✓")
-  image       String   @default("")
   isActive    Boolean  @default(true)
   sortOrder   Int      @default(100)
   createdAt   DateTime @default(now())
@@ -520,13 +408,12 @@ model SiteBenefit {
   icon        String   @default("✓")
   image       String   @default("")
   href        String   @default("")
-  placement   String   @default("store")
   enabled     Boolean  @default(true)
   sortOrder   Int      @default(100)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
-  @@index([placement, enabled, sortOrder])
+  @@index([enabled, sortOrder])
 }
 
 model PageBlock {
