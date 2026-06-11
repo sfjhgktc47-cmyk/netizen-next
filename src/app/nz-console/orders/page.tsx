@@ -154,6 +154,9 @@ export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageP
               </p>
             </div>
             <div className="flex flex-wrap gap-3">
+              <Link href="/nz-console/orders/new" className="rounded-xl bg-blue-600 px-6 py-4 text-sm font-semibold text-white transition-colors hover:bg-blue-500">
+                Создать вручную
+              </Link>
               <Link href="/nz-console/orders/settings" className="rounded-xl border border-blue-500/35 bg-blue-500/10 px-6 py-4 text-sm font-semibold text-blue-300 transition-colors hover:bg-blue-500/20">
                 Настройки заявок
               </Link>

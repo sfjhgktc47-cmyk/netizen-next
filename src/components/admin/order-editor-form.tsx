@@ -3,6 +3,12 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
+import {
+  getDefaultOrderStatus,
+  getOrderStatusOptions,
+  type OrderStatusColor,
+  type OrderWorkflowSettings,
+} from "@/lib/order-status";
 
 export type OrderCustomerOption = {
   id: string;
@@ -54,14 +60,7 @@ type InitialOrder = {
   items: DraftItem[];
 };
 
-const orderStatuses = [
-  { value: "new", label: "Новая" },
-  { value: "confirming", label: "Ожидает подтверждения" },
-  { value: "in_work", label: "В работе" },
-  { value: "ready", label: "Готова" },
-  { value: "completed", label: "Завершена" },
-  { value: "cancelled", label: "Отменена" },
-] as const;
+
 
 function normalizeSearch(value: string) {
   return value
@@ -83,6 +82,7 @@ export function OrderEditorForm({
   initialOrder,
   defaultAssigneeId = "",
   defaultAssigneeName = "",
+  workflow,
 }: {
   mode: "create" | "edit";
   customers: OrderCustomerOption[];
@@ -91,6 +91,7 @@ export function OrderEditorForm({
   initialOrder?: InitialOrder;
   defaultAssigneeId?: string;
   defaultAssigneeName?: string;
+  workflow: OrderWorkflowSettings;
 }) {
   const router = useRouter();
   const [customerId, setCustomerId] = useState(initialOrder?.customerId || "");
@@ -101,7 +102,9 @@ export function OrderEditorForm({
   const [address, setAddress] = useState(initialOrder?.address || "");
   const [pickupPoint, setPickupPoint] = useState(initialOrder?.pickupPoint || "");
   const [paymentMethod, setPaymentMethod] = useState(initialOrder?.paymentMethod || "cash");
-  const [status, setStatus] = useState(initialOrder?.status || "new");
+  const [status, setStatus] = useState(
+    initialOrder?.status || getDefaultOrderStatus(initialOrder?.deliveryType || "courier", workflow),
+  );
   const [comment, setComment] = useState(initialOrder?.comment || "");
   const [managerComment, setManagerComment] = useState(initialOrder?.managerComment || "");
   const [assignedToId, setAssignedToId] = useState(initialOrder?.assignedToId || defaultAssigneeId);
@@ -124,6 +127,10 @@ export function OrderEditorForm({
     (assignedToId === defaultAssigneeId ? defaultAssigneeName : "") ||
     "Назначится автоматически";
   const total = items.reduce((sum, item) => sum + Math.max(1, item.quantity) * Math.max(0, item.price), 0);
+  const orderStatuses = useMemo(
+    () => getOrderStatusOptions(deliveryType, workflow, status),
+    [deliveryType, workflow, status],
+  );
 
   function chooseCustomer(id: string) {
     setCustomerId(id);
@@ -135,10 +142,10 @@ export function OrderEditorForm({
     const preferredAddress = customer.addresses.find((item) => item.isDefault) || customer.addresses[0];
     if (preferredAddress) {
       if (preferredAddress.type === "pickup") {
-        setDeliveryType("pickup");
+        changeDeliveryType("pickup");
         setPickupPoint(preferredAddress.value);
       } else {
-        setDeliveryType("courier");
+        changeDeliveryType("courier");
         setAddress(preferredAddress.value);
       }
     }
@@ -166,6 +173,16 @@ export function OrderEditorForm({
           : item,
       ),
     );
+  }
+
+  function changeDeliveryType(nextType: "courier" | "pickup") {
+    setDeliveryType(nextType);
+    const nextOptions = getOrderStatusOptions(nextType, workflow);
+    const statusExists = nextOptions.some((option) => option.value === status);
+    if (workflow.resetStatusOnDeliveryChange || !statusExists) {
+      setStatus(getDefaultOrderStatus(nextType, workflow));
+    }
+    setMessage("");
   }
 
   function changeStatus(nextStatus: string) {
@@ -251,11 +268,7 @@ export function OrderEditorForm({
                   onClick={() => changeStatus(item.value)}
                   className={`rounded-xl border px-4 py-2.5 text-sm font-semibold transition-colors ${
                     status === item.value
-                      ? item.value === "cancelled"
-                        ? "border-red-400 bg-red-500 text-white"
-                        : item.value === "completed"
-                          ? "border-green-400 bg-green-500 text-white"
-                          : "border-blue-400 bg-blue-600 text-white"
+                      ? activeStatusClass(item.color)
                       : "border-white/10 bg-black/20 text-white/65 hover:border-blue-500/40 hover:text-white"
                   }`}
                 >
@@ -291,7 +304,7 @@ export function OrderEditorForm({
           </div>
         </Field>
         <Field label="Способ получения">
-          <select value={deliveryType} onChange={(e) => setDeliveryType(e.target.value as "courier" | "pickup")} className={inputClass}>
+          <select value={deliveryType} onChange={(e) => changeDeliveryType(e.target.value as "courier" | "pickup")} className={inputClass}>
             <option value="courier">Курьерская доставка</option><option value="pickup">ПВЗ / самовывоз</option>
           </select>
         </Field>
@@ -551,6 +564,19 @@ function PositionSearch({
       ) : null}
     </div>
   );
+}
+
+function activeStatusClass(color: OrderStatusColor) {
+  const classes: Record<OrderStatusColor, string> = {
+    blue: "border-blue-400 bg-blue-600 text-white",
+    orange: "border-orange-400 bg-orange-500 text-white",
+    purple: "border-purple-400 bg-purple-600 text-white",
+    cyan: "border-cyan-400 bg-cyan-600 text-white",
+    green: "border-green-400 bg-green-500 text-white",
+    red: "border-red-400 bg-red-500 text-white",
+    gray: "border-white/30 bg-white/20 text-white",
+  };
+  return classes[color];
 }
 
 const inputClass = "mt-2 h-12 w-full rounded-xl border border-white/10 bg-black/20 px-4 text-sm text-white outline-none focus:border-blue-500/50";

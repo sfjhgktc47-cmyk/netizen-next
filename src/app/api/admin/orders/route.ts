@@ -1,12 +1,12 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { NextResponse } from "next/server";
 
 import { getAuthSession, normalizeText } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { getOrderWorkflowSettings } from "@/lib/order-workflow-db";
+import { getDefaultOrderStatus, getStatusesForDelivery } from "@/lib/order-status";
 
 export const dynamic = "force-dynamic";
 
-const allowedStatuses = ["new", "confirming", "in_work", "ready", "completed", "cancelled"] as const;
 const allowedDeliveryTypes = ["courier", "pickup"] as const;
 
 type DraftItem = {
@@ -100,9 +100,12 @@ export async function POST(request: Request) {
     const deliveryType = allowedDeliveryTypes.includes(body.deliveryType as never)
       ? (body.deliveryType as "courier" | "pickup")
       : "courier";
-    const status = allowedStatuses.includes(body.status as never)
-      ? (body.status as (typeof allowedStatuses)[number])
-      : "new";
+    const workflow = await getOrderWorkflowSettings();
+    const requestedStatus = normalizeText(body.status);
+    const availableStatuses = getStatusesForDelivery(deliveryType, workflow);
+    const status = availableStatuses.some((item) => item.id === requestedStatus && item.active)
+      ? requestedStatus
+      : getDefaultOrderStatus(deliveryType, workflow);
     const address = normalizeText(body.address);
     const pickupPoint = normalizeText(body.pickupPoint);
     const paymentMethod = normalizeText(body.paymentMethod) || "cash";
@@ -183,7 +186,7 @@ export async function POST(request: Request) {
             details: `Товаров: ${preparedItems.length}. Ответственный: ${assignee?.name || assignee?.login || "не назначен"}.`,
           },
         },
-      } as any),
+      }),
     });
 
     return NextResponse.json({ ok: true, order: { id: order.id, publicId: order.publicId } }, { status: 201 });

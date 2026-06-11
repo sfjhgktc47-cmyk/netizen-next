@@ -21,6 +21,60 @@ export function formatAdminPrice(value: number) {
   return formatPrice(value);
 }
 
+export async function getOrderEditorOptions() {
+  const [customers, positions, staff] = await Promise.all([
+    prisma.customer.findMany({
+      orderBy: { updatedAt: "desc" },
+      include: {
+        addresses: {
+          orderBy: [{ isDefault: "desc" }, { updatedAt: "desc" }],
+        },
+      },
+    }),
+    prisma.productVariant.findMany({
+      orderBy: { updatedAt: "desc" },
+      include: { product: true },
+    }),
+    prisma.adminUser.findMany({
+      where: { isActive: true },
+      orderBy: [{ name: "asc" }, { login: "asc" }],
+      select: { id: true, name: true, login: true },
+    }),
+  ]);
+
+  return {
+    customers: customers.map((customer) => ({
+      id: customer.id,
+      fullName: [customer.name, customer.lastName].filter(Boolean).join(" ").trim(),
+      phone: customer.phone,
+      email: customer.email,
+      city: customer.city,
+      addresses: customer.addresses.map((address) => ({
+        id: address.id,
+        type: address.type,
+        value: address.value,
+        isDefault: address.isDefault,
+      })),
+    })),
+    positions: positions.map((position) => ({
+      id: position.id,
+      productId: position.productId,
+      sku: position.sku,
+      title: position.title,
+      productTitle: position.product.name,
+      brand: position.product.brand,
+      memory: position.memory,
+      color: position.color,
+      sim: position.sim,
+      price: position.price,
+      stock: position.stock,
+      status: position.status,
+      image: position.images[0] || position.product.image || position.product.images[0] || "",
+    })),
+    staff,
+  };
+}
+
 export async function getAdminOrders() {
   return prisma.order.findMany({
     orderBy: {
@@ -44,6 +98,8 @@ export async function getAdminOrder(idOrPublicId: string) {
     },
     include: {
       customer: true,
+      assignedTo: true,
+      changes: { orderBy: { createdAt: "desc" } },
       items: {
         include: {
           product: true,

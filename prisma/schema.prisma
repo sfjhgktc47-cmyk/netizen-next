@@ -116,6 +116,8 @@ model Customer {
   passwordHash String   @default("")
   city        String    @default("")
   crmId       String    @default("")
+  statusOverride   String    @default("")
+  statusOverrideAt DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -126,6 +128,7 @@ model Customer {
   reviews     ProductReview[]
   reviewVotes ProductReviewVote[]
   questions   ProductQuestion[]
+  promoCodeUsages PromoCodeUsage[]
 
   @@index([phone])
   @@index([email])
@@ -202,6 +205,7 @@ model AdminUser {
   isActive     Boolean  @default(true)
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
+  assignedOrders Order[]
 
   @@index([role])
   @@index([isActive])
@@ -233,25 +237,41 @@ model Address {
 }
 
 model Order {
-  id             String       @id @default(cuid())
-  publicId       String       @unique
-  customerId     String?
-  customerName   String
-  phone          String
-  email          String       @default("")
-  deliveryType   DeliveryType
-  address        String       @default("")
-  pickupPoint    String       @default("")
-  total          Int
-  status         String       @default("new")
-  comment        String       @default("")
-  createdAt      DateTime     @default(now())
-  updatedAt      DateTime     @updatedAt
+  id               String       @id @default(cuid())
+  publicId         String       @unique
+  customerId       String?
+  customerName     String
+  phone            String
+  email            String       @default("")
+  deliveryType     DeliveryType
+  address          String       @default("")
+  pickupPoint      String       @default("")
+  paymentMethod    String       @default("cash")
+  subtotal         Int          @default(0)
+  statusDiscount   Int          @default(0)
+  promoDiscount    Int          @default(0)
+  promoCode        String       @default("")
+  discountTotal    Int          @default(0)
+  total            Int
+  status           String       @default("new")
+  comment          String       @default("")
+  managerComment   String       @default("")
+  assignedToId     String?
+  assignedToName   String       @default("")
+  createdAt        DateTime     @default(now())
+  updatedAt        DateTime     @updatedAt
 
-  customer       Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  items          OrderItem[]
+  customer         Customer?      @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  assignedTo       AdminUser?     @relation(fields: [assignedToId], references: [id], onDelete: SetNull)
+  items            OrderItem[]
+  changes          OrderChange[]
+  supportRequests  SupportRequest[]
+  promoCodeUsage   PromoCodeUsage?
+
   @@index([status, createdAt])
   @@index([phone])
+  @@index([customerId])
+  @@index([assignedToId, status])
 }
 
 model OrderItem {
@@ -279,6 +299,7 @@ model SupportRequest {
   id          String        @id @default(cuid())
   publicId    String        @unique
   customerId  String?
+  orderId     String?
   topic       String
   clientName  String
   phone       String
@@ -292,7 +313,69 @@ model SupportRequest {
   updatedAt   DateTime      @updatedAt
 
   customer    Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  order       Order?        @relation(fields: [orderId], references: [id], onDelete: SetNull)
+
   @@index([status, createdAt])
+  @@index([orderId])
+}
+
+model OrderChange {
+  id        String   @id @default(cuid())
+  orderId   String
+  adminId   String?
+  adminName String   @default("Менеджер")
+  action    String
+  details   String   @default("")
+  createdAt DateTime @default(now())
+
+  order     Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([orderId, createdAt])
+}
+
+model PromoCode {
+  id                      String           @id @default(cuid())
+  code                    String           @unique
+  name                    String
+  description             String           @default("")
+  discountType            String           @default("percent")
+  discountValue           Int
+  maxDiscount             Int              @default(0)
+  minOrderTotal           Int              @default(0)
+  minItemPrice            Int              @default(0)
+  startsAt                DateTime?
+  endsAt                  DateTime?
+  usageLimit              Int              @default(0)
+  perCustomerLimit        Int              @default(1)
+  firstOrderOnly          Boolean          @default(false)
+  minCompletedOrders      Int              @default(0)
+  minTotalSpent           Int              @default(0)
+  conditionMode           String           @default("all")
+  allowedStatuses         String[]         @default([])
+  allowWithStatusDiscount Boolean          @default(true)
+  active                  Boolean          @default(true)
+  createdAt               DateTime         @default(now())
+  updatedAt               DateTime         @updatedAt
+  usages                  PromoCodeUsage[]
+
+  @@index([active, startsAt, endsAt])
+}
+
+model PromoCodeUsage {
+  id          String    @id @default(cuid())
+  promoCodeId String
+  customerId  String?
+  orderId     String    @unique
+  code        String
+  discount    Int
+  createdAt   DateTime  @default(now())
+
+  promoCode   PromoCode @relation(fields: [promoCodeId], references: [id], onDelete: Cascade)
+  customer    Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  order       Order     @relation(fields: [orderId], references: [id], onDelete: Cascade)
+
+  @@index([promoCodeId, customerId])
+  @@index([code, createdAt])
 }
 
 model SupportMessage {

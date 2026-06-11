@@ -47,12 +47,20 @@ export default async function AdminOrderDetailPage({
             <span>{order.publicId}</span>
           </div>
 
-          <Link
-            href="/nz-console/orders"
-            className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
-          >
-            К заявкам →
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/nz-console/orders/${order.publicId}/edit`}
+              className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold transition-colors hover:bg-blue-500"
+            >
+              Редактировать
+            </Link>
+            <Link
+              href="/nz-console/orders"
+              className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
+            >
+              К заявкам →
+            </Link>
+          </div>
         </header>
 
         <section className="mt-10">
