@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
-import { supportTopics } from "@/lib/support-topics";
+import { supportTopics as defaultSupportTopics, type SupportTopic } from "@/lib/support-topics";
 
 type ChatMessage = {
   id: string;
@@ -61,7 +61,8 @@ function formatMessageTime(value: string) {
 }
 
 export default function HelpPage() {
-  const [activeTopicId, setActiveTopicId] = useState(supportTopics[0].id);
+  const [topics, setTopics] = useState<SupportTopic[]>(defaultSupportTopics);
+  const [activeTopicId, setActiveTopicId] = useState(defaultSupportTopics[0].id);
   const [message, setMessage] = useState("");
   const [customerName, setCustomerName] = useState("");
   const [phone, setPhone] = useState("");
@@ -72,14 +73,31 @@ export default function HelpPage() {
   const [isSending, setIsSending] = useState(false);
   const [error, setError] = useState("");
   const messagesEndRef = useRef<HTMLDivElement | null>(null);
+  const messageInputRef = useRef<HTMLTextAreaElement | null>(null);
 
   const activeTopic = useMemo(
-    () => supportTopics.find((topic) => topic.id === activeTopicId) ?? supportTopics[0],
-    [activeTopicId],
+    () => topics.find((topic) => topic.id === activeTopicId) ?? topics[0] ?? defaultSupportTopics[0],
+    [activeTopicId, topics],
   );
   const activeRequest = requestsByTopic[activeTopicId];
   const messages = activeRequest?.messages ?? [];
   const authenticatedName = profileName(authProfile);
+
+  useEffect(() => {
+    let cancelled = false;
+
+    fetch("/api/support/topics", { cache: "no-store" })
+      .then((response) => (response.ok ? response.json() : null))
+      .then((payload: { topics?: SupportTopic[] } | null) => {
+        if (cancelled || !Array.isArray(payload?.topics) || payload.topics.length === 0) return;
+        setTopics(payload.topics);
+      })
+      .catch(() => undefined);
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -229,7 +247,7 @@ export default function HelpPage() {
 
         <section className="mt-4 grid gap-3 sm:mt-6 lg:grid-cols-[270px_minmax(0,1fr)] lg:gap-6">
           <aside className="-mx-2 flex snap-x gap-2 overflow-x-auto px-2 pb-1 sm:-mx-4 sm:px-4 lg:mx-0 lg:grid lg:content-start lg:overflow-visible lg:px-0">
-            {supportTopics.map((topic) => {
+            {topics.map((topic) => {
               const isActive = topic.id === activeTopic.id;
               const request = requestsByTopic[topic.id];
 
@@ -256,7 +274,7 @@ export default function HelpPage() {
             })}
           </aside>
 
-          <section className="card flex min-h-[560px] flex-col overflow-hidden rounded-[22px] sm:min-h-[620px] sm:rounded-[28px] lg:min-h-[700px] lg:rounded-[32px]">
+          <section className="card flex min-h-[660px] flex-col overflow-hidden rounded-[22px] sm:min-h-[740px] sm:rounded-[28px] lg:min-h-[820px] lg:rounded-[32px]">
             <header className="flex items-center gap-3 border-b border-theme px-4 py-3.5 sm:px-5 sm:py-4 lg:px-7 lg:py-5">
               <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-blue-600 text-base font-bold text-white sm:h-11 sm:w-11">
                 {activeTopic.icon}
@@ -306,15 +324,19 @@ export default function HelpPage() {
                 })}
 
                 {!activeRequest && messages.length === 0 ? (
-                  <div className="ml-10 flex flex-wrap gap-1.5 sm:ml-11 sm:gap-2">
-                    {activeTopic.quickMessages.slice(0, 3).map((quickMessage) => (
+                  <div className="ml-10 grid max-w-[720px] gap-2 sm:ml-11 sm:grid-cols-2">
+                    {activeTopic.quickMessages.slice(0, 4).map((quickMessage) => (
                       <button
                         key={quickMessage}
                         type="button"
-                        onClick={() => setMessage(quickMessage)}
-                        className="rounded-full bg-card px-3 py-1.5 text-[10px] text-muted transition-colors hover:bg-blue-soft hover:text-main sm:text-xs"
+                        onClick={() => {
+                          setMessage(quickMessage);
+                          window.requestAnimationFrame(() => messageInputRef.current?.focus());
+                        }}
+                        className="flex min-h-11 items-center justify-between gap-3 rounded-xl border border-theme bg-card px-3.5 py-2.5 text-left text-[11px] font-medium text-main transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:text-xs"
                       >
-                        {quickMessage}
+                        <span>{quickMessage}</span>
+                        <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-lg bg-blue-600 text-white">+</span>
                       </button>
                     ))}
                   </div>
@@ -352,14 +374,10 @@ export default function HelpPage() {
               ) : null}
 
               <form onSubmit={sendMessage} className="border-t border-theme bg-card p-3 sm:p-4 lg:p-5">
-                {authProfile && !activeRequest ? (
-                  <div className="mb-2 text-[10px] text-muted sm:text-xs">
-                    Сообщение будет отправлено от имени <span className="font-semibold text-main">{authenticatedName}</span>. Контакты взяты из профиля.
-                  </div>
-                ) : null}
 
                 <div className="flex items-end gap-2">
                   <textarea
+                    ref={messageInputRef}
                     value={message}
                     onChange={(event) => setMessage(event.target.value)}
                     onKeyDown={(event) => {

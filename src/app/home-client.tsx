@@ -708,15 +708,15 @@ function Benefits({
 
  return (
  <section
- className={`mt-3 rounded-2xl border p-3 transition-colors duration-300 sm:mt-6 sm:p-4 ${panelClass(dark)}`}
+ className={`mt-3 rounded-2xl border px-3 py-2 transition-colors duration-300 sm:mt-6 sm:px-4 sm:py-2.5 ${panelClass(dark)}`}
  >
- <div className="grid grid-cols-1 gap-2.5 min-[480px]:grid-cols-2 lg:grid-cols-4">
+ <div className="grid grid-cols-1 gap-2 min-[480px]:grid-cols-2 lg:grid-cols-4 lg:gap-3">
  {items.map((item) => {
  const card = (
- <div className="flex h-[94px] w-full min-w-0 items-start gap-3.5 overflow-hidden rounded-xl px-2.5 py-2.5 sm:h-[102px] sm:gap-4 sm:px-3.5">
+ <div className="flex min-h-[72px] w-full min-w-0 items-center gap-3.5 overflow-hidden rounded-xl px-2.5 py-1.5 sm:min-h-[78px] sm:gap-4 sm:px-3.5 sm:py-2">
  <BenefitIcon image={item.image} icon={item.icon} />
 
- <div className="min-w-0 flex-1 pt-0.5">
+ <div className="min-w-0 flex-1">
  <div className="line-clamp-2 text-[12px] font-semibold leading-[1.25] sm:text-[13px] lg:text-[14px]">
  {item.title}
  </div>

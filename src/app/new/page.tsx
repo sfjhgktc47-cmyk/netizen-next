@@ -97,12 +97,12 @@ export default function NewPage() {
 
  return (
  <main className={dark ? "min-h-screen bg-[#020814] text-white" : "min-h-screen bg-[#f6f8fb] text-[#0b1220]"}>
- <div className="mx-auto max-w-[1440px] px-6 py-6">
+ <div className="mx-auto max-w-[1440px] px-3 py-3 sm:px-5 sm:py-5 lg:px-6">
  <SiteHeader />
 
  <nav
  aria-label="Хлебные крошки"
- className="mt-6 flex flex-wrap items-center gap-2 text-xs text-black/50 dark:text-white/50 sm:text-sm"
+ className="mt-4 flex w-fit flex-wrap items-center gap-2 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs text-[#4b5563] dark:border-white/10 dark:bg-white/[0.04] dark:text-white/65 sm:text-sm"
  >
  <Link
  href="/"
@@ -150,7 +150,7 @@ function NewPageModule({
  const selected = pickProducts(products, newArrivals, getText(settings, "productSlugs", ""));
 
  return (
- <section className="py-16">
+ <section className="py-8 sm:py-10">
  <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
  <div>
  <h1 className={`${sectionTitleClass(getText(settings, "sectionTitleSize", "large"))} font-bold leading-none tracking-[-0.04em]`}>
@@ -191,7 +191,7 @@ function NewPageModule({
 
  if (block.type === "support") {
  return (
- <section className={`mb-16 rounded-[34px] border p-8 ${dark ? "border-white/10 bg-white/[0.035]" : "border-black/10 bg-white "}`}>
+ <section className={`mb-10 rounded-[28px] border p-6 sm:p-8 ${dark ? "border-white/10 bg-white/[0.035]" : "border-black/10 bg-white "}`}>
  <h2 className="text-3xl font-bold tracking-[-0.04em]">{getText(settings, "title", "Поможем выбрать новинку")}</h2>
  <p className={`mt-3 ${muted(dark)}`}>{getText(settings, "subtitle", "Расскажем отличия и подберём конфигурацию.")}</p>
  <Link href="/help" className="mt-6 inline-flex rounded-xl bg-blue-600 px-6 py-3 text-sm font-medium text-white">Написать в поддержку</Link>
@@ -206,7 +206,7 @@ function PromoBlock({ dark, settings }: { dark: boolean; settings: Record<string
  const image = getText(settings, "image", "");
 
  return (
- <section className="pt-8 pb-12">
+ <section className="pt-5 pb-8 sm:pt-7 sm:pb-10">
  <div className={`grid min-h-[300px] overflow-hidden rounded-[34px] border lg:grid-cols-[0.9fr_1.1fr] ${dark ? "border-blue-500/20 bg-blue-600/10" : "border-blue-100 bg-white "}`}>
  <div className="flex flex-col justify-center p-8 lg:p-12">
  <div className="text-sm font-bold uppercase tracking-[0.18em] text-blue-500">Новинки</div>
@@ -252,7 +252,7 @@ function NewCard({
  <p className={`mt-3 text-sm leading-relaxed ${muted(dark)}`}>{description}</p>
  <div className="mt-5 flex items-center justify-between gap-4">
  <span className="text-sm font-semibold">{product.price}</span>
- <span className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-medium text-white">→</span>
+ <span className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-medium text-white">Открыть товар</span>
  </div>
  </div>
  </Link>

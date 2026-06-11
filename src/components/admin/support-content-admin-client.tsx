@@ -20,6 +20,16 @@ type Question = {
   sortOrder: number;
 };
 
+type ChatTopic = {
+  id: string;
+  title: string;
+  shortTitle: string;
+  icon: string;
+  intro: string;
+  placeholder: string;
+  quickMessages: string[];
+};
+
 const fieldClass =
   "w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-sm text-white outline-none focus:border-blue-500/60";
 
@@ -28,11 +38,12 @@ export function SupportContentAdminClient({
 }: {
   mode?: "all" | "features" | "questions";
 }) {
-  const [activeEditor, setActiveEditor] = useState<"features" | "questions">(
+  const [activeEditor, setActiveEditor] = useState<"features" | "questions" | "chat">(
     mode === "questions" ? "questions" : "features",
   );
   const [features, setFeatures] = useState<Feature[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [topics, setTopics] = useState<ChatTopic[]>([]);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState("");
 
@@ -41,6 +52,7 @@ export function SupportContentAdminClient({
     const payload = await response.json();
     setFeatures(Array.isArray(payload.features) ? payload.features : []);
     setQuestions(Array.isArray(payload.questions) ? payload.questions : []);
+    setTopics(Array.isArray(payload.topics) ? payload.topics : []);
   }
 
   useEffect(() => {
@@ -86,6 +98,7 @@ export function SupportContentAdminClient({
 
   const showFeatures = mode === "features" || (mode === "all" && activeEditor === "features");
   const showQuestions = mode === "questions" || (mode === "all" && activeEditor === "questions");
+  const showChat = mode === "all" && activeEditor === "chat";
 
   return (
     <div className="grid gap-6">
@@ -112,6 +125,17 @@ export function SupportContentAdminClient({
             }`}
           >
             Вопросы справа
+          </button>
+          <button
+            type="button"
+            onClick={() => setActiveEditor("chat")}
+            className={`rounded-xl px-5 py-3 text-sm font-semibold transition-colors ${
+              activeEditor === "chat"
+                ? "bg-blue-600 text-white"
+                : "text-white/55 hover:bg-white/5 hover:text-white"
+            }`}
+          >
+            Чат поддержки
           </button>
         </div>
       ) : null}
@@ -401,6 +425,123 @@ export function SupportContentAdminClient({
       </AdminSection>
       ) : null}
 
+
+      {showChat ? (
+        <section className="rounded-[28px] border border-white/10 bg-white/[0.035] p-5 sm:p-6">
+          <div>
+            <h2 className="text-2xl font-bold">Чат поддержки</h2>
+            <p className="mt-2 max-w-3xl text-sm leading-relaxed text-white/50">
+              Здесь меняются стартовое сообщение, подсказка поля ввода и быстрые кнопки для каждой темы.
+            </p>
+          </div>
+
+          <div className="mt-5 grid gap-4">
+            {topics.map((topic) => (
+              <details key={topic.id} className="rounded-2xl border border-white/10 bg-black/20" open={topic.id === topics[0]?.id}>
+                <summary className="flex cursor-pointer list-none items-center gap-3 px-4 py-4">
+                  <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-blue-600 text-white">{topic.icon}</span>
+                  <div>
+                    <div className="font-bold">{topic.title}</div>
+                    <div className="mt-0.5 text-xs text-white/45">Настроить начало диалога</div>
+                  </div>
+                </summary>
+
+                <div className="grid gap-4 border-t border-white/10 p-4">
+                  <label className="grid gap-2">
+                    <span className="text-xs font-semibold uppercase tracking-[0.12em] text-white/45">Начальное сообщение</span>
+                    <textarea
+                      value={topic.intro}
+                      onChange={(event) =>
+                        setTopics((current) => current.map((item) => item.id === topic.id ? { ...item, intro: event.target.value } : item))
+                      }
+                      rows={4}
+                      className={fieldClass}
+                    />
+                  </label>
+
+                  <label className="grid gap-2">
+                    <span className="text-xs font-semibold uppercase tracking-[0.12em] text-white/45">Подсказка поля сообщения</span>
+                    <input
+                      value={topic.placeholder}
+                      onChange={(event) =>
+                        setTopics((current) => current.map((item) => item.id === topic.id ? { ...item, placeholder: event.target.value } : item))
+                      }
+                      className={fieldClass}
+                    />
+                  </label>
+
+                  <div>
+                    <div className="flex items-center justify-between gap-3">
+                      <span className="text-xs font-semibold uppercase tracking-[0.12em] text-white/45">Быстрые кнопки</span>
+                      <button
+                        type="button"
+                        onClick={() =>
+                          setTopics((current) => current.map((item) =>
+                            item.id === topic.id && item.quickMessages.length < 6
+                              ? { ...item, quickMessages: [...item.quickMessages, "Новый быстрый вопрос"] }
+                              : item,
+                          ))
+                        }
+                        className="rounded-lg border border-white/10 px-3 py-1.5 text-xs hover:bg-white/5"
+                      >
+                        Добавить
+                      </button>
+                    </div>
+
+                    <div className="mt-3 grid gap-2">
+                      {topic.quickMessages.map((quickMessage, index) => (
+                        <div key={`${topic.id}-${index}`} className="flex gap-2">
+                          <input
+                            value={quickMessage}
+                            onChange={(event) =>
+                              setTopics((current) => current.map((item) =>
+                                item.id === topic.id
+                                  ? { ...item, quickMessages: item.quickMessages.map((value, valueIndex) => valueIndex === index ? event.target.value : value) }
+                                  : item,
+                              ))
+                            }
+                            className={fieldClass}
+                          />
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setTopics((current) => current.map((item) =>
+                                item.id === topic.id
+                                  ? { ...item, quickMessages: item.quickMessages.filter((_, valueIndex) => valueIndex !== index) }
+                                  : item,
+                              ))
+                            }
+                            className="rounded-xl border border-red-500/30 bg-red-500/10 px-3 text-sm text-red-200"
+                          >
+                            Удалить
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="flex justify-end">
+                    <button
+                      type="button"
+                      disabled={saving}
+                      onClick={() => void save("PATCH", {
+                        entity: "topic",
+                        id: topic.id,
+                        intro: topic.intro,
+                        placeholder: topic.placeholder,
+                        quickMessages: topic.quickMessages,
+                      })}
+                      className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
+                    >
+                      Сохранить тему
+                    </button>
+                  </div>
+                </div>
+              </details>
+            ))}
+          </div>
+        </section>
+      ) : null}
 
       {message ? (
         <div className="rounded-2xl border border-blue-500/25 bg-blue-500/10 px-4 py-3 text-sm text-blue-200">
