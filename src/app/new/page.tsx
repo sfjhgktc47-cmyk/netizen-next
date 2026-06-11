@@ -100,19 +100,18 @@ export default function NewPage() {
  <div className="mx-auto max-w-[1440px] px-3 py-3 sm:px-5 sm:py-5 lg:px-6">
  <SiteHeader />
 
+ <section className="mt-3 sm:mt-6">
  <nav
  aria-label="Хлебные крошки"
- className="mt-4 flex w-fit flex-wrap items-center gap-2 text-xs text-[#4b5563] dark:text-white/65 sm:text-sm"
+ className="hidden flex-wrap items-center gap-2 text-xs text-muted sm:flex sm:text-sm"
  >
- <Link
- href="/"
- className="transition-colors hover:text-blue-500"
- >
+ <Link href="/" className="transition-colors hover:text-blue-500">
  Главная
  </Link>
- <span className="text-black/30 dark:text-white/30">›</span>
- <span className="font-medium text-current">Новинки</span>
+ <span className="text-muted-soft">›</span>
+ <span className="font-medium text-main">Новинки</span>
  </nav>
+ </section>
 
  {visibleBlocks.map((block) => (
  <NewPageModule
