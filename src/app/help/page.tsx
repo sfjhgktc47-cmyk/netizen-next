@@ -293,7 +293,7 @@ export default function HelpPage() {
             </header>
 
             <div className="flex min-h-0 flex-1 flex-col">
-              <div className="min-h-0 flex-1 space-y-3 overflow-y-auto bg-blue-500/[0.025] px-3 py-4 sm:px-5 sm:py-5 lg:px-7 lg:py-7">
+              <div className="min-h-0 min-h-[430px] flex-1 space-y-3 overflow-y-auto bg-blue-500/[0.025] px-3 py-4 sm:px-5 sm:py-5 lg:px-7 lg:py-7 sm:min-h-[520px] lg:min-h-[560px] xl:min-h-[620px]">
                 <div className="flex items-end gap-2.5">
                   <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-blue-600 text-[11px] font-bold text-white">
                     Н
