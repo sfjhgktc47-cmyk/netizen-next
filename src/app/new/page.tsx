@@ -102,7 +102,7 @@ export default function NewPage() {
 
  <nav
  aria-label="Хлебные крошки"
- className="mt-4 flex w-fit flex-wrap items-center gap-2 rounded-full border border-black/10 bg-white px-3 py-1.5 text-xs text-[#4b5563] dark:border-white/10 dark:bg-white/[0.04] dark:text-white/65 sm:text-sm"
+ className="mt-4 flex w-fit flex-wrap items-center gap-2 text-xs text-[#4b5563] dark:text-white/65 sm:text-sm"
  >
  <Link
  href="/"
