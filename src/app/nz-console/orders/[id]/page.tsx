@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
+import { getAuthSession } from "@/lib/auth";
+import { prisma } from "@/lib/db";
+
 import { OrderChatButton } from "@/components/admin/order-chat-button";
 import { OrderEditorForm } from "@/components/admin/order-editor-form";
 import {
@@ -17,8 +20,14 @@ export const dynamic = "force-dynamic";
 
 export default async function AdminOrderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
-  const [order, options] = await Promise.all([getAdminOrder(id), getOrderEditorOptions()]);
+  const [order, options, session] = await Promise.all([getAdminOrder(id), getOrderEditorOptions(), getAuthSession()]);
   if (!order) notFound();
+  const currentAdmin = session?.login
+    ? await prisma.adminUser.findUnique({
+        where: { login: session.login },
+        select: { id: true, name: true, login: true },
+      })
+    : null;
 
   const deliveryValue = order.deliveryType === "pickup"
     ? order.pickupPoint || "ПВЗ не указан"
@@ -103,6 +112,8 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
             customers={options.customers}
             positions={options.positions}
             staff={options.staff}
+            defaultAssigneeId={currentAdmin?.id || ""}
+            defaultAssigneeName={currentAdmin?.name || currentAdmin?.login || session?.name || session?.login || ""}
             initialOrder={{
               publicId: order.publicId,
               customerId: order.customerId || "",

@@ -10,7 +10,7 @@ export const dynamic = "force-dynamic";
 export default async function NewAdminOrderPage() {
   const [options, session] = await Promise.all([getOrderEditorOptions(), getAuthSession()]);
   const currentAdmin = session?.login
-    ? await prisma.adminUser.findUnique({ where: { login: session.login }, select: { id: true } })
+    ? await prisma.adminUser.findUnique({ where: { login: session.login }, select: { id: true, name: true, login: true } })
     : null;
 
   return (
@@ -21,7 +21,7 @@ export default async function NewAdminOrderPage() {
           <Link href="/nz-console/orders" className="rounded-xl border border-white/10 px-4 py-3 text-sm">К заявкам</Link>
         </header>
         <section className="mt-8">
-          <OrderEditorForm mode="create" customers={options.customers} positions={options.positions} staff={options.staff} defaultAssigneeId={currentAdmin?.id || ""} />
+          <OrderEditorForm mode="create" customers={options.customers} positions={options.positions} staff={options.staff} defaultAssigneeId={currentAdmin?.id || ""} defaultAssigneeName={currentAdmin?.name || currentAdmin?.login || session?.name || session?.login || ""} />
         </section>
       </div>
     </main>

@@ -108,7 +108,7 @@ export async function POST(request: Request) {
     const paymentMethod = normalizeText(body.paymentMethod) || "cash";
     const comment = normalizeText(body.comment);
     const managerComment = normalizeText(body.managerComment);
-    const assignedToId = normalizeText(body.assignedToId) || admin.id || undefined;
+    const assignedToId = admin.id || undefined;
     const preparedItems = await prepareItems(Array.isArray(body.items) ? body.items : []);
 
     if (!customerName || !phone) {

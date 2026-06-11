@@ -70,7 +70,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     });
     if (!order) return NextResponse.json({ ok: false, error: "Заявка не найдена." }, { status: 404 });
 
-    const isFullEdit = Array.isArray(body.items) || body.customerName !== undefined || body.assignedToId !== undefined;
+    const isFullEdit = Array.isArray(body.items) || body.customerName !== undefined;
     const status = allowedStatuses.includes(body.status as never)
       ? (body.status as (typeof allowedStatuses)[number])
       : order.status;
@@ -81,17 +81,25 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
         : order.managerComment;
 
     if (!isFullEdit) {
+      const statusChanged = status !== order.status;
       const updated = await prisma.order.update({
         where: { id: order.id },
-        data: { status, managerComment },
+        data: {
+          status,
+          managerComment,
+          assignedToId: statusChanged ? admin.id ?? order.assignedToId : order.assignedToId,
+          assignedToName: statusChanged ? admin.name : order.assignedToName,
+        },
       });
       await prisma.orderChange.create({
         data: {
           orderId: order.id,
           adminId: admin.id,
           adminName: admin.name,
-          action: "Изменены статус или комментарий",
-          details: `${order.status} → ${updated.status}`,
+          action: statusChanged ? "Статус изменён" : "Комментарий менеджера изменён",
+          details: statusChanged
+            ? `${order.status} → ${updated.status}. Ответственный: ${admin.name}.`
+            : "Обновлён внутренний комментарий.",
         },
       });
       return NextResponse.json({ ok: true, order: updated });
@@ -108,15 +116,11 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     const pickupPoint = body.pickupPoint !== undefined ? normalizeText(body.pickupPoint) : order.pickupPoint;
     const paymentMethod = body.paymentMethod !== undefined ? normalizeText(body.paymentMethod) || "cash" : order.paymentMethod;
     const comment = body.comment !== undefined ? normalizeText(body.comment) : order.comment;
-    const assignedToId = body.assignedToId === null ? undefined : normalizeText(body.assignedToId) || undefined;
     const preparedItems = Array.isArray(body.items) ? await prepareItems(body.items) : null;
 
-    const assignee = assignedToId
-      ? await prisma.adminUser.findFirst({
-          where: { id: assignedToId, isActive: true },
-          select: { id: true, name: true, login: true },
-        })
-      : null;
+    const statusChanged = status !== order.status;
+    const nextAssignedToId = statusChanged ? admin.id || order.assignedToId : order.assignedToId;
+    const nextAssignedToName = statusChanged ? admin.name : order.assignedToName;
 
     if (deliveryType === "courier" && !address) throw new Error("Укажи адрес доставки.");
     if (deliveryType === "pickup" && !pickupPoint) throw new Error("Укажи ПВЗ или точку самовывоза.");
@@ -126,7 +130,7 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
     if (deliveryType !== order.deliveryType || address !== order.address || pickupPoint !== order.pickupPoint) changed.push("получение и адрес");
     if (paymentMethod !== order.paymentMethod) changed.push("способ оплаты");
     if (status !== order.status) changed.push("статус");
-    if ((assignee?.id || null) !== (order.assignedToId || null)) changed.push("ответственный");
+    if (statusChanged) changed.push("ответственный");
     if (preparedItems) changed.push("состав и стоимость товаров");
     if (comment !== order.comment || managerComment !== order.managerComment) changed.push("комментарии");
 
@@ -188,8 +192,8 @@ export async function PATCH(request: Request, { params }: { params: Promise<{ id
           status,
           comment,
           managerComment,
-          assignedToId: assignee?.id ?? null,
-          assignedToName: assignee?.name || assignee?.login || "",
+          assignedToId: nextAssignedToId ?? null,
+          assignedToName: nextAssignedToName || "",
         } as any),
       });
 
