@@ -305,6 +305,41 @@ export function ProductDetailView({
  const activeImage = mediaImages[activeImageIndex] ?? mediaImages[0] ?? "";
 
  useEffect(() => {
+ try {
+ const storageKey = "netizen-recently-viewed";
+ const savedItems = localStorage.getItem(storageKey);
+ const parsedItems = savedItems ? JSON.parse(savedItems) : [];
+ const currentItems = Array.isArray(parsedItems) ? parsedItems : [];
+ const viewedProduct = {
+ slug: product.slug,
+ name: product.name,
+ brand: product.brand,
+ price: activePosition?.price || product.price,
+ image: activeImage || product.images?.[0] || product.image || "",
+ };
+ const nextItems = [
+ viewedProduct,
+ ...currentItems.filter(
+ (item: { slug?: string }) => item?.slug && item.slug !== product.slug,
+ ),
+ ].slice(0, 10);
+
+ localStorage.setItem(storageKey, JSON.stringify(nextItems));
+ } catch {
+ // Просмотр товара не должен мешать работе карточки.
+ }
+ }, [
+ activeImage,
+ activePosition?.price,
+ product.brand,
+ product.image,
+ product.images,
+ product.name,
+ product.price,
+ product.slug,
+ ]);
+
+ useEffect(() => {
  setActiveImageIndex(0);
  }, [previewPosition?.sku, product.slug]);
 
@@ -685,6 +720,11 @@ export function ProductDetailView({
  quantity,
  stock: activePosition.stock,
  status: activePosition.status,
+ image:
+ activePosition.images?.[0] ||
+ product.images?.[0] ||
+ product.image ||
+ "",
  };
 
  try {

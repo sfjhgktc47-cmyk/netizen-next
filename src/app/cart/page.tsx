@@ -30,10 +30,19 @@ type CartItem = {
  quantity: number;
  stock?: number;
  status?: string;
+ image?: string;
 };
 
 type ProductPosition = (typeof productPositions)[number];
-type ProductModel = (typeof products)[number];
+type RecentlyViewedProduct = {
+ slug: string;
+ name: string;
+ brand: string;
+ price: string;
+ image: string;
+};
+
+type CartProductLookup = Omit<CartItem, "quantity">;
 
 type ModalType = "delivery" | "contacts" | null;
 type DeliveryMethod = "courier" | "pickup" | null;
@@ -128,8 +137,6 @@ const fallbackDeliveryOptions: DeliveryOption[] = [
  },
 ];
 
-const recentlyViewed = [...products].slice(0, 5);
-
 function getContactValidationError(customer: CustomerData) {
  if (!customer.name.trim()) {
  return "Укажите имя.";
@@ -185,6 +192,30 @@ function getStoredCartItems() {
  return Array.isArray(parsedItems) ? parsedItems : [];
  } catch {
  return [] as CartItem[];
+ }
+}
+
+function getStoredRecentlyViewed() {
+ try {
+ const savedItems = localStorage.getItem("netizen-recently-viewed");
+ const parsedItems = savedItems ? JSON.parse(savedItems) : [];
+
+ if (!Array.isArray(parsedItems)) {
+ return [] as RecentlyViewedProduct[];
+ }
+
+ return parsedItems
+ .filter((item): item is RecentlyViewedProduct =>
+ Boolean(
+ item &&
+ typeof item === "object" &&
+ typeof item.slug === "string" &&
+ typeof item.name === "string",
+ ),
+ )
+ .slice(0, 10);
+ } catch {
+ return [] as RecentlyViewedProduct[];
  }
 }
 
@@ -319,6 +350,7 @@ export default function CartPage() {
  const [isOrderSubmitting, setIsOrderSubmitting] = useState(false);
  const [orderError, setOrderError] = useState("");
  const [recentlyAddedSku, setRecentlyAddedSku] = useState("");
+ const [recentlyViewed, setRecentlyViewed] = useState<RecentlyViewedProduct[]>([]);
  const [promoInput, setPromoInput] = useState("");
  const [appliedPromoCode, setAppliedPromoCode] = useState("");
  const [quote, setQuote] = useState<DiscountQuote | null>(null);
@@ -326,8 +358,10 @@ export default function CartPage() {
 
  useEffect(() => {
  const profile = getSavedProfile();
+ const storedItems = getStoredCartItems();
 
- setItems(getStoredCartItems());
+ setItems(storedItems);
+ setRecentlyViewed(getStoredRecentlyViewed());
  setCustomer(getStoredCustomer(profile));
  setDelivery(getStoredDelivery());
  setSavedAddresses(getStoredAddresses(profile));
@@ -335,6 +369,37 @@ export default function CartPage() {
  const storedPromo = localStorage.getItem("netizen-promo-code") ?? "";
  setPromoInput(storedPromo);
  setAppliedPromoCode(storedPromo);
+
+ if (storedItems.length > 0) {
+ const skus = storedItems.map((item) => item.sku).filter(Boolean).join(",");
+
+ fetch(`/api/cart-products?skus=${encodeURIComponent(skus)}`, { cache: "no-store" })
+ .then((response) => response.json())
+ .then((payload: { items?: CartProductLookup[] }) => {
+ const lookupBySku = new Map(
+ (payload.items ?? []).map((item) => [item.sku, item]),
+ );
+
+ setItems((currentItems) => {
+ const nextItems = currentItems.map((item) => {
+ const lookup = lookupBySku.get(item.sku);
+
+ return lookup
+ ? {
+ ...item,
+ ...lookup,
+ quantity: item.quantity,
+ image: lookup.image || item.image || "",
+ }
+ : item;
+ });
+
+ saveCartItems(nextItems);
+ return nextItems;
+ });
+ })
+ .catch(() => undefined);
+ }
 
  fetch("/api/auth/me", { cache: "no-store" })
  .then((res) => res.json())
@@ -499,6 +564,35 @@ export default function CartPage() {
  return baseList.slice(0, 5);
  }, [items]);
 
+
+ const displayedRecentlyViewed = useMemo(() => {
+ const productsBySlug = new Map<string, RecentlyViewedProduct>();
+
+ recentlyViewed.forEach((product) => {
+ if (product.slug && !productsBySlug.has(product.slug)) {
+ productsBySlug.set(product.slug, product);
+ }
+ });
+
+ items.forEach((item) => {
+ if (!item.modelSlug) {
+ return;
+ }
+
+ const existingProduct = productsBySlug.get(item.modelSlug);
+
+ productsBySlug.set(item.modelSlug, {
+ slug: item.modelSlug,
+ name: existingProduct?.name || item.productName || item.title,
+ brand: existingProduct?.brand || item.brand,
+ price: existingProduct?.price || item.price,
+ image: existingProduct?.image || item.image || "",
+ });
+ });
+
+ return Array.from(productsBySlug.values()).slice(0, 5);
+ }, [items, recentlyViewed]);
+
  const hasItems = items.length > 0;
  const contactValidationError = isRegistered ? "" : getContactValidationError(customer);
  const deliveryValidationError = getDeliveryValidationError(delivery);
@@ -579,6 +673,7 @@ export default function CartPage() {
  quantity: 1,
  stock: position.stock,
  status: position.status,
+ image: position.images?.[0] || "",
  },
  ];
 
@@ -911,9 +1006,19 @@ export default function CartPage() {
  <div className="grid grid-cols-[62px_minmax(0,1fr)] gap-2 sm:grid-cols-[110px_minmax(0,1fr)] sm:gap-4 md:grid-cols-[140px_1fr_auto] md:items-center md:gap-5">
  <Link
  href={productHref}
- className="soft-box flex h-[62px] items-center justify-center rounded-2xl text-[10px] text-muted-soft sm:h-[110px] md:h-[140px] md:text-sm"
+ className="soft-box relative flex h-[62px] items-center justify-center overflow-hidden rounded-2xl bg-white text-[10px] text-muted-soft sm:h-[110px] md:h-[140px] md:text-sm"
  >
- Фото
+ {item.image ? (
+ // eslint-disable-next-line @next/next/no-img-element
+ <img
+ src={item.image}
+ alt={item.title || item.productName}
+ loading="lazy"
+ className="h-full w-full object-contain p-1.5 sm:p-2"
+ />
+ ) : (
+ "Фото"
+ )}
  </Link>
 
  <div>
@@ -1167,7 +1272,7 @@ export default function CartPage() {
  addedSku={recentlyAddedSku}
  onAdd={addRecommendedPosition}
  />
- <ProductStrip title="Вы смотрели" items={recentlyViewed} />
+ <ProductStrip title="Вы смотрели" items={displayedRecentlyViewed} />
  </div>
  </div>
 
@@ -1924,8 +2029,12 @@ function ProductStrip({
  items,
 }: {
  title: string;
- items: ProductModel[];
+ items: RecentlyViewedProduct[];
 }) {
+ if (items.length === 0) {
+ return null;
+ }
+
  return (
  <section>
  <h2 className="text-2xl font-bold">{title}</h2>
@@ -1937,8 +2046,18 @@ function ProductStrip({
  href={`/product/${product.slug}`}
  className="card group rounded-[20px] p-3 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/35 hover:bg-blue-soft sm:rounded-3xl sm:p-4"
  >
- <div className="soft-box flex h-[108px] items-center justify-center rounded-2xl text-xs text-muted-soft sm:h-[150px] sm:text-sm">
- Фото
+ <div className="soft-box flex h-[108px] items-center justify-center overflow-hidden rounded-2xl bg-white text-xs text-muted-soft sm:h-[150px] sm:text-sm">
+ {product.image ? (
+ // eslint-disable-next-line @next/next/no-img-element
+ <img
+ src={product.image}
+ alt={product.name}
+ loading="lazy"
+ className="h-full w-full object-contain p-2"
+ />
+ ) : (
+ "Фото"
+ )}
  </div>
 
  <div className="pt-4">
