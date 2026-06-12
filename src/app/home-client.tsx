@@ -1228,7 +1228,7 @@ function NewArrivals({
  <section className="pb-3 sm:pb-8 lg:pb-10">
  <div className="mb-5 flex items-end justify-between gap-4 sm:mb-8">
  <div className="min-w-0">
- <h2 className="text-[22px] font-bold leading-none tracking-[-0.04em] sm:text-[36px] lg:text-[52px]">
+ <h2 className="text-clamp(18px, 5vw, 52px) font-bold leading-none tracking-[-0.04em]">
  {title}
  </h2>
 

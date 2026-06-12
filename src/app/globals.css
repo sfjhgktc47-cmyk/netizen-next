@@ -201,3 +201,36 @@ main [class*="card"],
   box-shadow: none !important;
   filter: none !important;
 }
+
+/* Fluid Typography */
+.text-clamp\(16px\,\ 4vw\,\ 32px\) {
+  font-size: clamp(16px, 4vw, 32px);
+}
+
+.text-clamp\(18px\,\ 5vw\,\ 52px\) {
+  font-size: clamp(18px, 5vw, 52px);
+}
+
+.text-clamp\(18px\,\ 5\.5vw\,\ 60px\) {
+  font-size: clamp(18px, 5.5vw, 60px);
+}
+
+.text-clamp\(20px\,\ 6vw\,\ 72px\) {
+  font-size: clamp(20px, 6vw, 72px);
+}
+
+.text-clamp\(16px\,\ 4vw\,\ 44px\) {
+  font-size: clamp(16px, 4vw, 44px);
+}
+
+.text-clamp\(10px\,\ 2\.5vw\,\ 16px\) {
+  font-size: clamp(10px, 2.5vw, 16px);
+}
+
+.text-clamp\(10px\,\ 2vw\,\ 14px\) {
+  font-size: clamp(10px, 2vw, 14px);
+}
+
+.text-clamp\(11px\,\ 2\.2vw\,\ 14px\) {
+  font-size: clamp(11px, 2.2vw, 14px);
+}
