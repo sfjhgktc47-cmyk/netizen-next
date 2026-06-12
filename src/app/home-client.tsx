@@ -549,7 +549,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  }`}
  >
  {image ? (
- <div className="absolute inset-0">
+ <div className="absolute inset-0 hidden sm:block">
  <Image
  src={image}
  alt=""
@@ -557,6 +557,20 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  priority={activeSlide === 0}
  quality={75}
  className="object-contain object-right transition-transform duration-700"
+ draggable={false}
+ />
+ </div>
+ ) : null}
+
+ {mobileImage ? (
+ <div className="absolute inset-y-0 right-0 block h-full w-[60%] sm:hidden">
+ <Image
+ src={mobileImage}
+ alt=""
+ fill
+ priority={activeSlide === 0}
+ quality={75}
+ className="object-contain object-right p-1.5"
  draggable={false}
  />
  </div>
@@ -592,17 +606,17 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  </p>
  ) : null}
 
- <div className="mt-5 flex flex-wrap gap-2 sm:mt-10 sm:gap-3 lg:mt-12">
+ <div className="mt-7 flex flex-wrap gap-2 sm:mt-12 sm:gap-4 lg:mt-14">
  <Link
  href={slide.primaryHref}
- className="inline-flex min-h-10 items-center justify-center rounded-xl bg-blue-600 px-4 py-2 text-[10px] font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500 sm:min-h-11 sm:px-6 sm:py-2.5 sm:text-xs"
+ className="inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-[11px] font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500 sm:min-h-12 sm:px-7 sm:py-4 sm:text-sm"
  >
  {withoutTrailingArrow(slide.primaryLabel)}
  </Link>
 
  <Link
  href={slide.secondaryHref}
- className={`hidden min-h-10 items-center justify-center rounded-xl border px-4 py-2 text-[10px] font-medium transition-all duration-300 hover:-translate-y-0.5 min-[390px]:inline-flex sm:min-h-11 sm:px-6 sm:py-2.5 sm:text-xs ${
+ className={`hidden min-h-11 items-center justify-center rounded-xl border px-4 py-2.5 text-[11px] font-medium transition-all duration-300 hover:-translate-y-0.5 min-[390px]:inline-flex sm:min-h-12 sm:px-7 sm:py-4 sm:text-sm ${
  dark
  ? "border-transparent bg-blue-600 text-white hover:border-transparent hover:bg-blue-500"
  : "border-black/10 bg-white text-black hover:border-blue-500/40 hover:bg-blue-50"
@@ -699,11 +713,11 @@ function Benefits({
  <div className="grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4 lg:gap-4">
  {items.map((item) => {
  const card = (
- <div className="flex min-h-[72px] w-full min-w-0 items-center gap-3 overflow-hidden rounded-xl px-2.5 py-2 sm:min-h-[76px] sm:gap-3.5 sm:px-3 sm:py-2.5 lg:min-h-[78px] lg:gap-4">
+ <div className="flex h-auto min-h-[72px] w-full min-w-0 items-center gap-3 overflow-visible rounded-xl px-2.5 py-2 sm:min-h-[80px] sm:gap-3.5 sm:px-3 sm:py-2.5">
  <BenefitIcon image={item.image} icon={item.icon} />
 
  <div className="min-w-0 flex-1">
- <div className="line-clamp-2 text-[12px] font-semibold leading-[1.25] sm:text-[12px] lg:text-[14px]">
+ <div className="line-clamp-2 text-[12px] font-semibold leading-[1.25] sm:text-[13px] lg:text-[14px]">
  {item.title}
  </div>
 
@@ -761,7 +775,7 @@ function Categories({
 
  return (
  <section className="py-3 sm:py-8 lg:py-10">
- <div className="flex items-end justify-between gap-3">
+ <div className="flex items-end justify-between gap-4">
  <div className="min-w-0">
  <h2 className="text-[20px] font-bold leading-tight tracking-[-0.04em] sm:text-3xl lg:text-4xl">
  {title}
@@ -775,7 +789,7 @@ function Categories({
  {showButton ? (
  <Link
  href={buttonHref}
- className={`hidden shrink-0 rounded-xl border px-4 py-2 text-xs font-medium transition-all duration-300 hover:-translate-y-0.5 sm:inline-flex ${
+ className={`mt-4 hidden shrink-0 rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-300 hover:-translate-y-0.5 sm:inline-flex ${
  dark
  ? "border-transparent bg-blue-600 text-white hover:border-transparent hover:bg-blue-500"
  : "border-black/10 bg-white text-black hover:border-blue-500/40 hover:bg-blue-50"
@@ -1143,23 +1157,11 @@ function ProductCard({
 
  <h3 className="line-clamp-2 min-h-[27px] text-[11px] font-bold leading-tight sm:min-h-0 sm:text-lg">{product.name}</h3>
 
- <p className="mt-1 min-w-0 text-[10px] font-bold text-blue-600 sm:mt-2 sm:text-sm">
- {product.priceMax ? `от ${product.price} до ${product.priceMax}` : product.price}
+ <p className="mt-1.5 min-w-0 text-[12px] font-bold text-blue-600 sm:mt-3 sm:text-lg">
+ {product.price}
  </p>
 
- {product.colors.length > 0 && (
- <div className="mt-1.5 flex gap-1 sm:mt-2">
- {product.colors.slice(0, 3).map((color) => (
- <span
- key={color}
- className={`h-2.5 w-2.5 rounded-full border ${dark ? "border-white/15" : "border-black/10"}`}
- style={{ backgroundColor: color }}
- />
- ))}
- </div>
- )}
-
- <div className="mt-2 w-full rounded-xl bg-blue-600 py-2 text-center text-[11px] font-medium text-white transition-all duration-300 group-hover:bg-blue-500 sm:mt-3 sm:py-2.5 sm:text-xs">
+ <div className="mt-2 w-full rounded-xl bg-blue-600 py-2 text-center text-[11px] font-medium text-white transition-all duration-300 group-hover:bg-blue-500 sm:mt-4 sm:py-3 sm:text-sm">
  Перейти
  </div>
  </div>
@@ -1226,7 +1228,7 @@ function NewArrivals({
  <section className="pb-3 sm:pb-8 lg:pb-10">
  <div className="mb-5 flex items-end justify-between gap-4 sm:mb-8">
  <div className="min-w-0">
- <h2 className="text-clamp(18px, 5vw, 52px) font-bold leading-none tracking-[-0.04em]">
+ <h2 className="text-[22px] font-bold leading-none tracking-[-0.04em] sm:text-[36px] lg:text-[52px]">
  {title}
  </h2>
 
