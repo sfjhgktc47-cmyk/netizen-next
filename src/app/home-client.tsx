@@ -549,7 +549,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  }`}
  >
  {image ? (
- <div className="absolute inset-0 hidden sm:block">
+ <div className="absolute inset-0">
  <Image
  src={image}
  alt=""
@@ -557,20 +557,6 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  priority={activeSlide === 0}
  quality={75}
  className="object-contain object-right transition-transform duration-700"
- draggable={false}
- />
- </div>
- ) : null}
-
- {mobileImage ? (
- <div className="absolute inset-y-0 right-0 block h-full w-[60%] sm:hidden">
- <Image
- src={mobileImage}
- alt=""
- fill
- priority={activeSlide === 0}
- quality={75}
- className="object-contain object-right p-1.5"
  draggable={false}
  />
  </div>
@@ -1157,11 +1143,23 @@ function ProductCard({
 
  <h3 className="line-clamp-2 min-h-[27px] text-[11px] font-bold leading-tight sm:min-h-0 sm:text-lg">{product.name}</h3>
 
- <p className="mt-1.5 min-w-0 text-[12px] font-bold text-blue-600 sm:mt-3 sm:text-lg">
- {product.price}
+ <p className="mt-1 min-w-0 text-[10px] font-bold text-blue-600 sm:mt-2 sm:text-sm">
+ {product.priceMax ? `от ${product.price} до ${product.priceMax}` : product.price}
  </p>
 
- <div className="mt-2 w-full rounded-xl bg-blue-600 py-2 text-center text-[11px] font-medium text-white transition-all duration-300 group-hover:bg-blue-500 sm:mt-4 sm:py-3 sm:text-sm">
+ {product.colors.length > 0 && (
+ <div className="mt-1.5 flex gap-1 sm:mt-2">
+ {product.colors.slice(0, 3).map((color) => (
+ <span
+ key={color}
+ className={`h-2.5 w-2.5 rounded-full border ${dark ? "border-white/15" : "border-black/10"}`}
+ style={{ backgroundColor: color }}
+ />
+ ))}
+ </div>
+ )}
+
+ <div className="mt-2 w-full rounded-xl bg-blue-600 py-2 text-center text-[11px] font-medium text-white transition-all duration-300 group-hover:bg-blue-500 sm:mt-3 sm:py-2.5 sm:text-xs">
  Перейти
  </div>
  </div>
