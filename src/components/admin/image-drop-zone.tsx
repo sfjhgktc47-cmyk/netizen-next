@@ -8,6 +8,8 @@ type Props = {
   onChange: (value: string) => void;
   label?: string;
   hint?: string;
+  recommendedSize?: string;
+  recommendedFormat?: string;
 };
 
 const MAX_IMAGE_SIZE_MB = 2;
@@ -78,6 +80,8 @@ export function ImageDropZone({
   onChange,
   label = "Фото товара",
   hint = "Перетащите фото сюда или нажмите, чтобы выбрать файл.",
+  recommendedSize,
+  recommendedFormat,
 }: Props) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -173,9 +177,17 @@ export function ImageDropZone({
           <div className="flex min-h-[136px] flex-col items-center justify-center rounded-xl border border-white/5 bg-white/[0.02] text-center">
             <div className="text-sm font-semibold text-white">Перетащите фото товара</div>
             <p className="mt-2 max-w-[420px] text-sm leading-relaxed text-white/45">{hint}</p>
-            <span className="mt-3 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-white/45">
-              PNG / JPG / WEBP до {MAX_IMAGE_SIZE_MB} МБ (автосжатие)
-            </span>
+            <div className="mt-3 flex flex-wrap items-center gap-2">
+              <span className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-white/45">
+                до {MAX_IMAGE_SIZE_MB} МБ (автосжатие)
+              </span>
+              {recommendedSize && (
+                <span className="text-xs text-white/40">• {recommendedSize}</span>
+              )}
+              {recommendedFormat && (
+                <span className="text-xs text-white/40">• {recommendedFormat}</span>
+              )}
+            </div>
           </div>
         )}
       </button>
