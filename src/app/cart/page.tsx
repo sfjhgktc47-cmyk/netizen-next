@@ -40,6 +40,10 @@ type RecentlyViewedProduct = {
  brand: string;
  price: string;
  image: string;
+ memory?: string;
+ color?: string;
+ sim?: string;
+ sku?: string;
 };
 
 type CartProductLookup = Omit<CartItem, "quantity">;
@@ -2065,6 +2069,14 @@ function ProductStrip({
 
  <h3 className="mt-1 line-clamp-2 font-bold leading-tight">
  {product.name}
+ {product.memory || product.color || product.sim ? (
+ <span className="text-xs font-normal text-muted-soft">
+ {" "}
+ {[product.memory, product.color, product.sim]
+ .filter(Boolean)
+ .join(" ")}
+ </span>
+ ) : null}
  </h3>
 
  <p className="mt-1 text-sm text-muted">{product.price}</p>
