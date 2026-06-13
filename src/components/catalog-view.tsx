@@ -1094,6 +1094,19 @@ export function CatalogView({
  </section>
 
  <section className="mt-4 sm:mt-8">
+ {!isCategoryPanelVisible && (
+ <div className="mb-4 flex justify-between items-center">
+ <div />
+ <button
+ type="button"
+ onClick={() => setCategoryPanelVisible(true)}
+ className="rounded-xl border border-theme bg-transparent px-3 py-2 text-xs font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-4 sm:py-2.5 sm:text-sm"
+ >
+ Показать категории
+ </button>
+ </div>
+ )}
+
  {isCategoryPanelVisible ? (
  <div className="rounded-[24px] border border-theme bg-card p-3 sm:rounded-[30px] sm:p-5">
  <div className="flex items-center justify-between gap-4">
@@ -1239,15 +1252,6 @@ export function CatalogView({
  {isCategoriesOpen ? "Свернуть" : "Развернуть"}
  </button>
  ) : null}
- </div>
-
- <button
- type="button"
- onClick={() => setCategoryPanelVisible(true)}
- className="shrink-0 rounded-xl border border-theme bg-transparent px-3 py-2 text-xs font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-4 sm:py-2.5 sm:text-sm"
- >
- Показать категории
- </button>
  </div>
  )}
  </section>
@@ -1520,7 +1524,7 @@ function PositionGrid({
  </div>
  </div>
 
- <div className="mt-3 grid grid-cols-2 gap-2.5 sm:mt-5 sm:gap-5 lg:grid-cols-3 2xl:grid-cols-4">
+ <div className="mt-3 grid grid-cols-2 gap-3.5 sm:mt-5 sm:gap-5 lg:grid-cols-3 2xl:grid-cols-4">
  {positions.map((position) => (
  <PositionProductCard key={position.sku} position={position} dark={dark} />
  ))}
@@ -1565,12 +1569,12 @@ function PositionProductCard({
  )}
  </div>
 
- <div className="px-1 pb-1.5 pt-3 sm:px-2 sm:pb-2.5 sm:pt-5">
+ <div className="px-1.5 pb-2 pt-3.5 sm:px-2 sm:pb-2.5 sm:pt-5">
  <div className="truncate text-[13px] text-muted sm:text-sm">
  {position.brand} · {position.productName}
  </div>
 
- <h3 className="mt-1 line-clamp-2 text-[13px] font-bold leading-tight sm:text-lg">
+ <h3 className="mt-1 line-clamp-2 text-[14px] font-bold leading-tight sm:text-lg">
  {position.title}
  </h3>
 
@@ -1604,7 +1608,7 @@ function PositionProductCard({
  </div>
  )}
 
- <p className="text-sm font-bold tracking-[-0.03em] sm:text-lg">
+ <p className="text-base font-bold tracking-[-0.03em] sm:text-lg">
  {position.price}
  </p>
  </div>
