@@ -601,12 +601,12 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  </h1>
 
  {slide.text ? (
- <p className={`mt-1.5 line-clamp-2 max-w-[360px] text-[11px] leading-snug sm:mt-4 sm:text-base lg:text-lg ${mutedTextClass(dark)}`}>
+ <p className={`mt-1.5 line-clamp-2 max-w-[360px] text-[10px] leading-snug sm:mt-3 sm:text-sm lg:text-base ${mutedTextClass(dark)}`}>
  {slide.text}
  </p>
  ) : null}
 
- <div className="mt-7 flex flex-wrap gap-2 sm:mt-12 sm:gap-4 lg:mt-14">
+ <div className="mt-4 flex flex-wrap gap-2 sm:mt-8 sm:gap-4 lg:mt-10">
  <Link
  href={slide.primaryHref}
  className="inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-[11px] font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500 sm:min-h-12 sm:px-7 sm:py-4 sm:text-sm"
