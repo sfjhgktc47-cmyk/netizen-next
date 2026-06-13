@@ -2,7 +2,7 @@ import { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
 
-export type PageKey = "home" | "catalog" | "new" | "product" | "cart" | "profile" | "faq";
+export type PageKey = "home" | "catalog" | "new" | "product" | "cart" | "profile";
 
 export type PageBlockType =
   | "hero"
@@ -28,9 +28,7 @@ export type PageBlockType =
   | "profile-overview"
   | "profile-orders"
   | "profile-addresses"
-  | "profile-support"
-  | "faq-header"
-  | "faq-content";
+  | "profile-support";
 
 export type PageBlockSettings = Record<string, string | number | boolean | null>;
 
@@ -98,11 +96,6 @@ export const builderPages: BuilderPage[] = [
     title: "Профиль",
     description: "Данные клиента, заказы, адреса и обращения в поддержку.",
   },
-  {
-    key: "faq",
-    title: "FAQ",
-    description: "Страница частых вопросов, разделы, ответы и дополнительные блоки.",
-  },
 ];
 
 export const moduleLibrary: ModuleDefinition[] = [
@@ -136,7 +129,7 @@ export const moduleLibrary: ModuleDefinition[] = [
       subtitle: "Выберите направление и найдите свой идеальный гаджет",
       limit: 12,
       showButton: true,
-      buttonText: "Смотреть все категории",
+      buttonText: "Смотреть все категории →",
       buttonHref: "/catalog",
     },
   },
@@ -150,7 +143,7 @@ export const moduleLibrary: ModuleDefinition[] = [
       subtitle: "Выберите модель — конфигурацию подберёте на странице товара.",
       limit: 12,
       showButton: true,
-      buttonText: "Смотреть все товары",
+      buttonText: "Смотреть все товары →",
       buttonHref: "/catalog?popular=1",
       filter: "popular",
     },
@@ -165,7 +158,7 @@ export const moduleLibrary: ModuleDefinition[] = [
       subtitle: "Техника, которая только появилась",
       limit: 3,
       showButton: false,
-      buttonText: "Смотреть новинки",
+      buttonText: "Смотреть новинки →",
       buttonHref: "/catalog?new=1",
     },
   },
@@ -187,7 +180,7 @@ export const moduleLibrary: ModuleDefinition[] = [
       title: "Новый баннер",
       subtitle: "Добавьте текст, ссылку и изображение.",
       image: "",
-      buttonText: "Подробнее",
+      buttonText: "Подробнее →",
       buttonHref: "/catalog",
       tone: "blue",
       layout: "split",
@@ -220,7 +213,7 @@ export const moduleLibrary: ModuleDefinition[] = [
       filter: "all",
       limit: 12,
       showButton: true,
-      buttonText: "Открыть каталог",
+      buttonText: "Открыть каталог →",
       buttonHref: "/catalog",
     },
   },
@@ -329,34 +322,6 @@ export const moduleLibrary: ModuleDefinition[] = [
     pageKeys: ["profile"],
     defaultSettings: { title: "Поддержка" },
   },
-  {
-    type: "faq-header",
-    title: "Заголовок FAQ",
-    description: "Верхний блок страницы FAQ: заголовок, описание и кнопки.",
-    pageKeys: ["faq"],
-    defaultSettings: {
-      title: "Частые вопросы",
-      subtitle: "Коротко объясняем, как работает выбор техники, корзина, доставка, оплата и связь с менеджером.",
-      showSupportButton: true,
-      supportButtonText: "Написать в поддержку",
-      supportButtonHref: "/help",
-      showCatalogButton: true,
-      catalogButtonText: "Перейти в каталог",
-      catalogButtonHref: "/catalog",
-    },
-  },
-  {
-    type: "faq-content",
-    title: "Разделы и вопросы",
-    description: "Основной блок FAQ с разделами, вопросами, ответами и изображениями.",
-    pageKeys: ["faq"],
-    defaultSettings: {
-      title: "Разделы FAQ",
-      showImages: true,
-      showBenefits: true,
-      layout: "tabs",
-    },
-  },
 ];
 
 export const defaultPageBlocks: Record<PageKey, Array<Omit<SitePageBlock, "id" | "createdAt" | "updatedAt">>> = {
@@ -396,10 +361,6 @@ export const defaultPageBlocks: Record<PageKey, Array<Omit<SitePageBlock, "id" |
     makeDefaultBlock("profile", "profile-orders", 20),
     makeDefaultBlock("profile", "profile-addresses", 30),
     makeDefaultBlock("profile", "profile-support", 40),
-  ],
-  faq: [
-    makeDefaultBlock("faq", "faq-header", 10),
-    makeDefaultBlock("faq", "faq-content", 20),
   ],
 };
 

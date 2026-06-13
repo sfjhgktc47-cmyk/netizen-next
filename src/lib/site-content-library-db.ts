@@ -1,5 +1,4 @@
 import { prisma } from "@/lib/db";
-import { publicImageUrl } from "@/lib/public-image-urls";
 
 export type SiteBanner = {
   id: string;
@@ -31,7 +30,6 @@ export type SiteBenefit = {
   icon: string;
   image: string;
   href: string;
-  placement: string;
   enabled: boolean;
   sortOrder: number;
   createdAt: string;
@@ -83,29 +81,6 @@ function toBanner(item: {
 }): SiteBanner {
   return {
     ...item,
-    imageLight: publicImageUrl("banner", item.id, "imageLight", item.imageLight),
-    imageDark: publicImageUrl("banner", item.id, "imageDark", item.imageDark),
-    imageMobile: publicImageUrl("banner", item.id, "imageMobile", item.imageMobile),
-    createdAt: item.createdAt.toISOString(),
-    updatedAt: item.updatedAt.toISOString(),
-  };
-}
-
-function toRawBenefit(item: {
-  id: string;
-  title: string;
-  description: string;
-  icon: string;
-  image: string;
-  href: string;
-  placement: string;
-  enabled: boolean;
-  sortOrder: number;
-  createdAt: Date;
-  updatedAt: Date;
-}): SiteBenefit {
-  return {
-    ...item,
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString(),
   };
@@ -118,7 +93,6 @@ function toBenefit(item: {
   icon: string;
   image: string;
   href: string;
-  placement: string;
   enabled: boolean;
   sortOrder: number;
   createdAt: Date;
@@ -126,14 +100,6 @@ function toBenefit(item: {
 }): SiteBenefit {
   return {
     ...item,
-    image: publicImageUrl(
-      "benefit",
-      item.id,
-      "image",
-      item.image,
-      undefined,
-      item.updatedAt.getTime(),
-    ),
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString(),
   };
@@ -148,45 +114,19 @@ export async function getSiteBanners(options?: { activeOnly?: boolean }) {
   return banners.map(toBanner);
 }
 
-export async function getSiteBenefits(options?: {
-  activeOnly?: boolean;
-  rawImages?: boolean;
-  placement?: "store" | "product";
-  fallbackPlacement?: "store" | "product";
-}) {
-  const where = {
-    ...(options?.activeOnly ? { enabled: true } : {}),
-    ...(options?.placement ? { placement: options.placement } : {}),
-  };
-
-  let benefits = await prisma.siteBenefit.findMany({
-    where,
+export async function getSiteBenefits(options?: { activeOnly?: boolean }) {
+  const benefits = await prisma.siteBenefit.findMany({
+    where: options?.activeOnly ? { enabled: true } : undefined,
     orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
   });
 
-  if (benefits.length === 0 && options?.fallbackPlacement) {
-    benefits = await prisma.siteBenefit.findMany({
-      where: {
-        ...(options.activeOnly ? { enabled: true } : {}),
-        placement: options.fallbackPlacement,
-      },
-      orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
-    });
-  }
-
-  return benefits.map(options?.rawImages ? toRawBenefit : toBenefit);
+  return benefits.map(toBenefit);
 }
 
-export async function getSiteContentLibrary(options?: {
-  activeOnly?: boolean;
-  benefitPlacement?: "store" | "product";
-}): Promise<SiteContentLibrary> {
+export async function getSiteContentLibrary(options?: { activeOnly?: boolean }): Promise<SiteContentLibrary> {
   const [banners, benefits] = await Promise.all([
     getSiteBanners(options),
-    getSiteBenefits({
-      activeOnly: options?.activeOnly,
-      placement: options?.benefitPlacement,
-    }),
+    getSiteBenefits(options),
   ]);
 
   return { banners, benefits };
@@ -200,7 +140,7 @@ export async function createSiteBanner(input?: BannerInput) {
       title: cleanText(input?.title, "Новый баннер") || "Новый баннер",
       subtitle: cleanText(input?.subtitle),
       description: cleanText(input?.description),
-      buttonText: cleanText(input?.buttonText, "Подробнее"),
+      buttonText: cleanText(input?.buttonText, "Подробнее →"),
       buttonHref: cleanText(input?.buttonHref, "/catalog") || "/catalog",
       imageLight: cleanText(input?.imageLight),
       imageDark: cleanText(input?.imageDark),
@@ -257,13 +197,12 @@ export async function createSiteBenefit(input?: BenefitInput) {
       icon: cleanText(input?.icon, "✓") || "✓",
       image: cleanText(input?.image),
       href: cleanText(input?.href),
-      placement: input?.placement === "product" ? "product" : "store",
       enabled: cleanBoolean(input?.enabled, true),
       sortOrder: cleanNumber(input?.sortOrder, 100),
     },
   });
 
-  return toRawBenefit(benefit);
+  return toBenefit(benefit);
 }
 
 export async function updateSiteBenefit(id: string, input: BenefitInput) {
@@ -273,20 +212,14 @@ export async function updateSiteBenefit(id: string, input: BenefitInput) {
       ...(input.title !== undefined ? { title: cleanText(input.title, "Новое преимущество") || "Новое преимущество" } : {}),
       ...(input.description !== undefined ? { description: cleanText(input.description) } : {}),
       ...(input.icon !== undefined ? { icon: cleanText(input.icon, "✓") || "✓" } : {}),
-      ...(input.image !== undefined &&
-      !cleanText(input.image).startsWith(`/api/public-image/benefit/${id}/image`)
-        ? { image: cleanText(input.image) }
-        : {}),
+      ...(input.image !== undefined ? { image: cleanText(input.image) } : {}),
       ...(input.href !== undefined ? { href: cleanText(input.href) } : {}),
-      ...(input.placement !== undefined
-        ? { placement: input.placement === "product" ? "product" : "store" }
-        : {}),
       ...(input.enabled !== undefined ? { enabled: cleanBoolean(input.enabled) } : {}),
       ...(input.sortOrder !== undefined ? { sortOrder: cleanNumber(input.sortOrder) } : {}),
     },
   });
 
-  return toRawBenefit(benefit);
+  return toBenefit(benefit);
 }
 
 export async function deleteSiteBenefit(id: string) {

@@ -5,7 +5,6 @@ import { getAuthSession, normalizeAdminRoles, type AdminRole, type AuthSessionPa
 export type AdminSection =
   | "dashboard"
   | "orders"
-  | "order-settings"
   | "customers"
   | "products"
   | "positions"
@@ -20,7 +19,6 @@ const allRoles: AdminRole[] = ["owner", "admin", "manager", "content", "support"
 export const adminSectionAccess: Record<AdminSection, AdminRole[]> = {
   dashboard: allRoles,
   orders: ["owner", "admin", "manager"],
-  "order-settings": ["owner", "admin"],
   customers: ["owner", "admin", "manager"],
   products: ["owner", "admin", "content"],
   positions: ["owner", "admin", "manager", "content"],

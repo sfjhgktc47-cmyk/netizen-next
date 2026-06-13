@@ -1,18 +1,12 @@
 import { NextResponse } from "next/server";
-
-import { getEditableSupportTopics } from "@/lib/support-topics-db";
+import { supportTopics } from "@/lib/support-topics";
 import { listSupportTopicsWithCounts } from "@/lib/support-store";
 
-export const dynamic = "force-dynamic";
-
 export async function GET() {
-  const [topics, counts] = await Promise.all([
-    getEditableSupportTopics(),
-    listSupportTopicsWithCounts(),
-  ]);
+  const counts = await listSupportTopicsWithCounts();
 
-  return NextResponse.json(
-    { topics, counts },
-    { headers: { "Cache-Control": "no-store" } },
-  );
+  return NextResponse.json({
+    topics: supportTopics,
+    counts,
+  });
 }

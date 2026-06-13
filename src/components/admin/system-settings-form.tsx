@@ -1,6 +1,5 @@
 "use client";
 
-import { BackLink } from "@/components/back-link";
 import Link from "next/link";
 import { useEffect, useState } from "react";
 
@@ -147,33 +146,6 @@ export function SystemSettingsForm({ initialSettings }: Props) {
     window.setTimeout(() => setStaffState("idle"), 2200);
   }
 
-  async function deleteStaffMember(id: string) {
-    if (!window.confirm("Удалить профиль сотрудника? Это действие нельзя отменить.")) {
-      return;
-    }
-
-    setStaffState("saving");
-    setStaffError("");
-
-    const response = await fetch(`/api/admin/staff/${id}`, {
-      method: "DELETE",
-    }).catch(() => null);
-
-    const payload = (await response?.json().catch(() => null)) as
-      | { staff?: StaffMember[]; message?: string }
-      | null;
-
-    if (!response?.ok || !payload?.staff) {
-      setStaffState("error");
-      setStaffError(payload?.message || "Не удалось удалить сотрудника.");
-      return;
-    }
-
-    setStaff(payload.staff);
-    setStaffState("saved");
-    window.setTimeout(() => setStaffState("idle"), 2200);
-  }
-
   function updateDelivery(index: number, key: keyof SystemSettings["deliveries"][number], value: string | boolean) {
     setSettings((current) => ({
       ...current,
@@ -270,12 +242,14 @@ export function SystemSettingsForm({ initialSettings }: Props) {
             href="/"
             className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
           >
-            На сайт
+            На сайт →
           </Link>
         </header>
 
         <section className="mt-10">
-          <BackLink href="/nz-console" label="В админку" variant="admin" />
+          <Link href="/nz-console" className="text-sm text-blue-400 transition-colors hover:text-blue-300">
+            ← В админку
+          </Link>
 
           <div className="mt-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -308,7 +282,7 @@ export function SystemSettingsForm({ initialSettings }: Props) {
                 disabled={saveState === "saving"}
                 className="rounded-xl bg-blue-600 px-7 py-4 text-sm font-medium text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
               >
-                {saveState === "saving" ? "Сохраняю..." : "Сохранить настройки"}
+                {saveState === "saving" ? "Сохраняю..." : "Сохранить настройки →"}
               </button>
             </div>
           </div>
@@ -335,12 +309,7 @@ export function SystemSettingsForm({ initialSettings }: Props) {
 
         <section className="mt-8 grid gap-8 lg:grid-cols-[1fr_380px]">
           <div className="space-y-8">
-            <details open className="group rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
-              <summary className="mb-3 flex cursor-pointer list-none items-center justify-end gap-3 text-xs font-semibold uppercase tracking-[0.14em] text-white/45">
-                <span className="group-open:hidden">Развернуть</span>
-                <span className="hidden group-open:inline">Свернуть</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 text-base transition-transform group-open:rotate-45">+</span>
-              </summary>
+            <section className="rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
               <SectionTitle
                 label="Доставка"
                 title="Способы получения и CRM-ключи"
@@ -424,17 +393,12 @@ export function SystemSettingsForm({ initialSettings }: Props) {
                   onClick={addDelivery}
                   className="rounded-2xl border border-blue-500/30 bg-blue-500/10 px-5 py-4 text-sm font-semibold text-blue-200 transition-colors hover:bg-blue-500/20"
                 >
-                  Добавить способ получения
+                  Добавить способ получения →
                 </button>
               </div>
-            </details>
+            </section>
 
-            <details open className="group rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
-              <summary className="mb-3 flex cursor-pointer list-none items-center justify-end gap-3 text-xs font-semibold uppercase tracking-[0.14em] text-white/45">
-                <span className="group-open:hidden">Развернуть</span>
-                <span className="hidden group-open:inline">Свернуть</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 text-base transition-transform group-open:rotate-45">+</span>
-              </summary>
+            <section className="rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
               <SectionTitle
                 label="Интеграции"
                 title="Внешние сервисы"
@@ -466,14 +430,9 @@ export function SystemSettingsForm({ initialSettings }: Props) {
                   </div>
                 ))}
               </div>
-            </details>
+            </section>
 
-            <details open className="group rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
-              <summary className="mb-3 flex cursor-pointer list-none items-center justify-end gap-3 text-xs font-semibold uppercase tracking-[0.14em] text-white/45">
-                <span className="group-open:hidden">Развернуть</span>
-                <span className="hidden group-open:inline">Свернуть</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 text-base transition-transform group-open:rotate-45">+</span>
-              </summary>
+            <section className="rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
               <SectionTitle
                 label="Уведомления"
                 title="Системные события"
@@ -495,14 +454,9 @@ export function SystemSettingsForm({ initialSettings }: Props) {
                   </div>
                 ))}
               </div>
-            </details>
+            </section>
 
-            <details open className="group rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
-              <summary className="mb-3 flex cursor-pointer list-none items-center justify-end gap-3 text-xs font-semibold uppercase tracking-[0.14em] text-white/45">
-                <span className="group-open:hidden">Развернуть</span>
-                <span className="hidden group-open:inline">Свернуть</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 text-base transition-transform group-open:rotate-45">+</span>
-              </summary>
+            <section className="rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
               <SectionTitle
                 label="Сотрудники"
                 title="Команда админки и роли"
@@ -577,22 +531,87 @@ export function SystemSettingsForm({ initialSettings }: Props) {
                   disabled={staffState === "saving"}
                   className="mt-5 rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
                 >
-                  Добавить сотрудника
+                  Добавить сотрудника →
                 </button>
               </div>
 
               <div className="mt-6 grid gap-4">
-                {staff.map((member) => (
-                  <StaffMemberEditor
-                    key={member.id}
-                    member={member}
-                    roleOptions={staffRoleOptions}
-                    onSave={(patch) => updateStaffMember(member.id, patch)}
-                    onDelete={() => deleteStaffMember(member.id)}
-                    toggleRole={toggleRole}
-                    disabled={staffState === "saving"}
-                  />
-                ))}
+                {staff.map((member) => {
+                  const roleInfo = staffRoleOptions.find((role) => role.value === member.role);
+
+                  return (
+                    <div key={member.id} className="rounded-2xl border border-white/10 bg-black/20 p-5">
+                      <div className="grid gap-4 lg:grid-cols-[1.1fr_1fr_1.4fr_150px] lg:items-start">
+                        <Field label="Логин">
+                          <input
+                            defaultValue={member.login}
+                            onBlur={(event) => event.target.value !== member.login && updateStaffMember(member.id, { login: event.target.value })}
+                            className="admin-input"
+                          />
+                        </Field>
+
+                        <Field label="Имя сотрудника">
+                          <input
+                            defaultValue={member.name}
+                            onBlur={(event) => event.target.value !== member.name && updateStaffMember(member.id, { name: event.target.value })}
+                            className="admin-input"
+                          />
+                        </Field>
+
+                        <Field label="Роли">
+                          <div className="grid gap-2 rounded-2xl border border-white/10 bg-black/20 p-3">
+                            {staffRoleOptions.map((role) => (
+                              <label key={role.value} className="flex items-start gap-3 rounded-xl px-2 py-2 text-sm text-white/75 hover:bg-white/5">
+                                <input
+                                  type="checkbox"
+                                  checked={(member.roles ?? [member.role]).includes(role.value)}
+                                  onChange={() => updateStaffMember(member.id, { roles: toggleRole(member.roles ?? [member.role], role.value) })}
+                                  className="mt-1"
+                                />
+                                <span>
+                                  <span className="block font-semibold text-white">{role.label}</span>
+                                  <span className="block text-xs leading-relaxed text-white/45">{role.description}</span>
+                                </span>
+                              </label>
+                            ))}
+                          </div>
+                        </Field>
+
+                        <button
+                          type="button"
+                          onClick={() => updateStaffMember(member.id, { isActive: !member.isActive })}
+                          className={`h-[52px] rounded-xl border px-4 text-sm font-semibold transition-colors ${
+                            member.isActive
+                              ? "border-green-500/30 bg-green-500/10 text-green-300 hover:bg-green-500/15"
+                              : "border-red-500/30 bg-red-500/10 text-red-300 hover:bg-red-500/15"
+                          }`}
+                        >
+                          {member.isActive ? "Активен" : "Отключён"}
+                        </button>
+                      </div>
+
+                      <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_220px] lg:items-end">
+                        <p className="text-sm leading-relaxed text-white/45">
+                          {roleInfo?.description ?? "Роль сотрудника"}
+                        </p>
+
+                        <Field label="Новый пароль">
+                          <input
+                            type="password"
+                            placeholder="оставь пустым, если не менять"
+                            onBlur={(event) => {
+                              if (event.target.value) {
+                                updateStaffMember(member.id, { password: event.target.value });
+                                event.target.value = "";
+                              }
+                            }}
+                            className="admin-input"
+                          />
+                        </Field>
+                      </div>
+                    </div>
+                  );
+                })}
 
                 {!staff.length && (
                   <div className="rounded-2xl border border-white/10 bg-black/20 p-6 text-sm text-white/50">
@@ -600,16 +619,11 @@ export function SystemSettingsForm({ initialSettings }: Props) {
                   </div>
                 )}
               </div>
-            </details>
+            </section>
           </div>
 
           <aside className="space-y-8">
-            <details open className="group rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
-              <summary className="mb-3 flex cursor-pointer list-none items-center justify-end gap-3 text-xs font-semibold uppercase tracking-[0.14em] text-white/45">
-                <span className="group-open:hidden">Развернуть</span>
-                <span className="hidden group-open:inline">Свернуть</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 text-base transition-transform group-open:rotate-45">+</span>
-              </summary>
+            <section className="rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
               <SectionTitle
                 label="Система"
                 title="Общие параметры"
@@ -629,7 +643,7 @@ export function SystemSettingsForm({ initialSettings }: Props) {
                   />
                 </Field>
               </div>
-            </details>
+            </section>
 
             <section className="rounded-[34px] border border-blue-500/25 bg-blue-500/10 p-6 sm:p-8">
               <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-400">
@@ -650,12 +664,7 @@ export function SystemSettingsForm({ initialSettings }: Props) {
               </button>
             </section>
 
-            <details open className="group rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
-              <summary className="mb-3 flex cursor-pointer list-none items-center justify-end gap-3 text-xs font-semibold uppercase tracking-[0.14em] text-white/45">
-                <span className="group-open:hidden">Развернуть</span>
-                <span className="hidden group-open:inline">Свернуть</span>
-                <span className="flex h-8 w-8 items-center justify-center rounded-xl border border-white/10 text-base transition-transform group-open:rotate-45">+</span>
-              </summary>
+            <section className="rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
               <SectionTitle label="Безопасность" title="Админка" text="Доступ закрыт через admin-сессию." />
               <div className="mt-6 grid gap-3 text-sm text-white/60">
                 <InfoLine label="Адрес админки" value="/nz-console" />
@@ -663,163 +672,13 @@ export function SystemSettingsForm({ initialSettings }: Props) {
                 <InfoLine label="2FA" value="позже" />
                 <InfoLine label="Логи действий" value="позже" />
               </div>
-            </details>
+            </section>
           </aside>
         </section>
 
         <AdminStyle />
       </div>
     </main>
-  );
-}
-
-function StaffMemberEditor({
-  member,
-  roleOptions,
-  onSave,
-  onDelete,
-  toggleRole,
-  disabled,
-}: {
-  member: StaffMember;
-  roleOptions: typeof staffRoleOptions;
-  onSave: (patch: Partial<StaffFormState> & { isActive?: boolean }) => void;
-  onDelete: () => void;
-  toggleRole: (roles: StaffRole[], role: StaffRole) => StaffRole[];
-  disabled: boolean;
-}) {
-  const [draft, setDraft] = useState({
-    login: member.login,
-    name: member.name,
-    roles: member.roles ?? [member.role],
-    password: "",
-    isActive: member.isActive,
-  });
-
-  useEffect(() => {
-    setDraft({
-      login: member.login,
-      name: member.name,
-      roles: member.roles ?? [member.role],
-      password: "",
-      isActive: member.isActive,
-    });
-  }, [member]);
-
-  return (
-    <div className="rounded-2xl border border-white/10 bg-black/20 p-5">
-      <div className="grid gap-4 lg:grid-cols-[1fr_1fr_1.5fr_150px] lg:items-start">
-        <Field label="Логин">
-          <input
-            value={draft.login}
-            onChange={(event) =>
-              setDraft((current) => ({ ...current, login: event.target.value }))
-            }
-            className="admin-input"
-          />
-        </Field>
-
-        <Field label="Имя сотрудника">
-          <input
-            value={draft.name}
-            onChange={(event) =>
-              setDraft((current) => ({ ...current, name: event.target.value }))
-            }
-            className="admin-input"
-          />
-        </Field>
-
-        <Field label="Роли">
-          <div className="grid gap-2 rounded-2xl border border-white/10 bg-black/20 p-3">
-            {roleOptions.map((role) => (
-              <label
-                key={role.value}
-                className="flex items-start gap-3 rounded-xl px-2 py-2 text-sm text-white/75 hover:bg-white/5"
-              >
-                <input
-                  type="checkbox"
-                  checked={draft.roles.includes(role.value)}
-                  onChange={() =>
-                    setDraft((current) => ({
-                      ...current,
-                      roles: toggleRole(current.roles, role.value),
-                    }))
-                  }
-                  className="mt-1"
-                />
-                <span>
-                  <span className="block font-semibold text-white">{role.label}</span>
-                  <span className="block text-xs leading-relaxed text-white/45">
-                    {role.description}
-                  </span>
-                </span>
-              </label>
-            ))}
-          </div>
-        </Field>
-
-        <button
-          type="button"
-          onClick={() =>
-            setDraft((current) => ({ ...current, isActive: !current.isActive }))
-          }
-          className={`h-[52px] rounded-xl border px-4 text-sm font-semibold transition-colors ${
-            draft.isActive
-              ? "border-green-500/30 bg-green-500/10 text-green-300"
-              : "border-red-500/30 bg-red-500/10 text-red-300"
-          }`}
-        >
-          {draft.isActive ? "Активен" : "Отключён"}
-        </button>
-      </div>
-
-      <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_260px_auto] lg:items-end">
-        <p className="text-sm leading-relaxed text-white/45">
-          Изменения применяются только после нажатия «Сохранить».
-        </p>
-
-        <Field label="Новый пароль">
-          <input
-            type="password"
-            value={draft.password}
-            onChange={(event) =>
-              setDraft((current) => ({ ...current, password: event.target.value }))
-            }
-            placeholder="оставьте пустым, если не менять"
-            className="admin-input"
-          />
-        </Field>
-
-        <div className="flex flex-wrap gap-2">
-          <button
-            type="button"
-            disabled={disabled}
-            onClick={() => {
-              onSave({
-                login: draft.login,
-                name: draft.name,
-                roles: draft.roles,
-                password: draft.password || undefined,
-                isActive: draft.isActive,
-              });
-              setDraft((current) => ({ ...current, password: "" }));
-            }}
-            className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white hover:bg-blue-500 disabled:opacity-50"
-          >
-            Сохранить
-          </button>
-
-          <button
-            type="button"
-            disabled={disabled}
-            onClick={onDelete}
-            className="rounded-xl border border-red-500/30 bg-red-500/10 px-5 py-3 text-sm font-semibold text-red-300 hover:bg-red-500/20 disabled:opacity-50"
-          >
-            Удалить профиль
-          </button>
-        </div>
-      </div>
-    </div>
   );
 }
 
