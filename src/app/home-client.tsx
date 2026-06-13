@@ -563,14 +563,14 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  ) : null}
 
  {mobileImage ? (
- <div className="absolute inset-y-0 right-0 block h-full w-[60%] sm:hidden">
+ <div className="absolute inset-y-0 right-0 block h-full w-[50%] sm:hidden">
  <Image
  src={mobileImage}
  alt=""
  fill
  priority={activeSlide === 0}
  quality={75}
- className="object-contain object-right p-1.5"
+ className="h-full w-full object-contain object-right transition-transform duration-700"
  draggable={false}
  />
  </div>
@@ -584,7 +584,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  }`}
  />
 
- <div className="relative z-10 flex h-full items-center px-3.5 py-3 sm:px-8 sm:py-8 lg:px-14 lg:py-12">
+ <div className="relative z-10 flex h-full items-center px-4 py-4 sm:px-8 sm:py-8 lg:px-14 lg:py-12">
  <div className="w-full max-w-[650px] sm:w-[65%]">
  {slide.badge ? (
  <div className="mb-2 inline-flex rounded-full border border-blue-500/45 bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium leading-none text-blue-500 sm:mb-5 sm:px-4 sm:py-2 sm:text-sm">
