@@ -723,7 +723,7 @@ function Benefits({
 
  {item.description ? (
  <div
- className={`mt-1 line-clamp-2 break-words text-[11px] leading-[1.35] sm:text-xs ${mutedTextClass(dark)}`}
+ className={`mt-1 break-words text-[11px] leading-[1.35] sm:text-xs ${mutedTextClass(dark)}`}
  >
  {item.description}
  </div>
