@@ -316,10 +316,6 @@ export function ProductDetailView({
  brand: product.brand,
  price: activePosition?.price || product.price,
  image: activeImage || product.images?.[0] || product.image || "",
- memory: activePosition?.memory,
- color: activePosition?.color,
- sim: activePosition?.sim,
- sku: activePosition?.sku,
  };
  const nextItems = [
  viewedProduct,

@@ -40,10 +40,6 @@ type RecentlyViewedProduct = {
  brand: string;
  price: string;
  image: string;
- memory?: string;
- color?: string;
- sim?: string;
- sku?: string;
 };
 
 type CartProductLookup = Omit<CartItem, "quantity">;
@@ -1010,7 +1006,7 @@ export default function CartPage() {
  <div className="grid grid-cols-[62px_minmax(0,1fr)] gap-2 sm:grid-cols-[110px_minmax(0,1fr)] sm:gap-4 md:grid-cols-[140px_1fr_auto] md:items-center md:gap-5">
  <Link
  href={productHref}
- className="relative flex h-[80px] items-center justify-center overflow-hidden rounded-2xl border border-theme bg-white text-[10px] text-muted-soft sm:h-[140px] md:h-[160px] md:text-sm"
+ className="soft-box relative flex h-[62px] items-center justify-center overflow-hidden rounded-2xl bg-white text-[10px] text-muted-soft sm:h-[110px] md:h-[140px] md:text-sm"
  >
  {item.image ? (
  // eslint-disable-next-line @next/next/no-img-element
@@ -1018,7 +1014,7 @@ export default function CartPage() {
  src={item.image}
  alt={item.title || item.productName}
  loading="lazy"
- className="h-full w-full object-cover"
+ className="h-full w-full object-contain p-1.5 sm:p-2"
  />
  ) : (
  "Фото"
@@ -2069,14 +2065,6 @@ function ProductStrip({
 
  <h3 className="mt-1 line-clamp-2 font-bold leading-tight">
  {product.name}
- {product.memory || product.color || product.sim ? (
- <span className="text-xs font-normal text-muted-soft">
- {" "}
- {[product.memory, product.color, product.sim]
- .filter(Boolean)
- .join(" ")}
- </span>
- ) : null}
  </h3>
 
  <p className="mt-1 text-sm text-muted">{product.price}</p>

@@ -584,7 +584,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  }`}
  />
 
- <div className="relative z-10 flex h-full items-center px-2 py-2 sm:px-6 sm:py-6 lg:px-12 lg:py-10">
+ <div className="relative z-10 flex h-full items-center px-3.5 py-3 sm:px-8 sm:py-8 lg:px-14 lg:py-12">
  <div className="w-full max-w-[650px] sm:w-auto">
  {slide.badge ? (
  <div className="mb-2 inline-flex rounded-full border border-blue-500/45 bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium leading-none text-blue-500 sm:mb-5 sm:px-4 sm:py-2 sm:text-sm">
@@ -606,10 +606,10 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  </p>
  ) : null}
 
- <div className="mt-4 flex w-full flex-wrap gap-2 sm:mt-8 sm:w-auto sm:gap-3 lg:mt-10">
+ <div className="mt-7 flex flex-wrap gap-2 sm:mt-12 sm:gap-4 lg:mt-14">
  <Link
  href={slide.primaryHref}
- className="inline-flex min-h-10 flex-1 items-center justify-center rounded-lg bg-blue-600 px-3 py-2 text-[10px] font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500 sm:flex-none sm:min-h-11 sm:rounded-xl sm:px-6 sm:py-2.5 sm:text-xs lg:min-h-12 lg:px-7 lg:py-3 lg:text-sm"
+ className="inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-[11px] font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500 sm:min-h-12 sm:px-7 sm:py-4 sm:text-sm"
  >
  {withoutTrailingArrow(slide.primaryLabel)}
  </Link>
@@ -1157,23 +1157,19 @@ function ProductCard({
 
  <h3 className="line-clamp-2 min-h-[27px] text-[11px] font-bold leading-tight sm:min-h-0 sm:text-lg">{product.name}</h3>
 
- <p className="mt-1 min-w-0 text-[10px] font-bold text-blue-600 sm:mt-2 sm:text-sm">
+ <p className="mt-1.5 min-w-0 text-[12px] font-bold text-blue-600 sm:mt-3 sm:text-lg">
  {product.priceMax ? `от ${product.price} до ${product.priceMax}` : product.price}
  </p>
 
- {product.colors.length > 0 && (
- <div className="mt-1.5 flex gap-1 sm:mt-2">
+ {product.colors?.length > 0 && (
+ <div className="mt-1 flex gap-1">
  {product.colors.slice(0, 3).map((color) => (
- <span
- key={color}
- className={`h-2.5 w-2.5 rounded-full border ${dark ? "border-white/15" : "border-black/10"}`}
- style={{ backgroundColor: color }}
- />
+ <span key={color} className={`h-2 w-2 rounded-full border ${dark ? "border-white/20" : "border-black/20"}`} style={{ backgroundColor: color }} />
  ))}
  </div>
  )}
 
- <div className="mt-2 w-full rounded-xl bg-blue-600 py-2 text-center text-[11px] font-medium text-white transition-all duration-300 group-hover:bg-blue-500 sm:mt-3 sm:py-2.5 sm:text-xs">
+ <div className="mt-2 w-full rounded-xl bg-blue-600 py-2 text-center text-[11px] font-medium text-white transition-all duration-300 group-hover:bg-blue-500 sm:mt-4 sm:py-3 sm:text-sm">
  Перейти
  </div>
  </div>
