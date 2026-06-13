@@ -1136,7 +1136,7 @@ export default function CartPage() {
  isComplete={hasDelivery}
  action={hasDelivery ? "Изменить" : "Доставка"}
  onClick={() => setActiveModal("delivery")}
- className={isRegistered ? "sm:col-span-2" : ""}
+ className={isRegistered ? "col-span-2 sm:col-span-2" : ""}
  />
  </section>
  </div>
@@ -2039,12 +2039,13 @@ function ProductStrip({
  <section>
  <h2 className="text-2xl font-bold">{title}</h2>
 
- <div className="mt-4 grid grid-cols-2 gap-3 sm:mt-5 sm:grid-cols-2 sm:gap-5 md:grid-cols-3 xl:grid-cols-5">
+ <div className="mt-4 flex gap-3 overflow-x-auto pb-2 sm:mt-5 sm:gap-5 [&::-webkit-scrollbar]:hidden" style={{scrollbarWidth:"none"}}>
+ <div className="flex gap-3 sm:gap-5">
  {items.map((product, index) => (
  <Link
  key={`${product.slug}-${index}`}
  href={`/product/${product.slug}`}
- className="card group rounded-[20px] p-3 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/35 hover:bg-blue-soft sm:rounded-3xl sm:p-4"
+ className="card group shrink-0 w-[140px] rounded-[20px] p-3 transition-all duration-300 hover:-translate-y-1 hover:border-blue-500/35 hover:bg-blue-soft sm:w-[180px] sm:rounded-3xl sm:p-4"
  >
  <div className="soft-box flex h-[108px] items-center justify-center overflow-hidden rounded-2xl bg-white text-xs text-muted-soft sm:h-[150px] sm:text-sm">
  {product.image ? (
@@ -2075,6 +2076,7 @@ function ProductStrip({
  </div>
  </Link>
  ))}
+ </div>
  </div>
  </section>
  );

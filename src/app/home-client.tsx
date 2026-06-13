@@ -585,7 +585,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  />
 
  <div className="relative z-10 flex h-full items-center px-3.5 py-3 sm:px-8 sm:py-8 lg:px-14 lg:py-12">
- <div className="w-full max-w-[650px] sm:w-auto">
+ <div className="w-[58%] max-w-[650px] sm:w-auto">
  {slide.badge ? (
  <div className="mb-2 inline-flex rounded-full border border-blue-500/45 bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium leading-none text-blue-500 sm:mb-5 sm:px-4 sm:py-2 sm:text-sm">
  {slide.badge}
@@ -710,7 +710,7 @@ function Benefits({
  <section
  className={`mt-3 rounded-2xl border px-3 py-2 transition-colors duration-300 sm:mt-6 sm:px-4 sm:py-2.5 ${panelClass(dark)}`}
  >
- <div className="grid grid-cols-1 gap-2 min-[480px]:grid-cols-2 lg:grid-cols-4 lg:gap-3">
+ <div className="grid grid-cols-2 gap-2 sm:gap-2.5 lg:grid-cols-4 lg:gap-3">
  {items.map((item) => {
  const card = (
  <div className="flex min-h-[72px] w-full min-w-0 items-center gap-3.5 overflow-hidden rounded-xl px-2.5 py-1.5 sm:min-h-[78px] sm:gap-4 sm:px-3.5 sm:py-2">
