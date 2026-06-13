@@ -1115,7 +1115,7 @@ export function CatalogView({
  </button>
  </div>
 
- <div className="mt-4 grid grid-cols-1 gap-3 sm:mt-5 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-5">
+ <div className="mt-3 grid grid-cols-2 gap-2 sm:mt-4 sm:grid-cols-2 sm:gap-4 lg:grid-cols-3 xl:grid-cols-5">
  {categories.map((category) => {
  const isActive =
  category.id === selectedCategoryId && !hasActiveFilters;
@@ -1125,19 +1125,19 @@ export function CatalogView({
  key={category.id}
  type="button"
  onClick={() => handleSelectCategory(category.id)}
- className={`group relative min-h-[132px] overflow-hidden rounded-2xl border p-4 text-left transition-all duration-300 hover:-translate-y-0.5 sm:min-h-[144px] ${
+ className={`group relative min-h-[100px] overflow-hidden rounded-2xl border p-2 text-left transition-all duration-300 hover:-translate-y-0.5 sm:min-h-[144px] sm:p-4 ${
  isActive
  ? "border-blue-500/65 bg-blue-500/[0.07]"
  : "border-theme bg-card hover:border-blue-500/40"
  }`}
  >
  <div className="relative z-10 max-w-[54%] pb-11">
- <h3 className="line-clamp-2 text-sm font-bold leading-tight sm:text-base">
+ <h3 className="line-clamp-2 text-xs font-bold leading-tight sm:text-base">
  {category.name}
  </h3>
 
  {category.description ? (
- <p className="mt-2 line-clamp-2 text-[11px] leading-relaxed text-muted">
+ <p className="hidden line-clamp-2 text-[11px] leading-relaxed text-muted sm:mt-2 sm:block">
  {category.description}
  </p>
  ) : null}
@@ -1244,7 +1244,7 @@ export function CatalogView({
  <button
  type="button"
  onClick={() => setCategoryPanelVisible(true)}
- className="hidden shrink-0 rounded-xl border border-theme bg-transparent px-4 py-2.5 text-xs font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:block sm:text-sm"
+ className="shrink-0 rounded-xl border border-theme bg-transparent px-3 py-2 text-xs font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-4 sm:py-2.5 sm:text-sm"
  >
  Показать категории
  </button>
