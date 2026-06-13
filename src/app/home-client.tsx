@@ -1155,7 +1155,7 @@ function ProductCard({
  <p className={`mb-0.5 line-clamp-1 text-[9px] sm:mb-1 sm:text-xs ${mutedTextClass(dark)}`}>{product.brand}</p>
  ) : null}
 
- <h3 className="line-clamp-2 min-h-[27px] text-[11px] font-bold leading-tight sm:min-h-0 sm:text-lg">{product.name}</h3>
+ <h3 className="line-clamp-1 min-h-[20px] text-[11px] font-bold leading-tight sm:min-h-0 sm:text-sm">{product.name}</h3>
 
  <p className="mt-1.5 min-w-0 text-[12px] font-bold text-blue-600 sm:mt-3 sm:text-lg">
  {product.price}
