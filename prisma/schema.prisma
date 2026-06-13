@@ -78,6 +78,8 @@ model Product {
   variants         ProductVariant[]
   orderItems       OrderItem[]
   favorites        CustomerFavorite[]
+  reviews          ProductReview[]
+  questions        ProductQuestion[]
 
   @@index([brand])
   @@index([categorySlug])
@@ -129,6 +131,9 @@ model Customer {
   addresses   Address[]
   tickets     SupportRequest[]
   favorites   CustomerFavorite[]
+  reviews     ProductReview[]
+  questions   ProductQuestion[]
+  reviewVotes ProductReviewVote[]
 
   @@index([phone])
   @@index([email])
@@ -316,4 +321,60 @@ model PageBlock {
 
   @@index([pageKey, enabled, sortOrder])
   @@index([type])
+}
+
+model ProductReview {
+  id               String   @id @default(cuid())
+  productId        String
+  customerId       String
+  rating           Int      @default(5)
+  text             String   @default("")
+  images           String[] @default([])
+  verifiedPurchase Boolean  @default(false)
+  isVisible        Boolean  @default(true)
+  helpfulCount     Int      @default(0)
+  unhelpfulCount   Int      @default(0)
+  adminReply       String   @default("")
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  product  Product             @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customer Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  votes    ProductReviewVote[]
+
+  @@unique([productId, customerId])
+  @@index([productId, isVisible])
+}
+
+model ProductQuestion {
+  id          String    @id @default(cuid())
+  productId   String
+  customerId  String?
+  authorName  String    @default("")
+  authorEmail String    @default("")
+  text        String    @default("")
+  answer      String    @default("")
+  answeredAt  DateTime?
+  isVisible   Boolean   @default(true)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  product  Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  customer Customer? @relation(fields: [customerId], references: [id], onDelete: SetNull)
+
+  @@index([productId, isVisible])
+}
+
+model ProductReviewVote {
+  id         String   @id @default(cuid())
+  reviewId   String
+  customerId String
+  value      Int      @default(0)
+  createdAt  DateTime @default(now())
+
+  review   ProductReview @relation(fields: [reviewId], references: [id], onDelete: Cascade)
+  customer Customer      @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@unique([reviewId, customerId])
+  @@index([reviewId])
 }
