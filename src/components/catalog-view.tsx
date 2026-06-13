@@ -1276,7 +1276,7 @@ export function CatalogView({
  >
  {isFilterOpen && (
  <div className="fixed inset-0 z-50 overflow-y-auto bg-black/45 px-3 py-4 backdrop-blur-sm xl:sticky xl:top-6 xl:inset-auto xl:w-[320px] xl:shrink-0 xl:overflow-visible xl:bg-transparent xl:p-0 xl:backdrop-blur-0">
- <div className="mx-auto max-w-[430px] xl:mx-0 xl:max-h-[calc(100vh-48px)] xl:overflow-y-auto xl:pr-1 xl:pb-4">
+ <div className="mx-auto max-h-[90vh] max-w-[380px] overflow-y-auto xl:mx-0 xl:max-h-[calc(100vh-48px)] xl:max-w-none xl:overflow-y-auto xl:pr-1 xl:pb-4">
  <FilterPanel
  onClose={() => setIsFilterOpen(false)}
  activeCategoryName={activeCategory?.name ?? null}
@@ -1700,7 +1700,7 @@ function FilterPanel({
  : modelOptions;
 
  return (
- <aside className="card min-h-0 rounded-[24px] p-4 sm:rounded-[30px] sm:p-5">
+ <aside className="card min-h-0 rounded-[24px] p-3 sm:rounded-[30px] sm:p-5">
  <div className="flex items-start justify-between gap-4">
  <div>
  <div className="text-xs font-medium uppercase tracking-[0.2em] text-blue-500">
@@ -1721,7 +1721,7 @@ function FilterPanel({
  </button>
  </div>
 
- <div className="mt-5 space-y-5 sm:mt-7 sm:space-y-7">
+ <div className="mt-3 space-y-3 sm:mt-7 sm:space-y-7">
  <div>
  <div className="mb-3 text-sm font-semibold">Бренд</div>
 
@@ -1878,7 +1878,7 @@ function FilterPanel({
  <div className="rounded-2xl border border-theme bg-blue-soft p-4">
  <div className="font-semibold">Умные фильтры</div>
 
- <p className="mt-2 text-sm leading-relaxed text-muted">
+ <p className="mt-1 text-xs leading-relaxed text-muted sm:text-sm">
  Выберите категорию или модель. После этого появятся только нужные
  параметры: для смартфонов память, цвет и SIM, для ноутбуков —
  память/SSD и цвет.
