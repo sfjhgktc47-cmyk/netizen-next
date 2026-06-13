@@ -1539,7 +1539,7 @@ function PositionProductCard({
  return (
  <Link
  href={`/product/${position.modelSlug}?sku=${encodeURIComponent(position.sku)}`}
- className={`group block h-full rounded-[18px] border p-2 transition-all duration-500 hover:-translate-y-1 sm:rounded-3xl sm:p-4 ${
+ className={`group block h-full rounded-[18px] border p-3 transition-all duration-500 hover:-translate-y-1 sm:rounded-3xl sm:p-5 ${
  dark
  ? "border-white/10 bg-white/[0.035] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
  : "border-black/10 bg-white hover:border-blue-500/35"
@@ -1558,15 +1558,15 @@ function PositionProductCard({
  // eslint-disable-next-line @next/next/no-img-element
  <Image quality={75} src={position.images?.[0] ?? getModelImage(position.product)}
  alt={position.title}
- className="h-full w-full object-contain p-2 sm:p-3"
+ className="h-full w-full object-contain p-3 sm:p-4"
  />
  ) : (
  "Фото товара"
  )}
  </div>
 
- <div className="px-0.5 pb-0.5 pt-2 sm:px-1 sm:pb-1 sm:pt-4">
- <div className="truncate text-[11px] text-muted sm:text-xs">
+ <div className="px-1 pb-1 pt-2.5 sm:px-2 sm:pb-2 sm:pt-4">
+ <div className="truncate text-[12px] text-muted sm:text-xs">
  {position.brand} · {position.productName}
  </div>
 
