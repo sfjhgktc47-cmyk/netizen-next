@@ -563,7 +563,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  ) : null}
 
  {mobileImage ? (
- <div className="absolute inset-y-0 right-0 block h-full w-[50%] sm:hidden">
+ <div className="absolute inset-y-0 right-0 block h-full w-[45%] sm:hidden">
  <Image
  src={mobileImage}
  alt=""
@@ -593,9 +593,9 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  ) : null}
 
  <h1 className={`max-w-[620px] whitespace-pre-line font-bold leading-[1.02] tracking-[-0.055em] ${
- slide.titleSize === "md" ? "text-[18px] sm:text-[30px] lg:text-[44px]"
- : slide.titleSize === "xl" ? "text-[24px] sm:text-[48px] lg:text-[72px]"
- : "text-[20px] sm:text-[38px] lg:text-[60px]"
+ slide.titleSize === "md" ? "text-[16px] sm:text-[30px] lg:text-[44px]"
+ : slide.titleSize === "xl" ? "text-[20px] sm:text-[48px] lg:text-[72px]"
+ : "text-[18px] sm:text-[38px] lg:text-[60px]"
  }`}>
  {slide.title}
  </h1>
