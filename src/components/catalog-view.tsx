@@ -1089,6 +1089,18 @@ export function CatalogView({
  setIsSortOpen(false);
  }}
  />
+
+ <button
+ type="button"
+ onClick={() => setCategoryPanelVisible((prev) => !prev)}
+ className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-300 sm:px-6 sm:py-4 sm:hidden ${
+ isCategoryPanelVisible
+ ? "border-transparent bg-blue-600 text-white"
+ : "border-theme bg-transparent hover:border-blue-500/40 hover:bg-blue-soft"
+ }`}
+ >
+ {isCategoryPanelVisible ? "Скрыть категории" : "Категории"}
+ </button>
  </div>
  </div>
  </section>
@@ -1244,7 +1256,7 @@ export function CatalogView({
  <button
  type="button"
  onClick={() => setCategoryPanelVisible(true)}
- className="shrink-0 rounded-xl border border-theme bg-transparent px-3 py-2 text-xs font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-4 sm:py-2.5 sm:text-sm"
+ className="hidden shrink-0 rounded-xl border border-theme bg-transparent px-3 py-2 text-xs font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:px-4 sm:py-2.5 sm:text-sm"
  >
  Показать категории
  </button>
@@ -1539,7 +1551,7 @@ function PositionProductCard({
  return (
  <Link
  href={`/product/${position.modelSlug}?sku=${encodeURIComponent(position.sku)}`}
- className={`group block h-full rounded-[18px] border p-3 transition-all duration-500 hover:-translate-y-1 sm:rounded-3xl sm:p-5 ${
+ className={`group block h-full rounded-[18px] border p-4 transition-all duration-500 hover:-translate-y-1 sm:rounded-3xl sm:p-6 ${
  dark
  ? "border-white/10 bg-white/[0.035] hover:border-blue-500/35 hover:bg-blue-500/[0.04]"
  : "border-black/10 bg-white hover:border-blue-500/35"
@@ -1558,15 +1570,15 @@ function PositionProductCard({
  // eslint-disable-next-line @next/next/no-img-element
  <Image quality={75} src={position.images?.[0] ?? getModelImage(position.product)}
  alt={position.title}
- className="h-full w-full object-contain p-3 sm:p-4"
+ className="h-full w-full object-contain p-4 sm:p-5"
  />
  ) : (
  "Фото товара"
  )}
  </div>
 
- <div className="px-1 pb-1 pt-2.5 sm:px-2 sm:pb-2 sm:pt-4">
- <div className="truncate text-[12px] text-muted sm:text-xs">
+ <div className="px-1 pb-1.5 pt-3 sm:px-2 sm:pb-2.5 sm:pt-5">
+ <div className="truncate text-[13px] text-muted sm:text-sm">
  {position.brand} · {position.productName}
  </div>
 
