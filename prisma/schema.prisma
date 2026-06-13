@@ -378,3 +378,88 @@ model ProductReviewVote {
   @@unique([reviewId, customerId])
   @@index([reviewId])
 }
+
+model FaqCategory {
+  id          String   @id @default(cuid())
+  slug        String   @unique
+  eyebrow     String   @default("")
+  title       String
+  icon        String   @default("?")
+  image       String   @default("")
+  description String   @default("")
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(100)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  questions FaqQuestion[]
+
+  @@index([isActive, sortOrder])
+}
+
+model FaqQuestion {
+  id         String   @id @default(cuid())
+  categoryId String
+  question   String
+  answer     String
+  image      String   @default("")
+  isActive   Boolean  @default(true)
+  sortOrder  Int      @default(100)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  category FaqCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  @@index([categoryId, isActive, sortOrder])
+}
+
+model FaqHighlight {
+  id          String   @id @default(cuid())
+  eyebrow     String   @default("")
+  title       String
+  description String   @default("")
+  image       String   @default("")
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(100)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+}
+
+model OrderChange {
+  id        String   @id @default(cuid())
+  orderId   String
+  adminId   String?
+  adminName String   @default("Менеджер")
+  action    String
+  details   String   @default("")
+  createdAt DateTime @default(now())
+
+  @@index([orderId, createdAt])
+}
+
+model SupportFaqItem {
+  id        String   @id @default(cuid())
+  question  String
+  answer    String
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+}
+
+model SupportFeature {
+  id        String   @id @default(cuid())
+  title     String
+  text      String   @default("")
+  icon      String   @default("✓")
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(100)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive, sortOrder])
+}
