@@ -585,7 +585,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  />
 
  <div className="relative z-10 flex h-full items-center px-4 py-4 sm:px-8 sm:py-8 lg:px-14 lg:py-12">
- <div className="w-full max-w-[650px] sm:w-[65%]">
+ <div className="w-full max-w-[55%] sm:max-w-[650px] lg:max-w-[650px]">
  {slide.badge ? (
  <div className="mb-2 inline-flex rounded-full border border-blue-500/45 bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium leading-none text-blue-500 sm:mb-5 sm:px-4 sm:py-2 sm:text-sm">
  {slide.badge}
