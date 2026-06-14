@@ -592,7 +592,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  </div>
  ) : null}
 
- <h1 className={`max-w-[620px] whitespace-pre-line font-bold leading-[1.02] tracking-[-0.055em] ${
+ <h1 className={`whitespace-pre-line font-bold leading-[1.02] tracking-[-0.055em] sm:max-w-[620px] ${
  slide.titleSize === "md" ? "text-[18px] sm:text-[30px] lg:text-[44px]"
  : slide.titleSize === "xl" ? "text-[24px] sm:text-[48px] lg:text-[72px]"
  : "text-[20px] sm:text-[38px] lg:text-[60px]"
@@ -601,7 +601,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  </h1>
 
  {slide.text ? (
- <p className={`mt-1.5 line-clamp-2 max-w-[360px] text-[11px] leading-snug sm:mt-4 sm:text-base lg:text-lg ${mutedTextClass(dark)}`}>
+ <p className={`mt-1.5 max-w-[55%] text-[11px] leading-snug sm:mt-4 sm:max-w-none sm:text-base lg:text-lg ${mutedTextClass(dark)}`}>
  {slide.text}
  </p>
  ) : null}
