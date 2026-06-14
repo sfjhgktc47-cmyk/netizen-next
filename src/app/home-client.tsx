@@ -497,7 +497,9 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  return null;
  }
 
- const image = dark ? slide.imageDark : slide.imageLight;
+ const image = dark 
+   ? (slide.imageDark?.trim() ? slide.imageDark : slide.imageLight || slide.imageMobile)
+   : (slide.imageLight?.trim() ? slide.imageLight : slide.imageDark || slide.imageMobile);
  const mobileImage = slide.imageMobile || image;
 
  function goToNextSlide() {
