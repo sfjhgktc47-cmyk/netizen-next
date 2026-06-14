@@ -563,7 +563,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  ) : null}
 
  {mobileImage ? (
- <div className="absolute inset-y-0 right-0 block h-full w-[60%] sm:hidden">
+ <div className="absolute inset-y-0 right-0 block h-full w-[35%] sm:hidden">
  <Image
  src={mobileImage}
  alt=""
@@ -601,7 +601,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  </h1>
 
  {slide.text ? (
- <p className={`mt-1.5 max-w-[55%] text-[11px] leading-snug sm:mt-4 sm:max-w-none sm:text-base lg:text-lg ${mutedTextClass(dark)}`}>
+ <p className={`mt-1.5 max-w-[70%] text-[11px] leading-snug sm:mt-4 sm:max-w-none sm:text-base lg:text-lg ${mutedTextClass(dark)}`}>
  {slide.text}
  </p>
  ) : null}
