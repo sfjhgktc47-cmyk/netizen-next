@@ -33,6 +33,9 @@ export async function getAdminOrders() {
           variant: true,
         },
       },
+      assignedTo: {
+        select: { id: true, name: true, login: true },
+      },
     },
   });
 }
@@ -49,6 +52,16 @@ export async function getAdminOrder(idOrPublicId: string) {
           product: true,
           variant: true,
         },
+      },
+      assignedTo: {
+        select: { id: true, name: true, login: true },
+      },
+      changes: {
+        orderBy: { createdAt: "desc" },
+      },
+      supportRequests: {
+        orderBy: { updatedAt: "desc" },
+        select: { id: true, publicId: true, status: true, updatedAt: true },
       },
     },
   });
@@ -76,64 +89,60 @@ export async function getOrderMetrics() {
   };
 }
 
+
 export async function getOrderEditorOptions() {
-  const [customers, variants, staff] = await Promise.all([
+  const [customers, positions, staff] = await Promise.all([
     prisma.customer.findMany({
-      orderBy: { createdAt: "desc" },
-      take: 500,
-      include: {
+      orderBy: [{ updatedAt: "desc" }, { createdAt: "desc" }],
+      select: {
+        id: true,
+        name: true,
+        lastName: true,
+        phone: true,
+        email: true,
+        city: true,
         addresses: {
+          orderBy: [{ isDefault: "desc" }, { updatedAt: "desc" }],
           select: { id: true, type: true, value: true, isDefault: true },
         },
       },
     }),
     prisma.productVariant.findMany({
-      where: { status: "active" },
-      orderBy: { title: "asc" },
-      take: 1000,
+      orderBy: [{ product: { name: "asc" } }, { sku: "asc" }],
       include: {
-        product: { select: { id: true, name: true, brand: true } },
+        product: {
+          select: { id: true, name: true, brand: true, image: true, images: true },
+        },
       },
     }),
     prisma.adminUser.findMany({
-      orderBy: { name: "asc" },
-      select: { id: true, name: true, login: true },
+      where: { isActive: true },
+      orderBy: [{ name: "asc" }, { login: "asc" }],
+      select: { id: true, name: true, login: true, role: true, roles: true },
     }),
   ]);
 
   return {
     customers: customers.map((customer) => ({
-      id: customer.id,
-      fullName: [customer.name, customer.lastName].filter(Boolean).join(" ") || customer.name,
-      phone: customer.phone,
-      email: customer.email,
-      city: customer.city,
-      addresses: customer.addresses.map((address) => ({
-        id: address.id,
-        type: String(address.type),
-        value: address.value,
-        isDefault: address.isDefault,
-      })),
+      ...customer,
+      fullName: [customer.name, customer.lastName].filter(Boolean).join(" ").trim() || customer.phone,
     })),
-    positions: variants.map((variant) => ({
-      id: variant.id,
-      productId: variant.productId,
-      sku: variant.sku,
-      title: variant.title,
-      productTitle: variant.product.name,
-      brand: variant.product.brand,
-      memory: variant.memory,
-      color: variant.color,
-      sim: variant.sim,
-      price: variant.price,
-      stock: variant.stock,
-      status: String(variant.status),
-      image: variant.images[0] ?? "",
+    positions: positions.map((position) => ({
+      id: position.id,
+      productId: position.productId,
+      sku: position.sku,
+      title: position.title,
+      productTitle: position.product.name,
+      brand: position.product.brand,
+      memory: position.memory,
+      color: position.color,
+      sim: position.sim,
+      price: position.price,
+      oldPrice: position.oldPrice ?? 0,
+      stock: position.stock,
+      status: position.status,
+      image: position.images[0] || position.product.image || position.product.images[0] || "",
     })),
-    staff: staff.map((member) => ({
-      id: member.id,
-      name: member.name,
-      login: member.login,
-    })),
+    staff,
   };
 }

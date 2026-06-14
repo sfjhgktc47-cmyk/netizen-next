@@ -30,7 +30,7 @@ export default async function AdminDashboardPage() {
               href="/"
               className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
             >
-              На сайт →
+              На сайт
             </Link>
             <AdminLogoutButton />
           </div>
@@ -77,7 +77,7 @@ export default async function AdminDashboardPage() {
                 href="/nz-console/products/new"
                 className="rounded-xl bg-blue-600 px-5 py-4 text-center text-sm font-medium text-white transition-colors hover:bg-blue-500"
               >
-                Создать карточку →
+                Создать карточку
               </Link>
 
               <Link
@@ -100,6 +100,14 @@ export default async function AdminDashboardPage() {
               >
                 Смотреть заявки
               </Link>
+
+              <Link
+                href="/nz-console/promocodes"
+                className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-4 text-center text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
+              >
+                Промокоды и скидки
+              </Link>
+
             </div>
 
             <div className="mt-8 rounded-2xl border border-blue-500/25 bg-blue-500/10 p-5">
@@ -144,7 +152,7 @@ export default async function AdminDashboardPage() {
               </div>
 
               <div className="mt-7 inline-flex text-sm font-medium text-blue-400 transition-transform duration-300 group-hover:translate-x-1">
-                Открыть раздел →
+                Открыть раздел
               </div>
             </Link>
           ))}

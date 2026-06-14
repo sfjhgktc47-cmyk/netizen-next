@@ -1,4 +1,6 @@
+import { BackLink } from "@/components/back-link";
 import Link from "next/link";
+import Image from 'next/image';
 import { notFound } from "next/navigation";
 
 import { ProductVariantEditForm } from "@/components/admin/product-variant-edit-form";
@@ -54,16 +56,30 @@ export default async function AdminPositionDetailPage({
   const { sku } = await params;
   const decodedSku = decodeURIComponent(sku);
 
-  const variant = await prisma.productVariant.findUnique({
-    where: { sku: decodedSku },
-    include: {
-      product: {
-        include: {
-          category: true,
+  const [variant, relatedProductOptions] = await Promise.all([
+    prisma.productVariant.findUnique({
+      where: { sku: decodedSku },
+      include: {
+        product: {
+          include: {
+            category: true,
+          },
         },
       },
-    },
-  });
+    }),
+    prisma.product.findMany({
+      where: { status: "active" },
+      select: {
+        id: true,
+        slug: true,
+        name: true,
+        brand: true,
+        image: true,
+        images: true,
+      },
+      orderBy: [{ brand: "asc" }, { name: "asc" }],
+    }),
+  ]);
 
   if (!variant) {
     notFound();
@@ -90,14 +106,12 @@ export default async function AdminPositionDetailPage({
             href="/nz-console/positions"
             className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
           >
-            К позициям →
+            К позициям
           </Link>
         </header>
 
         <section className="mt-10">
-          <Link href="/nz-console/positions" className="text-sm text-blue-400 transition-colors hover:text-blue-300">
-            ← Назад к позициям
-          </Link>
+          <BackLink href="/nz-console/positions" label="Назад к позициям" variant="admin" />
 
           <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_340px]">
             <div className="rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
@@ -106,7 +120,7 @@ export default async function AdminPositionDetailPage({
                   <div className="flex h-24 w-24 shrink-0 items-center justify-center overflow-hidden rounded-3xl bg-white/[0.045] text-xs text-white/25">
                     {mainImage ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={mainImage} alt={variant.title} className="h-full w-full object-cover" />
+                      <Image quality={75} src={mainImage} alt={variant.title} className="h-full w-full object-cover" />
                     ) : (
                       "Фото"
                     )}
@@ -179,7 +193,19 @@ export default async function AdminPositionDetailPage({
               seoTitle: variant.seoTitle,
               seoDescription: variant.seoDescription,
               seoKeywords: variant.seoKeywords,
+              relatedProductIds: Array.isArray(variant.relatedProductIds)
+                ? variant.relatedProductIds
+                : [],
             }}
+            relatedProductOptions={relatedProductOptions
+              .filter((product) => product.id !== variant.productId)
+              .map((product) => ({
+                id: product.id,
+                slug: product.slug,
+                name: product.name,
+                brand: product.brand,
+                image: product.image || product.images?.[0] || "",
+              }))}
           />
         </section>
       </div>

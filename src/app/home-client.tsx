@@ -542,7 +542,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  }}
  onMouseEnter={() => setIsHeroHovered(true)}
  onMouseLeave={() => setIsHeroHovered(false)}
- className={`relative h-[220px] cursor-grab select-none overflow-hidden rounded-[20px] border transition-all duration-700 active:cursor-grabbing sm:h-[360px] sm:rounded-[30px] lg:h-[520px] ${
+ className={`relative h-[176px] cursor-grab select-none overflow-hidden rounded-[20px] border transition-all duration-700 active:cursor-grabbing sm:h-[360px] sm:rounded-[30px] lg:h-[520px] ${
  dark
  ? "border-white/10 bg-[#06101f]"
  : "border-black/10 bg-white "
@@ -563,14 +563,14 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  ) : null}
 
  {mobileImage ? (
- <div className="absolute inset-y-0 right-0 block h-full w-[45%] sm:hidden">
+ <div className="absolute inset-y-0 right-0 block h-full w-[60%] sm:hidden">
  <Image
  src={mobileImage}
  alt=""
  fill
  priority={activeSlide === 0}
  quality={75}
- className="h-full w-full object-contain object-right transition-transform duration-700"
+ className="object-contain object-right p-1.5"
  draggable={false}
  />
  </div>
@@ -584,8 +584,8 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  }`}
  />
 
- <div className="relative z-10 flex h-full items-center px-4 py-4 sm:px-8 sm:py-8 lg:px-14 lg:py-12">
- <div className="w-full max-w-[55%] sm:max-w-[650px] lg:max-w-[650px]">
+ <div className="relative z-10 flex h-full items-center px-3.5 py-3 sm:px-8 sm:py-8 lg:px-14 lg:py-12">
+ <div className="w-full max-w-[650px] sm:w-auto">
  {slide.badge ? (
  <div className="mb-2 inline-flex rounded-full border border-blue-500/45 bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium leading-none text-blue-500 sm:mb-5 sm:px-4 sm:py-2 sm:text-sm">
  {slide.badge}
@@ -593,20 +593,20 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  ) : null}
 
  <h1 className={`max-w-[620px] whitespace-pre-line font-bold leading-[1.02] tracking-[-0.055em] ${
- slide.titleSize === "md" ? "text-[16px] sm:text-[30px] lg:text-[44px]"
- : slide.titleSize === "xl" ? "text-[20px] sm:text-[48px] lg:text-[72px]"
- : "text-[18px] sm:text-[38px] lg:text-[60px]"
+ slide.titleSize === "md" ? "text-[18px] sm:text-[30px] lg:text-[44px]"
+ : slide.titleSize === "xl" ? "text-[24px] sm:text-[48px] lg:text-[72px]"
+ : "text-[20px] sm:text-[38px] lg:text-[60px]"
  }`}>
  {slide.title}
  </h1>
 
  {slide.text ? (
- <p className={`mt-1.5 line-clamp-2 max-w-[360px] text-[10px] leading-snug sm:mt-3 sm:text-sm lg:text-base ${mutedTextClass(dark)}`}>
+ <p className={`mt-1.5 line-clamp-2 max-w-[360px] text-[11px] leading-snug sm:mt-4 sm:text-base lg:text-lg ${mutedTextClass(dark)}`}>
  {slide.text}
  </p>
  ) : null}
 
- <div className="mt-4 flex flex-wrap gap-2 sm:mt-8 sm:gap-4 lg:mt-10">
+ <div className="mt-7 flex flex-wrap gap-2 sm:mt-12 sm:gap-4 lg:mt-14">
  <Link
  href={slide.primaryHref}
  className="inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-[11px] font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500 sm:min-h-12 sm:px-7 sm:py-4 sm:text-sm"
@@ -710,7 +710,7 @@ function Benefits({
  <section
  className={`mt-3 rounded-2xl border px-3 py-2 transition-colors duration-300 sm:mt-6 sm:px-4 sm:py-2.5 ${panelClass(dark)}`}
  >
- <div className="grid grid-cols-2 gap-2 sm:gap-2.5 lg:grid-cols-4 lg:gap-3">
+ <div className="grid grid-cols-1 gap-2 min-[480px]:grid-cols-2 lg:grid-cols-4 lg:gap-3">
  {items.map((item) => {
  const card = (
  <div className="flex min-h-[72px] w-full min-w-0 items-center gap-3.5 overflow-hidden rounded-xl px-2.5 py-1.5 sm:min-h-[78px] sm:gap-4 sm:px-3.5 sm:py-2">
@@ -723,7 +723,7 @@ function Benefits({
 
  {item.description ? (
  <div
- className={`mt-1 break-words text-[11px] leading-[1.35] sm:text-xs ${mutedTextClass(dark)}`}
+ className={`mt-1 line-clamp-2 break-words text-[11px] leading-[1.35] sm:text-xs ${mutedTextClass(dark)}`}
  >
  {item.description}
  </div>

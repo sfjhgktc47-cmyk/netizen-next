@@ -120,3 +120,117 @@ body.has-mobile-bottom-nav {
     overflow-x: hidden;
   }
 }
+
+/* Спокойная тёмная тема без глобальной синей заливки */
+.dark {
+  --muted: rgba(255, 255, 255, 0.62);
+  --muted-soft: rgba(255, 255, 255, 0.42);
+  --card: rgba(255, 255, 255, 0.025);
+  --card-soft: rgba(255, 255, 255, 0.035);
+  --border: rgba(255, 255, 255, 0.13);
+  --blue-soft: rgba(37, 99, 235, 0.09);
+}
+
+.dark .card {
+  border-color: rgba(255, 255, 255, 0.13);
+  background: rgba(255, 255, 255, 0.025);
+  box-shadow: none;
+}
+
+.dark .soft-box,
+.dark .bg-blue-soft {
+  background-color: rgba(37, 99, 235, 0.09);
+}
+
+.dark .border-theme {
+  border-color: rgba(255, 255, 255, 0.13);
+}
+
+.dark input[class*="border"],
+.dark select[class*="border"],
+.dark textarea[class*="border"],
+.dark .admin-input,
+.dark .admin-textarea {
+  border-color: rgba(255, 255, 255, 0.15) !important;
+  background-color: rgba(255, 255, 255, 0.028) !important;
+  color: #ffffff !important;
+}
+
+.dark input[class*="border"]:focus,
+.dark select[class*="border"]:focus,
+.dark textarea[class*="border"]:focus,
+.dark .admin-input:focus,
+.dark .admin-textarea:focus {
+  border-color: rgba(59, 130, 246, 0.65) !important;
+  box-shadow: none;
+}
+
+/* Вторичные кнопки тёмные; синими остаются только явные CTA с bg-blue-* */
+.dark button[class*="border-theme"],
+.dark a[class*="border-theme"] {
+  border-color: rgba(255, 255, 255, 0.15);
+  background-color: rgba(255, 255, 255, 0.035);
+  color: #ffffff;
+}
+
+.dark button[class*="border-theme"]:hover,
+.dark a[class*="border-theme"]:hover {
+  border-color: rgba(96, 165, 250, 0.45);
+  background-color: rgba(37, 99, 235, 0.10);
+}
+
+.dark [class*="border-dashed"] {
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  background-color: rgba(255, 255, 255, 0.012);
+}
+
+
+/* Клиентский интерфейс без теней и свечения */
+header button,
+header a,
+nav button,
+nav a,
+main button,
+main a,
+main section,
+main article,
+main aside,
+main [class*="card"],
+.fixed.bottom-0 button,
+.fixed.bottom-0 a {
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+/* Fluid Typography */
+.text-clamp\(16px\,\ 4vw\,\ 32px\) {
+  font-size: clamp(16px, 4vw, 32px);
+}
+
+.text-clamp\(18px\,\ 5vw\,\ 52px\) {
+  font-size: clamp(18px, 5vw, 52px);
+}
+
+.text-clamp\(18px\,\ 5\.5vw\,\ 60px\) {
+  font-size: clamp(18px, 5.5vw, 60px);
+}
+
+.text-clamp\(20px\,\ 6vw\,\ 72px\) {
+  font-size: clamp(20px, 6vw, 72px);
+}
+
+.text-clamp\(16px\,\ 4vw\,\ 44px\) {
+  font-size: clamp(16px, 4vw, 44px);
+}
+
+.text-clamp\(10px\,\ 2\.5vw\,\ 16px\) {
+  font-size: clamp(10px, 2.5vw, 16px);
+}
+
+.text-clamp\(10px\,\ 2vw\,\ 14px\) {
+  font-size: clamp(10px, 2vw, 14px);
+}
+
+.text-clamp\(11px\,\ 2\.2vw\,\ 14px\) {
+  font-size: clamp(11px, 2.2vw, 14px);
+}

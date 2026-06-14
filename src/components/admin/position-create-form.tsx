@@ -307,7 +307,14 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
         </div>
 
         <div className="mt-8">
-          <ImageLibraryField value={images} onChange={setImages} />
+          <ImageLibraryField
+            value={images}
+            onChange={setImages}
+            label="Фотографии позиции / SKU"
+            hint="Фотографии конкретной конфигурации: цвет, память и SIM."
+            recommendedSize="1600×1600 px"
+            recommendedFormat="PNG / WEBP, квадрат"
+          />
         </div>
 
         <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-xs leading-relaxed text-white/45">
@@ -341,7 +348,7 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
           disabled={loading}
           className="mt-6 w-full rounded-xl bg-blue-600 px-5 py-4 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {loading ? "Сохраняю..." : "Создать позицию →"}
+          {loading ? "Сохраняю..." : "Создать позицию"}
         </button>
       </aside>
     </form>

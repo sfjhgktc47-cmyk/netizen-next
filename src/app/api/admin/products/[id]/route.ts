@@ -110,6 +110,27 @@ export async function PATCH(
     }
   }
 
+  if (body?.action === "set-sort-order") {
+    try {
+      const product = await prisma.product.update({
+        where: { id },
+        data: {
+          sortOrder: toSortOrder(body?.sortOrder),
+        },
+      });
+
+      return NextResponse.json({ product });
+    } catch (error) {
+      return NextResponse.json(
+        {
+          error: "Не удалось обновить порядок карточки.",
+          details: getErrorMessage(error),
+        },
+        { status: 500 },
+      );
+    }
+  }
+
   const name = toStringValue(body?.name).trim();
   const slug = toStringValue(body?.slug).trim();
   const brand = toStringValue(body?.brand).trim();

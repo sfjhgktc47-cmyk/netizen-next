@@ -1,4 +1,6 @@
+import { BackLink } from "@/components/back-link";
 import type { ReactNode } from "react";
+import Image from 'next/image';
 import Link from "next/link";
 
 import { PositionVisibilityButton } from "@/components/admin/position-visibility-button";
@@ -11,6 +13,7 @@ type SearchParams = {
   tab?: string;
   q?: string;
   productId?: string;
+  brand?: string;
   stock?: string;
   status?: string;
 };
@@ -103,6 +106,7 @@ export default async function AdminPositionsPage({
   const activeTab = params.tab ?? "all";
   const q = (params.q ?? "").trim().toLowerCase();
   const selectedProductId = params.productId ?? "";
+  const selectedBrand = params.brand ?? "";
   const selectedStock = params.stock ?? "";
   const selectedStatus = params.status ?? "";
 
@@ -116,14 +120,19 @@ export default async function AdminPositionsPage({
             name: true,
             brand: true,
             image: true,
+            sortOrder: true,
           },
         },
       },
-      orderBy: [{ createdAt: "desc" }],
+      orderBy: [
+        { product: { sortOrder: "asc" } },
+        { product: { brand: "asc" } },
+        { createdAt: "desc" },
+      ],
     }),
     prisma.product.findMany({
-      select: { id: true, name: true, brand: true },
-      orderBy: [{ name: "asc" }],
+      select: { id: true, name: true, brand: true, sortOrder: true },
+      orderBy: [{ sortOrder: "asc" }, { brand: "asc" }, { name: "asc" }],
     }),
   ]);
 
@@ -138,6 +147,10 @@ export default async function AdminPositionsPage({
     }
 
     if (selectedProductId && variant.productId !== selectedProductId) {
+      return false;
+    }
+
+    if (selectedBrand && variant.product.brand !== selectedBrand) {
       return false;
     }
 
@@ -177,9 +190,14 @@ export default async function AdminPositionsPage({
     tab: activeTab === "all" ? undefined : activeTab,
     q: params.q,
     productId: selectedProductId,
+    brand: selectedBrand,
     stock: selectedStock,
     status: selectedStatus,
   };
+
+  const brandOptions = Array.from(new Set(products.map((product) => product.brand).filter(Boolean))).sort((a, b) =>
+    a.localeCompare(b, "ru"),
+  );
 
   const tabs = [
     { label: "Все", value: "all", count: variants.length },
@@ -207,14 +225,12 @@ export default async function AdminPositionsPage({
             href="/"
             className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
           >
-            На сайт →
+            На сайт
           </Link>
         </header>
 
         <section className="mt-10">
-          <Link href="/nz-console" className="text-sm text-blue-400 transition-colors hover:text-blue-300">
-            ← В админку
-          </Link>
+          <BackLink href="/nz-console" label="В админку" variant="admin" />
 
           <div className="mt-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -236,7 +252,7 @@ export default async function AdminPositionsPage({
                 href="/nz-console/positions/new"
                 className="rounded-xl bg-blue-600 px-7 py-4 text-sm font-medium text-white transition-colors hover:bg-blue-500"
               >
-                Добавить позицию →
+                Добавить позицию
               </Link>
             </div>
           </div>
@@ -270,7 +286,7 @@ export default async function AdminPositionsPage({
         <section className="mt-6 rounded-[28px] border border-white/10 bg-white/[0.035] p-5">
           <form className="flex flex-col gap-4 xl:flex-row xl:items-center xl:justify-between">
             <input type="hidden" name="tab" value={activeTab === "all" ? "" : activeTab} />
-            <div className="flex flex-1 flex-col gap-3 md:flex-row">
+            <div className="grid flex-1 gap-3 md:grid-cols-2 xl:grid-cols-[minmax(180px,1fr)_220px_180px_160px_160px]">
               <input
                 name="q"
                 defaultValue={params.q ?? ""}
@@ -282,7 +298,16 @@ export default async function AdminPositionsPage({
                 <option value="">Все модели</option>
                 {products.map((product) => (
                   <option key={product.id} value={product.id}>
-                    {product.name} · {product.brand}
+                    #{product.sortOrder} · {product.name} · {product.brand}
+                  </option>
+                ))}
+              </select>
+
+              <select name="brand" defaultValue={selectedBrand} className="h-12 rounded-xl border border-white/10 bg-[#060c16] px-5 text-sm font-medium text-white outline-none transition-colors hover:border-blue-500/40 focus:border-blue-500/50">
+                <option value="">Все бренды</option>
+                {brandOptions.map((brand) => (
+                  <option key={brand} value={brand}>
+                    {brand}
                   </option>
                 ))}
               </select>
@@ -320,14 +345,15 @@ export default async function AdminPositionsPage({
         </section>
 
         <section className="mt-6 overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.035]">
-          <div className="hidden grid-cols-[1.05fr_1.2fr_0.65fr_0.6fr_0.55fr_0.65fr_0.65fr_0.75fr_0.65fr_190px] border-b border-white/10 bg-black/25 px-5 py-4 text-sm text-white/45 xl:grid">
+          <div className="hidden grid-cols-[0.95fr_1.15fr_0.55fr_0.55fr_0.5fr_0.5fr_0.6fr_0.6fr_0.7fr_0.6fr_180px] border-b border-white/10 bg-black/25 px-5 py-4 text-sm text-white/45 xl:grid">
             <div>Модель</div>
             <div>Позиция / SKU</div>
+            <div>Бренд</div>
+            <div>Порядок</div>
             <div>Цвет</div>
             <div>Память</div>
             <div>SIM</div>
             <div>Цена</div>
-            <div>До акции</div>
             <div>Наличие</div>
             <div>Статус</div>
             <div className="text-right">Действия</div>
@@ -341,7 +367,7 @@ export default async function AdminPositionsPage({
                 return (
                   <div
                     key={variant.id}
-                    className="grid gap-5 bg-white/[0.015] p-5 transition-colors hover:bg-blue-500/[0.04] xl:grid-cols-[1.05fr_1.2fr_0.65fr_0.6fr_0.55fr_0.65fr_0.65fr_0.75fr_0.65fr_190px] xl:items-center"
+                    className="grid gap-5 bg-white/[0.015] p-5 transition-colors hover:bg-blue-500/[0.04] xl:grid-cols-[0.95fr_1.15fr_0.55fr_0.55fr_0.5fr_0.5fr_0.6fr_0.6fr_0.7fr_0.6fr_180px] xl:items-center"
                   >
                     <AdminCell label="Модель">
                       <Link
@@ -356,7 +382,7 @@ export default async function AdminPositionsPage({
                       <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/[0.045] text-[10px] text-white/25">
                         {image ? (
                           // eslint-disable-next-line @next/next/no-img-element
-                          <img src={image} alt={variant.title} className="h-full w-full object-cover" />
+                          <Image quality={75} src={image} alt={variant.title} className="h-full w-full object-cover" />
                         ) : (
                           "Фото"
                         )}
@@ -368,14 +394,16 @@ export default async function AdminPositionsPage({
                       </div>
                     </div>
 
+                    <AdminCell label="Бренд">{variant.product.brand || "—"}</AdminCell>
+                    <AdminCell label="Порядок">
+                      <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-sm text-blue-300">
+                        #{variant.product.sortOrder}
+                      </span>
+                    </AdminCell>
                     <AdminCell label="Цвет">{variant.color || "—"}</AdminCell>
                     <AdminCell label="Память">{variant.memory || "—"}</AdminCell>
                     <AdminCell label="SIM">{variant.sim || "—"}</AdminCell>
                     <AdminCell label="Цена">{formatPrice(variant.price)}</AdminCell>
-
-                    <AdminCell label="До акции">
-                      <span className="text-white/50 line-through">{formatPrice(variant.oldPrice)}</span>
-                    </AdminCell>
 
                     <div>
                       <div className="mb-1 text-xs text-white/35 xl:hidden">Наличие</div>

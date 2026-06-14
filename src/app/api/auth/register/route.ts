@@ -8,6 +8,7 @@ import {
   normalizeText,
 } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { normalizeEmailStrict, normalizeRuPhone } from "@/lib/contact-validation";
 
 function jsonError(message: string, status = 400) {
   return NextResponse.json({ ok: false, message }, { status });
@@ -26,12 +27,17 @@ export async function POST(request: Request) {
 
   const firstName = normalizeText(body?.firstName);
   const lastName = normalizeText(body?.lastName);
-  const phone = normalizeText(body?.phone);
-  const email = normalizeEmail(normalizeText(body?.email));
+  const phone = normalizeRuPhone(body?.phone);
+  const rawEmail = normalizeText(body?.email);
+  const email = rawEmail ? normalizeEmailStrict(rawEmail) : "";
   const password = normalizeText(body?.password);
 
   if (!firstName || !lastName || !phone || !password) {
-    return jsonError("Для регистрации нужны имя, фамилия, телефон и пароль.");
+    return jsonError("Для регистрации нужны имя, фамилия, телефон РФ и пароль.");
+  }
+
+  if (rawEmail && !email) {
+    return jsonError("Укажите корректный e-mail.");
   }
 
   if (password.length < 6) {

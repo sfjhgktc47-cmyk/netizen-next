@@ -11,10 +11,12 @@ import {
   type AdminRole,
 } from "@/lib/auth";
 import { prisma } from "@/lib/db";
+import { normalizeEmailStrict, normalizeRuPhone } from "@/lib/contact-validation";
 
 const DEFAULT_ADMIN_LOGIN = "admin";
 const DEFAULT_ADMIN_PASSWORD = "netizen-admin";
 const DEFAULT_ADMIN_NAME = "Администратор";
+const loginAttempts = new Map<string, { count: number; resetAt: number }>();
 
 function jsonError(message: string, status = 400) {
   return NextResponse.json({ ok: false, message }, { status });
@@ -95,6 +97,39 @@ function matchesAdminCredentials(login: string, password: string, admin: { login
   return login === admin.login && password === admin.password;
 }
 
+function isDefaultAdmin(admin: { login: string; password: string }) {
+  return admin.login === DEFAULT_ADMIN_LOGIN && admin.password === DEFAULT_ADMIN_PASSWORD;
+}
+
+function getClientKey(request: Request, login: string) {
+  const forwarded = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim();
+  const realIp = request.headers.get("x-real-ip")?.trim();
+
+  return `${forwarded || realIp || "unknown"}:${login}`;
+}
+
+function checkLoginRateLimit(request: Request, login: string) {
+  const key = getClientKey(request, login);
+  const now = Date.now();
+  const current = loginAttempts.get(key);
+
+  if (!current || current.resetAt < now) {
+    loginAttempts.set(key, { count: 1, resetAt: now + 10 * 60 * 1000 });
+    return true;
+  }
+
+  if (current.count >= 8) {
+    return false;
+  }
+
+  current.count += 1;
+  return true;
+}
+
+function clearLoginRateLimit(request: Request, login: string) {
+  loginAttempts.delete(getClientKey(request, login));
+}
+
 export async function POST(request: Request) {
   const body = (await request.json().catch(() => null)) as
     | { login?: unknown; password?: unknown }
@@ -106,25 +141,15 @@ export async function POST(request: Request) {
     return jsonError("Укажи логин и пароль.");
   }
 
+  if (!checkLoginRateLimit(request, login)) {
+    return jsonError("Слишком много попыток входа. Попробуйте позже.", 429);
+  }
+
   try {
     const configuredAdmin = getConfiguredAdmin();
-    const fallbackAdmin = {
-      login: DEFAULT_ADMIN_LOGIN,
-      password: DEFAULT_ADMIN_PASSWORD,
-      name: configuredAdmin.name,
-      roles: ["owner"] as AdminRole[],
-    };
-
-    if (matchesAdminCredentials(login, password, configuredAdmin)) {
+    if (!isDefaultAdmin(configuredAdmin) && matchesAdminCredentials(login, password, configuredAdmin)) {
+      clearLoginRateLimit(request, login);
       return upsertAdminAndLogin(configuredAdmin);
-    }
-
-    const envAdminIsDefault =
-      configuredAdmin.login === DEFAULT_ADMIN_LOGIN &&
-      configuredAdmin.password === DEFAULT_ADMIN_PASSWORD;
-
-    if (envAdminIsDefault && matchesAdminCredentials(login, password, fallbackAdmin)) {
-      return upsertAdminAndLogin(fallbackAdmin);
     }
 
     const admin = await prisma.adminUser.findUnique({
@@ -141,26 +166,34 @@ export async function POST(request: Request) {
 
     if (admin) {
       if (admin.isActive && verifyPassword(password, admin.passwordHash)) {
+        clearLoginRateLimit(request, login);
         return createAdminLoginResponse(admin);
       }
 
       return jsonError("Неверный логин или пароль.", 401);
     }
 
-    const normalizedEmail = normalizeEmail(login);
-    const customer = await prisma.customer.findFirst({
-      where: {
-        OR: [{ phone: login }, ...(normalizedEmail ? [{ email: normalizedEmail }] : [])],
-      },
-      select: {
-        id: true,
-        name: true,
-        lastName: true,
-        phone: true,
-        email: true,
-        passwordHash: true,
-      },
-    });
+    const normalizedEmail = normalizeEmailStrict(login);
+    const normalizedPhone = normalizeRuPhone(login);
+    const customer =
+      normalizedPhone || normalizedEmail
+        ? await prisma.customer.findFirst({
+            where: {
+              OR: [
+                ...(normalizedPhone ? [{ phone: normalizedPhone }] : []),
+                ...(normalizedEmail ? [{ email: normalizedEmail }] : []),
+              ],
+            },
+            select: {
+              id: true,
+              name: true,
+              lastName: true,
+              phone: true,
+              email: true,
+              passwordHash: true,
+            },
+          })
+        : null;
 
     if (!customer || !verifyPassword(password, customer.passwordHash)) {
       return jsonError("Неверный логин или пароль.", 401);
@@ -190,6 +223,7 @@ export async function POST(request: Request) {
       redirectTo: "/profile",
     });
 
+    clearLoginRateLimit(request, login);
     response.cookies.set(AUTH_COOKIE_NAME, token, getAuthCookieOptions());
     return response;
   } catch (error) {

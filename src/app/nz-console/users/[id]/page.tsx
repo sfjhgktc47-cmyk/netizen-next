@@ -1,5 +1,7 @@
+import { BackLink } from "@/components/back-link";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { CustomerStatusCard } from "@/components/admin/customer-status-card";
 import {
   getAdminCustomer,
   getClientStatusClass,
@@ -58,14 +60,12 @@ export default async function AdminCustomerDetailPage({
             href="/nz-console/users"
             className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
           >
-            К клиентам →
+            К клиентам
           </Link>
         </header>
 
         <section className="mt-10">
-          <Link href="/nz-console/users" className="text-sm text-blue-400 transition-colors hover:text-blue-300">
-            ← Назад к клиентам
-          </Link>
+          <BackLink href="/nz-console/users" label="Назад к клиентам" variant="admin" />
 
           <div className="mt-8 grid gap-8 lg:grid-cols-[1fr_360px]">
             <div className="rounded-[34px] border border-white/10 bg-white/[0.035] p-8">
@@ -137,6 +137,14 @@ export default async function AdminCustomerDetailPage({
             </aside>
           </div>
         </section>
+
+        <div className="mt-8">
+          <CustomerStatusCard
+            customerId={customer.id}
+            progress={customer.statusProgress}
+            rules={customer.statusRules}
+          />
+        </div>
 
         <section className="mt-8 grid gap-8 lg:grid-cols-[1fr_380px]">
           <div className="space-y-8">
@@ -279,6 +287,10 @@ export default async function AdminCustomerDetailPage({
                 <InfoLine label="Аккаунт" value={customer.authLabel} />
                 <InfoLine label="Дата регистрации" value={customer.registeredAtLabel} />
                 <InfoLine label="Статус" value={customer.status} />
+                <InfoLine
+                  label="Режим статуса"
+                  value={customer.statusProgress.isManual ? "Назначен вручную" : "Автоматический"}
+                />
                 <InfoLine label="Сумма покупок" value={customer.totalSpentLabel} />
                 <InfoLine label="Последняя активность" value={customer.lastActivityLabel} />
               </div>
