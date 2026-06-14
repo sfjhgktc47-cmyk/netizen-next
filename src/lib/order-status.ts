@@ -13,6 +13,7 @@ export type OrderWorkflowStatus = {
   id: string;
   label: string;
   color: OrderStatusColor;
+  active?: boolean;
 };
 
 export type OrderWorkflowSettings = {
@@ -175,8 +176,11 @@ function getWorkflowStatuses(
 export function getStatusesForDelivery(
   deliveryType: OrderDeliveryKind,
   workflow?: OrderWorkflowSettings,
-): string[] {
-  return getWorkflowStatuses(deliveryType, workflow).map((status) => status.id);
+): OrderWorkflowStatus[] {
+  return getWorkflowStatuses(deliveryType, workflow).map((status) => ({
+    ...status,
+    active: true,
+  }));
 }
 
 export function getDefaultOrderStatus(
