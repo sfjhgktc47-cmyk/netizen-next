@@ -710,7 +710,7 @@ function Benefits({
  <section
  className={`mt-3 rounded-2xl border px-3 py-2 transition-colors duration-300 sm:mt-6 sm:px-4 sm:py-2.5 ${panelClass(dark)}`}
  >
- <div className="grid grid-cols-1 gap-2 min-[480px]:grid-cols-2 lg:grid-cols-4 lg:gap-3">
+ <div className="grid grid-cols-2 gap-2 lg:grid-cols-4 lg:gap-3">
  {items.map((item) => {
  const card = (
  <div className="flex min-h-[72px] w-full min-w-0 items-center gap-3.5 overflow-hidden rounded-xl px-2.5 py-1.5 sm:min-h-[78px] sm:gap-4 sm:px-3.5 sm:py-2">
@@ -723,7 +723,7 @@ function Benefits({
 
  {item.description ? (
  <div
- className={`mt-1 line-clamp-2 break-words text-[11px] leading-[1.35] sm:text-xs ${mutedTextClass(dark)}`}
+ className={`mt-1 break-words text-[11px] leading-[1.35] sm:text-xs ${mutedTextClass(dark)}`}
  >
  {item.description}
  </div>
