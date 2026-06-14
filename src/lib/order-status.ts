@@ -14,6 +14,7 @@ export type OrderWorkflowStatus = {
   label: string;
   color: OrderStatusColor;
   active?: boolean;
+  sortOrder?: number;
 };
 
 export type OrderWorkflowSettings = {
