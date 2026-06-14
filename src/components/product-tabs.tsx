@@ -1,7 +1,6 @@
 "use client";
 
 import { useState, type ReactNode } from "react";
-import Image from 'next/image';
 
 type ProductBenefit = {
   id: string;
@@ -191,7 +190,7 @@ function BenefitCard({ item }: { item: ProductBenefit }) {
         <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-2xl border border-theme bg-card text-lg text-blue-500">
           {item.image ? (
             // eslint-disable-next-line @next/next/no-img-element
-            <Image quality={75} src={item.image} alt={item.title} className="h-full w-full object-cover" />
+            <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
           ) : (
             item.icon || "✦"
           )}

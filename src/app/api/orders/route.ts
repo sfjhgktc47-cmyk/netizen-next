@@ -2,13 +2,6 @@ import { NextResponse } from "next/server";
 import { prisma } from "@/lib/db";
 import { getAuthSession } from "@/lib/auth";
 import { getPriceNumber } from "@/lib/product-pricing";
-import { getOrderWorkflowSettings } from "@/lib/order-workflow-db";
-import { getDefaultOrderStatus } from "@/lib/order-status";
-import {
-  normalizeEmailStrict,
-  normalizeRuPhone,
-  validateCourierAddress,
-} from "@/lib/contact-validation";
 
 type IncomingOrderItem = {
   sku?: string;
@@ -20,24 +13,6 @@ type IncomingOrderItem = {
   memory?: string;
   color?: string;
   sim?: string;
-};
-
-type FoundVariant = {
-  id: string;
-  productId: string;
-  sku: string;
-  title: string;
-  price: number;
-  memory: string;
-  color: string;
-  sim: string;
-  images: string[];
-  product: {
-    name: string;
-    brand: string;
-    image: string;
-    images: string[];
-  };
 };
 
 type IncomingOrderBody = {
@@ -85,31 +60,19 @@ export async function POST(request: Request) {
     const session = await getAuthSession();
     const body = (await request.json()) as IncomingOrderBody;
     const customerName = normalizeText(body.customer?.name);
-    const phone = normalizeRuPhone(body.customer?.phone);
-    const rawEmail = normalizeText(body.customer?.email);
-    const email = rawEmail ? normalizeEmailStrict(rawEmail) : "";
+    const phone = normalizeText(body.customer?.phone);
+    const email = normalizeText(body.customer?.email);
     const deliveryMethod = body.delivery?.method === "pickup" ? "pickup" : "courier";
     const city = normalizeText(body.delivery?.city);
     const rawAddress = normalizeText(body.delivery?.savedAddress) || normalizeText(body.delivery?.address);
-    const addressValidation =
-      deliveryMethod === "courier"
-        ? validateCourierAddress(city, rawAddress)
-        : { ok: true as const, message: "", normalized: "" };
-    const address = deliveryMethod === "courier" ? addressValidation.normalized : "";
+    const address = deliveryMethod === "courier" ? [city, rawAddress].filter(Boolean).join(", ") : "";
     const pickupPoint = deliveryMethod === "pickup" ? rawAddress || "ПВЗ Netizen" : "";
     const comment = normalizeText(body.comment);
     const incomingItems = Array.isArray(body.items) ? body.items : [];
 
     if (!customerName || !phone) {
       return NextResponse.json(
-        { ok: false, error: "Укажите имя и корректный телефон РФ." },
-        { status: 400 }
-      );
-    }
-
-    if (rawEmail && !email) {
-      return NextResponse.json(
-        { ok: false, error: "Укажите корректный e-mail." },
+        { ok: false, error: "Укажите имя и телефон." },
         { status: 400 }
       );
     }
@@ -121,9 +84,9 @@ export async function POST(request: Request) {
       );
     }
 
-    if (deliveryMethod === "courier" && !addressValidation.ok) {
+    if (deliveryMethod === "courier" && !address) {
       return NextResponse.json(
-        { ok: false, error: addressValidation.message },
+        { ok: false, error: "Укажите адрес доставки." },
         { status: 400 }
       );
     }
@@ -132,7 +95,7 @@ export async function POST(request: Request) {
       .map((item) => normalizeText(item.sku))
       .filter(Boolean);
 
-    const variants = (await prisma.productVariant.findMany({
+    const variants = await prisma.productVariant.findMany({
       where: {
         sku: {
           in: skus,
@@ -141,9 +104,9 @@ export async function POST(request: Request) {
       include: {
         product: true,
       },
-    })) as FoundVariant[];
+    });
 
-    const variantBySku = new Map<string, FoundVariant>(variants.map((variant) => [variant.sku, variant]));
+    const variantBySku = new Map(variants.map((variant) => [variant.sku, variant]));
 
     const preparedItems = incomingItems.map((item) => {
       const sku = normalizeText(item.sku);
@@ -234,9 +197,6 @@ export async function POST(request: Request) {
       }
     }
 
-    const workflow = await getOrderWorkflowSettings();
-    const initialStatus = getDefaultOrderStatus(deliveryMethod, workflow);
-
     const order = await prisma.order.create({
       data: {
         publicId: await generateOrderPublicId(),
@@ -247,14 +207,9 @@ export async function POST(request: Request) {
         deliveryType: deliveryMethod,
         address,
         pickupPoint,
-        subtotal: total,
-        statusDiscount: 0,
-        promoDiscount: 0,
-        promoCode: "",
-        discountTotal: 0,
         total,
         comment,
-        status: initialStatus,
+        status: "new",
         items: {
           create: preparedItems.map((item) => ({
             productId: item.productId,

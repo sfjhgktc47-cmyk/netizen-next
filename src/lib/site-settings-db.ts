@@ -1,7 +1,6 @@
 import { Prisma } from "@prisma/client";
 
 import { prisma } from "@/lib/db";
-import { publicImageUrl } from "@/lib/public-image-urls";
 
 export type SiteBrandingSettings = {
   storeName: string;
@@ -344,15 +343,15 @@ function normalizeBranding(value: unknown): SiteBrandingSettings {
 
   return {
     storeName: stringValue(raw.storeName, defaultSiteEditorSettings.branding.storeName),
-    logoLight: publicImageUrl("setting", "branding", "logoLight", stringValue(raw.logoLight, defaultSiteEditorSettings.branding.logoLight)),
-    logoDark: publicImageUrl("setting", "branding", "logoDark", stringValue(raw.logoDark, defaultSiteEditorSettings.branding.logoDark)),
-    mobileLogo: publicImageUrl("setting", "branding", "mobileLogo", stringValue(raw.mobileLogo, defaultSiteEditorSettings.branding.mobileLogo)),
-    favicon: publicImageUrl("setting", "branding", "favicon", stringValue(raw.favicon, defaultSiteEditorSettings.branding.favicon)),
-    navIconHome: publicImageUrl("setting", "branding", "navIconHome", stringValue(raw.navIconHome, defaultSiteEditorSettings.branding.navIconHome)),
-    navIconCatalog: publicImageUrl("setting", "branding", "navIconCatalog", stringValue(raw.navIconCatalog, defaultSiteEditorSettings.branding.navIconCatalog)),
-    navIconNew: publicImageUrl("setting", "branding", "navIconNew", stringValue(raw.navIconNew, defaultSiteEditorSettings.branding.navIconNew)),
-    navIconSupport: publicImageUrl("setting", "branding", "navIconSupport", stringValue(raw.navIconSupport, defaultSiteEditorSettings.branding.navIconSupport)),
-    navIconCart: publicImageUrl("setting", "branding", "navIconCart", stringValue(raw.navIconCart, defaultSiteEditorSettings.branding.navIconCart)),
+    logoLight: stringValue(raw.logoLight, defaultSiteEditorSettings.branding.logoLight),
+    logoDark: stringValue(raw.logoDark, defaultSiteEditorSettings.branding.logoDark),
+    mobileLogo: stringValue(raw.mobileLogo, defaultSiteEditorSettings.branding.mobileLogo),
+    favicon: stringValue(raw.favicon, defaultSiteEditorSettings.branding.favicon),
+    navIconHome: stringValue(raw.navIconHome, defaultSiteEditorSettings.branding.navIconHome),
+    navIconCatalog: stringValue(raw.navIconCatalog, defaultSiteEditorSettings.branding.navIconCatalog),
+    navIconNew: stringValue(raw.navIconNew, defaultSiteEditorSettings.branding.navIconNew),
+    navIconSupport: stringValue(raw.navIconSupport, defaultSiteEditorSettings.branding.navIconSupport),
+    navIconCart: stringValue(raw.navIconCart, defaultSiteEditorSettings.branding.navIconCart),
     defaultTheme: defaultTheme === "light" || defaultTheme === "dark" ? defaultTheme : "system",
     accentColor: stringValue(raw.accentColor, defaultSiteEditorSettings.branding.accentColor),
     primaryColor: stringValue(raw.primaryColor, defaultSiteEditorSettings.branding.primaryColor),

@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import Image from 'next/image';
 import { usePathname } from "next/navigation";
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import { AuthModal } from "@/components/auth-modal";
 import { useTheme } from "@/components/theme-provider";
 
@@ -22,20 +21,6 @@ type HeaderAuthUser = {
 type MeResponse = {
   authenticated?: boolean;
   user?: HeaderAuthUser;
-};
-
-type SearchProduct = {
-  slug: string;
-  name: string;
-  brand: string;
-  image: string;
-  price: string;
-  oldPrice: string;
-  discount: number;
-};
-
-type SearchResponse = {
-  products?: SearchProduct[];
 };
 
 type HeaderSiteSettings = {
@@ -93,7 +78,7 @@ function renderNavIcon(icon: string, label: string) {
   if (value && isImageIcon(value)) {
     return (
       // eslint-disable-next-line @next/next/no-img-element
-      <Image quality={75} src={value} alt="" className="h-[18px] w-[18px] object-contain" aria-hidden="true" />
+      <img src={value} alt="" className="h-[18px] w-[18px] object-contain" aria-hidden="true" />
     );
   }
 
@@ -117,11 +102,6 @@ export function SiteHeader() {
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [siteSettings, setSiteSettings] = useState<HeaderSiteSettings | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
-  const [searchHistory, setSearchHistory] = useState<string[]>([]);
-  const [searchProducts, setSearchProducts] = useState<SearchProduct[]>([]);
-  const [isSearchLoading, setIsSearchLoading] = useState(false);
-  const searchRootRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     document.body.classList.add("has-mobile-bottom-nav");
@@ -135,63 +115,6 @@ export function SiteHeader() {
     const currentSearch = new URLSearchParams(window.location.search).get("search") ?? "";
     setSearchQuery(currentSearch);
   }, [pathname]);
-
-  useEffect(() => {
-    try {
-      const stored = JSON.parse(localStorage.getItem("netizen-search-history") || "[]");
-      setSearchHistory(Array.isArray(stored) ? stored.filter((item) => typeof item === "string").slice(0, 8) : []);
-    } catch {
-      setSearchHistory([]);
-    }
-  }, []);
-
-  useEffect(() => {
-    function handlePointerDown(event: MouseEvent) {
-      const target = event.target as Node;
-
-      if (searchRootRef.current && !searchRootRef.current.contains(target)) {
-        setIsSearchOpen(false);
-      }
-    }
-
-    document.addEventListener("mousedown", handlePointerDown);
-
-    return () => document.removeEventListener("mousedown", handlePointerDown);
-  }, []);
-
-  useEffect(() => {
-    if (!isSearchOpen) {
-      return;
-    }
-
-    const controller = new AbortController();
-    const timer = window.setTimeout(async () => {
-      setIsSearchLoading(true);
-
-      try {
-        const query = searchQuery.trim();
-        const response = await fetch(
-          `/api/catalog-search${query ? `?q=${encodeURIComponent(query)}` : ""}`,
-          { signal: controller.signal },
-        );
-        const payload = (await response.json().catch(() => ({}))) as SearchResponse;
-        setSearchProducts(Array.isArray(payload.products) ? payload.products : []);
-      } catch (error) {
-        if ((error as Error).name !== "AbortError") {
-          setSearchProducts([]);
-        }
-      } finally {
-        if (!controller.signal.aborted) {
-          setIsSearchLoading(false);
-        }
-      }
-    }, searchQuery.trim() ? 220 : 0);
-
-    return () => {
-      window.clearTimeout(timer);
-      controller.abort();
-    };
-  }, [isSearchOpen, searchQuery]);
 
   useEffect(() => {
     const updateCartCount = () => {
@@ -298,23 +221,6 @@ export function SiteHeader() {
     }
   }
 
-  function saveSearchHistory(query: string) {
-    const nextHistory = [query, ...searchHistory.filter((item) => item.toLowerCase() !== query.toLowerCase())].slice(0, 8);
-    setSearchHistory(nextHistory);
-    localStorage.setItem("netizen-search-history", JSON.stringify(nextHistory));
-  }
-
-  function clearSearchHistory() {
-    setSearchHistory([]);
-    localStorage.removeItem("netizen-search-history");
-  }
-
-  function openHistoryQuery(query: string) {
-    setSearchQuery(query);
-    saveSearchHistory(query);
-    window.location.href = `/catalog?search=${encodeURIComponent(query)}`;
-  }
-
   function submitSearch(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
 
@@ -325,8 +231,6 @@ export function SiteHeader() {
       return;
     }
 
-    saveSearchHistory(query);
-    setIsSearchOpen(false);
     window.location.href = `/catalog?search=${encodeURIComponent(query)}`;
   }
 
@@ -356,19 +260,22 @@ export function SiteHeader() {
           {mobileLogo ? (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <Image quality={75} src={mobileLogo}
+              <img
+                src={mobileLogo}
                 alt={storeName}
                 className="h-auto max-h-7 w-auto object-contain transition-opacity duration-700 sm:max-h-8 lg:hidden"
               />
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <Image quality={75} src={logoSrc}
+              <img
+                src={logoSrc}
                 alt={storeName}
                 className="hidden h-auto max-h-9 w-auto object-contain transition-opacity duration-700 lg:block"
               />
             </>
           ) : (
             // eslint-disable-next-line @next/next/no-img-element
-            <Image quality={75} src={logoSrc}
+            <img
+              src={logoSrc}
               alt={storeName}
               className="h-auto max-h-7 w-auto object-contain transition-opacity duration-700 sm:max-h-8 lg:max-h-9"
             />
@@ -395,175 +302,24 @@ export function SiteHeader() {
 
         <div className="flex items-center gap-2 sm:gap-3 lg:gap-4">
           {isSearchVisible && (
-            <div ref={searchRootRef} className="relative hidden lg:block">
-              <form
-                onSubmit={submitSearch}
-                className={`flex h-11 w-[400px] items-center rounded-xl border px-4 text-sm transition-all duration-300 ${
-                  dark
-                    ? "border-white/10 bg-black/20 text-white/70 focus-within:border-blue-500/55"
-                    : "border-black/10 bg-[#f6f8fb] text-black/70 focus-within:border-blue-500/55"
-                }`}
-              >
-                <input
-                  value={searchQuery}
-                  onFocus={() => setIsSearchOpen(true)}
-                  onChange={(event) => {
-                    setSearchQuery(event.target.value);
-                    setIsSearchOpen(true);
-                  }}
-                  placeholder="Поиск по каталогу"
-                  className="h-full min-w-0 flex-1 bg-transparent pr-2 text-sm outline-none placeholder:text-current/50"
-                />
-
-                {searchQuery ? (
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setSearchQuery("");
-                      setIsSearchOpen(true);
-                    }}
-                    className={`mr-1 inline-flex h-7 w-7 items-center justify-center rounded-full text-sm transition-colors ${
-                      dark ? "text-white/55 hover:bg-white/10 hover:text-white" : "text-black/45 hover:bg-black/5 hover:text-black"
-                    }`}
-                    aria-label="Очистить поиск"
-                    title="Очистить"
-                  >
-                    ×
-                  </button>
-                ) : null}
-
-                <button type="submit" className="ml-1 text-lg text-blue-500" aria-label="Найти">
-                  ⌕
-                </button>
-              </form>
-
-              {isSearchOpen ? (
-                <div
-                  className={`absolute right-0 top-[calc(100%+12px)] z-[80] max-h-[82vh] w-[820px] max-w-[calc(100vw-32px)] overflow-y-auto rounded-[28px] border p-6 shadow-[0_36px_120px_rgba(15,23,42,0.34)] ${
-                    dark
-                      ? "border-white/10 bg-[#07101d] text-white"
-                      : "border-black/10 bg-white text-[#07111f]"
-                  }`}
-                >
-                  {!searchQuery.trim() ? (
-                    <>
-                      <div className="flex items-center justify-between gap-3">
-                        <h3 className="text-base font-bold">История</h3>
-                        {searchHistory.length > 0 ? (
-                          <button
-                            type="button"
-                            onClick={clearSearchHistory}
-                            className="text-xs font-medium text-blue-500 transition-colors hover:text-blue-400"
-                          >
-                            Очистить
-                          </button>
-                        ) : null}
-                      </div>
-
-                      {searchHistory.length > 0 ? (
-                        <div className="mt-4 grid gap-1.5">
-                          {searchHistory.map((item) => (
-                            <button
-                              key={item}
-                              type="button"
-                              onClick={() => openHistoryQuery(item)}
-                              className={`flex items-center gap-3 rounded-xl px-4 py-3 text-left text-sm transition-colors ${
-                                dark ? "hover:bg-white/[0.05]" : "hover:bg-slate-100"
-                              }`}
-                            >
-                              <span className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-blue-500/10 text-xs text-blue-500">
-                                ↶
-                              </span>
-                              <span className="truncate">{item}</span>
-                            </button>
-                          ))}
-                        </div>
-                      ) : (
-                        <p className={`mt-3 text-xs ${dark ? "text-white/45" : "text-black/45"}`}>
-                          Здесь появятся ваши последние запросы.
-                        </p>
-                      )}
-
-                      <div className={`my-4 h-px ${dark ? "bg-white/10" : "bg-black/10"}`} />
-
-                      <h3 className="text-base font-bold">Рекомендуем для вас</h3>
-                    </>
-                  ) : (
-                    <div className="flex items-center justify-between gap-3">
-                      <h3 className="text-base font-bold">Результаты поиска</h3>
-                      <span className={`text-xs ${dark ? "text-white/45" : "text-black/45"}`}>
-                        {isSearchLoading ? "Ищем…" : `${searchProducts.length} найдено`}
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="mt-5 grid grid-cols-2 gap-5">
-                    {searchProducts.map((product) => (
-                      <Link
-                        key={product.slug}
-                        href={`/product/${product.slug}`}
-                        onClick={() => {
-                          const query = searchQuery.trim();
-                          if (query) saveSearchHistory(query);
-                          setIsSearchOpen(false);
-                        }}
-                        className={`group rounded-[24px] border p-4 transition-all hover:-translate-y-0.5 ${
-                          dark
-                            ? "border-white/10 bg-white/[0.03] hover:border-blue-500/35"
-                            : "border-black/10 bg-white hover:border-blue-500/35 hover:shadow-lg"
-                        }`}
-                      >
-                        <div className={`aspect-[16/10] overflow-hidden rounded-[20px] ${dark ? "bg-white/[0.04]" : "bg-slate-100"}`}>
-                          {product.image ? (
-                            // eslint-disable-next-line @next/next/no-img-element
-                            <img
-                              src={product.image}
-                              alt=""
-                              loading="lazy"
-                              decoding="async"
-                              className="h-full w-full object-contain p-4"
-                            />
-                          ) : null}
-                        </div>
-
-                        <div className="px-1 pb-1 pt-2">
-                          <div className={`truncate text-[10px] ${dark ? "text-white/45" : "text-black/45"}`}>
-                            {product.brand}
-                          </div>
-                          <div className="mt-2 line-clamp-2 min-h-[48px] text-[15px] font-semibold leading-snug">
-                            {product.name}
-                          </div>
-
-                          <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                            <span className="text-lg font-bold text-blue-500">{product.price}</span>
-                            {product.oldPrice ? (
-                              <span className={`text-[10px] line-through ${dark ? "text-white/35" : "text-black/35"}`}>
-                                {product.oldPrice}
-                              </span>
-                            ) : null}
-                            {product.discount > 0 ? (
-                              <span className="text-[10px] font-semibold text-rose-500">−{product.discount}%</span>
-                            ) : null}
-                          </div>
-                        </div>
-                      </Link>
-                    ))}
-                  </div>
-
-                  {!isSearchLoading && searchProducts.length === 0 ? (
-                    <div className={`py-8 text-center text-sm ${dark ? "text-white/45" : "text-black/45"}`}>
-                      {searchQuery.trim() ? "Ничего не найдено" : "Рекомендации пока не выбраны"}
-                    </div>
-                  ) : null}
-
-                  {isSearchLoading ? (
-                    <div className={`py-8 text-center text-sm ${dark ? "text-white/45" : "text-black/45"}`}>
-                      Загружаем товары…
-                    </div>
-                  ) : null}
-                </div>
-              ) : null}
-            </div>
+            <form
+              onSubmit={submitSearch}
+              className={`hidden h-11 w-[300px] items-center rounded-xl border px-4 text-sm transition-all duration-700 lg:flex ${
+                dark
+                  ? "border-white/10 bg-black/20 text-white/70 focus-within:border-blue-500/55"
+                  : "border-black/10 bg-[#f6f8fb] text-black/70 focus-within:border-blue-500/55"
+              }`}
+            >
+              <input
+                value={searchQuery}
+                onChange={(event) => setSearchQuery(event.target.value)}
+                placeholder="Поиск по каталогу"
+                className="h-full min-w-0 flex-1 bg-transparent text-sm outline-none placeholder:text-current/50"
+              />
+              <button type="submit" className="ml-2 text-blue-500" aria-label="Найти">
+                ⌕
+              </button>
+            </form>
           )}
 
           <button

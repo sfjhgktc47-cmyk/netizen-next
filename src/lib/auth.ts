@@ -35,16 +35,11 @@ export type PublicAuthUser = {
 };
 
 function getAuthSecret() {
-  const secret =
+  return (
     process.env.AUTH_SECRET ||
     process.env.NEXTAUTH_SECRET ||
-    (process.env.NODE_ENV === "production" ? "" : "netizen-local-auth-secret-change-me");
-
-  if (!secret) {
-    throw new Error("AUTH_SECRET is required in production.");
-  }
-
-  return secret;
+    "netizen-local-auth-secret-change-me"
+  );
 }
 
 function sign(value: string) {

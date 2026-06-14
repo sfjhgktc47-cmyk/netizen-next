@@ -2,7 +2,6 @@
 
 import type { ReactNode } from "react";
 import { useEffect, useMemo, useState } from "react";
-import { formatRuPhone, isValidEmail, normalizeRuPhone } from "@/lib/contact-validation";
 
 type AuthMode = "login" | "register";
 
@@ -50,19 +49,11 @@ export function AuthModal({ initialMode = "login", onClose, onSuccess }: AuthMod
   const [loginDraft, setLoginDraft] = useState(emptyLogin);
   const [registerDraft, setRegisterDraft] = useState(emptyRegister);
   const [error, setError] = useState("");
-  const [fieldErrors, setFieldErrors] = useState<{
-    firstName?: string;
-    lastName?: string;
-    phone?: string;
-    email?: string;
-    password?: string;
-  }>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     setMode(initialMode);
     setError("");
-    setFieldErrors({});
   }, [initialMode]);
 
   const title = useMemo(() => {
@@ -71,59 +62,10 @@ export function AuthModal({ initialMode = "login", onClose, onSuccess }: AuthMod
 
   async function submitAuth() {
     setError("");
-
-    if (mode === "register") {
-      const nextErrors: typeof fieldErrors = {};
-      const normalizedPhone = normalizeRuPhone(registerDraft.phone);
-
-      if (!registerDraft.firstName.trim()) {
-        nextErrors.firstName = "Укажите имя.";
-      }
-
-      if (!registerDraft.lastName.trim()) {
-        nextErrors.lastName = "Укажите фамилию.";
-      }
-
-      if (!normalizedPhone) {
-        nextErrors.phone = "Введите номер в формате +7 (999) 000-00-00.";
-      }
-
-      if (registerDraft.email.trim() && !isValidEmail(registerDraft.email)) {
-        nextErrors.email = "Введите корректный e-mail, например name@mail.ru.";
-      }
-
-      if (registerDraft.password.length < 6) {
-        nextErrors.password = "Пароль должен содержать минимум 6 символов.";
-      }
-
-      setFieldErrors(nextErrors);
-
-      if (Object.keys(nextErrors).length > 0) {
-        setError("Исправьте ошибки в отмеченных полях.");
-        return;
-      }
-    } else {
-      setFieldErrors({});
-
-      if (!loginDraft.login.trim() || !loginDraft.password) {
-        setError("Укажите логин и пароль.");
-        return;
-      }
-    }
-
     setIsSubmitting(true);
 
     const url = mode === "register" ? "/api/auth/register" : "/api/auth/login";
-    const payload =
-      mode === "register"
-        ? {
-            ...registerDraft,
-            firstName: registerDraft.firstName.trim(),
-            lastName: registerDraft.lastName.trim(),
-            phone: normalizeRuPhone(registerDraft.phone),
-            email: registerDraft.email.trim().toLowerCase(),
-          }
-        : loginDraft;
+    const payload = mode === "register" ? registerDraft : loginDraft;
 
     try {
       const response = await fetch(url, {
@@ -181,24 +123,10 @@ export function AuthModal({ initialMode = "login", onClose, onSuccess }: AuthMod
         </div>
 
         <div className="mt-6 grid grid-cols-2 gap-2 rounded-2xl border border-theme bg-blue-soft p-1">
-          <ModeButton
-            active={mode === "login"}
-            onClick={() => {
-              setMode("login");
-              setError("");
-              setFieldErrors({});
-            }}
-          >
+          <ModeButton active={mode === "login"} onClick={() => setMode("login")}>
             Войти
           </ModeButton>
-          <ModeButton
-            active={mode === "register"}
-            onClick={() => {
-              setMode("register");
-              setError("");
-              setFieldErrors({});
-            }}
-          >
+          <ModeButton active={mode === "register"} onClick={() => setMode("register")}>
             Регистрация
           </ModeButton>
         </div>
@@ -240,42 +168,26 @@ export function AuthModal({ initialMode = "login", onClose, onSuccess }: AuthMod
                   Имя
                   <input
                     value={registerDraft.firstName}
-                    onChange={(event) => {
-                      setRegisterDraft((current) => ({ ...current, firstName: event.target.value }));
-                      setFieldErrors((current) => ({ ...current, firstName: undefined }));
-                    }}
+                    onChange={(event) =>
+                      setRegisterDraft((current) => ({ ...current, firstName: event.target.value }))
+                    }
                     placeholder="Иван"
                     autoComplete="given-name"
-                    className={`h-12 rounded-xl border bg-transparent px-4 text-main outline-none placeholder:text-muted-soft ${
-                      fieldErrors.firstName
-                        ? "border-red-500 focus:border-red-500"
-                        : "border-theme focus:border-blue-500/50"
-                    }`}
+                    className="h-12 rounded-xl border border-theme bg-transparent px-4 text-main outline-none placeholder:text-muted-soft focus:border-blue-500/50"
                   />
-                  {fieldErrors.firstName ? (
-                    <span className="text-xs font-normal text-red-500">{fieldErrors.firstName}</span>
-                  ) : null}
                 </label>
 
                 <label className="grid gap-2 text-sm font-medium">
                   Фамилия
                   <input
                     value={registerDraft.lastName}
-                    onChange={(event) => {
-                      setRegisterDraft((current) => ({ ...current, lastName: event.target.value }));
-                      setFieldErrors((current) => ({ ...current, lastName: undefined }));
-                    }}
+                    onChange={(event) =>
+                      setRegisterDraft((current) => ({ ...current, lastName: event.target.value }))
+                    }
                     placeholder="Иванов"
                     autoComplete="family-name"
-                    className={`h-12 rounded-xl border bg-transparent px-4 text-main outline-none placeholder:text-muted-soft ${
-                      fieldErrors.lastName
-                        ? "border-red-500 focus:border-red-500"
-                        : "border-theme focus:border-blue-500/50"
-                    }`}
+                    className="h-12 rounded-xl border border-theme bg-transparent px-4 text-main outline-none placeholder:text-muted-soft focus:border-blue-500/50"
                   />
-                  {fieldErrors.lastName ? (
-                    <span className="text-xs font-normal text-red-500">{fieldErrors.lastName}</span>
-                  ) : null}
                 </label>
               </div>
 
@@ -283,26 +195,13 @@ export function AuthModal({ initialMode = "login", onClose, onSuccess }: AuthMod
                 Телефон
                 <input
                   value={registerDraft.phone}
-                  onChange={(event) => {
-                    setRegisterDraft((current) => ({
-                      ...current,
-                      phone: formatRuPhone(event.target.value),
-                    }));
-                    setFieldErrors((current) => ({ ...current, phone: undefined }));
-                  }}
-                  placeholder="+7 (999) 000-00-00"
+                  onChange={(event) =>
+                    setRegisterDraft((current) => ({ ...current, phone: event.target.value }))
+                  }
+                  placeholder="+7 999 000-00-00"
                   autoComplete="tel"
-                  inputMode="tel"
-                  maxLength={18}
-                  className={`h-12 rounded-xl border bg-transparent px-4 text-main outline-none placeholder:text-muted-soft ${
-                    fieldErrors.phone
-                      ? "border-red-500 focus:border-red-500"
-                      : "border-theme focus:border-blue-500/50"
-                  }`}
+                  className="h-12 rounded-xl border border-theme bg-transparent px-4 text-main outline-none placeholder:text-muted-soft focus:border-blue-500/50"
                 />
-                {fieldErrors.phone ? (
-                  <span className="text-xs font-normal text-red-500">{fieldErrors.phone}</span>
-                ) : null}
               </label>
 
               <label className="grid gap-2 text-sm font-medium">
@@ -310,22 +209,13 @@ export function AuthModal({ initialMode = "login", onClose, onSuccess }: AuthMod
                 <input
                   type="email"
                   value={registerDraft.email}
-                  onChange={(event) => {
-                    setRegisterDraft((current) => ({ ...current, email: event.target.value }));
-                    setFieldErrors((current) => ({ ...current, email: undefined }));
-                  }}
-                  placeholder="name@mail.ru"
+                  onChange={(event) =>
+                    setRegisterDraft((current) => ({ ...current, email: event.target.value }))
+                  }
+                  placeholder="mail@example.com"
                   autoComplete="email"
-                  inputMode="email"
-                  className={`h-12 rounded-xl border bg-transparent px-4 text-main outline-none placeholder:text-muted-soft ${
-                    fieldErrors.email
-                      ? "border-red-500 focus:border-red-500"
-                      : "border-theme focus:border-blue-500/50"
-                  }`}
+                  className="h-12 rounded-xl border border-theme bg-transparent px-4 text-main outline-none placeholder:text-muted-soft focus:border-blue-500/50"
                 />
-                {fieldErrors.email ? (
-                  <span className="text-xs font-normal text-red-500">{fieldErrors.email}</span>
-                ) : null}
               </label>
 
               <label className="grid gap-2 text-sm font-medium">
@@ -333,22 +223,13 @@ export function AuthModal({ initialMode = "login", onClose, onSuccess }: AuthMod
                 <input
                   type="password"
                   value={registerDraft.password}
-                  onChange={(event) => {
-                    setRegisterDraft((current) => ({ ...current, password: event.target.value }));
-                    setFieldErrors((current) => ({ ...current, password: undefined }));
-                  }}
+                  onChange={(event) =>
+                    setRegisterDraft((current) => ({ ...current, password: event.target.value }))
+                  }
                   placeholder="Минимум 6 символов"
                   autoComplete="new-password"
-                  minLength={6}
-                  className={`h-12 rounded-xl border bg-transparent px-4 text-main outline-none placeholder:text-muted-soft ${
-                    fieldErrors.password
-                      ? "border-red-500 focus:border-red-500"
-                      : "border-theme focus:border-blue-500/50"
-                  }`}
+                  className="h-12 rounded-xl border border-theme bg-transparent px-4 text-main outline-none placeholder:text-muted-soft focus:border-blue-500/50"
                 />
-                {fieldErrors.password ? (
-                  <span className="text-xs font-normal text-red-500">{fieldErrors.password}</span>
-                ) : null}
               </label>
             </>
           )}

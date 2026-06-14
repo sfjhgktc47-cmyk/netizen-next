@@ -4,36 +4,146 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
 
-type FaqQuestion = {
-  id: string;
-  question: string;
-  answer: string;
-};
-
-type FaqCategory = {
-  id: string;
-  slug: string;
-  eyebrow: string;
-  title: string;
-  icon: string;
-  description: string;
-  questions: FaqQuestion[];
-};
-
-const emptyCategory: FaqCategory = {
-  id: "",
-  slug: "",
-  eyebrow: "",
-  title: "FAQ пока не заполнен",
-  icon: "?",
-  description: "Добавьте разделы и вопросы в админ-панели.",
-  questions: [],
-};
+const faqCategories = [
+  {
+    id: "delivery",
+    eyebrow: "Получение",
+    title: "Доставка и ПВЗ",
+    icon: "→",
+    description: "Курьер, самовывоз, адрес и сроки получения заказа.",
+    questions: [
+      {
+        question: "Как выбрать доставку?",
+        answer:
+          "В корзине откройте блок «Доставка» и выберите курьерскую доставку или ПВЗ / самовывоз. Пока способ получения не выбран, оформить заказ нельзя.",
+      },
+      {
+        question: "Что нужно указать для курьерской доставки?",
+        answer:
+          "Незарегистрированный клиент указывает город и адрес доставки. Если клиент вошёл в личный кабинет, можно выбрать сохранённый адрес или добавить новый.",
+      },
+      {
+        question: "Как работает ПВЗ / самовывоз?",
+        answer:
+          "Клиент выбирает пункт выдачи из доступного варианта на сайте. Адрес ПВЗ задаётся магазином и будет показан в корзине перед оформлением.",
+      },
+      {
+        question: "Когда станет известен точный срок?",
+        answer:
+          "После заявки менеджер проверит наличие, город, способ получения и подтвердит точный срок вручную.",
+      },
+    ],
+  },
+  {
+    id: "order",
+    eyebrow: "Заявка",
+    title: "Заказ и подтверждение",
+    icon: "№",
+    description: "Как проходит заявка, подтверждение и связь с менеджером.",
+    questions: [
+      {
+        question: "Это онлайн-оплата или заявка?",
+        answer:
+          "Сейчас оформление работает как заявка. Клиент выбирает товар, доставку и контакты, а менеджер подтверждает наличие, конфигурацию и итоговую стоимость.",
+      },
+      {
+        question: "Почему заказ подтверждает менеджер?",
+        answer:
+          "У техники могут меняться наличие, поставка, цвет, память и цена. Поэтому перед передачей товара менеджер проверяет детали и связывается с клиентом.",
+      },
+      {
+        question: "Что будет после отправки заявки?",
+        answer:
+          "Менеджер получит данные заказа, проверит товар и свяжется с клиентом для подтверждения способа получения и итоговой суммы.",
+      },
+      {
+        question: "Можно ли изменить конфигурацию после заявки?",
+        answer:
+          "Да. До подтверждения менеджером можно обсудить другую память, цвет, SIM/eSIM или похожую модель.",
+      },
+    ],
+  },
+  {
+    id: "payment",
+    eyebrow: "Оплата",
+    title: "Наличные при получении",
+    icon: "₽",
+    description: "Как клиент оплачивает заказ и почему нет онлайн-оплаты.",
+    questions: [
+      {
+        question: "Какая оплата доступна?",
+        answer:
+          "Оплата только наличными при получении. Онлайн-оплаты на сайте сейчас нет.",
+      },
+      {
+        question: "Нужно ли вносить предоплату?",
+        answer:
+          "Для обычной заявки предоплата на сайте не требуется. Если товар редкий или под заказ, условия менеджер уточнит отдельно.",
+      },
+      {
+        question: "Цена на сайте окончательная?",
+        answer:
+          "Цена показывает ориентир по выбранной модели или конкретной конфигурации. Итоговую сумму менеджер подтверждает перед получением.",
+      },
+    ],
+  },
+  {
+    id: "products",
+    eyebrow: "Каталог",
+    title: "Товары и конфигурации",
+    icon: "N",
+    description: "Модели, память, цвет, SIM/eSIM и наличие.",
+    questions: [
+      {
+        question: "Почему в каталоге цена “от — до”?",
+        answer:
+          "Каталог показывает модель товара, а цена считается по всем доступным конфигурациям: память, цвет, SIM/eSIM и наличие.",
+      },
+      {
+        question: "Когда появляется точная цена?",
+        answer:
+          "Точная цена появляется после выбора конкретной конфигурации товара. Например: iPhone 17 Pro, 256 GB, Blue, eSIM.",
+      },
+      {
+        question: "Почему некоторые параметры серые?",
+        answer:
+          "Серые параметры показывают варианты, которые недоступны в текущей комбинации. Их видно, но выбрать нельзя, чтобы клиент не собрал несуществующий товар.",
+      },
+      {
+        question: "Можно ли заказать товар, которого нет в каталоге?",
+        answer:
+          "Да. Для этого лучше написать в поддержку и указать модель, желаемую конфигурацию и бюджет.",
+      },
+    ],
+  },
+  {
+    id: "warranty",
+    eyebrow: "После покупки",
+    title: "Гарантия и проблема",
+    icon: "!",
+    description: "Что делать после покупки, если есть вопрос по товару.",
+    questions: [
+      {
+        question: "Техника оригинальная?",
+        answer:
+          "Да, магазин работает с оригинальной техникой. Детали по конкретной поставке и гарантии менеджер подтверждает перед заказом.",
+      },
+      {
+        question: "Что делать, если возникла проблема?",
+        answer:
+          "Напишите в поддержку и выберите тему «Брак / проблема». Лучше сразу указать модель, дату покупки, номер заявки и кратко описать ситуацию.",
+      },
+      {
+        question: "Гарантия одинаковая на все товары?",
+        answer:
+          "Условия могут отличаться в зависимости от модели и поставки. Поэтому гарантию по конкретному товару лучше уточнить до оформления.",
+      },
+    ],
+  },
+];
 
 export default function FaqPage() {
-  const [faqCategories, setFaqCategories] = useState<FaqCategory[]>([]);
-  const [activeCategoryId, setActiveCategoryId] = useState("");
-  const [faqLoading, setFaqLoading] = useState(true);
+  const [activeCategoryId, setActiveCategoryId] = useState(faqCategories[0].id);
   const [activeQuestion, setActiveQuestion] = useState<number | null>(null);
   const activeQuestionRef = useRef<HTMLElement | null>(null);
   const questionsAreaRef = useRef<HTMLDivElement | null>(null);
@@ -42,43 +152,9 @@ export default function FaqPage() {
   const activeCategory = useMemo(
     () =>
       faqCategories.find((category) => category.id === activeCategoryId) ??
-      faqCategories[0] ??
-      emptyCategory,
-    [activeCategoryId, faqCategories],
+      faqCategories[0],
+    [activeCategoryId]
   );
-
-  useEffect(() => {
-    let mounted = true;
-
-    fetch("/api/faq", { cache: "no-store" })
-      .then((response) => (response.ok ? response.json() : Promise.reject()))
-      .then((payload: { categories?: FaqCategory[] }) => {
-        if (!mounted) return;
-
-        const categories = Array.isArray(payload.categories)
-          ? payload.categories
-          : [];
-
-        setFaqCategories(categories);
-        setActiveCategoryId((current) =>
-          categories.some((category) => category.id === current)
-            ? current
-            : categories[0]?.id ?? "",
-        );
-      })
-      .catch(() => {
-        if (!mounted) return;
-        setFaqCategories([]);
-        setActiveCategoryId("");
-      })
-      .finally(() => {
-        if (mounted) setFaqLoading(false);
-      });
-
-    return () => {
-      mounted = false;
-    };
-  }, []);
 
   const selectedQuestion =
     activeQuestion === null ? null : activeCategory.questions[activeQuestion] ?? null;
@@ -141,18 +217,17 @@ export default function FaqPage() {
         <SiteHeader />
 
         <section className="mt-6">
-          <nav
-            aria-label="Хлебные крошки"
-            className="flex flex-wrap items-center gap-2 text-xs text-muted sm:text-sm"
-          >
-            <Link href="/" className="transition-colors hover:text-blue-500">
-              Главная
+          <div className="flex flex-col items-start gap-3">
+            <Link href="/" className="text-sm font-medium text-blue-500">
+              ← На главную
             </Link>
-            <span className="text-muted-soft">›</span>
-            <span className="font-medium text-main">FAQ</span>
-          </nav>
 
-          <div className="mt-5 flex flex-col gap-5 border-b border-theme pb-7 lg:flex-row lg:items-end lg:justify-between">
+            <div className="inline-flex rounded-full border border-blue-500/35 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-500">
+              FAQ Netizen
+            </div>
+          </div>
+
+          <div className="mt-4 flex flex-col gap-5 border-b border-theme pb-7 lg:flex-row lg:items-end lg:justify-between">
             <div>
               <h1 className="max-w-[820px] text-5xl font-bold tracking-[-0.055em] md:text-6xl">
                 Частые вопросы
@@ -181,19 +256,6 @@ export default function FaqPage() {
           </div>
         </section>
 
-        {faqLoading ? (
-          <div className="mt-6 rounded-3xl border border-theme bg-card p-8 text-sm text-muted">
-            Загружаем FAQ…
-          </div>
-        ) : null}
-
-        {!faqLoading && faqCategories.length === 0 ? (
-          <div className="mt-6 rounded-3xl border border-dashed border-theme bg-card p-8 text-sm text-muted">
-            FAQ пока пуст. Разделы можно добавить в админ-панели.
-          </div>
-        ) : null}
-
-        {faqCategories.length > 0 ? (
         <section className="mt-6 grid gap-7 lg:grid-cols-[360px_1fr]">
           <aside className="grid h-fit gap-3 lg:sticky lg:top-6">
             {faqCategories.map((category) => {
@@ -311,7 +373,7 @@ export default function FaqPage() {
 
                   return (
                     <button
-                      key={item.id || item.question}
+                      key={item.question}
                       type="button"
                       onClick={() => toggleQuestion(index)}
                       className={`group relative z-0 flex w-full items-start justify-between gap-4 rounded-[22px] border bg-[var(--card)] px-5 py-4 text-left transition-colors duration-300 hover:border-blue-500/40 hover:bg-blue-soft ${
@@ -338,8 +400,6 @@ export default function FaqPage() {
             </div>
           </div>
         </section>
-
-        ) : null}
 
         <section className="mt-6 grid gap-5 md:grid-cols-3">
           <div className="card rounded-[28px] p-7">

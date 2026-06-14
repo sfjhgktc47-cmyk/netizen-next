@@ -5,13 +5,6 @@ import "./globals.css";
 export const metadata: Metadata = {
   title: "Netizen",
   description: "Магазин техники Netizen",
-  icons: { icon: "/favicon.ico" },
-};
-
-export const viewport = {
-  width: "device-width",
-  initialScale: 1,
-  maximumScale: 5,
 };
 
 export default function RootLayout({
@@ -20,18 +13,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="ru" suppressHydrationWarning>
-      <head>
-        {/* Preload критические шрифты */}
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
-        
-        {/* DNS prefetch для API */}
-        <link rel="dns-prefetch" href="https://api.example.com" />
-        
-        {/* Оптимизация производительности */}
-        <meta name="theme-color" content="#2563eb" />
-      </head>
+    <html lang="ru">
       <body>
         <ThemeProvider>{children}</ThemeProvider>
       </body>

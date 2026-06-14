@@ -1,6 +1,4 @@
 import Link from "next/link";
-import { CategoryStatusToggle } from "@/components/admin/category-status-toggle";
-import { SortOrderInput } from "@/components/admin/sort-order-input";
 
 import {
   getAdminCategoriesDetailed,
@@ -88,13 +86,12 @@ export default async function AdminCategoriesPage() {
         </section>
 
         <section className="mt-6 overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.035]">
-          <div className="hidden grid-cols-[1fr_0.75fr_1.25fr_0.55fr_0.55fr_0.45fr_160px] border-b border-white/10 bg-black/25 px-5 py-4 text-sm text-white/45 lg:grid">
+          <div className="hidden grid-cols-[1fr_0.75fr_1.25fr_0.55fr_0.65fr_150px] border-b border-white/10 bg-black/25 px-5 py-4 text-sm text-white/45 lg:grid">
             <div>Название</div>
             <div>Slug</div>
             <div>Описание</div>
             <div>Товаров</div>
             <div>Статус</div>
-            <div>Порядок</div>
             <div className="text-right">Действия</div>
           </div>
 
@@ -107,7 +104,7 @@ export default async function AdminCategoriesPage() {
               categories.map((category) => (
                 <div
                   key={category.id}
-                  className="grid gap-5 bg-white/[0.015] p-5 transition-colors hover:bg-blue-500/[0.04] lg:grid-cols-[1fr_0.75fr_1.25fr_0.55fr_0.55fr_0.45fr_160px] lg:items-center"
+                  className="grid gap-5 bg-white/[0.015] p-5 transition-colors hover:bg-blue-500/[0.04] lg:grid-cols-[1fr_0.75fr_1.25fr_0.55fr_0.65fr_150px] lg:items-center"
                 >
                   <div>
                     <div className="text-lg font-bold">{category.name}</div>
@@ -138,10 +135,6 @@ export default async function AdminCategoriesPage() {
                     </span>
                   </AdminCell>
 
-                  <AdminCell label="Порядок">
-                    <SortOrderInput id={category.id} value={category.sortOrder} apiPath="/api/admin/categories" extraBody={{ name: category.name, slug: category.slug }} />
-                  </AdminCell>
-
                   <div className="flex flex-wrap gap-2 lg:justify-end">
                     <Link
                       href={`/nz-console/categories/${category.id}`}
@@ -155,7 +148,6 @@ export default async function AdminCategoriesPage() {
                     >
                       На сайте
                     </Link>
-                    <CategoryStatusToggle id={category.id} status={category.status} />
                   </div>
                 </div>
               ))
