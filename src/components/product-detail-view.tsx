@@ -836,7 +836,7 @@ export function ProductDetailView({
  <span className="text-main">{product.name}</span>
  </nav>
 
- <section className="mt-4 grid grid-cols-[52%_1fr] items-start gap-4 lg:mt-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
+ <section className="mt-4 grid grid-cols-1 items-start gap-4 sm:grid-cols-[52%_1fr] lg:mt-8 lg:grid-cols-[1.05fr_0.95fr] lg:gap-10">
  <div className="flex h-full flex-col gap-4">
  <div className="card rounded-[28px] p-4 sm:rounded-[36px] sm:p-6">
  <div
