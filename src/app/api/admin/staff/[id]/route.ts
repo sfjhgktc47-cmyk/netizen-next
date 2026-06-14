@@ -120,35 +120,21 @@ export async function PATCH(request: Request, context: RouteContext) {
 
 export async function DELETE(_request: Request, context: RouteContext) {
   if (!(await requireOwner())) {
-    return jsonError("Только главный админ может удалять сотрудников.", 403);
+    return jsonError("Только главный админ может отключать сотрудников.", 403);
   }
 
-  const session = await getAuthSession();
   const { id } = await context.params;
-  const current = await prisma.adminUser.findUnique({
-    where: { id },
-    select: { id: true, login: true, role: true, roles: true },
-  });
+  const current = await prisma.adminUser.findUnique({ where: { id }, select: { id: true, role: true, roles: true } });
 
   if (!current) {
     return jsonError("Сотрудник не найден.", 404);
   }
 
-  if (session?.login === current.login) {
-    return jsonError("Нельзя удалить собственный профиль во время активной сессии.", 409);
+  if (normalizeAdminRoles(current.roles, normalizeAdminRoles(current.role, ["manager"])).includes("owner") && (await countActiveOwners(id)) === 0) {
+    return jsonError("Нельзя отключить последнего главного админа.", 409);
   }
 
-  if (
-    normalizeAdminRoles(
-      current.roles,
-      normalizeAdminRoles(current.role, ["manager"]),
-    ).includes("owner") &&
-    (await countActiveOwners(id)) === 0
-  ) {
-    return jsonError("Нельзя удалить последнего главного админа.", 409);
-  }
-
-  await prisma.adminUser.delete({ where: { id } });
+  await prisma.adminUser.update({ where: { id }, data: { isActive: false } });
 
   return NextResponse.json({ ok: true, staff: await getAdminStaff() });
 }

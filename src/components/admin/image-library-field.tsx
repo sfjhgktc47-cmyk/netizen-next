@@ -9,8 +9,6 @@ type Props = {
   label?: string;
   hint?: string;
   maxImages?: number;
-  recommendedSize?: string;
-  recommendedFormat?: string;
 };
 
 const MAX_IMAGE_SIZE_MB = 2;
@@ -26,8 +24,6 @@ export function ImageLibraryField({
   label = "Фотографии позиции",
   hint = "Перетащите сюда несколько фото или нажмите, чтобы выбрать файлы.",
   maxImages = 12,
-  recommendedSize = "1600×1600 px",
-  recommendedFormat = "PNG / JPG / WEBP",
 }: Props) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -137,14 +133,6 @@ export function ImageLibraryField({
         <p className="mt-1 text-xs leading-relaxed text-white/40">
           Первое фото будет главным. Остальные будут библиотекой/галереей. Фото можно удалить или сделать главным.
         </p>
-        <div className="mt-2 flex flex-wrap gap-2">
-          <span className="rounded-full border border-blue-500/25 bg-blue-500/10 px-2.5 py-1 text-[11px] font-semibold text-blue-300">
-            Рекомендуемый размер: {recommendedSize}
-          </span>
-          <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] text-white/45">
-            {recommendedFormat} · до {MAX_IMAGE_SIZE_MB} МБ
-          </span>
-        </div>
       </div>
 
       <button
@@ -166,7 +154,7 @@ export function ImageLibraryField({
           <div className="text-sm font-semibold text-white">Перетащите фото позиции</div>
           <p className="mt-2 max-w-[520px] text-sm leading-relaxed text-white/45">{hint}</p>
           <span className="mt-3 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-white/45">
-            {recommendedFormat} · {recommendedSize} · до {MAX_IMAGE_SIZE_MB} МБ · максимум {maxImages} фото
+            PNG / JPG / WEBP до {MAX_IMAGE_SIZE_MB} МБ · максимум {maxImages} фото
           </span>
         </div>
       </button>

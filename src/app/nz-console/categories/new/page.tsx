@@ -1,4 +1,3 @@
-import { BackLink } from "@/components/back-link";
 import Link from "next/link";
 
 import { CategoryForm } from "@/components/admin/category-form";
@@ -24,12 +23,14 @@ export default function AdminNewCategoryPage() {
             href="/nz-console/categories"
             className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
           >
-            К категориям
+            К категориям →
           </Link>
         </header>
 
         <section className="mt-10">
-          <BackLink href="/nz-console/categories" label="Назад к категориям" variant="admin" />
+          <Link href="/nz-console/categories" className="text-sm text-blue-400 transition-colors hover:text-blue-300">
+            ← Назад к категориям
+          </Link>
 
           <div className="mt-8">
             <div className="inline-flex rounded-full border border-blue-500/35 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-400">

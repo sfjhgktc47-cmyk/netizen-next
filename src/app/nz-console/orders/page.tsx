@@ -1,39 +1,38 @@
-import { BackLink } from "@/components/back-link";
 import Link from "next/link";
-import { canAccessAdminSection } from "@/lib/admin-access";
-import { getAuthSession } from "@/lib/auth";
-import { prisma } from "@/lib/db";
 import {
   formatAdminDate,
   formatAdminPrice,
   getAdminOrders,
   getDeliveryLabel,
   getOrderMetrics,
-} from "@/lib/admin-orders-db";
-import { getOrderWorkflowSettings } from "@/lib/order-workflow-db";
-import {
-  getCombinedOrderStatuses,
   getOrderStatusClass,
   getOrderStatusLabel,
-  type OrderWorkflowSettings,
-} from "@/lib/order-status";
+} from "@/lib/admin-orders-db";
 
 export const dynamic = "force-dynamic";
 
-type OrderStatusFilter = string;
+type OrderStatusFilter = "all" | "new" | "confirming" | "in_work" | "ready" | "completed" | "cancelled";
 type DateFilter = "all" | "today" | "week" | "month";
-type ResponsibleFilter = "all" | "mine" | "unassigned";
 
 type SearchParams = {
   q?: string | string[];
   status?: string | string[];
   date?: string | string[];
-  responsible?: string | string[];
 };
 
 type AdminOrdersPageProps = {
   searchParams?: Promise<SearchParams>;
 };
+
+const statusTabs: Array<{ label: string; value: OrderStatusFilter }> = [
+  { label: "Все", value: "all" },
+  { label: "Новые", value: "new" },
+  { label: "Ожидают", value: "confirming" },
+  { label: "В работе", value: "in_work" },
+  { label: "Готовы", value: "ready" },
+  { label: "Завершены", value: "completed" },
+  { label: "Отменены", value: "cancelled" },
+];
 
 const dateOptions: Array<{ label: string; value: DateFilter }> = [
   { label: "За всё время", value: "all" },
@@ -50,16 +49,26 @@ function readParam(value: string | string[] | undefined) {
   return value ?? "";
 }
 
-function normalizeDateFilter(value: string): DateFilter {
-  if (value === "today" || value === "week" || value === "month") {
+function normalizeStatusFilter(value: string): OrderStatusFilter {
+  if (
+    value === "new" ||
+    value === "confirming" ||
+    value === "in_work" ||
+    value === "ready" ||
+    value === "completed" ||
+    value === "cancelled"
+  ) {
     return value;
   }
 
   return "all";
 }
 
-function normalizeResponsibleFilter(value: string): ResponsibleFilter {
-  if (value === "mine" || value === "unassigned") return value;
+function normalizeDateFilter(value: string): DateFilter {
+  if (value === "today" || value === "week" || value === "month") {
+    return value;
+  }
+
   return "all";
 }
 
@@ -92,23 +101,12 @@ function getDateStart(filter: DateFilter) {
 function orderMatchesBaseFilters(
   order: Awaited<ReturnType<typeof getAdminOrders>>[number],
   filters: { query: string; date: DateFilter },
-  workflow: OrderWorkflowSettings,
 ) {
   const normalizedQuery = filters.query.trim().toLowerCase();
 
   if (normalizedQuery) {
     const itemsText = order.items
-      .map((item) =>
-        [
-          item.title,
-          item.productTitle,
-          item.sku,
-          item.brand,
-          item.memory,
-          item.color,
-          item.sim,
-        ].join(" "),
-      )
+      .map((item) => [item.title, item.productTitle, item.sku, item.brand, item.memory, item.color, item.sim].join(" "))
       .join(" ");
 
     const searchableText = [
@@ -118,9 +116,8 @@ function orderMatchesBaseFilters(
       order.email,
       order.address,
       order.pickupPoint,
-      order.assignedToName,
       getDeliveryLabel(order.deliveryType),
-      getOrderStatusLabel(order.status, order.deliveryType, workflow),
+      getOrderStatusLabel(order.status, order.deliveryType),
       itemsText,
     ]
       .join(" ")
@@ -140,10 +137,7 @@ function orderMatchesBaseFilters(
   return true;
 }
 
-function orderMatchesStatus(
-  order: Awaited<ReturnType<typeof getAdminOrders>>[number],
-  status: OrderStatusFilter,
-) {
+function orderMatchesStatus(order: Awaited<ReturnType<typeof getAdminOrders>>[number], status: OrderStatusFilter) {
   if (status === "all") {
     return true;
   }
@@ -151,10 +145,7 @@ function orderMatchesStatus(
   return order.status === status;
 }
 
-function getTabCount(
-  orders: Awaited<ReturnType<typeof getAdminOrders>>,
-  status: OrderStatusFilter,
-) {
+function getTabCount(orders: Awaited<ReturnType<typeof getAdminOrders>>, status: OrderStatusFilter) {
   if (status === "all") {
     return orders.length;
   }
@@ -166,7 +157,6 @@ function createOrdersHref(params: {
   query: string;
   status: OrderStatusFilter;
   date: DateFilter;
-  responsible: ResponsibleFilter;
 }) {
   const queryParams = new URLSearchParams();
 
@@ -178,86 +168,36 @@ function createOrdersHref(params: {
     queryParams.set("status", params.status);
   }
 
-  if (params.date !== "all") queryParams.set("date", params.date);
-  if (params.responsible !== "all")
-    queryParams.set("responsible", params.responsible);
+  if (params.date !== "all") {
+    queryParams.set("date", params.date);
+  }
 
   const queryString = queryParams.toString();
-  return queryString
-    ? `/nz-console/orders?${queryString}`
-    : "/nz-console/orders";
+  return queryString ? `/nz-console/orders?${queryString}` : "/nz-console/orders";
 }
 
-export default async function AdminOrdersPage({
-  searchParams,
-}: AdminOrdersPageProps) {
+export default async function AdminOrdersPage({ searchParams }: AdminOrdersPageProps) {
   const rawParams = (await searchParams) ?? {};
-  const [allOrders, metrics, session, workflow] = await Promise.all([
-    getAdminOrders(),
-    getOrderMetrics(),
-    getAuthSession(),
-    getOrderWorkflowSettings(),
-  ]);
-  const currentAdmin = session?.login
-    ? await prisma.adminUser.findUnique({
-        where: { login: session.login },
-        select: { id: true, name: true },
-      })
-    : null;
-
-  const configuredStatuses = getCombinedOrderStatuses(workflow);
-  const statusTabs: Array<{ label: string; value: string }> = [
-    { label: "Все", value: "all" },
-    ...configuredStatuses,
-  ];
-  const requestedStatus = readParam(rawParams.status);
-  const selectedStatus = configuredStatuses.some(
-    (status) => status.value === requestedStatus,
-  )
-    ? requestedStatus
-    : "all";
-  const canManageOrderSettings = canAccessAdminSection(
-    session,
-    "order-settings",
-  );
+  const [allOrders, metrics] = await Promise.all([getAdminOrders(), getOrderMetrics()]);
 
   const searchQuery = readParam(rawParams.q);
+  const selectedStatus = normalizeStatusFilter(readParam(rawParams.status));
   const selectedDate = normalizeDateFilter(readParam(rawParams.date));
-  const selectedResponsible = normalizeResponsibleFilter(
-    readParam(rawParams.responsible),
-  );
 
   const baseFilteredOrders = allOrders.filter((order) =>
-    orderMatchesBaseFilters(
-      order,
-      {
-        query: searchQuery,
-        date: selectedDate,
-      },
-      workflow,
-    ),
+    orderMatchesBaseFilters(order, {
+      query: searchQuery,
+      date: selectedDate,
+    }),
   );
 
-  const responsibleOrders = baseFilteredOrders.filter((order) => {
-    if (selectedResponsible === "unassigned") return !order.assignedToId;
-    if (selectedResponsible === "mine")
-      return Boolean(
-        currentAdmin?.id && order.assignedToId === currentAdmin.id,
-      );
-    return true;
-  });
-  const orders = responsibleOrders.filter((order) =>
-    orderMatchesStatus(order, selectedStatus),
-  );
+  const orders = baseFilteredOrders.filter((order) => orderMatchesStatus(order, selectedStatus));
 
   return (
     <main className="min-h-screen bg-[#020814] px-4 py-4 text-white sm:px-6 sm:py-6">
       <div className="mx-auto max-w-[1600px]">
         <header className="flex min-h-[76px] items-center justify-between rounded-2xl border border-white/10 bg-white/[0.035] px-4 sm:px-6">
-          <Link
-            href="/nz-console"
-            className="text-xl font-bold tracking-[-0.04em]"
-          >
+          <Link href="/nz-console" className="text-xl font-bold tracking-[-0.04em]">
             Netizen Console
           </Link>
 
@@ -271,12 +211,14 @@ export default async function AdminOrdersPage({
             href="/"
             className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10 sm:px-5"
           >
-            На сайт
+            На сайт →
           </Link>
         </header>
 
         <section className="mt-10">
-          <BackLink href="/nz-console" label="В админку" variant="admin" />
+          <Link href="/nz-console" className="text-sm text-blue-400 transition-colors hover:text-blue-300">
+            ← В админку
+          </Link>
 
           <div className="mt-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -289,27 +231,12 @@ export default async function AdminOrdersPage({
               </h1>
 
               <p className="mt-4 max-w-[780px] text-sm leading-relaxed text-white/55">
-                Здесь появляются реальные заявки из корзины. В заявке
-                сохраняется конкретная позиция / SKU, цена на момент оформления,
-                данные клиента и способ получения.
+                Здесь появляются реальные заявки из корзины. В заявке сохраняется конкретная позиция / SKU,
+                цена на момент оформления, данные клиента и способ получения.
               </p>
             </div>
 
             <div className="flex flex-wrap gap-3">
-              {canManageOrderSettings ? (
-                <Link
-                  href="/nz-console/orders/settings"
-                  className="rounded-xl border border-blue-500/35 bg-blue-500/10 px-6 py-4 text-sm font-semibold text-blue-300 transition-colors hover:bg-blue-500/20"
-                >
-                  Настройки заявок
-                </Link>
-              ) : null}
-              <Link
-                href="/nz-console/orders/new"
-                className="rounded-xl bg-blue-600 px-7 py-4 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
-              >
-                + Создать заявку
-              </Link>
               <Link
                 href="/catalog"
                 className="rounded-xl border border-white/10 bg-white/[0.03] px-7 py-4 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
@@ -324,10 +251,7 @@ export default async function AdminOrdersPage({
           <MetricCard label="Всего заявок" value={String(metrics.total)} />
           <MetricCard label="Новые" value={String(metrics.new)} />
           <MetricCard label="В работе" value={String(metrics.inWork)} />
-          <MetricCard
-            label="Сумма сегодня"
-            value={formatAdminPrice(metrics.todayTotal)}
-          />
+          <MetricCard label="Сумма сегодня" value={formatAdminPrice(metrics.todayTotal)} />
         </section>
 
         <section className="mt-8">
@@ -338,7 +262,6 @@ export default async function AdminOrdersPage({
                 query: searchQuery,
                 status: tab.value,
                 date: selectedDate,
-                responsible: selectedResponsible,
               });
 
               return (
@@ -352,16 +275,12 @@ export default async function AdminOrdersPage({
                   <span>{tab.label}</span>
                   <span
                     className={`ml-2 rounded-full px-2 py-0.5 text-xs ${
-                      active
-                        ? "bg-blue-600 text-white"
-                        : "bg-white/10 text-white/45"
+                      active ? "bg-blue-600 text-white" : "bg-white/10 text-white/45"
                     }`}
                   >
-                    {getTabCount(responsibleOrders, tab.value)}
+                    {getTabCount(baseFilteredOrders, tab.value)}
                   </span>
-                  {active && (
-                    <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full bg-blue-500" />
-                  )}
+                  {active && <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full bg-blue-500" />}
                 </Link>
               );
             })}
@@ -369,10 +288,7 @@ export default async function AdminOrdersPage({
         </section>
 
         <section className="mt-6 rounded-[28px] border border-white/10 bg-white/[0.035] p-5">
-          <form
-            className="flex flex-col gap-3 lg:flex-row"
-            action="/nz-console/orders"
-          >
+          <form className="flex flex-col gap-3 lg:flex-row" action="/nz-console/orders">
             <input
               name="q"
               defaultValue={searchQuery}
@@ -404,16 +320,6 @@ export default async function AdminOrdersPage({
               ))}
             </select>
 
-            <select
-              name="responsible"
-              defaultValue={selectedResponsible}
-              className="h-12 rounded-xl border border-white/10 bg-[#07101d] px-5 text-sm font-medium text-white outline-none focus:border-blue-500/50"
-            >
-              <option value="all">Все ответственные</option>
-              <option value="mine">Мои заявки</option>
-              <option value="unassigned">Без ответственного</option>
-            </select>
-
             <button
               type="submit"
               className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
@@ -421,10 +327,7 @@ export default async function AdminOrdersPage({
               Применить
             </button>
 
-            {(searchQuery ||
-              selectedStatus !== "all" ||
-              selectedDate !== "all" ||
-              selectedResponsible !== "all") && (
+            {(searchQuery || selectedStatus !== "all" || selectedDate !== "all") && (
               <Link
                 href="/nz-console/orders"
                 className="inline-flex items-center justify-center rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-semibold text-white/70 transition-colors hover:border-blue-500/40 hover:bg-blue-500/10 hover:text-white"
@@ -436,14 +339,13 @@ export default async function AdminOrdersPage({
         </section>
 
         <section className="mt-6 overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.035]">
-          <div className="hidden grid-cols-[0.65fr_0.9fr_1.35fr_0.65fr_0.75fr_0.75fr_0.85fr_110px] border-b border-white/10 bg-black/25 px-5 py-4 text-sm text-white/45 xl:grid">
+          <div className="hidden grid-cols-[0.7fr_1fr_1.55fr_0.75fr_0.8fr_0.85fr_120px] border-b border-white/10 bg-black/25 px-5 py-4 text-sm text-white/45 xl:grid">
             <div>Заявка</div>
             <div>Клиент</div>
             <div>Товары</div>
             <div>Сумма</div>
             <div>Получение</div>
             <div>Статус</div>
-            <div>Ответственный</div>
             <div className="text-right">Открыть</div>
           </div>
 
@@ -461,58 +363,34 @@ export default async function AdminOrdersPage({
               return (
                 <div
                   key={order.id}
-                  className="grid gap-4 border-b border-white/10 px-5 py-5 last:border-b-0 xl:grid-cols-[0.65fr_0.9fr_1.35fr_0.65fr_0.75fr_0.75fr_0.85fr_110px] xl:items-center"
+                  className="grid gap-4 border-b border-white/10 px-5 py-5 last:border-b-0 xl:grid-cols-[0.7fr_1fr_1.55fr_0.75fr_0.8fr_0.85fr_120px] xl:items-center"
                 >
                   <div>
                     <div className="font-bold">{order.publicId}</div>
-                    <div className="mt-1 text-xs text-white/45">
-                      {formatAdminDate(order.createdAt)}
-                    </div>
+                    <div className="mt-1 text-xs text-white/45">{formatAdminDate(order.createdAt)}</div>
                   </div>
 
                   <div>
                     <div className="font-semibold">{order.customerName}</div>
-                    <div className="mt-1 text-xs text-white/45">
-                      {order.phone}
-                    </div>
-                    {order.email && (
-                      <div className="mt-1 text-xs text-white/35">
-                        {order.email}
-                      </div>
-                    )}
+                    <div className="mt-1 text-xs text-white/45">{order.phone}</div>
+                    {order.email && <div className="mt-1 text-xs text-white/35">{order.email}</div>}
                   </div>
 
                   <div>
-                    <div className="font-semibold">
-                      {itemsLabel || "Без товаров"}
-                    </div>
-                    <div className="mt-1 text-xs text-white/45">
-                      {firstItem?.sku ?? "SKU не указан"}
-                    </div>
+                    <div className="font-semibold">{itemsLabel || "Без товаров"}</div>
+                    <div className="mt-1 text-xs text-white/45">{firstItem?.sku ?? "SKU не указан"}</div>
                   </div>
 
-                  <div className="font-bold">
-                    {formatAdminPrice(order.total)}
-                  </div>
+                  <div className="font-bold">{formatAdminPrice(order.total)}</div>
 
                   <div className="text-sm text-white/70">
                     {getDeliveryLabel(order.deliveryType)}
                   </div>
 
                   <div>
-                    <span
-                      className={`inline-flex rounded-full border px-3 py-1 text-xs ${getOrderStatusClass(order.status, workflow, order.deliveryType)}`}
-                    >
-                      {getOrderStatusLabel(
-                        order.status,
-                        order.deliveryType,
-                        workflow,
-                      )}
+                    <span className={`inline-flex rounded-full border px-3 py-1 text-xs ${getOrderStatusClass(order.status)}`}>
+                      {getOrderStatusLabel(order.status, order.deliveryType)}
                     </span>
-                  </div>
-
-                  <div className="text-sm text-white/60">
-                    {order.assignedToName || "Не назначен"}
                   </div>
 
                   <div className="xl:text-right">

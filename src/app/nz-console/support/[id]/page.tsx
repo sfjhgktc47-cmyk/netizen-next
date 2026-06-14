@@ -1,8 +1,5 @@
-import { BackLink } from "@/components/back-link";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { SupportReplyForm } from "@/components/admin/support-reply-form";
-import { getAuthSession } from "@/lib/auth";
 import {
   formatSupportDate,
   getSupportRequest,
@@ -32,7 +29,7 @@ export default async function AdminSupportDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const [ticket, session] = await Promise.all([getSupportRequest(id), getAuthSession()]);
+  const ticket = await getSupportRequest(id);
 
   if (!ticket) {
     notFound();
@@ -50,12 +47,14 @@ export default async function AdminSupportDetailPage({
             href="/nz-console/support"
             className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
           >
-            Все обращения
+            Все обращения →
           </Link>
         </header>
 
         <section className="mt-10">
-          <BackLink href="/nz-console/support" label="Назад к обращениям" variant="admin" />
+          <Link href="/nz-console/support" className="text-sm text-blue-400 transition-colors hover:text-blue-300">
+            ← Назад к обращениям
+          </Link>
 
           <div className="mt-8 rounded-[32px] border border-white/10 bg-white/[0.035] p-7">
             <div className="flex flex-col gap-5 lg:flex-row lg:items-start lg:justify-between">
@@ -81,14 +80,6 @@ export default async function AdminSupportDetailPage({
               <InfoBox label="Источник" value={ticket.source} />
               <InfoBox label="Менеджер" value={ticket.assignedTo} />
               <InfoBox label="Дата" value={formatSupportDate(ticket.createdAt)} />
-              {ticket.orderPublicId ? (
-                <div className="rounded-2xl border border-blue-500/25 bg-blue-500/10 p-4 md:col-span-3">
-                  <div className="text-xs text-blue-300/70">Связанная заявка</div>
-                  <Link href={`/nz-console/orders/${ticket.orderPublicId}`} className="mt-2 inline-block font-bold text-blue-300">
-                    {ticket.orderPublicId} →
-                  </Link>
-                </div>
-              ) : null}
             </div>
           </div>
         </section>
@@ -124,7 +115,6 @@ export default async function AdminSupportDetailPage({
               </div>
             ))}
           </div>
-          <SupportReplyForm requestId={ticket.number} managerName={session?.name || session?.login || "Менеджер Нетизен"} />
         </section>
       </div>
     </main>

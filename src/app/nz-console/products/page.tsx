@@ -1,10 +1,7 @@
-import { BackLink } from "@/components/back-link";
 import type { ReactNode } from "react";
 import Link from "next/link";
 
-import { CommunityAdminClient } from "@/components/admin/community-admin-client";
 import { ProductVisibilityButton } from "@/components/admin/product-visibility-button";
-import { SortOrderInput } from "@/components/admin/sort-order-input";
 import {
   getAdminProducts,
   getAdminStatusClass,
@@ -22,22 +19,11 @@ type SearchParams = {
   category?: string | string[];
   brand?: string | string[];
   status?: string | string[];
-  section?: string | string[];
 };
 
 type AdminProductsPageProps = {
   searchParams?: Promise<SearchParams>;
 };
-
-type ProductsSection = "cards" | "reviews" | "questions";
-
-function normalizeProductsSection(value: string): ProductsSection {
-  if (value === "reviews" || value === "questions") {
-    return value;
-  }
-
-  return "cards";
-}
 
 const statusTabs: Array<{ label: string; value: ProductStatusFilter }> = [
   { label: "Все", value: "all" },
@@ -156,7 +142,6 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
   const selectedCategory = readParam(rawParams.category) || "all";
   const selectedBrand = readParam(rawParams.brand) || "all";
   const selectedStatus = normalizeStatusFilter(readParam(rawParams.status));
-  const selectedSection = normalizeProductsSection(readParam(rawParams.section));
 
   const categoryOptions = Array.from(
     allProducts.reduce((map, product) => {
@@ -205,12 +190,14 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
             href="/"
             className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10 sm:px-5"
           >
-            На сайт
+            На сайт →
           </Link>
         </header>
 
         <section className="mt-10">
-          <BackLink href="/nz-console" label="В админку" variant="admin" />
+          <Link href="/nz-console" className="text-sm text-blue-400 transition-colors hover:text-blue-300">
+            ← В админку
+          </Link>
 
           <div className="mt-8 flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -219,23 +206,14 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
               </div>
 
               <h1 className="mt-5 text-4xl font-bold tracking-[-0.055em] sm:text-5xl">
-                {selectedSection === "cards"
-                  ? "Карточки товаров"
-                  : selectedSection === "reviews"
-                    ? "Отзывы о товарах"
-                    : "Вопросы о товарах"}
+                Карточки товаров
               </h1>
 
               <p className="mt-3 max-w-[800px] text-sm leading-relaxed text-white/55">
-                {selectedSection === "cards"
-                  ? "Материнские карточки товаров, позиции и статусы из PostgreSQL."
-                  : selectedSection === "reviews"
-                    ? "Просмотр фотографий, рейтингов и модерация отзывов покупателей."
-                    : "Ответы на вопросы покупателей, видимость и удаление записей."}
+                Это материнские карточки товаров. Раздел читает PostgreSQL, фильтры работают по данным из БД, а скрытые карточки можно вернуть через вкладку “Скрытые”.
               </p>
             </div>
 
-            {selectedSection === "cards" ? (
             <div className="flex flex-wrap gap-3">
               <Link
                 href="/nz-console/positions"
@@ -248,45 +226,12 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
                 href="/nz-console/products/new"
                 className="rounded-xl bg-blue-600 px-6 py-4 text-sm font-medium text-white transition-colors hover:bg-blue-500"
               >
-                Создать карточку
+                Создать карточку →
               </Link>
             </div>
-            ) : null}
           </div>
         </section>
 
-        <section className="mt-8">
-          <div className="flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-white/[0.035] p-2">
-            {[
-              { key: "cards", label: "Карточки товаров" },
-              { key: "reviews", label: "Отзывы" },
-              { key: "questions", label: "Вопросы" },
-            ].map((item) => {
-              const active = selectedSection === item.key;
-
-              return (
-                <Link
-                  key={item.key}
-                  href={
-                    item.key === "cards"
-                      ? "/nz-console/products"
-                      : `/nz-console/products?section=${item.key}`
-                  }
-                  className={`rounded-xl px-5 py-3 text-sm font-semibold transition-colors ${
-                    active
-                      ? "bg-blue-600 text-white"
-                      : "border border-white/10 bg-black/20 text-white/55 hover:text-white"
-                  }`}
-                >
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
-        </section>
-
-        {selectedSection === "cards" ? (
-        <>
         <section className="mt-8 grid gap-5 md:grid-cols-4">
           <MetricCard label="Всего карточек" value={String(allProducts.length)} />
           <MetricCard label="Из БД" value={String(dbCount)} />
@@ -403,7 +348,7 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
         </section>
 
         <section className="mt-6 overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.035]">
-          <div className="hidden grid-cols-[90px_1.3fr_0.8fr_0.7fr_0.55fr_0.65fr_0.65fr_0.55fr_220px] border-b border-white/10 bg-black/25 px-5 py-4 text-sm text-white/45 xl:grid">
+          <div className="hidden grid-cols-[90px_1.3fr_0.8fr_0.7fr_0.6fr_0.7fr_0.7fr_220px] border-b border-white/10 bg-black/25 px-5 py-4 text-sm text-white/45 xl:grid">
             <div>Фото</div>
             <div>Карточка</div>
             <div>Категория</div>
@@ -411,7 +356,6 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
             <div>SKU</div>
             <div>Цена от</div>
             <div>Статус</div>
-            <div>Порядок</div>
             <div className="text-right">Действия</div>
           </div>
 
@@ -420,7 +364,7 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
               {products.map((product) => (
                 <div
                   key={`${product.source}-${product.id}`}
-                  className="grid gap-5 bg-white/[0.015] p-5 transition-colors hover:bg-blue-500/[0.04] xl:grid-cols-[90px_1.3fr_0.8fr_0.7fr_0.55fr_0.65fr_0.65fr_0.55fr_220px] xl:items-center"
+                  className="grid gap-5 bg-white/[0.015] p-5 transition-colors hover:bg-blue-500/[0.04] xl:grid-cols-[90px_1.3fr_0.8fr_0.7fr_0.6fr_0.7fr_0.7fr_220px] xl:items-center"
                 >
                   <Link
                     href={`/product/${product.slug}`}
@@ -473,16 +417,7 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
                     </span>
                   </AdminCell>
 
-                  <AdminCell label="Порядок">
-                    <SortOrderInput
-                      id={product.id}
-                      value={product.sortOrder}
-                      apiPath="/api/admin/products"
-                      extraBody={{ action: "set-sort-order" }}
-                    />
-                  </AdminCell>
-
-                  <div className="flex flex-wrap items-center gap-2 xl:justify-end">
+                  <div className="flex flex-wrap gap-2 xl:justify-end">
                     <Link
                       href={`/nz-console/products/${product.slug}`}
                       className="rounded-xl border border-white/10 bg-white/[0.03] px-4 py-2 text-sm transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
@@ -518,16 +453,6 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
             </div>
           )}
         </section>
-        </>
-        ) : (
-          <section className="mt-8 pb-10">
-            <CommunityAdminClient
-              key={selectedSection}
-              initialTab={selectedSection === "reviews" ? "reviews" : "questions"}
-              hideTabs
-            />
-          </section>
-        )}
       </div>
     </main>
   );
