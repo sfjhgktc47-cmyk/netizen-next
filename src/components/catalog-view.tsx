@@ -1000,18 +1000,6 @@ export function CatalogView({
                   setIsSortOpen(false);
                 }}
               />
-
-              <button
-                type="button"
-                onClick={() => setIsCategoriesOpen((prev) => !prev)}
-                className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-300 sm:px-6 sm:py-4 ${
-                  isCategoriesOpen
-                    ? "border-blue-500 bg-blue-600 text-white"
-                    : "border-theme bg-transparent hover:border-blue-500/40 hover:bg-blue-soft"
-                }`}
-              >
-                Категории
-              </button>
             </div>
           </div>
         </section>

@@ -97,7 +97,6 @@ model ProductVariant {
   colorHex       String       @default("")
   sim            String       @default("")
   images         String[]     @default([])
-  relatedProductIds String[]  @default([])
   price          Int
   oldPrice       Int?
   stock          Int          @default(0)
@@ -125,8 +124,6 @@ model Customer {
   passwordHash String   @default("")
   city        String    @default("")
   crmId       String    @default("")
-  statusOverride   String    @default("")
-  statusOverrideAt DateTime?
   createdAt   DateTime  @default(now())
   updatedAt   DateTime  @updatedAt
 
@@ -194,27 +191,15 @@ model Order {
   address        String       @default("")
   pickupPoint    String       @default("")
   total          Int
-  subtotal       Int          @default(0)
-  statusDiscount Int          @default(0)
-  promoDiscount  Int          @default(0)
-  discountTotal  Int          @default(0)
-  promoCode      String       @default("")
-  status         String       @default("new")
+  status         OrderStatus  @default(new)
   comment        String       @default("")
-  paymentMethod  String       @default("cash")
-  managerComment String       @default("")
-  assignedToId   String?
-  assignedToName String       @default("")
   createdAt      DateTime     @default(now())
   updatedAt      DateTime     @updatedAt
 
-  customer        Customer?        @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  items           OrderItem[]
-  supportRequests SupportRequest[]
-  changes         OrderChange[]
+  customer       Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  items          OrderItem[]
   @@index([status, createdAt])
   @@index([phone])
-  @@index([assignedToId, status])
 }
 
 model OrderItem {
@@ -242,7 +227,6 @@ model SupportRequest {
   id          String        @id @default(cuid())
   publicId    String        @unique
   customerId  String?
-  orderId     String?
   topic       String
   clientName  String
   phone       String
@@ -256,9 +240,7 @@ model SupportRequest {
   updatedAt   DateTime      @updatedAt
 
   customer    Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
-  order       Order?        @relation(fields: [orderId], references: [id], onDelete: SetNull)
   @@index([status, createdAt])
-  @@index([orderId])
 }
 
 model SupportMessage {
@@ -317,7 +299,6 @@ model SiteBenefit {
   icon        String   @default("✓")
   image       String   @default("")
   href        String   @default("")
-  placement   String   @default("store")
   enabled     Boolean  @default(true)
   sortOrder   Int      @default(100)
   createdAt   DateTime @default(now())
@@ -396,92 +377,4 @@ model ProductReviewVote {
 
   @@unique([reviewId, customerId])
   @@index([reviewId])
-}
-
-model FaqCategory {
-  id          String   @id @default(cuid())
-  slug        String   @unique
-  eyebrow     String   @default("")
-  title       String
-  icon        String   @default("?")
-  image       String   @default("")
-  description String   @default("")
-  isActive    Boolean  @default(true)
-  sortOrder   Int      @default(100)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  questions FaqQuestion[]
-
-  @@index([isActive, sortOrder])
-}
-
-model FaqQuestion {
-  id         String   @id @default(cuid())
-  categoryId String
-  question   String
-  answer     String
-  image      String   @default("")
-  isActive   Boolean  @default(true)
-  sortOrder  Int      @default(100)
-  createdAt  DateTime @default(now())
-  updatedAt  DateTime @updatedAt
-
-  category FaqCategory @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-
-  @@index([categoryId, isActive, sortOrder])
-}
-
-model FaqHighlight {
-  id          String   @id @default(cuid())
-  eyebrow     String   @default("")
-  title       String
-  description String   @default("")
-  image       String   @default("")
-  isActive    Boolean  @default(true)
-  sortOrder   Int      @default(100)
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
-
-  @@index([isActive, sortOrder])
-}
-
-model OrderChange {
-  id        String   @id @default(cuid())
-  orderId   String
-  adminId   String?
-  adminName String   @default("Менеджер")
-  action    String
-  details   String   @default("")
-  createdAt DateTime @default(now())
-
-  order Order @relation(fields: [orderId], references: [id], onDelete: Cascade)
-
-  @@index([orderId, createdAt])
-}
-
-model SupportFaqItem {
-  id        String   @id @default(cuid())
-  question  String
-  answer    String
-  isActive  Boolean  @default(true)
-  sortOrder Int      @default(100)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([isActive, sortOrder])
-}
-
-model SupportFeature {
-  id        String   @id @default(cuid())
-  title     String
-  text      String   @default("")
-  icon      String   @default("✓")
-  image     String   @default("")
-  isActive  Boolean  @default(true)
-  sortOrder Int      @default(100)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@index([isActive, sortOrder])
 }
