@@ -65,6 +65,8 @@ export default async function ProductPage({
       positions={data.positions}
       selectedPosition={selectedPosition}
       benefits={benefits}
+      relatedProducts={data.relatedProducts}
+      similarProducts={data.similarProducts}
     />
   );
 }

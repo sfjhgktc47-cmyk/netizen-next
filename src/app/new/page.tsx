@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from 'next/image';
 import { useEffect, useState } from "react";
 
 import { SiteHeader } from "@/components/site-header";
@@ -68,7 +69,7 @@ export default function NewPage() {
   useEffect(() => {
     let mounted = true;
 
-    fetch("/api/new-arrivals", { cache: "no-store" })
+    fetch("/api/new-arrivals")
       .then((response) => (response.ok ? response.json() : Promise.reject()))
       .then((payload: NewArrivalsPayload) => {
         if (!mounted) return;
@@ -98,6 +99,20 @@ export default function NewPage() {
     <main className={dark ? "min-h-screen bg-[#020814] text-white" : "min-h-screen bg-[#f6f8fb] text-[#0b1220]"}>
       <div className="mx-auto max-w-[1440px] px-6 py-6">
         <SiteHeader />
+
+        <nav
+          aria-label="Хлебные крошки"
+          className="mt-6 flex flex-wrap items-center gap-2 text-xs text-black/50 dark:text-white/50 sm:text-sm"
+        >
+          <Link
+            href="/"
+            className="transition-colors hover:text-blue-500"
+          >
+            Главная
+          </Link>
+          <span className="text-black/30 dark:text-white/30">›</span>
+          <span className="font-medium text-current">Новинки</span>
+        </nav>
 
         {visibleBlocks.map((block) => (
           <NewPageModule
@@ -202,7 +217,7 @@ function PromoBlock({ dark, settings }: { dark: boolean; settings: Record<string
           </Link>
         </div>
         <div className={`min-h-[260px] ${dark ? "bg-blue-500/5" : "bg-slate-50"}`}>
-          {image ? <img src={image} alt="Новинки" className="h-full w-full object-contain object-right" /> : null}
+          {image ? <Image quality={75} src={image} alt="Новинки" className="h-full w-full object-contain object-right" /> : null}
         </div>
       </div>
     </section>
@@ -229,7 +244,7 @@ function NewCard({
   return (
     <Link href={`/product/${product.slug}`} className={`group overflow-hidden rounded-3xl border transition-all duration-500 hover:-translate-y-1 ${dark ? "border-white/10 bg-white/[0.035] hover:border-blue-500/35" : "border-black/10 bg-white shadow-sm hover:border-blue-500/35"}`}>
       <div className={`flex h-[230px] items-center justify-center ${image ? "bg-white" : dark ? "bg-white/[0.04]" : "bg-slate-100"}`}>
-        {image ? <img src={image} alt={title} className="h-full w-full object-contain" /> : null}
+        {image ? <Image quality={75} src={image} alt={title} className="h-full w-full object-contain" /> : null}
       </div>
       <div className="p-6">
         <div className="text-xs font-bold uppercase tracking-[0.18em] text-blue-500">{badge}</div>

@@ -40,16 +40,7 @@ export function isValidRuPhone(value: unknown) {
 }
 
 export function normalizeEmailStrict(value: unknown) {
-  const email =
-    typeof value === "string"
-      ? value
-          .normalize("NFKC")
-          .replace(/[\u200B-\u200D\uFEFF]/g, "")
-          .trim()
-          .toLowerCase()
-          .replace(/\s*@\s*/g, "@")
-          .replace(/\s*\.\s*/g, ".")
-      : "";
+  const email = typeof value === "string" ? value.trim().toLowerCase() : "";
 
   if (!email) {
     return "";
@@ -65,9 +56,7 @@ export function isValidEmail(value: unknown) {
 export function validateCourierAddress(cityValue: unknown, addressValue: unknown) {
   const city = typeof cityValue === "string" ? cityValue.trim() : "";
   const address = typeof addressValue === "string" ? addressValue.trim() : "";
-  const combined = city && !address.toLowerCase().includes(city.toLowerCase())
-    ? [city, address].filter(Boolean).join(", ")
-    : address || city;
+  const combined = [city, address].filter(Boolean).join(", ");
 
   if (city.length < 2) {
     return {

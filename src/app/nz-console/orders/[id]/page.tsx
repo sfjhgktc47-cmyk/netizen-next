@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from 'next/image';
 import { notFound } from "next/navigation";
 import { OrderStatusForm } from "@/components/admin/order-status-form";
 import {
@@ -6,9 +7,9 @@ import {
   formatAdminPrice,
   getAdminOrder,
   getDeliveryLabel,
-  getOrderStatusClass,
-  getOrderStatusLabel,
 } from "@/lib/admin-orders-db";
+import { getOrderWorkflowSettings } from "@/lib/order-workflow-db";
+import { getOrderStatusClass, getOrderStatusLabel } from "@/lib/order-status";
 
 export const dynamic = "force-dynamic";
 
@@ -18,7 +19,10 @@ export default async function AdminOrderDetailPage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const order = await getAdminOrder(id);
+  const [order, workflow] = await Promise.all([
+    getAdminOrder(id),
+    getOrderWorkflowSettings(),
+  ]);
 
   if (!order) {
     notFound();
@@ -43,12 +47,20 @@ export default async function AdminOrderDetailPage({
             <span>{order.publicId}</span>
           </div>
 
-          <Link
-            href="/nz-console/orders"
-            className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
-          >
-            К заявкам →
-          </Link>
+          <div className="flex items-center gap-2">
+            <Link
+              href={`/nz-console/orders/${order.publicId}/edit`}
+              className="rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold transition-colors hover:bg-blue-500"
+            >
+              Редактировать
+            </Link>
+            <Link
+              href="/nz-console/orders"
+              className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
+            >
+              К заявкам →
+            </Link>
+          </div>
         </header>
 
         <section className="mt-10">
@@ -71,8 +83,8 @@ export default async function AdminOrderDetailPage({
                   </p>
                 </div>
 
-                <span className={`inline-flex rounded-full border px-4 py-2 text-sm ${getOrderStatusClass(order.status)}`}>
-                  {getOrderStatusLabel(order.status, order.deliveryType)}
+                <span className={`inline-flex rounded-full border px-4 py-2 text-sm ${getOrderStatusClass(order.status, workflow, order.deliveryType)}`}>
+                  {getOrderStatusLabel(order.status, order.deliveryType, workflow)}
                 </span>
               </div>
 
@@ -101,7 +113,10 @@ export default async function AdminOrderDetailPage({
               orderId={order.publicId}
               initialStatus={order.status}
               initialComment={order.comment}
-              deliveryType={order.deliveryType}
+              initialDeliveryType={order.deliveryType}
+              initialAddress={order.address}
+              initialPickupPoint={order.pickupPoint}
+              workflow={workflow}
             />
           </div>
         </section>
@@ -121,10 +136,9 @@ export default async function AdminOrderDetailPage({
               key={item.id}
               className="grid gap-4 border-b border-white/10 px-6 py-5 last:border-b-0 md:grid-cols-[80px_1fr_0.55fr_0.55fr_0.55fr] md:items-center"
             >
-              <div className="flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-white/[0.04] text-xs text-white/35">
+              <div className="relative flex h-16 w-16 items-center justify-center overflow-hidden rounded-2xl bg-white/[0.04] text-xs text-white/35">
                 {item.image ? (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img src={item.image} alt={item.title} className="h-full w-full object-cover" />
+                  <Image quality={75} src={item.image} alt={item.title} fill sizes="64px" className="object-cover" />
                 ) : (
                   "Фото"
                 )}

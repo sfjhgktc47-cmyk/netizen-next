@@ -5,7 +5,7 @@ import { prisma } from "@/lib/db";
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
-type ImageKind = "category" | "product" | "variant" | "banner" | "benefit" | "setting" | "faq-category" | "faq-question" | "faq-highlight";
+type ImageKind = "category" | "product" | "variant" | "banner" | "benefit" | "setting";
 
 function parseDataImage(value: string) {
   const marker = ";base64,";
@@ -34,7 +34,7 @@ function parseDataImage(value: string) {
   };
 }
 
-function imageResponse(value: string, cacheControl?: string) {
+function imageResponse(value: string) {
   const image = parseDataImage(value.trim());
 
   if (!image) {
@@ -44,46 +44,9 @@ function imageResponse(value: string, cacheControl?: string) {
   return new NextResponse(image.body, {
     headers: {
       "Content-Type": image.contentType,
-      "Cache-Control":
-        cacheControl ??
-        "public, max-age=86400, stale-while-revalidate=604800",
-    },
-  });
-}
-
-function svgResponse(svg: string) {
-  return new NextResponse(svg, {
-    headers: {
-      "Content-Type": "image/svg+xml; charset=utf-8",
       "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
     },
   });
-}
-
-function fallbackSettingIcon(field: string) {
-  const common = 'fill="none" stroke="#2563eb" stroke-width="2.15" stroke-linecap="round" stroke-linejoin="round" vector-effect="non-scaling-stroke"';
-
-  if (field === "navIconCart") {
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path ${common} d="M3 3h2.2l2.1 10.15a2 2 0 0 0 1.96 1.6h7.96a2 2 0 0 0 1.94-1.52L21 6.5H6.05"/><path ${common} stroke-width="1.8" d="M9 9.25h8.9M10 12h7.2"/><circle cx="9.25" cy="19.25" r="1.25" fill="#2563eb"/><circle cx="17.25" cy="19.25" r="1.25" fill="#2563eb"/></svg>`;
-  }
-
-  if (field === "navIconHome") {
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path ${common} d="M3.5 11.2 12 4l8.5 7.2"/><path ${common} d="M5.5 10.4V20h13v-9.6"/><path ${common} d="M9.5 20v-5h5v5"/></svg>`;
-  }
-
-  if (field === "navIconCatalog") {
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path ${common} d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h6v6h-6z"/></svg>`;
-  }
-
-  if (field === "navIconNew") {
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path ${common} d="M12 3l1.9 6.1L20 11l-6.1 1.9L12 19l-1.9-6.1L4 11l6.1-1.9L12 3z"/></svg>`;
-  }
-
-  if (field === "navIconSupport") {
-    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path ${common} d="M12 18h.01"/><path ${common} d="M9.5 9a2.6 2.6 0 1 1 4.4 1.85c-1.05.95-1.9 1.55-1.9 3.15"/><circle ${common} cx="12" cy="12" r="9"/></svg>`;
-  }
-
-  return "";
 }
 
 function pickArrayValue(values: unknown, index: number) {
@@ -181,24 +144,6 @@ async function getImage(kind: ImageKind, id: string, field: string, index: numbe
     return benefit?.image ?? "";
   }
 
-  if (kind === "faq-category") {
-    if (field !== "image") return "";
-    const item = await prisma.faqCategory.findUnique({ where: { id }, select: { image: true } });
-    return item?.image ?? "";
-  }
-
-  if (kind === "faq-question") {
-    if (field !== "image") return "";
-    const item = await prisma.faqQuestion.findUnique({ where: { id }, select: { image: true } });
-    return item?.image ?? "";
-  }
-
-  if (kind === "faq-highlight") {
-    if (field !== "image") return "";
-    const item = await prisma.faqHighlight.findUnique({ where: { id }, select: { image: true } });
-    return item?.image ?? "";
-  }
-
   if (kind === "setting") {
     if (id !== "branding") return "";
 
@@ -252,7 +197,7 @@ export async function GET(
     return new NextResponse("Image not found", { status: 404 });
   }
 
-  if (!["category", "product", "variant", "banner", "benefit", "setting", "faq-category", "faq-question", "faq-highlight"].includes(kind)) {
+  if (!["category", "product", "variant", "banner", "benefit", "setting"].includes(kind)) {
     return new NextResponse("Image not found", { status: 404 });
   }
 
@@ -262,24 +207,7 @@ export async function GET(
     const index = getIndex(request);
     const value = await getImage(kind as ImageKind, id, field, index);
 
-    const fallbackSvg =
-      kind === "setting" &&
-      id === "branding" &&
-      field.startsWith("navIcon") &&
-      (!value || value.startsWith("/api/public-image/"))
-        ? fallbackSettingIcon(field)
-        : "";
-
-    if (fallbackSvg) {
-      return svgResponse(fallbackSvg);
-    }
-
-    return imageResponse(
-      value,
-      kind === "setting"
-        ? "private, no-cache, no-store, max-age=0, must-revalidate"
-        : undefined,
-    );
+    return imageResponse(value);
   } catch (error) {
     console.error("Public image loading failed", error);
     return new NextResponse("Image loading failed", { status: 500 });

@@ -1,0 +1,8 @@
+Фикс ошибки сборки каталога.
+
+Причина:
+- catalog-view.tsx использует product.isNew в сортировке режима 'Новинки'.
+- В локальном типе ProductModel не было поля isNew.
+
+Что исправлено:
+- В ProductModel добавлено isNew?: boolean.

@@ -1,0 +1,9 @@
+Build-fix.
+
+Причина:
+- В src/app/home-client.tsx была переменная `const module = (...)`.
+- Next.js ESLint запрещает присваивать переменную с именем `module`.
+
+Что исправлено:
+- `module` переименован в `renderedModule`.
+- Логика lazy-загрузки главной не менялась.

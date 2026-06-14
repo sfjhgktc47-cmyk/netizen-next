@@ -1,0 +1,10 @@
+Фикс ошибки сборки после отключения Link prefetch.
+
+Причина:
+- В прошлом архиве автоматическая вставка prefetch={false} сломала один onClick в src/components/catalog-view.tsx.
+- Получилось: onClick={() = prefetch={false}> {
+- Правильно: prefetch={false} отдельным prop и onClick={() => { ... }}
+
+Что исправлено:
+- Починен синтаксис Link в catalog-view.tsx.
+- Проверены tsx-файлы на остатки сломанного шаблона.

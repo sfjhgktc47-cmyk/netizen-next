@@ -2,22 +2,17 @@ import { NextResponse } from "next/server";
 
 import { getAuthSession } from "@/lib/auth";
 import { prisma } from "@/lib/db";
-import { getEditableSupportTopics, updateEditableSupportTopic } from "@/lib/support-topics-db";
 
 export const dynamic = "force-dynamic";
 
 type Body = {
-  entity?: "feature" | "question" | "topic";
+  entity?: "feature" | "question";
   id?: string;
   title?: string;
   text?: string;
   icon?: string;
-  image?: string;
   question?: string;
   answer?: string;
-  intro?: string;
-  placeholder?: string;
-  quickMessages?: string[];
   isActive?: boolean;
   sortOrder?: number;
 };
@@ -41,20 +36,16 @@ export async function GET() {
     return NextResponse.json({ error: "Нет доступа." }, { status: 401 });
   }
 
-  const [features, questions, topics] = await Promise.all([
+  const [features, questions] = await Promise.all([
     prisma.supportFeature.findMany({
       orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
     }),
     prisma.supportFaqItem.findMany({
       orderBy: [{ sortOrder: "asc" }, { createdAt: "asc" }],
     }),
-    getEditableSupportTopics(),
   ]);
 
-  return NextResponse.json(
-    { features, questions, topics },
-    { headers: { "Cache-Control": "no-store" } },
-  );
+  return NextResponse.json({ features, questions });
 }
 
 export async function POST(request: Request) {
@@ -82,7 +73,6 @@ export async function POST(request: Request) {
       title: clean(body.title, 160) || "Новое преимущество",
       text: clean(body.text, 500),
       icon: clean(body.icon, 10) || "✓",
-      image: clean(body.image, 2_800_000),
       isActive: body.isActive !== false,
       sortOrder: order(body.sortOrder),
     },
@@ -98,28 +88,6 @@ export async function PATCH(request: Request) {
 
   const body = (await request.json()) as Body;
   const id = clean(body.id, 100);
-
-  if (body.entity === "topic") {
-    if (!id) {
-      return NextResponse.json({ error: "Не указана тема." }, { status: 400 });
-    }
-
-    try {
-      const item = await updateEditableSupportTopic({
-        id,
-        intro: body.intro,
-        placeholder: body.placeholder,
-        quickMessages: body.quickMessages,
-      });
-
-      return NextResponse.json({ item });
-    } catch (error) {
-      return NextResponse.json(
-        { error: error instanceof Error ? error.message : "Не удалось сохранить тему." },
-        { status: 400 },
-      );
-    }
-  }
 
   if (!id) {
     return NextResponse.json({ error: "Не указан ID." }, { status: 400 });
@@ -145,7 +113,6 @@ export async function PATCH(request: Request) {
       title: clean(body.title, 160),
       text: clean(body.text, 500),
       icon: clean(body.icon, 10) || "✓",
-      image: clean(body.image, 2_800_000),
       isActive: body.isActive !== false,
       sortOrder: order(body.sortOrder),
     },

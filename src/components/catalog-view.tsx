@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from 'next/image';
 import { useEffect, useMemo, useRef, useState } from "react";
 import { products as fallbackProducts, type ProductModel as CatalogProductBase } from "@/data/products";
 import { productPositions as fallbackProductPositions, type ProductPosition as CatalogPositionBase } from "@/data/product-positions";
@@ -14,6 +15,7 @@ type CategoryItem = {
   slug: string;
   name: string;
   description: string;
+  image?: string;
   href: string;
 };
 
@@ -30,7 +32,9 @@ type ProductModel = CatalogProductBase & {
   images?: string[];
   shortDescription?: string;
   status?: string;
+  isNew?: boolean;
   isPopular?: boolean;
+  sortOrder?: number;
   price: string;
   minPrice: number;
   maxPrice: number;
@@ -195,21 +199,26 @@ function getProductPriceStats(
   };
 }
 
-function sortProductModels(items: ProductModel[], sortMode: SortMode) {
-  if (sortMode === "popular") {
-    return items;
-  }
+function getProductSortOrder(product: ProductModel) {
+  const order = Number(product.sortOrder);
+  return Number.isFinite(order) ? order : 100;
+}
 
+function sortProductModels(items: ProductModel[], sortMode: SortMode) {
   return [...items].sort((a, b) => {
     if (sortMode === "price_asc") {
-      return a.minPrice - b.minPrice;
+      return a.minPrice - b.minPrice || getProductSortOrder(a) - getProductSortOrder(b);
     }
 
     if (sortMode === "price_desc") {
-      return b.maxPrice - a.maxPrice;
+      return b.maxPrice - a.maxPrice || getProductSortOrder(a) - getProductSortOrder(b);
     }
 
-    return b.slug.localeCompare(a.slug);
+    if (sortMode === "new") {
+      return Number(Boolean(b.isNew)) - Number(Boolean(a.isNew)) || getProductSortOrder(a) - getProductSortOrder(b);
+    }
+
+    return getProductSortOrder(a) - getProductSortOrder(b);
   });
 }
 
@@ -444,17 +453,22 @@ export function CatalogView({
     positionsData.length > 0 ? positionsData : fallbackProductPositions;
   const categories = categoriesData;
 
-  const activeCategoryIndex = categories.findIndex(
-    (category) => category.id === categoryId
-  );
-
   const isUrlSyncReady = useRef(false);
   const shouldSkipInitialUrlWrite = useRef(true);
+
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
+    categoryId ?? null
+  );
+
+  const activeCategoryIndex = categories.findIndex(
+    (category) => category.id === selectedCategoryId
+  );
 
   const [isFilterOpen, setIsFilterOpen] = useState(false);
   const [isCategoriesOpen, setIsCategoriesOpen] = useState(
     () => activeCategoryIndex >= 6
   );
+  const [isCategoryPanelVisible, setIsCategoryPanelVisible] = useState(true);
   const [selectedBrand, setSelectedBrand] = useState<string | null>(null);
   const [selectedModelSlug, setSelectedModelSlug] = useState<string | null>(null);
   const [selectedMemory, setSelectedMemory] = useState<string | null>(null);
@@ -467,6 +481,32 @@ export function CatalogView({
   const [sortMode, setSortMode] = useState<SortMode>("popular");
   const [onlyPopular, setOnlyPopular] = useState(false);
   const [isSortOpen, setIsSortOpen] = useState(false);
+
+  useEffect(() => {
+    setSelectedCategoryId(categoryId ?? null);
+  }, [categoryId]);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("netizen-catalog-category-panel");
+      setIsCategoryPanelVisible(stored !== "hidden");
+    } catch {
+      setIsCategoryPanelVisible(true);
+    }
+  }, []);
+
+  function setCategoryPanelVisible(visible: boolean) {
+    setIsCategoryPanelVisible(visible);
+
+    try {
+      localStorage.setItem(
+        "netizen-catalog-category-panel",
+        visible ? "visible" : "hidden",
+      );
+    } catch {
+      // Local storage may be unavailable in private mode.
+    }
+  }
 
   useEffect(() => {
     if (activeCategoryIndex >= 6) {
@@ -488,6 +528,10 @@ export function CatalogView({
       setPriceTo(filters.priceTo);
       setSearchQuery(filters.searchQuery);
       setSortMode(filters.sortMode);
+      const pathParts = window.location.pathname.split("/").filter(Boolean);
+      const urlCategory = pathParts[0] === "catalog" && pathParts[1] ? decodeURIComponent(pathParts[1]) : null;
+
+      setSelectedCategoryId(urlCategory);
       setOnlyPopular(filters.onlyPopular);
     }
 
@@ -576,7 +620,7 @@ export function CatalogView({
   );
 
   const activeCategory = categories.find(
-    (category) => category.id === categoryId
+    (category) => category.id === selectedCategoryId
   );
 
   const selectedModel = allProducts.find(
@@ -591,7 +635,7 @@ export function CatalogView({
   const categoryProducts = useMemo(
     () =>
       allProducts.filter((product) => {
-        if (categoryId && product.category !== categoryId) {
+        if (selectedCategoryId && product.category !== selectedCategoryId) {
           return false;
         }
 
@@ -611,7 +655,7 @@ export function CatalogView({
 
         return true;
       }),
-    [allProducts, categoryId, normalizedSearchQuery, onlyPopular]
+    [allProducts, normalizedSearchQuery, onlyPopular, selectedCategoryId]
   );
 
   const visibleModelProducts = useMemo(
@@ -656,7 +700,7 @@ export function CatalogView({
 
   const positionsForFilterOptions = useMemo(() => {
     return enrichedPositions.filter((position) => {
-      if (categoryId && position.category !== categoryId) {
+      if (selectedCategoryId && position.category !== selectedCategoryId) {
         return false;
       }
 
@@ -674,7 +718,7 @@ export function CatalogView({
 
       return true;
     });
-  }, [categoryId, enrichedPositions, onlyPopular, selectedBrand, selectedModelSlug]);
+  }, [enrichedPositions, onlyPopular, selectedBrand, selectedCategoryId, selectedModelSlug]);
 
   const memoryOptions = useMemo(
     () => uniqueValues(positionsForFilterOptions.map((position) => position.memory)),
@@ -752,7 +796,7 @@ export function CatalogView({
     return enrichedPositions.filter((position) => {
       const price = getPriceNumber(position.price);
 
-      if (categoryId && position.category !== categoryId) {
+      if (selectedCategoryId && position.category !== selectedCategoryId) {
         return false;
       }
 
@@ -814,8 +858,8 @@ export function CatalogView({
       return true;
     });
   }, [
-    categoryId,
     enrichedPositions,
+    selectedCategoryId,
     onlyPopular,
     normalizedSearchQuery,
     priceFrom,
@@ -851,10 +895,17 @@ export function CatalogView({
       {}
     );
 
-    return Object.entries(grouped).map(([brand, brandProducts]) => [
-      brand,
-      sortProductModels(brandProducts, sortMode),
-    ] as [string, ProductModel[]]);
+    return Object.entries(grouped)
+      .map(([brand, brandProducts]) => [
+        brand,
+        sortProductModels(brandProducts, sortMode),
+      ] as [string, ProductModel[]])
+      .sort(([, aProducts], [, bProducts]) => {
+        const aOrder = Math.min(...aProducts.map(getProductSortOrder));
+        const bOrder = Math.min(...bProducts.map(getProductSortOrder));
+
+        return aOrder - bOrder;
+      });
   }, [sortMode, visibleModelProducts]);
 
   const hasSpecificationFilters = Boolean(
@@ -924,12 +975,35 @@ export function CatalogView({
     resetSpecificationFilters();
   }
 
-  function handleResetCatalogState() {
+  function replaceCatalogUrl(nextCategoryId: string | null, popular = false) {
+    if (typeof window === "undefined") {
+      return;
+    }
+
+    const nextPath = nextCategoryId ? `/catalog/${nextCategoryId}` : "/catalog";
+    const nextUrl = popular ? `${nextPath}?popular=1` : nextPath;
+
+    window.history.pushState({}, "", nextUrl);
+  }
+
+  function handleSelectCategory(nextCategoryId: string | null) {
+    setSelectedCategoryId(nextCategoryId);
     setOnlyPopular(false);
     setSelectedBrand(null);
     setSearchQuery("");
     resetSpecificationFilters();
     setSortMode("popular");
+    replaceCatalogUrl(nextCategoryId);
+  }
+
+  function handleResetCatalogState() {
+    setSelectedCategoryId(null);
+    setOnlyPopular(false);
+    setSelectedBrand(null);
+    setSearchQuery("");
+    resetSpecificationFilters();
+    setSortMode("popular");
+    replaceCatalogUrl(null);
   }
 
   function handleSelectModel(modelSlug: string) {
@@ -950,12 +1024,27 @@ export function CatalogView({
         </div>
 
         <section className="mt-4 sm:mt-8 lg:mt-10">
-          <Link
-            href="/"
-            className="text-sm text-blue-500 transition-colors hover:text-blue-400"
-          >
-            ← На главную
-          </Link>
+          <nav className="flex flex-wrap items-center gap-1.5 text-xs text-muted sm:text-sm" aria-label="Хлебные крошки">
+            <Link href="/" className="transition-colors hover:text-blue-500">
+              Главная
+            </Link>
+            <span className="text-muted-soft">›</span>
+            <Link href="/catalog" className="transition-colors hover:text-blue-500">
+              Каталог
+            </Link>
+            {activeCategory ? (
+              <>
+                <span className="text-muted-soft">›</span>
+                <span className="text-main">{activeCategory.name}</span>
+              </>
+            ) : null}
+            {selectedBrand ? (
+              <>
+                <span className="text-muted-soft">›</span>
+                <span className="text-main">{selectedBrand}</span>
+              </>
+            ) : null}
+          </nav>
 
           <div className="mt-3 flex flex-col gap-3 sm:mt-4 sm:gap-4 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -1000,86 +1089,155 @@ export function CatalogView({
                   setIsSortOpen(false);
                 }}
               />
-
-              <button
-                type="button"
-                onClick={() => setIsCategoriesOpen((prev) => !prev)}
-                className={`rounded-xl border px-4 py-2.5 text-sm font-medium transition-all duration-300 sm:px-6 sm:py-4 ${
-                  isCategoriesOpen
-                    ? "border-blue-500 bg-blue-600 text-white"
-                    : "border-theme bg-transparent hover:border-blue-500/40 hover:bg-blue-soft"
-                }`}
-              >
-                Категории
-              </button>
             </div>
           </div>
         </section>
 
         <section className="mt-4 sm:mt-8">
-          <div className="-mx-3 flex snap-x flex-nowrap items-center gap-2 overflow-x-auto px-3 pb-2 sm:mx-0 sm:flex-wrap sm:gap-3 sm:overflow-visible sm:px-0 sm:pb-0">
-            <Link
-              href="/catalog"
-              onClick={handleResetCatalogState}
-              className={`snap-start whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-medium transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
-                !onlyPopular && !categoryId && !selectedBrand && !hasSpecificationFilters
-                  ? "border-blue-500 bg-blue-600 text-white"
-                  : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
-              }`}
-            >
-              Все товары
-            </Link>
+          {isCategoryPanelVisible ? (
+            <div className="rounded-[24px] border border-theme bg-card p-3 shadow-soft sm:rounded-[30px] sm:p-5">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h2 className="text-xl font-bold tracking-[-0.04em] sm:text-2xl">
+                    Категории
+                  </h2>
+                  <p className="mt-1 text-xs text-muted sm:text-sm">
+                    Выберите нужное направление каталога
+                  </p>
+                </div>
 
+                <button
+                  type="button"
+                  onClick={() => setCategoryPanelVisible(false)}
+                  className="shrink-0 rounded-xl border border-theme bg-transparent px-4 py-2.5 text-xs font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:text-sm"
+                >
+                  Скрыть категории
+                </button>
+              </div>
 
+              <div className="mt-4 grid grid-cols-2 gap-2.5 sm:mt-5 sm:grid-cols-3 sm:gap-4 xl:grid-cols-5">
+                {categories.map((category) => {
+                  const isActive =
+                    category.id === selectedCategoryId && !hasActiveFilters;
 
-            <Link
-              href="/catalog?popular=1"
-              onClick={() => {
-                setOnlyPopular(true);
-                setSelectedBrand(null);
-                resetSpecificationFilters();
-                setSortMode("popular");
-              }}
-              className={`snap-start whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-medium transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
-                onlyPopular && !categoryId && !selectedBrand && !hasSpecificationFilters
-                  ? "border-blue-500 bg-blue-600 text-white"
-                  : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
-              }`}
-            >
-              Популярные
-            </Link>
+                  return (
+                    <button
+                      key={category.id}
+                      type="button"
+                      onClick={() => handleSelectCategory(category.id)}
+                      className={`group relative min-h-[118px] overflow-hidden rounded-2xl border p-4 xl:p-5 text-left transition-all duration-300 hover:-translate-y-0.5 sm:min-h-[150px] sm:p-4 ${
+                        isActive
+                          ? "border-blue-500 bg-blue-soft"
+                          : "border-theme bg-card hover:border-blue-500/40"
+                      }`}
+                    >
+                      <div className="relative z-10 max-w-[58%]">
+                        <h3 className="text-sm font-bold leading-tight sm:text-base">
+                          {category.name}
+                        </h3>
+                        {category.description ? (
+                          <p className="mt-2 hidden line-clamp-2 text-xs leading-relaxed text-muted sm:block">
+                            {category.description}
+                          </p>
+                        ) : null}
+                      </div>
 
-            {(isCategoriesOpen ? categories : categories.slice(0, 6)).map(
-              (category) => {
-                const isActive = category.id === categoryId && !hasActiveFilters;
+                      <div className="absolute bottom-2 right-2 top-2 flex w-[43%] items-center justify-center sm:bottom-3 sm:right-3 sm:top-3">
+                        {category.image ? (
+                          // eslint-disable-next-line @next/next/no-img-element
+                          <img
+                            src={category.image}
+                            alt=""
+                            loading="lazy"
+                            decoding="async"
+                            className="h-full w-full object-contain transition-transform duration-300 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="h-full w-full rounded-xl bg-blue-soft" />
+                        )}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-center gap-2">
+              <div className="-mx-3 flex flex-1 snap-x flex-nowrap items-center gap-2 overflow-x-auto px-3 pb-2 sm:mx-0 sm:flex-wrap sm:gap-3 sm:overflow-visible sm:px-0 sm:pb-0">
+                <button
+                  type="button"
+                  onClick={handleResetCatalogState}
+                  className={`snap-start whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-medium transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
+                    !onlyPopular && !selectedCategoryId && !selectedBrand && !hasSpecificationFilters
+                      ? "border-blue-500 bg-blue-600 text-white"
+                      : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
+                  }`}
+                >
+                  Все товары
+                </button>
 
-                return (
-                  <Link
-                    key={category.id}
-                    href={category.href}
-                    onClick={handleResetCatalogState}
-                    className={`snap-start whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-medium transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
-                      isActive
-                        ? "border-blue-500 bg-blue-600 text-white"
-                        : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
-                    }`}
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedCategoryId(null);
+                    setOnlyPopular(true);
+                    setSelectedBrand(null);
+                    setSearchQuery("");
+                    resetSpecificationFilters();
+                    setSortMode("popular");
+                    replaceCatalogUrl(null, true);
+                  }}
+                  className={`snap-start whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-medium transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
+                    onlyPopular && !selectedCategoryId && !selectedBrand && !hasSpecificationFilters
+                      ? "border-blue-500 bg-blue-600 text-white"
+                      : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
+                  }`}
+                >
+                  Популярные
+                </button>
+
+                {(isCategoriesOpen ? categories : categories.slice(0, 6)).map(
+                  (category) => {
+                    const isActive =
+                      category.id === selectedCategoryId && !hasActiveFilters;
+
+                    return (
+                      <button
+                        key={category.id}
+                        type="button"
+                        onClick={() => handleSelectCategory(category.id)}
+                        className={`snap-start whitespace-nowrap rounded-full border px-4 py-2.5 text-xs font-medium transition-all duration-300 sm:px-5 sm:py-3 sm:text-sm ${
+                          isActive
+                            ? "border-blue-500 bg-blue-600 text-white"
+                            : "border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
+                        }`}
+                      >
+                        {category.name}
+                      </button>
+                    );
+                  },
+                )}
+
+                {categories.length > 6 ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsCategoriesOpen((prev) => !prev)}
+                    className="snap-start whitespace-nowrap rounded-full border border-theme bg-transparent px-4 py-2.5 text-xs font-medium text-blue-500 transition-all duration-300 hover:border-blue-500/40 hover:bg-blue-soft sm:px-5 sm:py-3 sm:text-sm"
                   >
-                    {category.name}
-                  </Link>
-                );
-              }
-            )}
+                    {isCategoriesOpen ? "Свернуть" : "Развернуть"}
+                  </button>
+                ) : null}
+              </div>
 
-            {categories.length > 6 && (
               <button
                 type="button"
-                onClick={() => setIsCategoriesOpen((prev) => !prev)}
-                className="snap-start whitespace-nowrap rounded-full border border-theme bg-transparent px-4 py-2.5 text-xs font-medium text-blue-500 transition-all duration-300 hover:border-blue-500/40 hover:bg-blue-soft sm:px-5 sm:py-3 sm:text-sm"
+                onClick={() => setCategoryPanelVisible(true)}
+                className="hidden shrink-0 rounded-xl border border-theme bg-transparent px-4 py-2.5 text-xs font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-soft sm:block sm:text-sm"
               >
-                {isCategoriesOpen ? "Свернуть" : "Развернуть"}
+                Показать категории
               </button>
-            )}
-          </div>
+            </div>
+          )}
         </section>
 
         {hasActiveFilters && (
@@ -1386,8 +1544,7 @@ function PositionProductCard({
       >
         {position.images?.[0] || getModelImage(position.product) ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img
-            src={position.images?.[0] ?? getModelImage(position.product)}
+          <Image quality={75} src={position.images?.[0] ?? getModelImage(position.product)}
             alt={position.title}
             className="h-full w-full object-contain p-2 sm:p-3"
           />

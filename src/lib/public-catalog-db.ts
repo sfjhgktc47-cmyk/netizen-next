@@ -3,6 +3,7 @@ import "server-only";
 import { prisma } from "@/lib/db";
 import { formatPrice } from "@/lib/product-pricing";
 import { getPublicCategoriesFromDb, type PublicCategory } from "@/lib/public-categories-db";
+import { publicImageUrl, publicImageUrls } from "@/lib/public-image-urls";
 
 export type ProductDescriptionBlock = {
   id: string;
@@ -32,6 +33,7 @@ export type PublicProductModel = {
   status: string;
   isNew: boolean;
   isPopular: boolean;
+  sortOrder: number;
 };
 
 export type PublicProductPosition = {
@@ -50,6 +52,7 @@ export type PublicProductPosition = {
   images: string[];
   seoTitle: string;
   seoDescription: string;
+  relatedProductIds: string[];
 };
 
 export type PublicCatalogData = {
@@ -60,6 +63,18 @@ export type PublicCatalogData = {
 };
 
 type ProductWithVariants = Awaited<ReturnType<typeof getDbProductsForPublicCatalog>>[number];
+
+
+function toPublicProductImageUrls(product: ProductWithVariants, images: string[]) {
+  return publicImageUrls("product", product.slug, "images", images);
+}
+
+function toPublicDescriptionBlocks(product: ProductWithVariants) {
+  return normalizeDescriptionBlocks(product.descriptionBlocks).map((block, index) => ({
+    ...block,
+    image: publicImageUrl("product", product.slug, `descriptionBlocks.${index}.image`, block.image),
+  }));
+}
 
 
 function normalizeDescriptionBlocks(value: unknown): ProductDescriptionBlock[] {
@@ -151,10 +166,13 @@ function getPriceRange(variants: ProductWithVariants["variants"]) {
     return formatPrice(minPrice);
   }
 
-  return `от ${formatPrice(minPrice)}`;
+  return `от ${formatPrice(minPrice)} до ${formatPrice(maxPrice)}`;
 }
 
 function toPublicProduct(product: ProductWithVariants): PublicProductModel {
+  const images = getProductImages(product);
+  const publicImages = toPublicProductImageUrls(product, images);
+
   return {
     slug: product.slug,
     name: product.name,
@@ -164,14 +182,15 @@ function toPublicProduct(product: ProductWithVariants): PublicProductModel {
     price: getPriceRange(product.variants),
     description: product.description,
     shortDescription: product.shortDescription || product.description,
-    descriptionBlocks: normalizeDescriptionBlocks(product.descriptionBlocks),
-    image: getProductImages(product)[0] ?? "",
-    promoImage: String(product.promoImage ?? ""),
-    images: getProductImages(product),
+    descriptionBlocks: toPublicDescriptionBlocks(product),
+    image: publicImages[0] ?? "",
+    promoImage: publicImageUrl("product", product.slug, "promoImage", String(product.promoImage ?? "")),
+    images: publicImages,
     colors: getProductColors(product),
     status: product.status,
     isNew: Boolean(product.isNew),
     isPopular: Boolean(product.isPopular),
+    sortOrder: Number(product.sortOrder ?? 100),
   };
 }
 
@@ -192,11 +211,14 @@ function toPublicPosition(
     oldPrice: variant.oldPrice ? formatPrice(variant.oldPrice) : "",
     stock: variant.stock,
     status: getVariantStatus(variant.status, variant.stock),
-    images: variant.images,
+    images: publicImageUrls("variant", variant.sku, "images", Array.isArray(variant.images) ? variant.images : []),
     seoTitle: variant.seoTitle || `${variant.title} — купить в Netizen`,
     seoDescription:
       variant.seoDescription ||
       `${variant.title} — конфигурация модели ${product.name}. Цена, наличие и доставка уточняются менеджером.`,
+    relatedProductIds: Array.isArray(variant.relatedProductIds)
+      ? variant.relatedProductIds
+      : [],
   };
 }
 
@@ -258,9 +280,101 @@ export async function getPublicProductBySlug(slug: string) {
     return null;
   }
 
+  const positions = product.variants.map((variant) => toPublicPosition(variant, product));
+  const relatedIds = Array.from(
+    new Set(product.variants.flatMap((variant) =>
+      Array.isArray(variant.relatedProductIds) ? variant.relatedProductIds : [],
+    )),
+  );
+
+  const relatedProducts = relatedIds.length
+    ? await prisma.product.findMany({
+        where: {
+          id: { in: relatedIds },
+          status: "active",
+        },
+        include: {
+          category: true,
+          variants: {
+            where: {
+              status: { in: ["active", "out_of_stock"] },
+            },
+            orderBy: [{ price: "asc" }, { createdAt: "asc" }],
+          },
+        },
+      })
+    : [];
+
+  const relatedById = new Map(relatedProducts.map((item) => [item.id, item]));
+  const excludedProductIds = [product.id, ...relatedIds];
+
+  const categoryCandidates = await prisma.product.findMany({
+    where: {
+      id: { notIn: excludedProductIds },
+      status: "active",
+      categorySlug: product.categorySlug,
+    },
+    include: {
+      category: true,
+      variants: {
+        where: {
+          status: { in: ["active", "out_of_stock"] },
+        },
+        orderBy: [{ price: "asc" }, { createdAt: "asc" }],
+      },
+    },
+    orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+    take: 12,
+  });
+
+  const sortedCategoryCandidates = [...categoryCandidates].sort((a, b) => {
+    const aSameBrand = a.brand === product.brand ? 0 : 1;
+    const bSameBrand = b.brand === product.brand ? 0 : 1;
+
+    return (
+      aSameBrand - bSameBrand ||
+      Number(a.sortOrder ?? 100) - Number(b.sortOrder ?? 100)
+    );
+  });
+
+  let similarProducts = sortedCategoryCandidates.slice(0, 5);
+
+  if (similarProducts.length < 5) {
+    const alreadySelectedIds = [
+      ...excludedProductIds,
+      ...similarProducts.map((item) => item.id),
+    ];
+
+    const brandFallback = await prisma.product.findMany({
+      where: {
+        id: { notIn: alreadySelectedIds },
+        status: "active",
+        brand: product.brand,
+      },
+      include: {
+        category: true,
+        variants: {
+          where: {
+            status: { in: ["active", "out_of_stock"] },
+          },
+          orderBy: [{ price: "asc" }, { createdAt: "asc" }],
+        },
+      },
+      orderBy: [{ sortOrder: "asc" }, { createdAt: "desc" }],
+      take: 5 - similarProducts.length,
+    });
+
+    similarProducts = [...similarProducts, ...brandFallback];
+  }
+
   return {
     product: toPublicProduct(product),
-    positions: product.variants.map((variant) => toPublicPosition(variant, product)),
+    positions,
+    relatedProducts: relatedIds
+      .map((id) => relatedById.get(id))
+      .filter((item): item is NonNullable<typeof item> => Boolean(item))
+      .map(toPublicProduct),
+    similarProducts: similarProducts.map(toPublicProduct),
   };
 }
 
