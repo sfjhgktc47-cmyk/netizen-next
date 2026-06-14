@@ -585,7 +585,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  />
 
  <div className="relative z-10 flex h-full items-center px-3.5 py-3 sm:px-8 sm:py-8 lg:px-14 lg:py-12">
- <div className="w-full max-w-[650px] sm:w-auto">
+ <div className="w-full max-w-[calc(100%-40px)] sm:w-auto sm:max-w-[650px]">
  {slide.badge ? (
  <div className="mb-2 inline-flex rounded-full border border-blue-500/45 bg-blue-500/10 px-2 py-0.5 text-[10px] font-medium leading-none text-blue-500 sm:mb-5 sm:px-4 sm:py-2 sm:text-sm">
  {slide.badge}
@@ -609,7 +609,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  <div className="mt-7 flex flex-wrap gap-2 sm:mt-12 sm:gap-4 lg:mt-14">
  <Link
  href={slide.primaryHref}
- className="inline-flex min-h-11 items-center justify-center rounded-xl bg-blue-600 px-4 py-2.5 text-[11px] font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500 sm:min-h-12 sm:px-7 sm:py-4 sm:text-sm"
+ className="inline-flex min-h-10 items-center justify-center rounded-xl bg-blue-600 px-3 py-2 text-[10px] font-medium text-white transition-all duration-300 hover:-translate-y-0.5 hover:bg-blue-500 sm:min-h-12 sm:px-7 sm:py-4 sm:text-sm"
  >
  {withoutTrailingArrow(slide.primaryLabel)}
  </Link>
