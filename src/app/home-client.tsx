@@ -542,7 +542,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  }}
  onMouseEnter={() => setIsHeroHovered(true)}
  onMouseLeave={() => setIsHeroHovered(false)}
- className={`relative h-[176px] cursor-grab select-none overflow-hidden rounded-[20px] border transition-all duration-700 active:cursor-grabbing sm:h-[360px] sm:rounded-[30px] lg:h-[520px] ${
+ className={`relative h-[220px] cursor-grab select-none overflow-hidden rounded-[20px] border transition-all duration-700 active:cursor-grabbing sm:h-[360px] sm:rounded-[30px] lg:h-[520px] ${
  dark
  ? "border-white/10 bg-[#06101f]"
  : "border-black/10 bg-white "
@@ -593,9 +593,9 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  ) : null}
 
  <h1 className={`whitespace-pre-line font-bold leading-[1.02] tracking-[-0.055em] sm:max-w-[620px] ${
- slide.titleSize === "md" ? "text-[18px] sm:text-[30px] lg:text-[44px]"
- : slide.titleSize === "xl" ? "text-[24px] sm:text-[48px] lg:text-[72px]"
- : "text-[20px] sm:text-[38px] lg:text-[60px]"
+ slide.titleSize === "md" ? "text-[14px] sm:text-[30px] lg:text-[44px]"
+ : slide.titleSize === "xl" ? "text-[18px] sm:text-[48px] lg:text-[72px]"
+ : "text-[16px] sm:text-[38px] lg:text-[60px]"
  }`}>
  {slide.title}
  </h1>
