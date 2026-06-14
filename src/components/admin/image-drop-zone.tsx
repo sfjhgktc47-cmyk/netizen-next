@@ -8,6 +8,8 @@ type Props = {
   onChange: (value: string) => void;
   label?: string;
   hint?: string;
+  recommendedSize?: string;
+  recommendedFormat?: string;
 };
 
 const MAX_IMAGE_SIZE_MB = 2;
@@ -18,6 +20,8 @@ export function ImageDropZone({
   onChange,
   label = "Фото товара",
   hint = "Перетащите фото сюда или нажмите, чтобы выбрать файл.",
+  recommendedSize,
+  recommendedFormat,
 }: Props) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
