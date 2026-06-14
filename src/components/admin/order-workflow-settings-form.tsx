@@ -108,6 +108,9 @@ export function OrderWorkflowSettingsForm({ initialSettings }: { initialSettings
       if (nextIndex < 0 || nextIndex >= current[listKey].length) return current;
       const nextList = current[listKey].map((status) => ({ ...status }));
       [nextList[index], nextList[nextIndex]] = [nextList[nextIndex], nextList[index]];
+      nextList.forEach((status, statusIndex) => {
+        status.sortOrder = (statusIndex + 1) * 10;
+      });
       return { ...current, [listKey]: nextList };
     });
   }

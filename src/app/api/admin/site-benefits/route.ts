@@ -15,7 +15,9 @@ export async function GET() {
     return NextResponse.json({ error: "Доступ запрещён" }, { status: 401 });
   }
 
-  return NextResponse.json({ benefits: await getSiteBenefits() });
+  return NextResponse.json({
+    benefits: await getSiteBenefits({ rawImages: true }),
+  });
 }
 
 export async function POST(request: Request) {

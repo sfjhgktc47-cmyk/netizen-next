@@ -20,8 +20,8 @@ export function ImageDropZone({
   onChange,
   label = "Фото товара",
   hint = "Перетащите фото сюда или нажмите, чтобы выбрать файл.",
-  recommendedSize,
-  recommendedFormat,
+  recommendedSize = "1200×1200 px",
+  recommendedFormat = "PNG / JPG / WEBP",
 }: Props) {
   const inputRef = useRef<HTMLInputElement | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -68,7 +68,17 @@ export function ImageDropZone({
 
   return (
     <div className="grid gap-2">
-      <div className="text-sm font-medium text-white/70">{label}</div>
+      <div>
+        <div className="text-sm font-medium text-white/70">{label}</div>
+        <div className="mt-1 flex flex-wrap gap-2">
+          <span className="rounded-full border border-blue-500/25 bg-blue-500/10 px-2.5 py-1 text-[11px] font-semibold text-blue-300">
+            Рекомендуемый размер: {recommendedSize}
+          </span>
+          <span className="rounded-full border border-white/10 bg-white/[0.04] px-2.5 py-1 text-[11px] text-white/45">
+            {recommendedFormat} · до {MAX_IMAGE_SIZE_MB} МБ
+          </span>
+        </div>
+      </div>
 
       <button
         type="button"
@@ -109,7 +119,7 @@ export function ImageDropZone({
             <div className="text-sm font-semibold text-white">Перетащите фото товара</div>
             <p className="mt-2 max-w-[420px] text-sm leading-relaxed text-white/45">{hint}</p>
             <span className="mt-3 rounded-full border border-white/10 bg-white/[0.04] px-3 py-1 text-xs text-white/45">
-              PNG / JPG / WEBP до {MAX_IMAGE_SIZE_MB} МБ
+              {recommendedFormat} · {recommendedSize} · до {MAX_IMAGE_SIZE_MB} МБ
             </span>
           </div>
         )}

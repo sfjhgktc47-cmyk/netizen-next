@@ -1,3 +1,4 @@
+import { BackLink } from "@/components/back-link";
 import Link from "next/link";
 
 import { ProductCreateForm } from "@/components/admin/product-create-form";
@@ -31,14 +32,12 @@ export default async function AdminNewProductPage({
             href="/nz-console/products"
             className="rounded-xl border border-white/10 bg-white/[0.03] px-5 py-3 text-sm font-medium transition-colors hover:border-blue-500/40 hover:bg-blue-500/10"
           >
-            К карточкам →
+            К карточкам
           </Link>
         </header>
 
         <section className="mt-10">
-          <Link href="/nz-console/products" className="text-sm text-blue-400 transition-colors hover:text-blue-300">
-            ← Назад к карточкам
-          </Link>
+          <BackLink href="/nz-console/products" label="Назад к карточкам" variant="admin" />
 
           <div className="mt-8">
             <div className="inline-flex rounded-full border border-blue-500/35 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-400">

@@ -222,7 +222,7 @@ export function FaqAdminClient() {
                     <Field label="Порядок"><input type="number" value={selected.sortOrder} onChange={(e) => patchCategory(selected.id, { sortOrder: Number(e.target.value) })} className={inputClass} /></Field>
                     <Field label="Статус"><select value={selected.isActive ? "active" : "hidden"} onChange={(e) => patchCategory(selected.id, { isActive: e.target.value === "active" })} className={inputClass}><option value="active">Показывать</option><option value="hidden">Скрыть</option></select></Field>
                     <div className="md:col-span-2"><Field label="Описание"><textarea value={selected.description} onChange={(e) => patchCategory(selected.id, { description: e.target.value })} className={`${inputClass} min-h-[100px]`} /></Field></div>
-                    <div className="md:col-span-2"><ImageDropZone label="Фото раздела" hint="Показывается вместо символа в карточке раздела." value={selected.image} onChange={(value) => patchCategory(selected.id, { image: value })} /></div>
+                    <div className="md:col-span-2"><ImageDropZone label="Фото раздела" hint="Показывается вместо символа в карточке раздела." recommendedSize="800×800 px" recommendedFormat="PNG / WEBP, прозрачный фон" value={selected.image} onChange={(value) => patchCategory(selected.id, { image: value })} /></div>
                   </div>
                 </div>
 

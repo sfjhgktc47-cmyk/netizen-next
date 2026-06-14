@@ -200,6 +200,8 @@ export function ProductEditForm({ product, categories }: Props) {
             onChange={setImages}
             label="Фотографии карточки"
             hint="Перетащите несколько общих фото модели. Эти фото показываются до выбора конкретной позиции/SKU."
+            recommendedSize="1600×1600 px"
+            recommendedFormat="PNG / WEBP, квадрат"
             maxImages={10}
           />
         </div>
@@ -210,6 +212,8 @@ export function ProductEditForm({ product, categories }: Props) {
             onChange={setPromoImages}
             label="Фото для блока «Новинки»"
             hint="Отдельное широкое промо-фото для главной. Используется только в промо-блоке новинок."
+            recommendedSize="1920×1080 px"
+            recommendedFormat="JPG / WEBP, 16:9"
             maxImages={1}
           />
         </div>
