@@ -562,10 +562,10 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  </div>
  ) : null}
 
- {mobileImage ? (
+ {image ? (
  <div className="absolute inset-y-0 right-0 block h-full w-[35%] sm:hidden">
  <Image
- src={mobileImage}
+ src={image}
  alt=""
  fill
  priority={activeSlide === 0}
