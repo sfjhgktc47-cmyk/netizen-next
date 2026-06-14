@@ -393,7 +393,7 @@ function BannerEditor({ banner, disabled, updateBanner, saveBanner, deleteBanner
       <div className="grid gap-4 md:grid-cols-2">
         <LibraryField label="Название в админке"><input value={banner.adminTitle} onChange={(event) => updateBanner(banner.id, { adminTitle: event.target.value })} className="admin-input" /></LibraryField>
         <LibraryField label="Метка"><input value={banner.label} onChange={(event) => updateBanner(banner.id, { label: event.target.value })} className="admin-input" /></LibraryField>
-        <LibraryField label="Заголовок"><input value={banner.title} onChange={(event) => updateBanner(banner.id, { title: event.target.value })} className="admin-input" /></LibraryField>
+        <LibraryField label="Заголовок"><textarea value={banner.title} onChange={(event) => updateBanner(banner.id, { title: event.target.value })} className="admin-textarea min-h-[80px]" /></LibraryField>
         <LibraryField label="Подзаголовок"><input value={banner.subtitle} onChange={(event) => updateBanner(banner.id, { subtitle: event.target.value })} className="admin-input" /></LibraryField>
         <LibraryField label="Описание"><textarea value={banner.description} onChange={(event) => updateBanner(banner.id, { description: event.target.value })} className="admin-textarea min-h-[110px]" /></LibraryField>
         <LibraryField label="Текст кнопки"><input value={banner.buttonText} onChange={(event) => updateBanner(banner.id, { buttonText: event.target.value })} className="admin-input" /></LibraryField>
