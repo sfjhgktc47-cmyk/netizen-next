@@ -3,7 +3,7 @@
 import { useEffect } from "react";
 
 const BRAND_NAME = "Neontech";
-const FAVICON_VERSION = "neontech-5";
+const FAVICON_VERSION = "neontech-6";
 
 function upsertLink(
   selector: string,
@@ -55,7 +55,7 @@ function forceNeontechHead() {
   upsertLink(
     'link[data-neontech-favicon="ico"]',
     "icon",
-    `/favicon.ico?v=${FAVICON_VERSION}`,
+    `/neontech-favicon.ico?v=${FAVICON_VERSION}`,
     { sizes: "any" }
   );
   document.querySelector<HTMLLinkElement>('link[data-neontech-favicon="ico"]')?.setAttribute("data-neontech-favicon", "ico");
@@ -63,7 +63,7 @@ function forceNeontechHead() {
   upsertLink(
     'link[data-neontech-favicon="svg"]',
     "icon",
-    `/favicon.svg?v=${FAVICON_VERSION}`,
+    `/neontech-favicon.svg?v=${FAVICON_VERSION}`,
     { type: "image/svg+xml" }
   );
   document.querySelector<HTMLLinkElement>('link[data-neontech-favicon="svg"]')?.setAttribute("data-neontech-favicon", "svg");
