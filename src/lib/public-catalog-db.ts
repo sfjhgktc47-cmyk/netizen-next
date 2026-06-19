@@ -26,6 +26,7 @@ export type PublicProductModel = {
   description: string;
   shortDescription: string;
   descriptionBlocks: ProductDescriptionBlock[];
+  characteristics: string;
   image: string;
   promoImage: string;
   images: string[];
@@ -183,6 +184,7 @@ function toPublicProduct(product: ProductWithVariants): PublicProductModel {
     description: product.description,
     shortDescription: product.shortDescription || product.description,
     descriptionBlocks: toPublicDescriptionBlocks(product),
+    characteristics: product.characteristics ?? "",
     image: publicImages[0] ?? "",
     promoImage: publicImageUrl("product", product.slug, "promoImage", String(product.promoImage ?? "")),
     images: publicImages,
