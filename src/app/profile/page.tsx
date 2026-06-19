@@ -525,7 +525,7 @@ export default function ProfilePage() {
  <div className="min-w-0 flex-1">
  <div className="flex flex-wrap items-center gap-2">
  <h1 className="truncate text-2xl font-bold tracking-[-0.045em] sm:text-3xl">
- {getFullName(profile) || "Клиент Нетизен"}
+ {getFullName(profile) || "Клиент Neontech"}
  </h1>
 
  {statusProgress ? (

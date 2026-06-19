@@ -188,7 +188,7 @@ export default function HelpPage() {
         : {
             topicId: activeTopic.id,
             message: trimmedMessage,
-            customerName: authenticatedName || customerName.trim() || "Гость Нетизен",
+            customerName: authenticatedName || customerName.trim() || "Гость Neontech",
             phone: authProfile?.phone || phone.trim(),
             email: authProfile?.email || email.trim(),
             source: authProfile ? "Личный кабинет" : "Сайт",
@@ -299,7 +299,7 @@ export default function HelpPage() {
                     Н
                   </span>
                   <div className="max-w-[88%] rounded-[18px] rounded-bl-md bg-blue-soft px-3.5 py-3 text-xs leading-relaxed sm:max-w-[75%] sm:px-4 sm:text-sm">
-                    <div className="mb-1 text-[10px] font-semibold text-blue-500 sm:text-xs">Нетизен</div>
+                    <div className="mb-1 text-[10px] font-semibold text-blue-500 sm:text-xs">Neontech</div>
                     {activeTopic.intro}
                   </div>
                 </div>
@@ -409,9 +409,9 @@ export default function HelpPage() {
             Контакты магазина
           </summary>
           <div className="grid gap-2 border-t border-theme p-3 sm:grid-cols-3">
-            <ContactCard label="Telegram" value="@netizen_store" />
+            <ContactCard label="Telegram" value="@neontech_store" />
             <ContactCard label="Телефон" value="8 (800) 123-45-67" />
-            <ContactCard label="E-mail" value="info@netizen.store" />
+            <ContactCard label="E-mail" value="info@neontech.ru" />
           </div>
         </details>
       </div>

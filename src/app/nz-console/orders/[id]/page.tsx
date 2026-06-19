@@ -51,7 +51,7 @@ export default async function AdminOrderDetailPage({ params }: { params: Promise
     <main className="min-h-screen bg-[#020814] px-4 py-5 text-white sm:px-6 sm:py-6">
       <div className="mx-auto max-w-[1500px]">
         <header className="flex min-h-[76px] items-center justify-between rounded-2xl border border-white/10 bg-white/[0.035] px-5">
-          <Link href="/nz-console" className="text-xl font-bold">Netizen Console</Link>
+          <Link href="/nz-console" className="text-xl font-bold">Neontech Console</Link>
           <div className="hidden text-sm text-white/50 md:block">Заявка · {order.publicId}</div>
           <div className="flex items-center gap-2">
             <Link href={`/nz-console/orders/${order.publicId}/edit`} className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-semibold hover:bg-blue-500">Редактировать</Link>

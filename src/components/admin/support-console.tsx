@@ -188,7 +188,7 @@ export function SupportConsole() {
         body: JSON.stringify({
           text: reply.trim(),
           role: "MANAGER",
-          name: "Менеджер Нетизен",
+          name: "Менеджер Neontech",
         }),
       });
 
@@ -211,7 +211,7 @@ export function SupportConsole() {
       <div className="mx-auto max-w-[1600px]">
         <header className="flex min-h-[76px] items-center justify-between rounded-2xl border border-white/10 bg-white/[0.035] px-6">
           <Link href="/nz-console" className="text-xl font-bold tracking-[-0.04em]">
-            Netizen Console
+            Neontech Console
           </Link>
 
           <div className="hidden items-center gap-3 text-sm text-white/55 md:flex">

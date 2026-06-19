@@ -233,7 +233,7 @@ export async function createSupportRequest(input: {
   const message = normalizeText(input.message);
   const phone = normalizeText(input.phone);
   const email = normalizeText(input.email);
-  const customerName = normalizeText(input.customerName) || "Гость Нетизен";
+  const customerName = normalizeText(input.customerName) || "Гость Neontech";
 
   let customerId = normalizeText(input.customerId) || undefined;
 
@@ -313,7 +313,7 @@ export async function addSupportMessage(
 
   const role: SupportMessageRole = input.role === "MANAGER" ? "MANAGER" : "CLIENT";
   const text = normalizeText(input.text);
-  const name = normalizeText(input.name) || (role === "MANAGER" ? "Менеджер Нетизен" : "Клиент");
+  const name = normalizeText(input.name) || (role === "MANAGER" ? "Менеджер Neontech" : "Клиент");
 
   await prisma.supportMessage.create({
     data: {

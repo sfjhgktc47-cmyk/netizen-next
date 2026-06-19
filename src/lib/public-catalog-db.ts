@@ -212,7 +212,7 @@ function toPublicPosition(
     stock: variant.stock,
     status: getVariantStatus(variant.status, variant.stock),
     images: publicImageUrls("variant", variant.sku, "images", Array.isArray(variant.images) ? variant.images : []),
-    seoTitle: variant.seoTitle || `${variant.title} — купить в Netizen`,
+    seoTitle: variant.seoTitle || `${variant.title} — купить в Neontech`,
     seoDescription:
       variant.seoDescription ||
       `${variant.title} — конфигурация модели ${product.name}. Цена, наличие и доставка уточняются менеджером.`,

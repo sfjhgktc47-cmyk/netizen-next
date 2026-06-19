@@ -258,7 +258,7 @@ export default async function AdminOrdersPage({
             href="/nz-console"
             className="text-xl font-bold tracking-[-0.04em]"
           >
-            Netizen Console
+            Neontech Console
           </Link>
 
           <div className="hidden items-center gap-3 text-sm text-white/55 md:flex">

@@ -99,7 +99,7 @@ export async function POST(request: Request) {
         ? validateCourierAddress(city, rawAddress)
         : { ok: true as const, message: "", normalized: "" };
     const address = deliveryMethod === "courier" ? addressValidation.normalized : "";
-    const pickupPoint = deliveryMethod === "pickup" ? rawAddress || "ПВЗ Netizen" : "";
+    const pickupPoint = deliveryMethod === "pickup" ? rawAddress || "ПВЗ Neontech" : "";
     const comment = normalizeText(body.comment);
     const incomingItems = Array.isArray(body.items) ? body.items : [];
 

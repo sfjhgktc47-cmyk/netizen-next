@@ -22,7 +22,7 @@ export default async function NewAdminOrderPage() {
     <main className="min-h-screen bg-[#020814] px-4 py-5 text-white sm:px-6 sm:py-6">
       <div className="mx-auto max-w-[1500px]">
         <header className="flex min-h-[76px] items-center justify-between rounded-2xl border border-white/10 bg-white/[0.035] px-5">
-          <Link href="/nz-console" className="text-xl font-bold">Netizen Console</Link>
+          <Link href="/nz-console" className="text-xl font-bold">Neontech Console</Link>
           <Link href="/nz-console/orders" className="rounded-xl border border-white/10 px-4 py-3 text-sm">К заявкам</Link>
         </header>
         <section className="mt-8">

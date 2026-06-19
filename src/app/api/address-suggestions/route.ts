@@ -375,7 +375,7 @@ async function getPhotonSuggestions(input: {
   const response = await fetch(url, {
     headers: {
       Accept: "application/json",
-      "User-Agent": "NetizenStore/1.0 address-autocomplete",
+      "User-Agent": "NeontechStore/1.0 address-autocomplete",
     },
     cache: "no-store",
     signal: AbortSignal.timeout(4000),

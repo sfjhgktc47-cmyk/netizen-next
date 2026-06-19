@@ -217,7 +217,7 @@ export function CategoryForm({ category }: Props) {
               <input
                 value={seoTitle}
                 onChange={(event) => setSeoTitle(event.target.value)}
-                placeholder="Купить смартфоны — Netizen"
+                placeholder="Купить смартфоны — Neontech"
                 className={inputClass}
               />
             </Field>

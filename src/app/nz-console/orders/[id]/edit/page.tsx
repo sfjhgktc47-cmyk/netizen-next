@@ -36,7 +36,7 @@ export default async function EditAdminOrderPage({
       <div className="mx-auto max-w-[1500px]">
         <header className="flex min-h-[76px] items-center justify-between rounded-2xl border border-white/10 bg-white/[0.035] px-5">
           <Link href="/nz-console" className="text-xl font-bold">
-            Netizen Console
+            Neontech Console
           </Link>
           <Link
             href={`/nz-console/orders/${order.publicId}`}

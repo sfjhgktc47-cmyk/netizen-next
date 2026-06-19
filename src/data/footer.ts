@@ -2,9 +2,9 @@ export const footerData = {
   contacts: {
     phone: "8 (800) 123-45-67",
     phoneText: "Ежедневно с 10:00 до 21:00",
-    telegram: "@netizen_store",
+    telegram: "@neontech_store",
     telegramText: "Мы в Telegram",
-    email: "info@netizen.store",
+    email: "info@neontech.ru",
     emailText: "Ответим на почту",
   },
 

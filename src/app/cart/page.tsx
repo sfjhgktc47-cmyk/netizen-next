@@ -112,7 +112,7 @@ type StoredProfile = Partial<CustomerData> & {
 
 const FALLBACK_PICKUP_POINT = {
  id: "fallback-pickup",
- title: "ПВЗ Netizen",
+ title: "ПВЗ Neontech",
  city: "Москва",
  address: "г. Москва, ул. Тверская, 1",
  workingHours: "Ежедневно с 10:00 до 21:00",

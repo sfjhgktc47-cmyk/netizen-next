@@ -32,7 +32,7 @@ export async function POST(_request: Request, { params }: { params: Promise<{ id
     return NextResponse.json({ ok: true, href: `/nz-console/support/${existing.publicId}` });
   }
 
-  const adminName = session.name || session.login || "Менеджер Нетизен";
+  const adminName = session.name || session.login || "Менеджер Neontech";
   const text = `Здравствуйте! Пишем по вашей заявке ${order.publicId}.`;
   const ticket = await prisma.supportRequest.create({
     data: {

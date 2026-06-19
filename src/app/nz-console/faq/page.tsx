@@ -10,7 +10,7 @@ export default function AdminFaqPage() {
       <div className="mx-auto max-w-[1500px]">
         <header className="flex min-h-[76px] flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.035] px-4 sm:px-6">
           <Link href="/nz-console" className="text-xl font-bold tracking-[-0.04em]">
-            Netizen Console
+            Neontech Console
           </Link>
 
           <div className="hidden text-sm text-white/50 md:block">

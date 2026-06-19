@@ -39,7 +39,7 @@ const categories = [
 const defaultPageBlocks = {
   home: [
     ["hero", "Hero", 10, { title: "", subtitle: "" }],
-    ["benefits", "Преимущества", 20, { title: "Преимущества", subtitle: "Почему выбирают Netizen", source: "library", limit: 6, style: "cards" }],
+    ["benefits", "Преимущества", 20, { title: "Преимущества", subtitle: "Почему выбирают Neontech", source: "library", limit: 6, style: "cards" }],
     ["category-grid", "Категории", 30, { title: "Выберите категорию", subtitle: "Выберите направление и найдите свой идеальный гаджет", limit: 12, showButton: true, buttonText: "Смотреть все категории →", buttonHref: "/catalog" }],
     ["popular-products", "Популярные товары", 40, { title: "Популярные товары", subtitle: "Выберите модель — конфигурацию подберёте на странице товара.", limit: 12, showButton: true, buttonText: "Смотреть все товары →", buttonHref: "/catalog?popular=1", filter: "popular" }],
     ["new-arrivals", "Новинки", 50, { title: "Новинки", subtitle: "Техника, которая только появилась", limit: 3 }],

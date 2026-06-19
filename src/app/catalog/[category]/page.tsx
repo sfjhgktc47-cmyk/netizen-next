@@ -29,12 +29,12 @@ export async function generateMetadata({
 
   if (!activeCategory) {
     return {
-      title: "Категория не найдена — Netizen",
+      title: "Категория не найдена — Neontech",
     };
   }
 
   return {
-    title: activeCategory.seoTitle || `${activeCategory.name} — каталог Netizen`,
+    title: activeCategory.seoTitle || `${activeCategory.name} — каталог Neontech`,
     description: activeCategory.seoDescription || activeCategory.description,
   };
 }

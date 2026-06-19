@@ -321,7 +321,7 @@ function HomeModule({
  dark={dark}
  benefits={benefits.slice(0, getBlockNumber(settings, "limit", 6))}
  title={getBlockText(settings, "title", "Преимущества")}
- subtitle={getBlockText(settings, "subtitle", "Почему выбирают Netizen")}
+ subtitle={getBlockText(settings, "subtitle", "Почему выбирают Neontech")}
  />
  );
  }
@@ -1505,7 +1505,7 @@ function SupportBlock({ dark }: { dark: boolean }) {
  return (
  <section className={`mb-10 rounded-[22px] border p-3 transition-all duration-700 sm:mb-20 sm:rounded-[32px] sm:p-8 md:p-10 ${panelClass(dark)}`}>
  <h2 className="text-xl font-bold tracking-[-0.04em] sm:text-4xl md:text-5xl">
- Сервис и поддержка Нетизен
+ Сервис и поддержка Neontech
  </h2>
 
  <p className={`mt-1 text-[11px] sm:mt-4 sm:text-lg md:text-xl ${mutedTextClass(dark)}`}>
@@ -1627,7 +1627,7 @@ function Footer({
  const branding = siteSettings?.branding;
  const logoLight = "/logo-light.webp";
  const logoDark = "/logo-dark.webp";
- const storeName = branding?.storeName?.trim() || "Netizen";
+ const storeName = branding?.storeName?.trim() || "Neontech";
 
  return (
  <footer

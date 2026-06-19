@@ -28,12 +28,12 @@ export async function generateMetadata({
 
   if (!data) {
     return {
-      title: "Товар не найден — Netizen",
+      title: "Товар не найден — Neontech",
     };
   }
 
   return {
-    title: `${data.product.name} — купить в Netizen`,
+    title: `${data.product.name} — купить в Neontech`,
     description: data.product.shortDescription || data.product.description,
   };
 }

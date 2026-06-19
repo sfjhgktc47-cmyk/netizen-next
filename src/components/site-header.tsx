@@ -550,7 +550,7 @@ export function SiteHeader() {
  const logoLight = "/logo-light.webp";
  const logoDark = "/logo-dark.webp";
  const mobileLogo = "";
- const storeName = siteSettings?.branding?.storeName?.trim() || "Нетизен";
+ const storeName = siteSettings?.branding?.storeName?.trim() || "Neontech";
  const storePhone = siteSettings?.contacts?.phone?.trim() || "8 (800) 123-45-67";
  const storePhoneText =
  siteSettings?.contacts?.phoneText?.trim() ||

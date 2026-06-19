@@ -3,8 +3,8 @@ import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Netizen",
-  description: "Магазин техники Netizen",
+  title: "Neontech",
+  description: "Магазин техники Neontech",
   icons: { icon: "/favicon.ico" },
 };
 

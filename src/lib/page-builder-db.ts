@@ -120,7 +120,7 @@ export const moduleLibrary: ModuleDefinition[] = [
     pageKeys: ["home"],
     defaultSettings: {
       title: "Преимущества",
-      subtitle: "Почему выбирают Netizen",
+      subtitle: "Почему выбирают Neontech",
       style: "cards",
       source: "library",
       limit: 6,
