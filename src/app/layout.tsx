@@ -3,9 +3,41 @@ import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Neontech",
+  metadataBase: new URL("https://neontech.ru"),
+  applicationName: "Neontech",
+  title: {
+    default: "Neontech",
+    template: "%s — Neontech",
+  },
   description: "Магазин техники Neontech",
-  icons: { icon: "/favicon.ico" },
+  icons: {
+    icon: [
+      { url: "/favicon.ico?v=neontech-4", sizes: "any" },
+      { url: "/favicon.svg?v=neontech-4", type: "image/svg+xml" },
+      { url: "/icon-32.png?v=neontech-4", sizes: "32x32", type: "image/png" },
+      { url: "/icon-192.png?v=neontech-4", sizes: "192x192", type: "image/png" },
+    ],
+    shortcut: "/favicon.ico?v=neontech-4",
+    apple: "/apple-touch-icon.png?v=neontech-4",
+  },
+  manifest: "/site.webmanifest?v=neontech-4",
+  appleWebApp: {
+    capable: true,
+    title: "Neontech",
+    statusBarStyle: "default",
+  },
+  openGraph: {
+    title: "Neontech",
+    description: "Магазин техники Neontech",
+    siteName: "Neontech",
+    url: "https://neontech.ru",
+    type: "website",
+  },
+  twitter: {
+    card: "summary",
+    title: "Neontech",
+    description: "Магазин техники Neontech",
+  },
 };
 
 export const viewport = {

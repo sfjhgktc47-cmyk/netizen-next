@@ -480,22 +480,41 @@ export function SiteHeader() {
  }, []);
 
  useEffect(() => {
- const favicon = siteSettings?.branding?.favicon?.trim();
-
- if (!favicon || typeof document === "undefined") {
+ if (typeof document === "undefined") {
  return;
  }
 
- let link = document.querySelector<HTMLLinkElement>('link[rel="icon"]');
+ const normalizeBrandText = (value: string) =>
+ value
+ .replace(/Нетизен/g, "Neontech")
+ .replace(/Netizen/g, "Neontech")
+ .replace(/netizen\.store/g, "neontech.ru")
+ .replace(/@netizen_store/g, "@neontech_store");
+
+ document.title = normalizeBrandText(document.title || "Neontech");
+ if (!document.title.trim()) {
+ document.title = "Neontech";
+ }
+
+ const setIcon = (selector: string, rel: string, href: string, type?: string, sizes?: string) => {
+ let link = document.querySelector<HTMLLinkElement>(selector);
 
  if (!link) {
  link = document.createElement("link");
- link.rel = "icon";
+ link.rel = rel;
  document.head.appendChild(link);
  }
 
- link.href = favicon;
- }, [siteSettings?.branding?.favicon]);
+ link.href = href;
+ if (type) link.type = type;
+ if (sizes) link.setAttribute("sizes", sizes);
+ };
+
+ setIcon('link[rel="icon"][type="image/svg+xml"]', "icon", "/favicon.svg?v=neontech-4", "image/svg+xml");
+ setIcon('link[rel="icon"]:not([type])', "icon", "/favicon.ico?v=neontech-4", undefined, "any");
+ setIcon('link[rel="shortcut icon"]', "shortcut icon", "/favicon.ico?v=neontech-4");
+ setIcon('link[rel="apple-touch-icon"]', "apple-touch-icon", "/apple-touch-icon.png?v=neontech-4", "image/png");
+ }, [pathname]);
 
  const navItems = [
  { label: "Каталог", href: "/catalog" },
@@ -550,7 +569,9 @@ export function SiteHeader() {
  const logoLight = "/logo-light.webp";
  const logoDark = "/logo-dark.webp";
  const mobileLogo = "";
- const storeName = siteSettings?.branding?.storeName?.trim() || "Neontech";
+ const storeName = (siteSettings?.branding?.storeName?.trim() || "Neontech")
+ .replace(/Нетизен/g, "Neontech")
+ .replace(/Netizen/g, "Neontech");
  const storePhone = siteSettings?.contacts?.phone?.trim() || "8 (800) 123-45-67";
  const storePhoneText =
  siteSettings?.contacts?.phoneText?.trim() ||

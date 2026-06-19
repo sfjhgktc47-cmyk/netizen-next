@@ -310,3 +310,32 @@ main [class*="card"],
   min-height: 24px !important;
   flex: 0 0 24px !important;
 }
+
+/* Control fix: no mobile-nav icon jumping/flicker and no favicon/logo layout shake. */
+.netizen-bottom-nav-link,
+.netizen-bottom-nav-link * {
+  box-sizing: border-box;
+}
+
+.netizen-bottom-nav-link {
+  min-width: 0 !important;
+  will-change: auto !important;
+}
+
+.netizen-bottom-nav-link svg,
+.netizen-bottom-nav-icon,
+.netizen-bottom-nav-icon svg {
+  stroke-width: 2.4px;
+  vector-effect: non-scaling-stroke;
+}
+
+.netizen-bottom-nav-icon-wrap {
+  line-height: 0 !important;
+}
+
+.netizen-brand-logo,
+.netizen-brand-logo img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
