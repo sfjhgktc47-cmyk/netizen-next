@@ -7,6 +7,11 @@ import {
 } from "@/lib/site-content-library-db";
 import HomeClient from "./home-client";
 
+export const metadata = {
+  title: "Neontech",
+  description: "Магазин техники Neontech",
+};
+
 export const dynamic = "force-dynamic";
 export const revalidate = 0;
 
