@@ -234,3 +234,39 @@ main [class*="card"],
 .text-clamp\(11px\,\ 2\.2vw\,\ 14px\) {
   font-size: clamp(11px, 2.2vw, 14px);
 }
+
+/* Fix: crisp header and mobile navigation icons
+   - keeps SVG/image icons at a stable pixel size before hydration;
+   - avoids CSS filter inversion that blurred custom SVG icons;
+   - renders custom nav icons through a mask so active icons stay white without blur. */
+.netizen-header-action-icon,
+.netizen-bottom-nav-icon,
+.netizen-bottom-nav-icon svg {
+  display: block;
+  flex-shrink: 0;
+  contain: strict;
+  backface-visibility: hidden;
+  transform: translateZ(0);
+  shape-rendering: geometricPrecision;
+  text-rendering: geometricPrecision;
+}
+
+.netizen-header-action-icon {
+  width: 24px;
+  height: 24px;
+}
+
+.netizen-bottom-nav-icon,
+.netizen-bottom-nav-icon svg {
+  width: 20px;
+  height: 20px;
+}
+
+.netizen-bottom-nav-icon svg,
+.netizen-header-action-icon {
+  overflow: visible;
+}
+
+.netizen-bottom-nav-icon[style*="mask-image"] {
+  color: currentColor;
+}

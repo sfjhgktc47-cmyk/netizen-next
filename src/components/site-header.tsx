@@ -3,7 +3,7 @@
 import Link from "next/link";
 import Image from 'next/image';
 import { usePathname } from "next/navigation";
-import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { type CSSProperties, type FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { AuthModal } from "@/components/auth-modal";
 import { useTheme } from "@/components/theme-provider";
 
@@ -75,6 +75,10 @@ const bottomNavItems: BottomNavItem[] = [
 
 function isImageIcon(value: string) {
  return /^(\/|https?:\/\/|data:image\/)/i.test(value.trim());
+}
+
+function cssMaskUrl(value: string) {
+ return `url("${value.replace(/"/g, "\\\"")}")`;
 }
 
 function PhoneHeaderIcon({ className = "" }: { className?: string }) {
@@ -259,24 +263,50 @@ function BottomNavIcon({
 
  useEffect(() => {
  setImageFailed(false);
+
+ if (!value || !isImageIcon(value) || typeof window === "undefined") {
+ return;
+ }
+
+ let cancelled = false;
+ const image = new window.Image();
+ image.onload = () => {
+ if (!cancelled) setImageFailed(false);
+ };
+ image.onerror = () => {
+ if (!cancelled) setImageFailed(true);
+ };
+ image.src = value;
+
+ return () => {
+ cancelled = true;
+ };
  }, [value]);
 
  const isDefaultMarker = value.startsWith("__") && value.endsWith("__");
- const iconClassName = `h-[20px] w-[20px] shrink-0 overflow-visible ${
+ const iconClassName = `netizen-bottom-nav-icon h-5 w-5 shrink-0 overflow-visible ${
  active ? "text-white" : "text-blue-500"
  }`;
 
  if (value && isImageIcon(value) && !imageFailed) {
+ const maskUrl = cssMaskUrl(value);
+ const maskStyle: CSSProperties = {
+ WebkitMaskImage: maskUrl,
+ maskImage: maskUrl,
+ WebkitMaskRepeat: "no-repeat",
+ maskRepeat: "no-repeat",
+ WebkitMaskPosition: "center",
+ maskPosition: "center",
+ WebkitMaskSize: "contain",
+ maskSize: "contain",
+ backgroundColor: "currentColor",
+ };
+
  return (
- // eslint-disable-next-line @next/next/no-img-element
- <img
- src={value}
- alt=""
- width={20}
- height={20}
- className={`h-[20px] w-[20px] shrink-0 object-contain ${active ? "brightness-0 invert" : ""}`}
+ <span
+ className={`netizen-bottom-nav-icon h-5 w-5 shrink-0 ${active ? "text-white" : "text-blue-500"}`}
+ style={maskStyle}
  aria-hidden="true"
- onError={() => setImageFailed(true)}
  />
  );
  }
@@ -798,7 +828,7 @@ export function SiteHeader() {
  }`}
  >
  <PhoneHeaderIcon
- className={`block h-[24px] w-[24px] shrink-0 ${
+ className={`netizen-header-action-icon block h-6 w-6 shrink-0 ${
  isPhoneOpen
  ? "text-white"
  : "text-blue-500 transition-colors group-hover:text-white"
@@ -844,7 +874,7 @@ export function SiteHeader() {
  : "border-black/10 bg-white text-[#07111f] hover:border-transparent hover:bg-blue-50"
  }`}
  >
- <CartHeaderIcon className="h-[25px] w-[25px] shrink-0 overflow-visible text-blue-500 transition-colors group-hover:text-white" />
+ <CartHeaderIcon className="netizen-header-action-icon h-[25px] w-[25px] shrink-0 overflow-visible text-blue-500 transition-colors group-hover:text-white" />
 
  {cartCount > 0 && (
  <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-500 px-1.5 text-[11px] font-bold text-white ">
@@ -865,7 +895,7 @@ export function SiteHeader() {
  : "border-black/10 bg-white text-[#07111f] hover:border-transparent hover:bg-blue-50"
  }`}
  >
- <UserHeaderIcon className="h-[24px] w-[24px] shrink-0 overflow-visible text-blue-500 transition-colors group-hover:text-white" />
+ <UserHeaderIcon className="netizen-header-action-icon h-6 w-6 shrink-0 overflow-visible text-blue-500 transition-colors group-hover:text-white" />
  </Link>
  </div>
  ) : (
@@ -928,7 +958,7 @@ export function SiteHeader() {
  : "text-slate-500 hover:bg-blue-50 hover:text-blue-600"
  }`}
  >
- <span className="flex h-5 items-center justify-center"><BottomNavIcon icon={icon} itemKey={item.key} label={item.label} active={active} /></span>
+ <span className="flex h-5 w-5 shrink-0 items-center justify-center"><BottomNavIcon icon={icon} itemKey={item.key} label={item.label} active={active} /></span>
  <span className="max-w-full truncate leading-none">{item.label}</span>
 
  {item.key === "cart" && cartCount > 0 && (

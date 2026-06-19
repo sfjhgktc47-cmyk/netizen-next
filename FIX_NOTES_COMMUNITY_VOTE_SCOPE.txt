@@ -1,9 +1,0 @@
-Исправлена область видимости customerId в голосовании за отзыв.
-
-Правильный порядок:
-1. Проверяется session.customerId.
-2. После проверки создаётся const customerId: string.
-3. Prisma transaction использует эту константу.
-
-Это устраняет ошибку:
-Block-scoped variable 'customerId' used before its declaration.
