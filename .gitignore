@@ -42,3 +42,10 @@ next-env.d.ts
 
 # runtime support inbox storage
 .data/
+FIX_NOTES_*.txt
+netizen-next-main-fixed-*.zip
+netizen-next-main-speed-*.zip
+*.patch
+*.diff
+*.bak
+*.backup

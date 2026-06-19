@@ -176,8 +176,8 @@ const defaultHomeBlocks: HomeBlockSettings[] = [
 export const defaultSiteEditorSettings: SiteEditorSettings = {
   branding: {
     storeName: "Netizen",
-    logoLight: "/logo-light.png",
-    logoDark: "/logo-dark.png",
+    logoLight: "/logo-light.webp",
+    logoDark: "/logo-dark.webp",
     mobileLogo: "",
     favicon: "/favicon.ico",
     navIconHome: "⌂",

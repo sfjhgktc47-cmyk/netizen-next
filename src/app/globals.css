@@ -270,3 +270,43 @@ main [class*="card"],
 .netizen-bottom-nav-icon[style*="mask-image"] {
   color: currentColor;
 }
+
+/* Final fix: stable bottom nav icons and forced WebP logo usage.
+   This prevents the mobile menu icons from changing size after site settings load. */
+.netizen-bottom-nav-link {
+  height: 50px !important;
+  min-height: 50px !important;
+  max-height: 50px !important;
+  transform: none !important;
+}
+
+.netizen-bottom-nav-icon-wrap,
+.netizen-bottom-nav-icon,
+.netizen-bottom-nav-icon svg {
+  width: 20px !important;
+  min-width: 20px !important;
+  max-width: 20px !important;
+  height: 20px !important;
+  min-height: 20px !important;
+  max-height: 20px !important;
+  display: block !important;
+  flex: 0 0 20px !important;
+  transform: none !important;
+  transition: none !important;
+  animation: none !important;
+}
+
+.netizen-bottom-nav-icon-wrap {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+.netizen-header-action-icon,
+.netizen-header-action-icon svg {
+  width: 24px !important;
+  height: 24px !important;
+  min-width: 24px !important;
+  min-height: 24px !important;
+  flex: 0 0 24px !important;
+}

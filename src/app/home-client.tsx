@@ -1625,8 +1625,8 @@ function Footer({
 }) {
  const contacts = siteSettings?.contacts;
  const branding = siteSettings?.branding;
- const logoLight = branding?.logoLight?.trim() || "/logo-light.png";
- const logoDark = branding?.logoDark?.trim() || "/logo-dark.png";
+ const logoLight = "/logo-light.webp";
+ const logoDark = "/logo-dark.webp";
  const storeName = branding?.storeName?.trim() || "Netizen";
 
  return (
@@ -1641,12 +1641,14 @@ function Footer({
  href="/"
  className="relative flex h-12 w-[170px] items-center justify-start overflow-hidden"
  >
- <Image
+ <img
  src={dark ? logoLight : logoDark}
  alt={storeName}
  width={170}
- height={48}
- className="h-auto max-h-10 w-auto object-contain transition-opacity duration-700"
+ height={60}
+ loading="lazy"
+ decoding="async"
+ className="h-auto max-h-10 w-auto object-contain"
  />
  </Link>
 

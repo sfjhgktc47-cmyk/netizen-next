@@ -1,9 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import Image from 'next/image';
 import { usePathname } from "next/navigation";
-import { type CSSProperties, type FormEvent, useEffect, useMemo, useRef, useState } from "react";
+import { type CSSProperties, type FormEvent, useEffect, useRef, useState } from "react";
 import { AuthModal } from "@/components/auth-modal";
 import { useTheme } from "@/components/theme-provider";
 
@@ -505,16 +504,13 @@ export function SiteHeader() {
  { label: "Поддержка", href: "/help" },
  ];
 
- const iconMap = useMemo(
- () => ({
- home: siteSettings?.branding?.navIconHome?.trim() || "⌂",
- catalog: siteSettings?.branding?.navIconCatalog?.trim() || "▦",
- new: siteSettings?.branding?.navIconNew?.trim() || "✦",
- support: siteSettings?.branding?.navIconSupport?.trim() || "?",
- cart: siteSettings?.branding?.navIconCart?.trim() || "__cart__",
- }),
- [siteSettings?.branding]
- );
+ const iconMap: Record<BottomNavItem["key"], string> = {
+ home: "__home__",
+ catalog: "__catalog__",
+ new: "__new__",
+ support: "__support__",
+ cart: "__cart__",
+ };
 
  function saveSearchHistory(query: string) {
  const nextHistory = [query, ...searchHistory.filter((item) => item.toLowerCase() !== query.toLowerCase())].slice(0, 8);
@@ -551,9 +547,9 @@ export function SiteHeader() {
  const accountHref = authUser?.role === "admin" ? "/nz-console" : "/profile";
  const accountLabel = authUser?.role === "admin" ? "Админ-панель" : "Личный кабинет";
  const isSearchVisible = pathname === "/" || pathname === "/catalog" || pathname.startsWith("/catalog/");
- const logoLight = siteSettings?.branding?.logoLight?.trim() || "/logo-light.png";
- const logoDark = siteSettings?.branding?.logoDark?.trim() || "/logo-dark.png";
- const mobileLogo = siteSettings?.branding?.mobileLogo?.trim();
+ const logoLight = "/logo-light.webp";
+ const logoDark = "/logo-dark.webp";
+ const mobileLogo = "";
  const storeName = siteSettings?.branding?.storeName?.trim() || "Нетизен";
  const storePhone = siteSettings?.contacts?.phone?.trim() || "8 (800) 123-45-67";
  const storePhoneText =
@@ -579,22 +575,34 @@ export function SiteHeader() {
  >
  {mobileLogo ? (
  <>
- {/* eslint-disable-next-line @next/next/no-img-element */}
- <Image quality={75} src={mobileLogo}
+ <img
+ src={mobileLogo}
  alt={storeName}
- className="h-auto max-h-7 w-auto object-contain transition-opacity duration-700 sm:max-h-8 lg:hidden"
+ width={128}
+ height={36}
+ loading="eager"
+ decoding="async"
+ className="h-auto max-h-7 w-auto object-contain sm:max-h-8 lg:hidden"
  />
- {/* eslint-disable-next-line @next/next/no-img-element */}
- <Image quality={75} src={logoSrc}
+ <img
+ src={logoSrc}
  alt={storeName}
- className="hidden h-auto max-h-9 w-auto object-contain transition-opacity duration-700 lg:block"
+ width={150}
+ height={54}
+ loading="eager"
+ decoding="async"
+ className="hidden h-auto max-h-9 w-auto object-contain lg:block"
  />
  </>
  ) : (
- // eslint-disable-next-line @next/next/no-img-element
- <Image quality={75} src={logoSrc}
+ <img
+ src={logoSrc}
  alt={storeName}
- className="h-auto max-h-7 w-auto object-contain transition-opacity duration-700 sm:max-h-8 lg:max-h-9"
+ width={150}
+ height={54}
+ loading="eager"
+ decoding="async"
+ className="h-auto max-h-7 w-auto object-contain sm:max-h-8 lg:max-h-9"
  />
  )}
  </Link>
@@ -950,7 +958,7 @@ export function SiteHeader() {
  key={item.key}
  href={item.href}
  aria-label={item.label}
- className={`relative flex min-h-[50px] flex-col items-center justify-center gap-1 rounded-[16px] text-[9px] font-semibold transition-all ${
+ className={`netizen-bottom-nav-link relative flex h-[50px] min-h-[50px] max-h-[50px] flex-col items-center justify-center gap-1 rounded-[16px] text-[9px] font-semibold transition-colors ${
  active
  ? "bg-blue-600 text-white "
  : dark
@@ -958,7 +966,7 @@ export function SiteHeader() {
  : "text-slate-500 hover:bg-blue-50 hover:text-blue-600"
  }`}
  >
- <span className="flex h-5 w-5 shrink-0 items-center justify-center"><BottomNavIcon icon={icon} itemKey={item.key} label={item.label} active={active} /></span>
+ <span className="netizen-bottom-nav-icon-wrap flex h-5 w-5 shrink-0 items-center justify-center"><BottomNavIcon icon={icon} itemKey={item.key} label={item.label} active={active} /></span>
  <span className="max-w-full truncate leading-none">{item.label}</span>
 
  {item.key === "cart" && cartCount > 0 && (
