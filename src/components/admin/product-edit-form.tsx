@@ -26,6 +26,7 @@ type ProductForEdit = {
   shortDescription: string;
   description: string;
   descriptionBlocks?: ProductDescriptionBlock[];
+  characteristics?: string;
   status: string;
   image: string;
   promoImage?: string;
@@ -60,6 +61,7 @@ export function ProductEditForm({ product, categories }: Props) {
 
   const [name, setName] = useState(product.name);
   const [slug, setSlug] = useState(product.slug);
+  const [characteristics, setCharacteristics] = useState(product.characteristics || "");
   const [brand, setBrand] = useState(product.brand);
   const [categorySlug, setCategorySlug] = useState(product.categorySlug);
   const [shortDescription, setShortDescription] = useState(product.shortDescription);
@@ -83,7 +85,7 @@ export function ProductEditForm({ product, categories }: Props) {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
-  const finalSlug = useMemo(() => slugify(slug || name), [name, slug]);
+  const finalSlug = slug.trim() || name; // Keep for validation, but use manual slug
 
   async function saveProduct(statusOverride?: string) {
     setError("");
@@ -102,12 +104,13 @@ export function ProductEditForm({ product, categories }: Props) {
         },
         body: JSON.stringify({
           name,
-          slug: finalSlug,
+          slug: slug.trim() || finalSlug,
           brand,
           categorySlug,
           shortDescription,
           description,
           descriptionBlocks,
+          characteristics,
           image: images[0] ?? "",
           promoImage: promoImages[0] ?? "",
           images,
@@ -168,7 +171,7 @@ export function ProductEditForm({ product, categories }: Props) {
         </Field>
 
         <Field label="Slug карточки">
-          <input value={finalSlug} onChange={(event) => setSlug(slugify(event.target.value))} className={inputClass} />
+          <input value={slug} onChange={(event) => setSlug(event.target.value)} className={inputClass} placeholder="Введите URL (например: iphone-17-pro)" />
         </Field>
 
         <Field label="Категория">
@@ -243,6 +246,17 @@ export function ProductEditForm({ product, categories }: Props) {
         <ProductDescriptionBlocksEditor
           value={descriptionBlocks}
           onChange={setDescriptionBlocks}
+        />
+      </div>
+
+      <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 p-4">
+        <h3 className="text-sm font-semibold text-white">Характеристики</h3>
+        <p className="mt-1 text-xs text-white/50">Добавьте спецификации товара (для SEO). Каждая на новой строке, например: Процессор: A17 Pro</p>
+        <textarea
+          value={characteristics}
+          onChange={(event) => setCharacteristics(event.target.value)}
+          className={textareaClass + " mt-3"}
+          placeholder="Процессор: A17 Pro&#10;Дисплей: 6.7 дюйма OLED&#10;Камера: 48 МП&#10;Батарея: 4500 мАч"
         />
       </div>
 

@@ -192,9 +192,9 @@ export const defaultSiteEditorSettings: SiteEditorSettings = {
   contacts: {
     phone: "8 (800) 123-45-67",
     phoneText: "Ежедневно с 10:00 до 21:00",
-    email: "info@neontech.ru",
+    email: "info@netizen.store",
     emailText: "Ответим на почту",
-    telegram: "@neontech_store",
+    telegram: "@netizen_store",
     telegramText: "Мы в Telegram",
     whatsapp: "+7 999 000-00-00",
     city: "Москва",
@@ -329,20 +329,6 @@ function stringValue(value: unknown, fallback: string) {
   return typeof value === "string" ? value : fallback;
 }
 
-function brandText(value: string) {
-  return value
-    .replace(/Netizen/g, "Neontech")
-    .replace(/NETIZEN/g, "NEONTECH")
-    .replace(/Нетизен/g, "Neontech")
-    .replace(/НЕТИЗЕН/g, "NEONTECH")
-    .replace(/netizen\.store/g, "neontech.ru")
-    .replace(/@netizen_store/g, "@neontech_store");
-}
-
-function brandStringValue(value: unknown, fallback: string) {
-  return brandText(stringValue(value, fallback));
-}
-
 function numberValue(value: unknown, fallback: number) {
   const number = Number(value);
   return Number.isFinite(number) ? number : fallback;
@@ -374,7 +360,7 @@ function normalizeBranding(
   };
 
   return {
-    storeName: brandStringValue(raw.storeName, defaultSiteEditorSettings.branding.storeName),
+    storeName: stringValue(raw.storeName, defaultSiteEditorSettings.branding.storeName),
     logoLight: imageValue("logoLight"),
     logoDark: imageValue("logoDark"),
     mobileLogo: imageValue("mobileLogo"),
@@ -441,10 +427,10 @@ function normalizeContacts(value: unknown): SiteContactsSettings {
   return {
     phone: stringValue(raw.phone, defaults.phone),
     phoneText: stringValue(raw.phoneText, defaults.phoneText),
-    email: brandStringValue(raw.email, defaults.email),
-    emailText: brandStringValue(raw.emailText, defaults.emailText),
-    telegram: brandStringValue(raw.telegram, defaults.telegram),
-    telegramText: brandStringValue(raw.telegramText, defaults.telegramText),
+    email: stringValue(raw.email, defaults.email),
+    emailText: stringValue(raw.emailText, defaults.emailText),
+    telegram: stringValue(raw.telegram, defaults.telegram),
+    telegramText: stringValue(raw.telegramText, defaults.telegramText),
     whatsapp: stringValue(raw.whatsapp, defaults.whatsapp),
     city: stringValue(raw.city, defaults.city),
     workingHours: stringValue(raw.workingHours, defaults.workingHours),
@@ -510,9 +496,9 @@ function normalizeSeo(value: unknown): SiteSeoSettings {
   const defaults = defaultSiteEditorSettings.seo;
 
   return {
-    homeTitle: brandStringValue(raw.homeTitle, defaults.homeTitle),
-    homeDescription: brandStringValue(raw.homeDescription, defaults.homeDescription),
-    keywords: brandStringValue(raw.keywords, defaults.keywords),
+    homeTitle: stringValue(raw.homeTitle, defaults.homeTitle),
+    homeDescription: stringValue(raw.homeDescription, defaults.homeDescription),
+    keywords: stringValue(raw.keywords, defaults.keywords),
   };
 }
 

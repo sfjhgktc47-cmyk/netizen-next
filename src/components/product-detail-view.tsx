@@ -200,6 +200,7 @@ export function ProductDetailView({
  const [communityMessage, setCommunityMessage] = useState("");
  const [communitySubmitting, setCommunitySubmitting] = useState(false);
  const [communityTab, setCommunityTab] = useState<"reviews" | "questions">("reviews");
+ const [showCharacteristics, setShowCharacteristics] = useState(true);
  const galleryDragStartRef = useRef<{
  x: number;
  y: number;
@@ -1541,6 +1542,20 @@ export function ProductDetailView({
  </div>
 
  <div className="mt-5 flex gap-2 overflow-x-auto">
+ {product.characteristics ? (
+ <button
+ type="button"
+ onClick={() => setShowCharacteristics(!showCharacteristics)}
+ className={`shrink-0 rounded-xl px-4 py-2.5 text-sm font-medium transition-colors ${
+ showCharacteristics
+ ? "bg-blue-600 text-white"
+ : "border border-theme bg-transparent text-muted hover:border-blue-500/40 hover:bg-blue-soft hover:text-main"
+ }`}
+ >
+ Характеристики
+ </button>
+ ) : null}
+
  <button
  type="button"
  onClick={() => setCommunityTab("reviews")}
@@ -1568,6 +1583,18 @@ export function ProductDetailView({
  </div>
 
  <div className="p-4 sm:p-7">
+ {showCharacteristics && product.characteristics ? (
+ <div className="mb-8">
+ <div className="grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+ {product.characteristics.split('\n').filter(line => line.trim()).map((char, index) => (
+ <div key={index} className="rounded-xl border border-theme bg-card p-3 sm:p-4">
+ <p className="text-xs sm:text-sm leading-relaxed text-main break-words">{char.trim()}</p>
+ </div>
+ ))}
+ </div>
+ </div>
+ ) : null}
+
  {communityTab === "reviews" ? (
  <>
  {showReviewForm ? (

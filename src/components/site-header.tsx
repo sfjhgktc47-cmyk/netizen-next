@@ -486,8 +486,8 @@ export function SiteHeader() {
 
  const normalizeBrandText = (value: string) =>
  value
- .replace(/Нетизен/g, "Neontech")
- .replace(/Netizen/g, "Neontech")
+ .replace(/Neontech/g, "Neontech")
+ .replace(/Neontech/g, "Neontech")
  .replace(/netizen\.store/g, "neontech.ru")
  .replace(/@netizen_store/g, "@neontech_store");
 
@@ -570,8 +570,8 @@ export function SiteHeader() {
  const logoDark = "/logo-dark.webp";
  const mobileLogo = "";
  const storeName = (siteSettings?.branding?.storeName?.trim() || "Neontech")
- .replace(/Нетизен/g, "Neontech")
- .replace(/Netizen/g, "Neontech");
+ .replace(/Neontech/g, "Neontech")
+ .replace(/Neontech/g, "Neontech");
  const storePhone = siteSettings?.contacts?.phone?.trim() || "8 (800) 123-45-67";
  const storePhoneText =
  siteSettings?.contacts?.phoneText?.trim() ||

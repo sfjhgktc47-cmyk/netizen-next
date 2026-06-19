@@ -51,44 +51,13 @@ function imageResponse(value: string, cacheControl?: string) {
   });
 }
 
-function svgResponse(svg: string, cacheControl?: string) {
+function svgResponse(svg: string) {
   return new NextResponse(svg, {
     headers: {
       "Content-Type": "image/svg+xml; charset=utf-8",
-      "Cache-Control":
-        cacheControl ?? "public, max-age=86400, stale-while-revalidate=604800",
+      "Cache-Control": "public, max-age=86400, stale-while-revalidate=604800",
     },
   });
-}
-
-function sanitizeNavIconSvg(svg: string) {
-  let cleaned = svg
-    .replace(/<filter\b[\s\S]*?<\/filter>/gi, "")
-    .replace(/\sfilter=(['"])[\s\S]*?\1/gi, "")
-    .replace(/\sstyle=(['"])(?:(?!\1)[\s\S])*?filter\s*:[\s\S]*?\1/gi, "")
-    .replace(/\s(width|height)=(['"])[\s\S]*?\2/gi, "");
-
-  cleaned = cleaned.replace(/<svg\b([^>]*)>/i, (_match, attrs: string) => {
-    const hasViewBox = /\sviewBox=/i.test(attrs);
-    const normalizedAttrs = attrs.trim();
-    const safeAttrs = normalizedAttrs ? ` ${normalizedAttrs}` : "";
-
-    return `<svg${safeAttrs}${
-      hasViewBox ? "" : ' viewBox="0 0 24 24"'
-    } width="24" height="24" preserveAspectRatio="xMidYMid meet" shape-rendering="geometricPrecision">`;
-  });
-
-  return cleaned;
-}
-
-function navIconImageResponse(value: string, cacheControl?: string) {
-  const image = parseDataImage(value.trim());
-
-  if (!image || !/svg\+xml/i.test(image.contentType)) {
-    return imageResponse(value, cacheControl);
-  }
-
-  return svgResponse(sanitizeNavIconSvg(image.body.toString("utf8")), cacheControl);
 }
 
 function fallbackSettingIcon(field: string) {
@@ -301,20 +270,16 @@ export async function GET(
         ? fallbackSettingIcon(field)
         : "";
 
-    const cacheControl =
+    if (fallbackSvg) {
+      return svgResponse(fallbackSvg);
+    }
+
+    return imageResponse(
+      value,
       kind === "setting"
         ? "private, no-cache, no-store, max-age=0, must-revalidate"
-        : undefined;
-
-    if (fallbackSvg) {
-      return svgResponse(fallbackSvg, cacheControl);
-    }
-
-    if (kind === "setting" && id === "branding" && field.startsWith("navIcon")) {
-      return navIconImageResponse(value, cacheControl);
-    }
-
-    return imageResponse(value, cacheControl);
+        : undefined,
+    );
   } catch (error) {
     console.error("Public image loading failed", error);
     return new NextResponse("Image loading failed", { status: 500 });

@@ -1010,9 +1010,9 @@ function BrandingEditor({ settings, updateBranding }: { settings: SiteEditorSett
             <option value="dark">Тёмная</option>
           </select>
         </Field>
-        <Field label="Логотип для тёмной темы · рекомендуется WebP 640×230 px или SVG"><input value={settings.branding.logoLight} onChange={(event) => updateBranding("logoLight", event.target.value)} className="admin-input" placeholder="/logo-light.webp" /></Field>
-        <Field label="Логотип для светлой темы · рекомендуется WebP 640×230 px или SVG"><input value={settings.branding.logoDark} onChange={(event) => updateBranding("logoDark", event.target.value)} className="admin-input" placeholder="/logo-dark.webp" /></Field>
-        <Field label="Мобильный логотип · рекомендуется 256×256 px, PNG/WebP/SVG"><input value={settings.branding.mobileLogo} onChange={(event) => updateBranding("mobileLogo", event.target.value)} className="admin-input" placeholder="Можно оставить пустым — возьмётся основной" /></Field>
+        <Field label="Логотип для тёмной темы · рекомендуется 600×200 px, PNG/SVG"><input value={settings.branding.logoLight} onChange={(event) => updateBranding("logoLight", event.target.value)} className="admin-input" placeholder="/logo-light.webp" /></Field>
+        <Field label="Логотип для светлой темы · рекомендуется 600×200 px, PNG/SVG"><input value={settings.branding.logoDark} onChange={(event) => updateBranding("logoDark", event.target.value)} className="admin-input" placeholder="/logo-dark.webp" /></Field>
+        <Field label="Мобильный логотип · рекомендуется 256×256 px, PNG/SVG"><input value={settings.branding.mobileLogo} onChange={(event) => updateBranding("mobileLogo", event.target.value)} className="admin-input" placeholder="Можно оставить пустым — возьмётся основной" /></Field>
         <Field label="Favicon / иконка вкладки · рекомендуется 64×64 px, PNG/ICO"><input value={settings.branding.favicon} onChange={(event) => updateBranding("favicon", event.target.value)} className="admin-input" placeholder="/favicon.ico" /></Field>
         <Field label="Основной цвет"><input value={settings.branding.primaryColor} onChange={(event) => updateBranding("primaryColor", event.target.value)} className="admin-input" /></Field>
         <Field label="Акцентный цвет"><input value={settings.branding.accentColor} onChange={(event) => updateBranding("accentColor", event.target.value)} className="admin-input" /></Field>

@@ -409,9 +409,9 @@ export default function HelpPage() {
             Контакты магазина
           </summary>
           <div className="grid gap-2 border-t border-theme p-3 sm:grid-cols-3">
-            <ContactCard label="Telegram" value="@neontech_store" />
+            <ContactCard label="Telegram" value="@netizen_store" />
             <ContactCard label="Телефон" value="8 (800) 123-45-67" />
-            <ContactCard label="E-mail" value="info@neontech.ru" />
+            <ContactCard label="E-mail" value="info@netizen.store" />
           </div>
         </details>
       </div>

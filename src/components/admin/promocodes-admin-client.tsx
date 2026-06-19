@@ -239,7 +239,7 @@ export function PromocodesAdminClient() {
 
         <div className="mt-6 grid gap-4 md:grid-cols-2">
           <Field label="Код">
-            <input value={selected.code} onChange={(event) => patch("code", event.target.value.toUpperCase())} className="promo-admin-input" placeholder="NEONTECH10" />
+            <input value={selected.code} onChange={(event) => patch("code", event.target.value.toUpperCase())} className="promo-admin-input" placeholder="NETIZEN10" />
           </Field>
           <Field label="Название">
             <input value={selected.name} onChange={(event) => patch("name", event.target.value)} className="promo-admin-input" placeholder="Скидка 10%" />

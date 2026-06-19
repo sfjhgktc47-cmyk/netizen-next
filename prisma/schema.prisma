@@ -54,6 +54,7 @@ model Product {
   description      String           @default("")
   shortDescription String           @default("")
   descriptionBlocks Json            @default("[]")
+  characteristics   String           @default("")
   image            String           @default("")
   promoImage       String           @default("")
   images           String[]         @default([])
