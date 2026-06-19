@@ -580,6 +580,12 @@ export function SiteHeader() {
  const phoneHref = `tel:${storePhone.replace(/[^\d+]/g, "")}`;
  const logoSrc = dark ? logoLight : logoDark;
 
+ const forceNavigate = (href: string) => {
+ if (typeof window !== "undefined" && window.location.pathname !== href) {
+ window.location.href = href;
+ }
+ };
+
  return (
  <>
  <header
@@ -637,6 +643,12 @@ export function SiteHeader() {
  <Link
  key={item.label}
  href={item.href}
+ prefetch={false}
+ onClick={(event) => {
+ if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+ event.preventDefault();
+ forceNavigate(item.href);
+ }}
  className={`rounded-xl border px-4 py-2.5 outline-none focus:outline-none transition-all duration-200 ${
  pathname === item.href || pathname.startsWith(`${item.href}/`)
  ? "border-transparent bg-blue-600 text-white "
@@ -978,7 +990,13 @@ export function SiteHeader() {
  <Link
  key={item.key}
  href={item.href}
+ prefetch={false}
  aria-label={item.label}
+ onClick={(event) => {
+ if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+ event.preventDefault();
+ forceNavigate(item.href);
+ }}
  className={`netizen-bottom-nav-link relative flex h-[50px] min-h-[50px] max-h-[50px] flex-col items-center justify-center gap-1 rounded-[16px] text-[9px] font-semibold transition-colors ${
  active
  ? "bg-blue-600 text-white "
