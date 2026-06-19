@@ -1275,7 +1275,7 @@ export function CatalogView({
  id="catalog-products"
  >
  {isFilterOpen && (
- <div className="fixed inset-0 z-50 overflow-y-auto bg-black/45 px-3 py-4 backdrop-blur-sm xl:sticky xl:top-6 xl:inset-auto xl:w-[320px] xl:shrink-0 xl:overflow-visible xl:bg-transparent xl:p-0 xl:backdrop-blur-0">
+ <div className="fixed inset-x-0 bottom-0 top-[78px] z-50 overflow-y-auto bg-black/45 px-3 py-4 backdrop-blur-sm sm:top-[92px] lg:top-[104px] xl:sticky xl:top-6 xl:inset-auto xl:w-[320px] xl:shrink-0 xl:overflow-visible xl:bg-transparent xl:p-0 xl:backdrop-blur-0">
  <div className="mx-auto max-w-[430px] xl:mx-0 xl:max-h-[calc(100vh-48px)] xl:overflow-y-auto xl:pr-1 xl:pb-4">
  <FilterPanel
  onClose={() => setIsFilterOpen(false)}

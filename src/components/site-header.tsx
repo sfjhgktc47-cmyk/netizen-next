@@ -597,6 +597,12 @@ export function SiteHeader() {
  >
  <Link
  href="/"
+ prefetch={false}
+ onClick={(event) => {
+ if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+ event.preventDefault();
+ forceNavigate("/");
+ }}
  className="relative flex h-10 w-[108px] shrink-0 items-center justify-start overflow-hidden sm:w-[128px] lg:h-12 lg:w-[150px]"
  aria-label={storeName}
  >
