@@ -168,10 +168,10 @@ export function FaqAdminClient() {
   return (
     <div>
       <div className="flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-black/20 p-2">
-        <button type="button" onClick={() => setTab("questions")} className={`rounded-xl px-4 py-3 text-sm font-semibold ${tab === "questions" ? "bg-blue-600 text-white" : "text-white/55"}`}>
+        <button type="button" onPointerDown={() => setTab("questions")} onClick={() => setTab("questions")} className={`rounded-xl px-4 py-3 text-sm font-semibold ${tab === "questions" ? "bg-blue-600 text-white" : "text-white/55"}`}>
           Разделы и вопросы
         </button>
-        <button type="button" onClick={() => setTab("highlights")} className={`rounded-xl px-4 py-3 text-sm font-semibold ${tab === "highlights" ? "bg-blue-600 text-white" : "text-white/55"}`}>
+        <button type="button" onPointerDown={() => setTab("highlights")} onClick={() => setTab("highlights")} className={`rounded-xl px-4 py-3 text-sm font-semibold ${tab === "highlights" ? "bg-blue-600 text-white" : "text-white/55"}`}>
           Нижние карточки
         </button>
       </div>

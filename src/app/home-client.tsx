@@ -818,8 +818,8 @@ function Categories({
  : "border-black/10 bg-white hover:border-blue-500/35 hover:"
  }`}
  >
- <div className="relative z-10 order-2 flex w-full flex-1 flex-col sm:order-none sm:max-w-[46%]">
- <h3 className="line-clamp-2 text-[10px] font-bold leading-tight sm:text-xl">
+ <div className="relative z-10 order-2 flex w-full flex-1 flex-col sm:order-none sm:max-w-[40%]">
+ <h3 className="line-clamp-2 text-[10px] font-bold leading-tight sm:text-lg">
  {category.name}
  </h3>
 
@@ -856,13 +856,13 @@ function Categories({
  </div>
 
  <div
- className={`relative z-10 mt-5 hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl border text-base font-bold transition-all duration-300 group-hover:translate-x-1 sm:flex ${
+ className={`relative z-10 mt-5 hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-base font-bold transition-all duration-300 group-hover:translate-x-1 sm:flex ${
  dark
  ? "border-transparent bg-blue-600 text-white group-hover:bg-blue-500"
  : "border-black/10 bg-white text-black group-hover:border-blue-500 group-hover:bg-blue-600 group-hover:text-white"
  }`}
  >
- <ArrowIcon width={14} height={14} />
+ <ArrowIcon width={11} height={11} />
  </div>
 
  <div className={`pointer-events-none absolute inset-y-0 right-0 hidden w-[30%] sm:block ${dark ? "bg-gradient-to-l from-blue-500/5 to-transparent" : "bg-gradient-to-l from-white/30 to-transparent"}`} />
@@ -1220,14 +1220,16 @@ function NewArrivals({
  </div>
 
  <div
- className={`rounded-3xl border p-8 text-sm ${
+ className={`rounded-3xl border p-8 ${
  dark
- ? "border-white/10 bg-white/[0.035] text-white/55"
- : "border-black/10 bg-white text-black/55"
+ ? "border-white/10 bg-white/[0.035] text-white"
+ : "border-black/10 bg-white text-black"
  }`}
  >
- Новинки пока не выбраны. Добавьте товар в админке, включите галочку
- “Новинка” и загрузите фото для блока “Новинки”.
+ <h3 className="text-xl font-bold tracking-[-0.03em]">Новинок пока нет</h3>
+ <p className={`mt-2 text-sm ${mutedTextClass(dark)}`}>
+ Скоро здесь появятся новые устройства.
+ </p>
  </div>
  </section>
  );

@@ -57,10 +57,10 @@ const emptyCategory: FaqCategory = {
  id: "",
  slug: "",
  eyebrow: "",
- title: "FAQ пока не заполнен",
+ title: "Вопросы скоро появятся",
  icon: "?",
  image: "",
- description: "Добавьте разделы и вопросы в админ-панели.",
+ description: "Мы готовим ответы про заказ, доставку, оплату и гарантию.",
  questions: [],
 };
 
@@ -225,8 +225,17 @@ export default function FaqPage() {
  ) : null}
 
  {!faqLoading && faqCategories.length === 0 ? (
- <div className="mt-4 rounded-2xl border border-dashed border-theme bg-card p-5 text-sm text-muted sm:mt-6 sm:rounded-3xl sm:p-8">
- FAQ пока пуст. Разделы можно добавить в админ-панели.
+ <div className="mt-4 rounded-2xl border border-dashed border-theme bg-card p-5 sm:mt-6 sm:rounded-3xl sm:p-8">
+ <div className="max-w-[720px]">
+ <div className="text-xs font-semibold uppercase tracking-[0.18em] text-blue-500">FAQ</div>
+ <h2 className="mt-3 text-2xl font-bold tracking-[-0.04em] sm:text-3xl">Вопросы скоро появятся</h2>
+ <p className="mt-3 text-sm leading-relaxed text-muted sm:text-base">
+ Мы готовим ответы про заказ, доставку, оплату и гарантию. Если нужен ответ сейчас — напишите в поддержку.
+ </p>
+ <Link href="/help" className="mt-5 inline-flex rounded-xl bg-blue-600 px-5 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500">
+ Написать в поддержку
+ </Link>
+ </div>
  </div>
  ) : null}
 

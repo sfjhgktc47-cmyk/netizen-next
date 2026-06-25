@@ -1,0 +1,5 @@
+<svg width="240" height="240" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Поиск">
+  <rect width="240" height="240" rx="48" fill="#F3F6FF"></rect>
+  <circle cx="105" cy="105" r="52" stroke="#2563EB" stroke-width="16" stroke-linecap="round"></circle>
+  <path d="M143 143L184 184" stroke="#2563EB" stroke-width="16" stroke-linecap="round"></path>
+</svg>

@@ -166,7 +166,7 @@ export function AuthModal({ initialMode = "login", onClose, onSuccess }: AuthMod
  {title}
  </h2>
  <p className="mt-2 text-sm leading-relaxed text-muted">
- Вход работает через логин и пароль. После входа клиент попадёт в профиль, администратор — в консоль.
+ Войдите, чтобы смотреть заказы, сохранять данные и быстрее оформлять покупки.
  </p>
  </div>
 

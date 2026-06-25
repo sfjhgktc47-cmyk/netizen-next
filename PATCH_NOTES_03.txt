@@ -1,0 +1,33 @@
+PATCH 03 — UI fixes / empty states / admin tabs
+
+Изменено:
+- src/components/auth-modal.tsx
+  Убран текст про администратора в модалке входа. Теперь текст только для клиента.
+
+- src/components/catalog-view.tsx
+  Вкладка “Все товары” больше не считается фильтром для пустого каталога.
+  Если товаров нет, показывается “Пока ничего нет” и нормальное описание без кнопки сброса параметров.
+  Уменьшены стрелка и шрифт в карточках категорий каталога.
+
+- src/app/home-client.tsx
+  Уменьшены стрелки и шрифт в блоке категорий на главной.
+  Длинные названия категорий меньше залезают под фото.
+  Пустой блок “Новинки” заменён на нормальный текст для пользователя.
+
+- src/app/new/page.tsx
+  Пустая страница “Новинки” теперь показывает “Новинок пока нет”.
+
+- src/app/faq/page.tsx
+  Пустой FAQ теперь показывает нормальный пользовательский empty-state с кнопкой поддержки.
+
+- src/components/admin/site-editor-form.tsx
+- src/components/admin/faq-admin-client.tsx
+- src/components/admin/support-content-admin-client.tsx
+- src/components/admin/community-admin-client.tsx
+- src/components/admin/site-content-library-form.tsx
+  В админских вкладках добавлено переключение на pointer down, чтобы вкладки реагировали с первого клика.
+
+После установки:
+npm ci
+npm run build
+pm2 restart netizen

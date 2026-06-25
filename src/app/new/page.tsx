@@ -181,8 +181,11 @@ function NewPageModule({
  ))}
  </div>
  ) : (
- <div className={`rounded-3xl border p-8 text-sm ${dark ? "border-white/10 bg-white/[0.035] text-white/55" : "border-black/10 bg-white text-black/55"}`}>
- Новинки пока не выбраны.
+ <div className={`rounded-3xl border p-8 ${dark ? "border-white/10 bg-white/[0.035] text-white" : "border-black/10 bg-white text-black"}`}>
+ <h2 className="text-2xl font-bold tracking-[-0.04em]">Новинок пока нет</h2>
+ <p className={`mt-2 text-sm ${muted(dark)}`}>
+ Скоро здесь появятся новые устройства.
+ </p>
  </div>
  )}
  </section>

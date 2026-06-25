@@ -926,6 +926,13 @@ export function CatalogView({
  const resultCount = shouldShowPositionResults
  ? positionResults.length
  : visibleModelProducts.length;
+ const isDefaultCatalogView =
+ !onlyPopular &&
+ !selectedCategoryId &&
+ !selectedBrand &&
+ !hasSpecificationFilters &&
+ !hasSearchQuery;
+ const isInitialCatalogEmpty = isDefaultCatalogView && resultCount === 0;
 
  const pageTitle = normalizedSearchQuery
  ? `Поиск: ${normalizedSearchQuery}`
@@ -1135,8 +1142,8 @@ export function CatalogView({
  : "border-theme bg-card hover:border-blue-500/40"
  }`}
  >
- <div className="relative z-10 max-w-[54%] pb-11">
- <h3 className="line-clamp-2 text-sm font-bold leading-tight sm:text-base">
+ <div className="relative z-10 max-w-[50%] pb-10">
+ <h3 className="line-clamp-2 text-[13px] font-bold leading-tight sm:text-[15px]">
  {category.name}
  </h3>
 
@@ -1148,14 +1155,14 @@ export function CatalogView({
  </div>
 
  <span
- className={`absolute bottom-4 left-5 z-20 flex h-9 w-9 items-center justify-center rounded-xl border text-sm transition-colors ${
+ className={`absolute bottom-4 left-5 z-20 flex h-8 w-8 items-center justify-center rounded-xl border text-xs transition-colors ${
  isActive
  ? "border-transparent bg-blue-500 text-white"
  : "border-transparent bg-blue-600 text-white group-hover:border-transparent group-hover:bg-blue-500"
  }`}
  aria-hidden="true"
  >
- <ArrowIcon width={12} height={12} />
+ <ArrowIcon width={10} height={10} />
  </span>
 
  <div className="absolute bottom-3 right-3 top-3 flex w-[43%] items-center justify-center">
@@ -1354,7 +1361,7 @@ export function CatalogView({
  ) : (
  <EmptyCatalogState
  onReset={handleResetCatalogState}
- mode={isCatalogCompletelyEmpty ? "empty-catalog" : "no-results"}
+ mode={isCatalogCompletelyEmpty || isInitialCatalogEmpty ? "empty-catalog" : "no-results"}
  />
  )}
  </div>
@@ -2009,22 +2016,24 @@ function EmptyCatalogState({
  <div className="transition-all duration-300">
  <div className="card rounded-[24px] p-6 text-center sm:rounded-[34px] sm:p-12">
  <h2 className="text-2xl font-bold tracking-[-0.04em] sm:text-4xl">
- {isEmptyCatalog ? "Каталог пока пустой" : "Ничего не найдено"}
+ {isEmptyCatalog ? "Пока ничего нет" : "Ничего не найдено"}
  </h2>
 
  <p className="mx-auto mt-4 max-w-[620px] text-muted">
  {isEmptyCatalog
- ? "Категории уже опубликованы, но активных товаров и SKU в базе данных нет. Добавьте товары в админке, включите статус «active» у товара и хотя бы одной позиции — после этого они появятся в каталоге."
+ ? "Сейчас товары ещё не добавлены. Скоро здесь появятся устройства, цены и варианты комплектаций."
  : "По выбранным фильтрам товаров нет. Попробуйте убрать цвет, память, SIM или изменить диапазон цены."}
  </p>
 
+ {!isEmptyCatalog ? (
  <button
  type="button"
  onClick={onReset}
  className="mt-8 inline-flex rounded-xl bg-blue-600 px-7 py-4 text-sm font-medium text-white transition-colors hover:bg-blue-500"
  >
- {isEmptyCatalog ? "Обновить каталог" : "Сбросить параметры"}
+ Сбросить параметры
  </button>
+ ) : null}
  </div>
  </div>
  );

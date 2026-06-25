@@ -106,6 +106,7 @@ export function SupportContentAdminClient({
         <div className="flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-black/20 p-2">
           <button
             type="button"
+            onPointerDown={() => setActiveEditor("features")}
             onClick={() => setActiveEditor("features")}
             className={`rounded-xl px-5 py-3 text-sm font-semibold transition-colors ${
               activeEditor === "features"
@@ -117,6 +118,7 @@ export function SupportContentAdminClient({
           </button>
           <button
             type="button"
+            onPointerDown={() => setActiveEditor("questions")}
             onClick={() => setActiveEditor("questions")}
             className={`rounded-xl px-5 py-3 text-sm font-semibold transition-colors ${
               activeEditor === "questions"
@@ -128,6 +130,7 @@ export function SupportContentAdminClient({
           </button>
           <button
             type="button"
+            onPointerDown={() => setActiveEditor("chat")}
             onClick={() => setActiveEditor("chat")}
             className={`rounded-xl px-5 py-3 text-sm font-semibold transition-colors ${
               activeEditor === "chat"

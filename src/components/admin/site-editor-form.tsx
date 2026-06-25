@@ -58,6 +58,17 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder, initialCon
   );
   const enabledBlocks = activeBlocks.filter((block) => block.enabled).length;
 
+  function switchActivePage(pageKey: PageKey) {
+    setActivePage(pageKey);
+    setSelectedBlockId("");
+    const firstModule = pageBuilder.modules.find((module) => module.pageKeys.includes(pageKey));
+    if (firstModule) setModuleToAdd(firstModule.type);
+  }
+
+  function switchSettingsTab(tabKey: SettingsTab) {
+    setActiveSettingsTab(tabKey);
+  }
+
   useEffect(() => {
     if (availableModules.some((module) => module.type === moduleToAdd)) return;
     const firstModule = availableModules[0];
@@ -400,12 +411,8 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder, initialCon
               <button
                 type="button"
                 key={page.key}
-                onClick={() => {
-                  setActivePage(page.key);
-                  setSelectedBlockId("");
-                  const firstModule = pageBuilder.modules.find((module) => module.pageKeys.includes(page.key));
-                  if (firstModule) setModuleToAdd(firstModule.type);
-                }}
+                onPointerDown={() => switchActivePage(page.key)}
+                onClick={() => switchActivePage(page.key)}
                 className={`rounded-2xl border px-5 py-3 text-sm font-semibold transition-all ${
                   activePage === page.key
                     ? "border-blue-500/50 bg-blue-500/15 text-white"
@@ -525,7 +532,8 @@ export function SiteEditorForm({ initialSettings, initialPageBuilder, initialCon
               <button
                 type="button"
                 key={tab.key}
-                onClick={() => setActiveSettingsTab(tab.key)}
+                onPointerDown={() => switchSettingsTab(tab.key)}
+                onClick={() => switchSettingsTab(tab.key)}
                 className={`rounded-2xl border p-4 text-left transition-all ${
                   activeSettingsTab === tab.key
                     ? "border-blue-500/50 bg-blue-500/15"

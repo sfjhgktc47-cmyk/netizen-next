@@ -235,6 +235,16 @@ export function SiteContentLibraryForm({ initialLibrary, onChange }: Props) {
             <button
               key={item.key}
               type="button"
+              onPointerDown={() => {
+                const nextTab = item.key as LibraryTab;
+                setTab(nextTab);
+                if (nextTab === "store" || nextTab === "product") {
+                  const placement = nextTab === "product" ? "product" : "store";
+                  setSelectedBenefitId(
+                    library.benefits.find((benefit) => benefit.placement === placement)?.id ?? "",
+                  );
+                }
+              }}
               onClick={() => {
                 const nextTab = item.key as LibraryTab;
                 setTab(nextTab);

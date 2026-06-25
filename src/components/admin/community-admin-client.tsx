@@ -129,6 +129,7 @@ export function CommunityAdminClient({
           <div className="flex gap-2">
             <button
               type="button"
+              onPointerDown={() => setTab("questions")}
               onClick={() => setTab("questions")}
               className={`rounded-xl px-4 py-3 text-sm font-semibold ${
                 tab === "questions" ? "bg-blue-600 text-white" : "border border-white/10 bg-black/20"
@@ -138,6 +139,7 @@ export function CommunityAdminClient({
             </button>
             <button
               type="button"
+              onPointerDown={() => setTab("reviews")}
               onClick={() => setTab("reviews")}
               className={`rounded-xl px-4 py-3 text-sm font-semibold ${
                 tab === "reviews" ? "bg-blue-600 text-white" : "border border-white/10 bg-black/20"
