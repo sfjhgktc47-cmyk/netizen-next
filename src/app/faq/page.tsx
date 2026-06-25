@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { SiteHeader } from "@/components/site-header";
+import { ArrowIcon } from "@/components/arrow-icon";
 
 type FaqQuestion = {
  id: string;
@@ -185,7 +186,7 @@ export default function FaqPage() {
  <Link href="/" className="transition-colors hover:text-blue-500">
  Главная
  </Link>
- <span className="text-muted-soft">›</span>
+ <span className="text-muted-soft inline-flex"><ArrowIcon width={12} height={12} direction="right" /></span>
  <span className="font-medium text-main">FAQ</span>
  </nav>
 

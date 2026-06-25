@@ -6,6 +6,7 @@ import { useEffect, useState } from "react";
 
 import { SiteHeader } from "@/components/site-header";
 import { useTheme } from "@/components/theme-provider";
+import { ArrowIcon } from "@/components/arrow-icon";
 
 type NewProduct = {
  slug: string;
@@ -108,7 +109,7 @@ export default function NewPage() {
  <Link href="/" className="transition-colors hover:text-blue-500">
  Главная
  </Link>
- <span className="text-muted-soft">›</span>
+ <span className="text-muted-soft inline-flex"><ArrowIcon width={12} height={12} direction="right" /></span>
  <span className="font-medium text-main">Новинки</span>
  </nav>
  </section>

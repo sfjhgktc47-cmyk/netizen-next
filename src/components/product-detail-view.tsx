@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import type { KeyboardEvent, PointerEvent } from "react";
 import { SiteHeader } from "@/components/site-header";
 import { ProductTabs } from "@/components/product-tabs";
+import { ArrowIcon } from "@/components/arrow-icon";
 import type {
  PublicProductModel,
  PublicProductPosition,
@@ -821,19 +822,19 @@ export function ProductDetailView({
  <Link href="/" className="transition-colors hover:text-blue-500">
  Главная
  </Link>
- <span className="text-muted-soft">›</span>
+ <span className="text-muted-soft inline-flex"><ArrowIcon width={12} height={12} direction="right" /></span>
  <Link href="/catalog" className="transition-colors hover:text-blue-500">
  Каталог
  </Link>
  {product.category ? (
  <>
- <span className="text-muted-soft">›</span>
+ <span className="text-muted-soft inline-flex"><ArrowIcon width={12} height={12} direction="right" /></span>
  <Link href={`/catalog/${product.category}`} className="transition-colors hover:text-blue-500">
  {categoryName}
  </Link>
  </>
  ) : null}
- <span className="text-muted-soft">›</span>
+ <span className="text-muted-soft inline-flex"><ArrowIcon width={12} height={12} direction="right" /></span>
  <span className="text-main">{product.name}</span>
  </nav>
 
@@ -867,7 +868,7 @@ export function ProductDetailView({
  className="absolute left-2 top-1/2 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl border border-theme bg-card/90 text-main backdrop-blur transition-colors hover:border-blue-500/50 hover:bg-blue-soft sm:flex sm:left-4 sm:h-11 sm:w-11 sm:rounded-2xl"
  aria-label="Предыдущее фото"
  >
- ←
+ <ArrowIcon width={16} height={16} direction="left" />
  </button>
  <button
  type="button"
@@ -875,7 +876,7 @@ export function ProductDetailView({
  className="absolute right-2 top-1/2 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl border border-theme bg-card/90 text-main backdrop-blur transition-colors hover:border-blue-500/50 hover:bg-blue-soft sm:flex sm:right-4 sm:h-11 sm:w-11 sm:rounded-2xl"
  aria-label="Следующее фото"
  >
- →
+ <ArrowIcon width={16} height={16} />
  </button>
  </>
  )}

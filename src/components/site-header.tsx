@@ -687,7 +687,7 @@ export function SiteHeader() {
  setIsSearchOpen(true);
  }}
  placeholder="Поиск по каталогу"
- className="h-full min-w-0 flex-1 bg-transparent pr-2 text-sm outline-none placeholder:text-current/50"
+ className="h-full min-w-0 flex-1 bg-transparent pr-2 text-sm outline-none placeholder:text-current/50 font-medium text-current"
  />
 
  {searchQuery ? (
@@ -707,8 +707,8 @@ export function SiteHeader() {
  </button>
  ) : null}
 
- <button type="submit" className="ml-1 text-lg text-blue-500" aria-label="Найти">
- ⌕
+ <button type="submit" className="ml-2 text-2xl text-blue-600 hover:text-blue-500 transition-colors" aria-label="Найти">
+ 🔍
  </button>
  </form>
 

@@ -8,6 +8,7 @@ import {
  type MouseEvent,
  type PointerEvent,
 } from "react";
+import { ArrowIcon } from "./arrow-icon";
 
 type CarouselProduct = {
  slug: string;
@@ -192,7 +193,7 @@ export function ProductCarousel({
  }`}
  aria-label="Предыдущие товары"
  >
- ‹
+ <ArrowIcon width={14} height={14} direction="left" />
  </button>
 
  <button
@@ -205,7 +206,7 @@ export function ProductCarousel({
  }`}
  aria-label="Следующие товары"
  >
- ›
+ <ArrowIcon width={14} height={14} direction="right" />
  </button>
  </div>
  </div>
@@ -313,7 +314,7 @@ function CarouselProductCard({
  ))}
  </div>
  <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-blue-600 text-[10px] text-white transition-colors group-hover:bg-blue-500">
- →
+ <ArrowIcon width={14} height={14} />
  </div>
  </div>
  </div>

@@ -9,6 +9,7 @@ import { getModelPriceRange, getPriceNumber } from "@/lib/product-pricing";
 import { SiteHeader } from "@/components/site-header";
 import { ProductCarousel } from "@/components/product-carousel";
 import { useTheme } from "@/components/theme-provider";
+import { ArrowIcon } from "@/components/arrow-icon";
 
 type CategoryItem = {
  id: string;
@@ -1028,19 +1029,19 @@ export function CatalogView({
  <Link href="/" className="transition-colors hover:text-blue-500">
  Главная
  </Link>
- <span className="text-muted-soft">›</span>
+ <span className="text-muted-soft inline-flex"><ArrowIcon width={12} height={12} direction="right" /></span>
  <Link href="/catalog" className="transition-colors hover:text-blue-500">
  Каталог
  </Link>
  {activeCategory ? (
  <>
- <span className="text-muted-soft">›</span>
+ <span className="text-muted-soft inline-flex"><ArrowIcon width={12} height={12} direction="right" /></span>
  <span className="text-main">{activeCategory.name}</span>
  </>
  ) : null}
  {selectedBrand ? (
  <>
- <span className="text-muted-soft">›</span>
+ <span className="text-muted-soft inline-flex"><ArrowIcon width={12} height={12} direction="right" /></span>
  <span className="text-main">{selectedBrand}</span>
  </>
  ) : null}
@@ -1151,7 +1152,7 @@ export function CatalogView({
  }`}
  aria-hidden="true"
  >
- →
+ <ArrowIcon width={14} height={14} />
  </span>
 
  <div className="absolute bottom-3 right-3 top-3 flex w-[43%] items-center justify-center">
