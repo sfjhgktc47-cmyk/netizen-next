@@ -1152,7 +1152,7 @@ export function CatalogView({
  }`}
  aria-hidden="true"
  >
- <ArrowIcon width={14} height={14} />
+ <ArrowIcon width={12} height={12} />
  </span>
 
  <div className="absolute bottom-3 right-3 top-3 flex w-[43%] items-center justify-center">

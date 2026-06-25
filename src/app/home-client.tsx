@@ -862,7 +862,7 @@ function Categories({
  : "border-black/10 bg-white text-black group-hover:border-blue-500 group-hover:bg-blue-600 group-hover:text-white"
  }`}
  >
- <ArrowIcon width={18} height={18} />
+ <ArrowIcon width={14} height={14} />
  </div>
 
  <div className={`pointer-events-none absolute inset-y-0 right-0 hidden w-[30%] sm:block ${dark ? "bg-gradient-to-l from-blue-500/5 to-transparent" : "bg-gradient-to-l from-white/30 to-transparent"}`} />
@@ -1023,7 +1023,7 @@ function PopularProducts({
  }`}
  aria-label="Предыдущие товары"
  >
- <ArrowIcon width={18} height={18} direction="left" />
+ <ArrowIcon width={14} height={14} direction="left" />
  </button>
 
  <button
@@ -1036,7 +1036,7 @@ function PopularProducts({
  }`}
  aria-label="Следующие товары"
  >
- <ArrowIcon width={18} height={18} />
+ <ArrowIcon width={14} height={14} />
  </button>
  </div>
  </div>
@@ -1704,7 +1704,7 @@ function Footer({
  />
 
  <button className="w-16 bg-blue-600 text-2xl text-white transition-colors hover:bg-blue-500 flex items-center justify-center">
- <ArrowIcon width={24} height={24} />
+ <ArrowIcon width={18} height={18} />
  </button>
  </div>
  </div>

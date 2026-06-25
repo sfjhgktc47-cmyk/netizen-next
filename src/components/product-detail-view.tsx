@@ -868,7 +868,7 @@ export function ProductDetailView({
  className="absolute left-2 top-1/2 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl border border-theme bg-card/90 text-main backdrop-blur transition-colors hover:border-blue-500/50 hover:bg-blue-soft sm:flex sm:left-4 sm:h-11 sm:w-11 sm:rounded-2xl"
  aria-label="Предыдущее фото"
  >
- <ArrowIcon width={16} height={16} direction="left" />
+ <ArrowIcon width={14} height={14} direction="left" />
  </button>
  <button
  type="button"
@@ -876,7 +876,7 @@ export function ProductDetailView({
  className="absolute right-2 top-1/2 hidden h-9 w-9 -translate-y-1/2 items-center justify-center rounded-xl border border-theme bg-card/90 text-main backdrop-blur transition-colors hover:border-blue-500/50 hover:bg-blue-soft sm:flex sm:right-4 sm:h-11 sm:w-11 sm:rounded-2xl"
  aria-label="Следующее фото"
  >
- <ArrowIcon width={16} height={16} />
+ <ArrowIcon width={14} height={14} />
  </button>
  </>
  )}

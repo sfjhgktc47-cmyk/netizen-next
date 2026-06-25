@@ -707,8 +707,8 @@ export function SiteHeader() {
  </button>
  ) : null}
 
- <button type="submit" className="ml-2 text-2xl text-blue-600 hover:text-blue-500 transition-colors" aria-label="Найти">
- 🔍
+ <button type="submit" className="ml-2 text-xl text-blue-600 hover:text-blue-500 transition-colors" aria-label="Найти">
+ ⌕
  </button>
  </form>
 
