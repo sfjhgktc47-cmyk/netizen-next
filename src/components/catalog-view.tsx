@@ -922,6 +922,7 @@ export function CatalogView({
  const hasSearchQuery = Boolean(normalizedSearchQuery);
  const shouldShowPositionResults = Boolean(hasSpecificationFilters || hasSearchQuery);
  const hasActiveFilters = Boolean(onlyPopular || selectedBrand || hasSpecificationFilters || hasSearchQuery);
+ const isCatalogCompletelyEmpty = allProducts.length === 0 && enrichedPositions.length === 0;
  const resultCount = shouldShowPositionResults
  ? positionResults.length
  : visibleModelProducts.length;
@@ -944,6 +945,8 @@ export function CatalogView({
  ? "Показали товары и конкретные SKU, которые совпадают с поисковым запросом."
  : onlyPopular
  ? "Показаны модели, отмеченные в админке как популярные. Можно открыть карточку товара или уточнить подборку фильтрами."
+ : isCatalogCompletelyEmpty
+ ? "Каталог подключён к базе данных, но активные товары и SKU пока не добавлены. После публикации товаров они появятся здесь автоматически."
  : shouldShowPositionResults
  ? "Показаны конкретные позиции / SKU из базы: фото, конфигурация, цена и наличие. Можно сразу открыть нужную комплектацию."
  : "Выберите устройство по категории, бренду или параметрам. В каталоге будут показаны конкретные позиции из БД.";
@@ -1349,7 +1352,10 @@ export function CatalogView({
  />
  ))
  ) : (
- <EmptyCatalogState onReset={handleResetCatalogState} />
+ <EmptyCatalogState
+ onReset={handleResetCatalogState}
+ mode={isCatalogCompletelyEmpty ? "empty-catalog" : "no-results"}
+ />
  )}
  </div>
  </section>
@@ -1992,19 +1998,24 @@ function FilterButtonGroup({
 
 function EmptyCatalogState({
  onReset,
+ mode = "no-results",
 }: {
  onReset: () => void;
+ mode?: "no-results" | "empty-catalog";
 }) {
+ const isEmptyCatalog = mode === "empty-catalog";
+
  return (
  <div className="transition-all duration-300">
  <div className="card rounded-[24px] p-6 text-center sm:rounded-[34px] sm:p-12">
  <h2 className="text-2xl font-bold tracking-[-0.04em] sm:text-4xl">
- Ничего не найдено
+ {isEmptyCatalog ? "Каталог пока пустой" : "Ничего не найдено"}
  </h2>
 
- <p className="mx-auto mt-4 max-w-[560px] text-muted">
- По выбранным фильтрам товаров нет. Попробуйте убрать цвет, память,
- SIM или изменить диапазон цены.
+ <p className="mx-auto mt-4 max-w-[620px] text-muted">
+ {isEmptyCatalog
+ ? "Категории уже опубликованы, но активных товаров и SKU в базе данных нет. Добавьте товары в админке, включите статус «active» у товара и хотя бы одной позиции — после этого они появятся в каталоге."
+ : "По выбранным фильтрам товаров нет. Попробуйте убрать цвет, память, SIM или изменить диапазон цены."}
  </p>
 
  <button
@@ -2012,7 +2023,7 @@ function EmptyCatalogState({
  onClick={onReset}
  className="mt-8 inline-flex rounded-xl bg-blue-600 px-7 py-4 text-sm font-medium text-white transition-colors hover:bg-blue-500"
  >
- Сбросить параметры
+ {isEmptyCatalog ? "Обновить каталог" : "Сбросить параметры"}
  </button>
  </div>
  </div>
