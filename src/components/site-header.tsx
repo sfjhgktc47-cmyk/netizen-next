@@ -709,10 +709,10 @@ export function SiteHeader() {
 
  <button
  type="submit"
- className="ml-2 inline-flex h-8 w-8 items-center justify-center rounded-full transition-colors hover:bg-blue-50"
+ className="ml-2 inline-flex h-9 w-9 items-center justify-center text-blue-600 transition-colors hover:text-blue-500"
  aria-label="Найти"
 >
- <img src="/icons/search-blue.svg" alt="" className="h-5 w-5" />
+ <img src="/icons/search-blue.svg" alt="" className="h-6 w-6" />
 </button>
  </form>
 
@@ -973,7 +973,7 @@ export function SiteHeader() {
  : "border-black/10 bg-white text-black/65 focus-within:border-blue-500/55"
  }`}
  >
- <img src="/icons/search-blue.svg" alt="" className="mr-3 h-5 w-5 shrink-0" aria-hidden="true" />
+ <img src="/icons/search-blue.svg" alt="" className="mr-3 h-6 w-6 shrink-0" aria-hidden="true" />
  <input
  value={searchQuery}
  onChange={(event) => setSearchQuery(event.target.value)}

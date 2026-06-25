@@ -265,13 +265,14 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
               const active = selectedSection === item.key;
 
               return (
-                <Link
+                <a
                   key={item.key}
                   href={
                     item.key === "cards"
                       ? "/nz-console/products"
                       : `/nz-console/products?section=${item.key}`
                   }
+                  aria-current={active ? "page" : undefined}
                   className={`rounded-xl px-5 py-3 text-sm font-semibold transition-colors ${
                     active
                       ? "bg-blue-600 text-white"
@@ -279,7 +280,7 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
                   }`}
                 >
                   {item.label}
-                </Link>
+                </a>
               );
             })}
           </div>
@@ -301,7 +302,7 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
               const isActive = selectedStatus === tab.value;
 
               return (
-                <Link
+                <a
                   key={tab.value}
                   href={createProductsHref({
                     query: searchQuery,
@@ -309,6 +310,7 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
                     brand: selectedBrand,
                     status: tab.value,
                   })}
+                  aria-current={isActive ? "page" : undefined}
                   className={`relative px-4 py-4 text-sm font-medium transition-colors ${
                     isActive ? "text-white" : "text-white/45 hover:text-white"
                   }`}
@@ -322,7 +324,7 @@ export default async function AdminProductsPage({ searchParams }: AdminProductsP
                     {tabCount}
                   </span>
                   {isActive && <span className="absolute bottom-0 left-0 right-0 h-[2px] rounded-full bg-blue-500" />}
-                </Link>
+                </a>
               );
             })}
           </div>
