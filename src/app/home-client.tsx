@@ -469,6 +469,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  imageLight: banner.imageLight || banner.imageDark || banner.imageMobile,
  imageMobile: banner.imageMobile || banner.imageLight || banner.imageDark,
  titleSize: banner.titleSize,
+ layout: banner.layout,
  }))
  .filter((slide) => slide.title || slide.text || slide.imageDark || slide.imageLight);
 
@@ -500,6 +501,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
 
  const image = slide.imageDark || slide.imageLight || slide.imageMobile;
  const mobileImage = slide.imageMobile || image;
+ const isImageBackgroundLayout = slide.layout === "image-bg";
 
  function goToNextSlide() {
  setActiveSlide((current) => (current + 1) % slides.length);
@@ -550,27 +552,37 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  }`}
  >
  {image ? (
- <div className="absolute inset-0 hidden sm:block">
+ <div
+ className={
+ isImageBackgroundLayout
+ ? "absolute inset-0 hidden sm:block"
+ : "absolute inset-y-0 right-0 hidden h-full w-[56%] items-center justify-end sm:flex lg:w-[60%]"
+ }
+ >
  <Image
  src={image}
  alt=""
  fill
  priority={activeSlide === 0}
- quality={75}
- className="object-contain object-right transition-transform duration-700"
+ quality={85}
+ className={
+ isImageBackgroundLayout
+ ? "object-contain object-right transition-transform duration-700"
+ : "object-contain object-right p-6 transition-transform duration-700 sm:p-8 lg:p-10"
+ }
  draggable={false}
  />
  </div>
  ) : null}
 
- {image ? (
- <div className="absolute inset-y-0 right-0 block h-full w-[50%] sm:hidden">
+ {mobileImage ? (
+ <div className="absolute inset-y-0 right-0 block h-full w-[52%] sm:hidden">
  <Image
- src={image}
+ src={mobileImage}
  alt=""
  fill
  priority={activeSlide === 0}
- quality={75}
+ quality={85}
  className="object-contain object-right p-1.5"
  draggable={false}
  />
@@ -818,8 +830,8 @@ function Categories({
  : "border-black/10 bg-white hover:border-blue-500/35 hover:"
  }`}
  >
- <div className="relative z-10 order-2 flex w-full flex-1 flex-col sm:order-none sm:max-w-[40%]">
- <h3 className="line-clamp-2 text-[10px] font-bold leading-tight sm:text-lg">
+ <div className="relative z-10 order-2 flex w-full flex-1 flex-col sm:order-none sm:max-w-[46%]">
+ <h3 className="line-clamp-2 text-[10px] font-bold leading-tight sm:text-xl">
  {category.name}
  </h3>
 
@@ -856,13 +868,13 @@ function Categories({
  </div>
 
  <div
- className={`relative z-10 mt-5 hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-base font-bold transition-all duration-300 group-hover:translate-x-1 sm:flex ${
+ className={`relative z-10 mt-5 hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl border text-base font-bold transition-all duration-300 group-hover:translate-x-1 sm:flex ${
  dark
  ? "border-transparent bg-blue-600 text-white group-hover:bg-blue-500"
  : "border-black/10 bg-white text-black group-hover:border-blue-500 group-hover:bg-blue-600 group-hover:text-white"
  }`}
  >
- <ArrowIcon width={11} height={11} />
+ <ArrowIcon width={14} height={14} />
  </div>
 
  <div className={`pointer-events-none absolute inset-y-0 right-0 hidden w-[30%] sm:block ${dark ? "bg-gradient-to-l from-blue-500/5 to-transparent" : "bg-gradient-to-l from-white/30 to-transparent"}`} />
@@ -1220,16 +1232,14 @@ function NewArrivals({
  </div>
 
  <div
- className={`rounded-3xl border p-8 ${
+ className={`rounded-3xl border p-8 text-sm ${
  dark
- ? "border-white/10 bg-white/[0.035] text-white"
- : "border-black/10 bg-white text-black"
+ ? "border-white/10 bg-white/[0.035] text-white/55"
+ : "border-black/10 bg-white text-black/55"
  }`}
  >
- <h3 className="text-xl font-bold tracking-[-0.03em]">Новинок пока нет</h3>
- <p className={`mt-2 text-sm ${mutedTextClass(dark)}`}>
- Скоро здесь появятся новые устройства.
- </p>
+ Новинки пока не выбраны. Добавьте товар в админке, включите галочку
+ “Новинка” и загрузите фото для блока “Новинки”.
  </div>
  </section>
  );

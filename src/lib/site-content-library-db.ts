@@ -83,9 +83,30 @@ function toBanner(item: {
 }): SiteBanner {
   return {
     ...item,
-    imageLight: publicImageUrl("banner", item.id, "imageLight", item.imageLight),
-    imageDark: publicImageUrl("banner", item.id, "imageDark", item.imageDark),
-    imageMobile: publicImageUrl("banner", item.id, "imageMobile", item.imageMobile),
+    imageLight: publicImageUrl(
+      "banner",
+      item.id,
+      "imageLight",
+      item.imageLight,
+      undefined,
+      item.updatedAt.getTime(),
+    ),
+    imageDark: publicImageUrl(
+      "banner",
+      item.id,
+      "imageDark",
+      item.imageDark,
+      undefined,
+      item.updatedAt.getTime(),
+    ),
+    imageMobile: publicImageUrl(
+      "banner",
+      item.id,
+      "imageMobile",
+      item.imageMobile,
+      undefined,
+      item.updatedAt.getTime(),
+    ),
     createdAt: item.createdAt.toISOString(),
     updatedAt: item.updatedAt.toISOString(),
   };
