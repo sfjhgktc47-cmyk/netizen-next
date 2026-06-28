@@ -465,8 +465,8 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  text: banner.subtitle || banner.description,
  primaryLabel: banner.buttonText || "Подробнее",
  primaryHref: banner.buttonHref || "/catalog",
- secondaryLabel: typeof banner.secondaryButtonText === "string" ? banner.secondaryButtonText : "Каталог",
- secondaryHref: typeof banner.secondaryButtonHref === "string" ? banner.secondaryButtonHref : "/catalog",
+ secondaryLabel: banner.secondaryButtonText || "",
+ secondaryHref: banner.secondaryButtonHref || "",
  imageDark: banner.imageDark || banner.imageLight || banner.imageMobile,
  imageLight: banner.imageLight || banner.imageDark || banner.imageMobile,
  imageMobile: banner.imageMobile || banner.imageLight || banner.imageDark,
@@ -504,7 +504,63 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  const image = slide.imageDark || slide.imageLight || slide.imageMobile;
  const mobileImage = slide.imageMobile || image;
  const isImageBackgroundLayout = slide.layout === "image-bg";
- const shouldShowHeroContent = !isImageBackgroundLayout;
+
+ if (isImageBackgroundLayout) {
+ return (
+ <section className="mt-2 sm:mt-6">
+ <div
+ onMouseEnter={() => setIsHeroHovered(true)}
+ onMouseLeave={() => setIsHeroHovered(false)}
+ className={`relative h-[220px] overflow-hidden rounded-[20px] border transition-all duration-700 sm:h-[360px] sm:rounded-[30px] lg:h-[520px] ${
+ dark
+ ? "border-white/10 bg-[#06101f]"
+ : "border-black/10 bg-white"
+ }`}
+ >
+ {image ? (
+ // eslint-disable-next-line @next/next/no-img-element
+ <img
+ src={image}
+ alt={slide.title || slide.badge || "Баннер"}
+ draggable={false}
+ className="hidden h-full w-full object-cover sm:block"
+ />
+ ) : null}
+ {mobileImage ? (
+ // eslint-disable-next-line @next/next/no-img-element
+ <img
+ src={mobileImage}
+ alt={slide.title || slide.badge || "Баннер"}
+ draggable={false}
+ className="block h-full w-full object-cover sm:hidden"
+ />
+ ) : null}
+ {!image && !mobileImage ? (
+ <div className={`absolute inset-6 rounded-3xl border border-dashed ${dark ? "border-white/10 bg-white/[0.03]" : "border-black/10 bg-slate-50"}`} />
+ ) : null}
+ {slides.length > 1 ? (
+ <div className="absolute bottom-5 left-5 z-10 flex items-center gap-1.5 sm:bottom-8 sm:left-8 sm:gap-2">
+ {slides.map((item, index) => {
+ const isActive = activeSlide === index;
+
+ return (
+ <button
+ key={`${item.title}-${index}`}
+ type="button"
+ onClick={() => setActiveSlide(index)}
+ aria-label={`Открыть слайд ${index + 1}`}
+ className={`rounded-full bg-blue-600 transition-all duration-300 ${
+ isActive ? "h-1 w-7 sm:h-1.5 sm:w-9" : "h-1 w-1 sm:h-1.5 sm:w-1.5"
+ }`}
+ />
+ );
+ })}
+ </div>
+ ) : null}
+ </div>
+ </section>
+ );
+ }
 
  function goToNextSlide() {
  setActiveSlide((current) => (current + 1) % slides.length);
@@ -570,7 +626,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  quality={85}
  className={
  isImageBackgroundLayout
- ? "object-cover object-center transition-transform duration-700"
+ ? "object-contain object-right transition-transform duration-700"
  : "object-contain object-right p-6 transition-transform duration-700 sm:p-8 lg:p-10"
  }
  draggable={false}
@@ -579,20 +635,19 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  ) : null}
 
  {mobileImage ? (
- <div className={isImageBackgroundLayout ? "absolute inset-0 block h-full sm:hidden" : "absolute inset-y-0 right-0 block h-full w-[52%] sm:hidden"}>
+ <div className="absolute inset-y-0 right-0 block h-full w-[52%] sm:hidden">
  <Image
  src={mobileImage}
  alt=""
  fill
  priority={activeSlide === 0}
  quality={85}
- className={isImageBackgroundLayout ? "object-cover object-center" : "object-contain object-right p-1.5"}
+ className="object-contain object-right p-1.5"
  draggable={false}
  />
  </div>
  ) : null}
 
- {shouldShowHeroContent ? (
  <div
  className={`absolute inset-0 transition-all duration-700 ${
  dark
@@ -600,9 +655,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  : "bg-gradient-to-r from-white/80 via-white/25 to-transparent sm:from-white/80 sm:via-white/25 sm:to-transparent"
  }`}
  />
- ) : null}
 
- {shouldShowHeroContent ? (
  <div className="relative z-10 flex h-full items-center px-3.5 py-3 sm:px-8 sm:py-8 lg:px-14 lg:py-12">
  <div className="w-full max-w-[calc(100%-40px)] sm:w-auto sm:max-w-[650px]">
  {slide.badge ? (
@@ -668,7 +721,6 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  ) : null}
  </div>
  </div>
- ) : null}
  </div>
  </section>
  );
@@ -833,14 +885,14 @@ function Categories({
  <Link
  key={category.id || category.slug}
  href={category.href || `/catalog/${category.slug}`}
- className={`group relative flex h-[96px] w-[92px] shrink-0 flex-col items-center justify-between overflow-hidden rounded-2xl border p-2 text-center transition-all duration-500 hover:-translate-y-1 sm:min-h-[180px] sm:w-auto sm:items-start sm:p-6 sm:text-left ${
+ className={`group relative flex h-[96px] w-[92px] shrink-0 flex-col items-center justify-between overflow-hidden rounded-2xl border p-2 text-center transition-all duration-500 hover:-translate-y-1 sm:min-h-[180px] sm:w-auto sm:items-start sm:p-6 sm:pb-16 sm:text-left ${
  dark
  ? "border-white/10 bg-white/[0.035] hover:border-blue-500/35 hover:bg-white/[0.025]"
  : "border-black/10 bg-white hover:border-blue-500/35 hover:"
  }`}
  >
- <div className="relative z-10 order-2 flex w-full flex-1 flex-col sm:order-none sm:max-w-[46%]">
- <h3 className="line-clamp-2 text-[10px] font-bold leading-tight sm:text-xl">
+ <div className="relative z-10 order-2 flex w-full flex-1 flex-col sm:order-none sm:max-w-[42%] sm:pr-2">
+ <h3 className="line-clamp-2 text-[10px] font-bold leading-tight sm:text-lg">
  {category.name}
  </h3>
 
@@ -877,7 +929,7 @@ function Categories({
  </div>
 
  <div
- className={`relative z-10 mt-5 hidden h-11 w-11 shrink-0 items-center justify-center rounded-xl border text-base font-bold transition-all duration-300 group-hover:translate-x-1 sm:flex ${
+ className={`absolute bottom-5 left-6 z-20 hidden h-9 w-9 shrink-0 items-center justify-center rounded-xl border text-sm font-bold transition-all duration-300 group-hover:translate-x-1 sm:flex ${
  dark
  ? "border-transparent bg-blue-600 text-white group-hover:bg-blue-500"
  : "border-black/10 bg-white text-black group-hover:border-blue-500 group-hover:bg-blue-600 group-hover:text-white"
@@ -1395,13 +1447,30 @@ function PromoBanner({
  const label = banner?.label || getBlockText(settings, "label", "Промо");
  const buttonText = banner?.buttonText || getBlockText(settings, "buttonText", "Подробнее");
  const buttonHref = banner?.buttonHref || getBlockText(settings, "buttonHref", "/catalog");
+ const secondaryButtonText = banner?.secondaryButtonText || "";
+ const secondaryButtonHref = banner?.secondaryButtonHref || "";
+ const isImageBackgroundLayout = banner?.layout === "image-bg";
  const titleSize = banner?.titleSize || getBlockText(settings, "titleSize", "lg");
  const textSize = banner?.textSize || getBlockText(settings, "textSize", "md");
 
+ if (isImageBackgroundLayout) {
  return (
  <section className="pb-3 sm:pb-8 lg:pb-10">
- <Link
- href={buttonHref}
+ <div className={`overflow-hidden rounded-[22px] border sm:rounded-[34px] ${dark ? "border-white/10 bg-white/[0.035]" : "border-black/10 bg-white"}`}>
+ {image ? (
+ // eslint-disable-next-line @next/next/no-img-element
+ <img src={image} alt={title} className="block h-[220px] w-full object-cover sm:h-[360px] lg:h-[520px]" />
+ ) : (
+ <div className={`h-[220px] rounded-[22px] border border-dashed sm:h-[360px] sm:rounded-[34px] lg:h-[520px] ${dark ? "border-white/10 bg-white/[0.03]" : "border-black/10 bg-slate-50"}`} />
+ )}
+ </div>
+ </section>
+ );
+ }
+
+ return (
+ <section className="pb-3 sm:pb-8 lg:pb-10">
+ <div
  className={`group grid overflow-hidden rounded-[22px] border transition-all duration-500 hover:-translate-y-1 sm:min-h-[260px] sm:rounded-[34px] lg:grid-cols-[0.95fr_1.05fr] ${
  dark
  ? "border-blue-500/20 bg-blue-600/10 hover:border-blue-500/40"
@@ -1416,9 +1485,16 @@ function PromoBanner({
  <p className={`mt-4 max-w-[430px] leading-relaxed ${bannerTextSizeClass(textSize)} ${mutedTextClass(dark)}`}>
  {subtitle}
  </p>
- <span className="mt-7 inline-flex rounded-xl bg-blue-600 px-6 py-4 text-sm font-medium text-white transition-colors group-hover:bg-blue-500">
+ <div className="mt-7 flex flex-wrap gap-3">
+ <Link href={buttonHref} className="inline-flex rounded-xl bg-blue-600 px-6 py-4 text-sm font-medium text-white transition-colors hover:bg-blue-500">
  {buttonText}
- </span>
+ </Link>
+ {secondaryButtonText && secondaryButtonHref ? (
+ <Link href={secondaryButtonHref} className={`inline-flex rounded-xl border px-6 py-4 text-sm font-medium transition-colors ${dark ? "border-white/10 bg-white/5 text-white hover:bg-white/10" : "border-black/10 bg-white text-black hover:border-blue-500/40 hover:bg-blue-50"}`}>
+ {secondaryButtonText}
+ </Link>
+ ) : null}
+ </div>
  </div>
 
  <div className={`flex aspect-[16/9] items-center justify-center sm:min-h-[220px] sm:aspect-auto ${dark ? "bg-white/[0.035]" : "bg-slate-50"}`}>
@@ -1429,7 +1505,7 @@ function PromoBanner({
  <div className={`mx-4 h-[120px] w-full rounded-2xl border border-dashed sm:mx-6 sm:h-[180px] sm:rounded-3xl ${dark ? "border-white/10 bg-white/[0.03]" : "border-black/10 bg-white"}`} />
  )}
  </div>
- </Link>
+ </div>
  </section>
  );
 }

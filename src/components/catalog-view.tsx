@@ -1635,7 +1635,7 @@ function PositionProductCard({
  <div className="mt-2 hidden text-xs text-muted-soft sm:block">Код товара: {position.sku}</div>
 
  <div className="mt-2 w-full rounded-xl bg-blue-600 py-2 text-center text-xs font-medium text-white transition-all duration-300 group-hover:bg-blue-500 sm:mt-5 sm:py-3 sm:text-sm">
- Открыть товар
+ Открыть
  </div>
  </div>
  </Link>

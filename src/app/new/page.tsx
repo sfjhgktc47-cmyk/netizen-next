@@ -255,7 +255,7 @@ function NewCard({
  <p className={`mt-3 text-sm leading-relaxed ${muted(dark)}`}>{description}</p>
  <div className="mt-5 flex items-center justify-between gap-4">
  <span className="text-sm font-semibold">{product.price}</span>
- <span className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-medium text-white">Открыть товар</span>
+ <span className="rounded-xl bg-blue-600 px-4 py-3 text-sm font-medium text-white">Открыть</span>
  </div>
  </div>
  </Link>

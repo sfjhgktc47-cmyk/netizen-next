@@ -228,7 +228,7 @@ export async function createSiteBanner(input?: BannerInput) {
       buttonText: cleanText(input?.buttonText, "Подробнее"),
       buttonHref: cleanText(input?.buttonHref, "/catalog") || "/catalog",
       secondaryButtonText: cleanText(input?.secondaryButtonText, "Каталог"),
-      secondaryButtonHref: cleanText(input?.secondaryButtonHref, "/catalog") || "/catalog",
+      secondaryButtonHref: cleanText(input?.secondaryButtonHref, "/catalog"),
       imageLight: cleanText(input?.imageLight),
       imageDark: cleanText(input?.imageDark),
       imageMobile: cleanText(input?.imageMobile),

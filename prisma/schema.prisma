@@ -490,7 +490,7 @@ model SiteBanner {
   buttonHref          String   @default("")
   secondaryButtonText String   @default("Каталог")
   secondaryButtonHref String   @default("/catalog")
-  imageLight  String   @default("")
+  imageLight          String   @default("")
   imageDark   String   @default("")
   imageMobile String   @default("")
   placement   String   @default("manual")
