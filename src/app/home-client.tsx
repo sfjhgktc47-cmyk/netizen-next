@@ -559,32 +559,32 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  : "absolute inset-y-0 right-0 hidden h-full w-[56%] items-center justify-end sm:flex lg:w-[60%]"
  }
  >
- <Image
+ {/* eslint-disable-next-line @next/next/no-img-element */}
+ <img
  src={image}
  alt=""
- fill
- priority={activeSlide === 0}
- quality={85}
+ loading={activeSlide === 0 ? "eager" : "lazy"}
+ decoding="async"
+ draggable={false}
  className={
  isImageBackgroundLayout
- ? "object-contain object-right transition-transform duration-700"
- : "object-contain object-right p-6 transition-transform duration-700 sm:p-8 lg:p-10"
+ ? "h-full w-full object-contain object-right transition-transform duration-700"
+ : "h-full w-full object-contain object-right p-6 transition-transform duration-700 sm:p-8 lg:p-10"
  }
- draggable={false}
  />
  </div>
  ) : null}
 
  {mobileImage ? (
  <div className="absolute inset-y-0 right-0 block h-full w-[52%] sm:hidden">
- <Image
+ {/* eslint-disable-next-line @next/next/no-img-element */}
+ <img
  src={mobileImage}
  alt=""
- fill
- priority={activeSlide === 0}
- quality={85}
- className="object-contain object-right p-1.5"
+ loading={activeSlide === 0 ? "eager" : "lazy"}
+ decoding="async"
  draggable={false}
+ className="h-full w-full object-contain object-right p-1.5"
  />
  </div>
  ) : null}
