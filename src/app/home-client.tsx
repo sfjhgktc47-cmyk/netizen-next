@@ -61,6 +61,8 @@ type HomeBanner = {
  description: string;
  buttonText: string;
  buttonHref: string;
+ secondaryButtonText?: string;
+ secondaryButtonHref?: string;
  imageLight: string;
  imageDark: string;
  imageMobile: string;
@@ -463,8 +465,8 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  text: banner.subtitle || banner.description,
  primaryLabel: banner.buttonText || "Подробнее",
  primaryHref: banner.buttonHref || "/catalog",
- secondaryLabel: "Каталог",
- secondaryHref: "/catalog",
+ secondaryLabel: typeof banner.secondaryButtonText === "string" ? banner.secondaryButtonText : "Каталог",
+ secondaryHref: typeof banner.secondaryButtonHref === "string" ? banner.secondaryButtonHref : "/catalog",
  imageDark: banner.imageDark || banner.imageLight || banner.imageMobile,
  imageLight: banner.imageLight || banner.imageDark || banner.imageMobile,
  imageMobile: banner.imageMobile || banner.imageLight || banner.imageDark,
@@ -502,6 +504,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  const image = slide.imageDark || slide.imageLight || slide.imageMobile;
  const mobileImage = slide.imageMobile || image;
  const isImageBackgroundLayout = slide.layout === "image-bg";
+ const shouldShowHeroContent = !isImageBackgroundLayout;
 
  function goToNextSlide() {
  setActiveSlide((current) => (current + 1) % slides.length);
@@ -559,36 +562,37 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  : "absolute inset-y-0 right-0 hidden h-full w-[56%] items-center justify-end sm:flex lg:w-[60%]"
  }
  >
- {/* eslint-disable-next-line @next/next/no-img-element */}
- <img
+ <Image
  src={image}
  alt=""
- loading={activeSlide === 0 ? "eager" : "lazy"}
- decoding="async"
- draggable={false}
+ fill
+ priority={activeSlide === 0}
+ quality={85}
  className={
  isImageBackgroundLayout
- ? "h-full w-full object-contain object-right transition-transform duration-700"
- : "h-full w-full object-contain object-right p-6 transition-transform duration-700 sm:p-8 lg:p-10"
+ ? "object-cover object-center transition-transform duration-700"
+ : "object-contain object-right p-6 transition-transform duration-700 sm:p-8 lg:p-10"
  }
+ draggable={false}
  />
  </div>
  ) : null}
 
  {mobileImage ? (
- <div className="absolute inset-y-0 right-0 block h-full w-[52%] sm:hidden">
- {/* eslint-disable-next-line @next/next/no-img-element */}
- <img
+ <div className={isImageBackgroundLayout ? "absolute inset-0 block h-full sm:hidden" : "absolute inset-y-0 right-0 block h-full w-[52%] sm:hidden"}>
+ <Image
  src={mobileImage}
  alt=""
- loading={activeSlide === 0 ? "eager" : "lazy"}
- decoding="async"
+ fill
+ priority={activeSlide === 0}
+ quality={85}
+ className={isImageBackgroundLayout ? "object-cover object-center" : "object-contain object-right p-1.5"}
  draggable={false}
- className="h-full w-full object-contain object-right p-1.5"
  />
  </div>
  ) : null}
 
+ {shouldShowHeroContent ? (
  <div
  className={`absolute inset-0 transition-all duration-700 ${
  dark
@@ -596,7 +600,9 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  : "bg-gradient-to-r from-white/80 via-white/25 to-transparent sm:from-white/80 sm:via-white/25 sm:to-transparent"
  }`}
  />
+ ) : null}
 
+ {shouldShowHeroContent ? (
  <div className="relative z-10 flex h-full items-center px-3.5 py-3 sm:px-8 sm:py-8 lg:px-14 lg:py-12">
  <div className="w-full max-w-[calc(100%-40px)] sm:w-auto sm:max-w-[650px]">
  {slide.badge ? (
@@ -627,6 +633,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  {withoutTrailingArrow(slide.primaryLabel)}
  </Link>
 
+ {slide.secondaryLabel && slide.secondaryHref ? (
  <Link
  href={slide.secondaryHref}
  className={`hidden min-h-11 items-center justify-center rounded-xl border px-4 py-2.5 text-[11px] font-medium transition-all duration-300 hover:-translate-y-0.5 min-[390px]:inline-flex sm:min-h-12 sm:px-7 sm:py-4 sm:text-sm ${
@@ -637,6 +644,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  >
  {withoutTrailingArrow(slide.secondaryLabel)}
  </Link>
+ ) : null}
  </div>
 
  {slides.length > 1 ? (
@@ -660,6 +668,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  ) : null}
  </div>
  </div>
+ ) : null}
  </div>
  </section>
  );

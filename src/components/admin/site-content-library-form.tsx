@@ -22,6 +22,8 @@ const emptyBanner: Omit<SiteBanner, "id" | "createdAt" | "updatedAt"> = {
   description: "",
   buttonText: "Подробнее",
   buttonHref: "/catalog",
+  secondaryButtonText: "Каталог",
+  secondaryButtonHref: "/catalog",
   imageLight: "",
   imageDark: "",
   imageMobile: "",
@@ -398,16 +400,28 @@ function LibraryList({ title, createText, onCreate, children }: { title: string;
 }
 
 function BannerEditor({ banner, disabled, updateBanner, saveBanner, deleteBanner }: { banner: SiteBanner; disabled: boolean; updateBanner: (id: string, patch: Partial<SiteBanner>) => void; saveBanner: (banner: SiteBanner) => void; deleteBanner: (banner: SiteBanner) => void }) {
+  const isImageBackgroundLayout = banner.layout === "image-bg";
+
   return (
     <div className="rounded-3xl border border-white/10 bg-black/20 p-5 sm:p-6">
       <div className="grid gap-4 md:grid-cols-2">
         <LibraryField label="Название в админке"><input value={banner.adminTitle} onChange={(event) => updateBanner(banner.id, { adminTitle: event.target.value })} className="admin-input" /></LibraryField>
-        <LibraryField label="Метка"><input value={banner.label} onChange={(event) => updateBanner(banner.id, { label: event.target.value })} className="admin-input" /></LibraryField>
-        <LibraryField label="Заголовок"><textarea value={banner.title} onChange={(event) => updateBanner(banner.id, { title: event.target.value })} className="admin-textarea min-h-[80px]" /></LibraryField>
-        <LibraryField label="Подзаголовок"><input value={banner.subtitle} onChange={(event) => updateBanner(banner.id, { subtitle: event.target.value })} className="admin-input" /></LibraryField>
-        <LibraryField label="Описание"><textarea value={banner.description} onChange={(event) => updateBanner(banner.id, { description: event.target.value })} className="admin-textarea min-h-[110px]" /></LibraryField>
-        <LibraryField label="Текст кнопки"><input value={banner.buttonText} onChange={(event) => updateBanner(banner.id, { buttonText: event.target.value })} className="admin-input" /></LibraryField>
-        <LibraryField label="Ссылка кнопки"><input value={banner.buttonHref} onChange={(event) => updateBanner(banner.id, { buttonHref: event.target.value })} className="admin-input" /></LibraryField>
+        <LibraryField label="Метка"><input value={banner.label} onChange={(event) => updateBanner(banner.id, { label: event.target.value })} className="admin-input" disabled={isImageBackgroundLayout} /></LibraryField>
+        {isImageBackgroundLayout ? (
+          <div className="md:col-span-2 rounded-2xl border border-blue-500/20 bg-blue-500/10 px-4 py-3 text-sm leading-relaxed text-blue-200">
+            В макете «Фото фоном» на сайте будет показана только картинка без текста и кнопок. Используйте широкий баннер 1920×800 px.
+          </div>
+        ) : (
+          <>
+            <LibraryField label="Заголовок"><textarea value={banner.title} onChange={(event) => updateBanner(banner.id, { title: event.target.value })} className="admin-textarea min-h-[80px]" /></LibraryField>
+            <LibraryField label="Подзаголовок"><input value={banner.subtitle} onChange={(event) => updateBanner(banner.id, { subtitle: event.target.value })} className="admin-input" /></LibraryField>
+            <LibraryField label="Описание"><textarea value={banner.description} onChange={(event) => updateBanner(banner.id, { description: event.target.value })} className="admin-textarea min-h-[110px]" /></LibraryField>
+            <LibraryField label="Текст кнопки 1"><input value={banner.buttonText} onChange={(event) => updateBanner(banner.id, { buttonText: event.target.value })} className="admin-input" /></LibraryField>
+            <LibraryField label="Ссылка кнопки 1"><input value={banner.buttonHref} onChange={(event) => updateBanner(banner.id, { buttonHref: event.target.value })} className="admin-input" /></LibraryField>
+            <LibraryField label="Текст кнопки 2"><input value={banner.secondaryButtonText || ""} onChange={(event) => updateBanner(banner.id, { secondaryButtonText: event.target.value })} className="admin-input" placeholder="Например: Каталог" /></LibraryField>
+            <LibraryField label="Ссылка кнопки 2"><input value={banner.secondaryButtonHref || ""} onChange={(event) => updateBanner(banner.id, { secondaryButtonHref: event.target.value })} className="admin-input" placeholder="Например: /catalog" /></LibraryField>
+          </>
+        )}
         <LibraryField label="Где использовать"><input value={banner.placement} onChange={(event) => updateBanner(banner.id, { placement: event.target.value })} className="admin-input" placeholder="home / catalog / product / manual" /></LibraryField>
         <LibraryField label="Порядок"><input type="number" value={banner.sortOrder} onChange={(event) => updateBanner(banner.id, { sortOrder: Number(event.target.value) })} className="admin-input" /></LibraryField>
         <LibraryField label="Размер заголовка"><select value={banner.titleSize || "lg"} onChange={(event) => updateBanner(banner.id, { titleSize: event.target.value })} className="admin-input"><option value="md">Средний</option><option value="lg">Большой</option><option value="xl">Очень большой</option></select></LibraryField>

@@ -486,8 +486,10 @@ model SiteBanner {
   title       String
   subtitle    String   @default("")
   description String   @default("")
-  buttonText  String   @default("")
-  buttonHref  String   @default("")
+  buttonText          String   @default("")
+  buttonHref          String   @default("")
+  secondaryButtonText String   @default("Каталог")
+  secondaryButtonHref String   @default("/catalog")
   imageLight  String   @default("")
   imageDark   String   @default("")
   imageMobile String   @default("")

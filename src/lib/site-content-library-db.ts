@@ -10,6 +10,8 @@ export type SiteBanner = {
   description: string;
   buttonText: string;
   buttonHref: string;
+  secondaryButtonText: string;
+  secondaryButtonHref: string;
   imageLight: string;
   imageDark: string;
   imageMobile: string;
@@ -68,6 +70,8 @@ function toBanner(item: {
   description: string;
   buttonText: string;
   buttonHref: string;
+  secondaryButtonText: string;
+  secondaryButtonHref: string;
   imageLight: string;
   imageDark: string;
   imageMobile: string;
@@ -223,6 +227,8 @@ export async function createSiteBanner(input?: BannerInput) {
       description: cleanText(input?.description),
       buttonText: cleanText(input?.buttonText, "Подробнее"),
       buttonHref: cleanText(input?.buttonHref, "/catalog") || "/catalog",
+      secondaryButtonText: cleanText(input?.secondaryButtonText, "Каталог"),
+      secondaryButtonHref: cleanText(input?.secondaryButtonHref, "/catalog") || "/catalog",
       imageLight: cleanText(input?.imageLight),
       imageDark: cleanText(input?.imageDark),
       imageMobile: cleanText(input?.imageMobile),
@@ -250,6 +256,8 @@ export async function updateSiteBanner(id: string, input: BannerInput) {
       ...(input.description !== undefined ? { description: cleanText(input.description) } : {}),
       ...(input.buttonText !== undefined ? { buttonText: cleanText(input.buttonText) } : {}),
       ...(input.buttonHref !== undefined ? { buttonHref: cleanText(input.buttonHref, "/catalog") || "/catalog" } : {}),
+      ...(input.secondaryButtonText !== undefined ? { secondaryButtonText: cleanText(input.secondaryButtonText) } : {}),
+      ...(input.secondaryButtonHref !== undefined ? { secondaryButtonHref: cleanText(input.secondaryButtonHref) } : {}),
       ...(input.imageLight !== undefined ? { imageLight: cleanText(input.imageLight) } : {}),
       ...(input.imageDark !== undefined ? { imageDark: cleanText(input.imageDark) } : {}),
       ...(input.imageMobile !== undefined ? { imageMobile: cleanText(input.imageMobile) } : {}),
