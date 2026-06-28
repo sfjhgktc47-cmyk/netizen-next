@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { ThemeProvider } from "@/components/theme-provider";
 import { ForceBrandHead } from "@/components/force-brand-head";
+import { HardLinkNavigation } from "@/components/hard-link-navigation";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -71,6 +72,7 @@ export default function RootLayout({
       </head>
       <body>
         <ForceBrandHead />
+        <HardLinkNavigation />
         <ThemeProvider>{children}</ThemeProvider>
       </body>
     </html>
