@@ -1117,13 +1117,13 @@ export default function CartPage() {
  <section className="grid grid-cols-2 gap-2">
  {!isRegistered && (
  <CheckoutCard
- title="Данные клиента"
+ title="Контактные данные"
  text={
  hasGuestContacts
  ? contactSummary
- : "Оформление без регистрации. Укажите имя и телефон, чтобы менеджер подтвердил заказ."
+ : "Оставьте имя и телефон — менеджер подтвердит заказ и согласует детали."
  }
- status={hasGuestContacts ? "Заполнено" : "Заполнить"}
+ status={hasGuestContacts ? "Заполнено" : "Указать"}
  isComplete={hasGuestContacts}
  action={hasGuestContacts ? "Изменить" : "Контакты"}
  onClick={() => setActiveModal("contacts")}
@@ -1163,7 +1163,7 @@ export default function CartPage() {
 
  {!isRegistered && (
  <div className="flex justify-between gap-4">
- <span>Контакты</span>
+ <span>Заполнить контакты</span>
  <span className="max-w-[190px] text-right text-main">{hasGuestContacts ? customer.phone : "не указаны"}</span>
  </div>
  )}
