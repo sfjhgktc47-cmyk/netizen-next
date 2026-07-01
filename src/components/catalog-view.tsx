@@ -1560,13 +1560,7 @@ function PositionProductCard({
  }`}
  >
  <div
- className={`flex aspect-square w-full items-center justify-center overflow-hidden rounded-[14px] transition-colors duration-700 sm:rounded-2xl sm:aspect-[3/4] ${
- position.images?.[0] || getModelImage(position.product)
- ? "bg-white text-slate-400"
- : dark
- ? "bg-white/[0.045] text-white/25"
- : "bg-slate-100 text-black/25"
- }`}
+ className="photo-white-box flex aspect-square w-full items-center justify-center overflow-hidden rounded-[14px] bg-white text-slate-400 transition-colors duration-700 dark:bg-white sm:aspect-[3/4] sm:rounded-2xl"
  >
  {position.images?.[0] || getModelImage(position.product) ? (
  // eslint-disable-next-line @next/next/no-img-element

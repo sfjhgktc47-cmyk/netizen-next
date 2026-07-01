@@ -279,9 +279,7 @@ function CarouselProductCard({
  }`}
  >
  <div
- className={`flex aspect-square w-full items-center justify-center overflow-hidden rounded-[10px] transition-colors duration-700 sm:rounded-2xl sm:aspect-[4/5] ${
- image ? "bg-slate-50" : dark ? "bg-white/[0.045] text-white/25" : "bg-slate-100 text-black/25"
- }`}
+ className="photo-white-box flex aspect-square w-full items-center justify-center overflow-hidden rounded-[10px] bg-white text-slate-400 transition-colors duration-700 dark:bg-white sm:aspect-[4/5] sm:rounded-2xl"
  >
  {image ? (
  // eslint-disable-next-line @next/next/no-img-element

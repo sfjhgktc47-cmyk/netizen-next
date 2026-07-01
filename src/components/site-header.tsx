@@ -792,7 +792,7 @@ export function SiteHeader() {
  : "border-black/10 bg-white hover:border-blue-500/35 hover:"
  }`}
  >
- <div className={`aspect-[16/10] overflow-hidden rounded-[20px] ${dark ? "bg-white/[0.04]" : "bg-slate-100"}`}>
+ <div className="photo-white-box aspect-[16/10] overflow-hidden rounded-[20px] bg-white dark:bg-white">
  {product.image ? (
  // eslint-disable-next-line @next/next/no-img-element
  <img
