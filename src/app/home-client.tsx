@@ -264,8 +264,8 @@ export default function Home({ initialData = {} }: { initialData?: HomePayload }
  <main
  className={
  dark
- ? "min-h-screen bg-[#020814] text-white transition-colors duration-700 ease-in-out"
- : "min-h-screen bg-[#f6f8fb] text-[#0b1220] transition-colors duration-700 ease-in-out"
+ ? "min-h-screen bg-[#020814] text-white ease-in-out"
+ : "min-h-screen bg-[#f6f8fb] text-[#0b1220] ease-in-out"
  }
  >
  <div className="mx-auto max-w-[1440px] px-2 pb-12 pt-2.5 sm:px-5 sm:py-6 lg:px-6">
@@ -519,7 +519,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  onMouseEnter={() => setIsHeroHovered(true)}
  onMouseLeave={() => setIsHeroHovered(false)}
  style={{ touchAction: "pan-y" }}
- className={`relative h-[220px] cursor-grab select-none overflow-hidden rounded-[20px] border transition-all duration-700 active:cursor-grabbing sm:h-[360px] sm:rounded-[30px] lg:h-[520px] ${
+ className={`relative h-[220px] cursor-grab select-none overflow-hidden rounded-[20px] border active:cursor-grabbing sm:h-[360px] sm:rounded-[30px] lg:h-[520px] ${
  dark
  ? "border-white/10 bg-[#06101f]"
  : "border-black/10 bg-white"
@@ -671,8 +671,8 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  quality={85}
  className={
  isImageBackgroundLayout
- ? "object-contain object-right transition-transform duration-700"
- : "object-contain object-right p-6 transition-transform duration-700 sm:p-8 lg:p-10"
+ ? "object-contain object-right"
+ : "object-contain object-right p-6 sm:p-8 lg:p-10"
  }
  draggable={false}
  />
@@ -694,7 +694,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  ) : null}
 
  <div
- className={`absolute inset-0 transition-all duration-700 ${
+ className={`pointer-events-none absolute inset-0 ${
  dark
  ? "bg-gradient-to-r from-[#06101f]/85 via-[#06101f]/30 to-transparent sm:from-[#020814]/85 sm:via-[#020814]/35 sm:to-transparent"
  : "bg-gradient-to-r from-white/80 via-white/25 to-transparent sm:from-white/80 sm:via-white/25 sm:to-transparent"
@@ -1271,7 +1271,7 @@ function ProductCard({
  }`}
  >
  <div
- className={`relative flex h-[88px] items-center justify-center overflow-hidden rounded-[12px] transition-colors duration-700 min-[390px]:h-[98px] sm:h-[230px] sm:rounded-2xl ${
+ className={`relative flex h-[88px] items-center justify-center overflow-hidden rounded-[12px] min-[390px]:h-[98px] sm:h-[230px] sm:rounded-2xl ${
  image
  ? "bg-white"
  : dark
@@ -1818,7 +1818,7 @@ function Footer({
  alt={storeName}
  width={170}
  height={48}
- className="h-auto max-h-10 w-auto object-contain transition-opacity duration-700"
+ className="h-auto max-h-10 w-auto object-contain"
  />
  </Link>
 
@@ -1906,7 +1906,7 @@ function Footer({
  </div>
 
  <div
- className={`mt-10 flex flex-col gap-6 border-t pt-8 text-sm transition-colors duration-700 lg:flex-row lg:items-center lg:justify-between ${
+ className={`mt-10 flex flex-col gap-6 border-t pt-8 text-sm lg:flex-row lg:items-center lg:justify-between ${
  dark ? "border-white/10 text-white/45" : "border-black/10 text-black/45"
  }`}
  >
