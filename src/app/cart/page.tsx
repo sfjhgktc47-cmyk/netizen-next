@@ -1009,13 +1009,23 @@ export default function CartPage() {
  className="soft-box relative flex h-[62px] items-center justify-center overflow-hidden rounded-2xl bg-slate-50 dark:bg-slate-100 text-[10px] text-muted-soft sm:h-[110px] md:h-[140px] md:text-sm"
  >
  {item.image ? (
- // eslint-disable-next-line @next/next/no-img-element
+ <>
+ {/* фон из этой же фотографии, растянутый до краёв */}
+ <img
+ src={item.image}
+ alt=""
+ aria-hidden="true"
+ loading="lazy"
+ className="pointer-events-none absolute inset-0 h-full w-full scale-125 select-none object-cover blur-2xl opacity-80"
+ />
+ {/* основная фотография */}
  <img
  src={item.image}
  alt={item.title || item.productName}
  loading="lazy"
- className="h-full w-full object-contain p-1.5 sm:p-2"
+ className="relative z-10 h-full w-full object-contain p-1.5 sm:p-2"
  />
+ </>
  ) : (
  "Фото"
  )}
@@ -2048,13 +2058,23 @@ function ProductStrip({
  >
  <div className="soft-box flex h-[108px] items-center justify-center overflow-hidden rounded-2xl bg-slate-50 dark:bg-slate-100 text-xs text-muted-soft sm:h-[150px] sm:text-sm">
  {product.image ? (
- // eslint-disable-next-line @next/next/no-img-element
+ <>
+ {/* фон из этой же фотографии, растянутый до краёв */}
+ <img
+ src={product.image}
+ alt=""
+ aria-hidden="true"
+ loading="lazy"
+ className="pointer-events-none absolute inset-0 h-full w-full scale-125 select-none object-cover blur-2xl opacity-80"
+ />
+ {/* основная фотография */}
  <img
  src={product.image}
  alt={product.name}
  loading="lazy"
- className="h-full w-full object-contain p-2"
+ className="relative z-10 h-full w-full object-contain p-2"
  />
+ </>
  ) : (
  "Фото"
  )}
