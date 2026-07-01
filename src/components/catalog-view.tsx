@@ -6,6 +6,7 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { products as fallbackProducts, type ProductModel as CatalogProductBase } from "@/data/products";
 import { productPositions as fallbackProductPositions, type ProductPosition as CatalogPositionBase } from "@/data/product-positions";
 import { getModelPriceRange, getPriceNumber } from "@/lib/product-pricing";
+import { buildCatalogSearch, matchesCatalogSearch, scoreCatalogSearchTarget, type CatalogSearchIntent } from "@/lib/search-v2";
 import { SiteHeader } from "@/components/site-header";
 import { ProductCarousel } from "@/components/product-carousel";
 import { useTheme } from "@/components/theme-provider";
@@ -29,6 +30,8 @@ type CatalogViewProps = {
 
 type ProductModel = CatalogProductBase & {
  category?: string;
+ categoryName?: string;
+ description?: string;
  image?: string;
  images?: string[];
  shortDescription?: string;
@@ -402,6 +405,68 @@ function includesSearchQuery(values: Array<string | undefined | null>, query: st
  return tokens.every((token) => haystack.includes(token));
 }
 
+function getProductSearchValues(product: ProductModel) {
+ return [
+ product.name,
+ product.brand,
+ product.category,
+ product.categoryName,
+ product.shortDescription,
+ product.description,
+ product.price,
+ ];
+}
+
+function getPositionSearchValues(position: CatalogPosition) {
+ return [
+ position.title,
+ position.productName,
+ position.brand,
+ position.category,
+ position.product.categoryName,
+ position.product.shortDescription,
+ position.product.description,
+ position.sku,
+ position.memory,
+ position.color,
+ position.sim,
+ position.price,
+ position.oldPrice,
+ ];
+}
+
+function getProductSearchScore(product: ProductModel, search: CatalogSearchIntent) {
+ return scoreCatalogSearchTarget(search, {
+ values: getProductSearchValues(product),
+ category: product.category,
+ sortOrder: getProductSortOrder(product),
+ });
+}
+
+function getPositionSearchScore(position: CatalogPosition, search: CatalogSearchIntent) {
+ return scoreCatalogSearchTarget(search, {
+ values: getPositionSearchValues(position),
+ category: position.category,
+ sortOrder: getProductSortOrder(position.product),
+ });
+}
+
+function matchesProductSearch(product: ProductModel, search: CatalogSearchIntent) {
+ return matchesCatalogSearch(search, {
+ values: getProductSearchValues(product),
+ category: product.category,
+ sortOrder: getProductSortOrder(product),
+ });
+}
+
+function matchesPositionSearch(position: CatalogPosition, search: CatalogSearchIntent) {
+ return matchesCatalogSearch(search, {
+ values: getPositionSearchValues(position),
+ category: position.category,
+ sortOrder: getProductSortOrder(position.product),
+ });
+}
+
 type SpecificationKey = "memory" | "color" | "sim" | "status";
 
 type SpecificationSelection = {
@@ -547,7 +612,8 @@ export function CatalogView({
  return () => window.removeEventListener("popstate", syncFiltersFromUrl);
  }, []);
 
- const normalizedSearchQuery = searchQuery.trim();
+ const catalogSearch = useMemo(() => buildCatalogSearch(searchQuery), [searchQuery]);
+ const normalizedSearchQuery = catalogSearch.normalized || searchQuery.trim();
 
  useEffect(() => {
  if (!isUrlSyncReady.current) {
@@ -647,19 +713,13 @@ export function CatalogView({
  return false;
  }
 
- if (
- normalizedSearchQuery &&
- !includesSearchQuery(
- [product.name, product.brand, product.category, product.shortDescription, product.price],
- normalizedSearchQuery
- )
- ) {
+ if (catalogSearch.hasQuery && !matchesProductSearch(product, catalogSearch)) {
  return false;
  }
 
  return true;
  }),
- [allProducts, normalizedSearchQuery, onlyPopular, selectedCategoryId]
+ [allProducts, catalogSearch, onlyPopular, selectedCategoryId]
  );
 
  const visibleModelProducts = useMemo(
@@ -840,22 +900,7 @@ export function CatalogView({
  return false;
  }
 
- if (
- normalizedSearchQuery &&
- !includesSearchQuery(
- [
- position.title,
- position.productName,
- position.brand,
- position.sku,
- position.memory,
- position.color,
- position.sim,
- position.product.shortDescription,
- ],
- normalizedSearchQuery
- )
- ) {
+ if (catalogSearch.hasQuery && !matchesPositionSearch(position, catalogSearch)) {
  return false;
  }
 
@@ -865,7 +910,7 @@ export function CatalogView({
  enrichedPositions,
  selectedCategoryId,
  onlyPopular,
- normalizedSearchQuery,
+ catalogSearch,
  priceFrom,
  priceTo,
  selectedBrand,
@@ -881,10 +926,21 @@ export function CatalogView({
  [sortMode, visibleModelProducts]
  );
 
- const sortedPositionResults = useMemo(
- () => sortCatalogPositions(positionResults, sortMode),
- [positionResults, sortMode]
- );
+ const sortedPositionResults = useMemo(() => {
+ if (catalogSearch.hasQuery) {
+ return [...positionResults].sort((a, b) => {
+ const scoreDiff = getPositionSearchScore(b, catalogSearch) - getPositionSearchScore(a, catalogSearch);
+
+ if (scoreDiff !== 0) {
+ return scoreDiff;
+ }
+
+ return getPriceNumber(a.price) - getPriceNumber(b.price);
+ });
+ }
+
+ return sortCatalogPositions(positionResults, sortMode);
+ }, [catalogSearch, positionResults, sortMode]);
 
  const productsByBrand = useMemo(() => {
  const grouped = visibleModelProducts.reduce<Record<string, ProductModel[]>>(
