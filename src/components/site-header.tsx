@@ -776,7 +776,7 @@ export function SiteHeader() {
  </div>
  )}
 
- <div className="mt-5 grid grid-cols-2 gap-5">
+ <div className="mt-4 grid grid-cols-[repeat(auto-fill,minmax(180px,220px))] gap-4">
  {searchProducts.map((product) => (
  <Link
  key={product.slug}
@@ -786,7 +786,7 @@ export function SiteHeader() {
  if (query) saveSearchHistory(query);
  setIsSearchOpen(false);
  }}
- className={`group rounded-[24px] border p-4 transition-all hover:-translate-y-0.5 ${
+ className={`group rounded-[20px] border p-3 transition-all hover:-translate-y-0.5 ${
  dark
  ? "border-white/10 bg-white/[0.03] hover:border-blue-500/35"
  : "border-black/10 bg-white hover:border-blue-500/35 hover:"
@@ -800,7 +800,7 @@ export function SiteHeader() {
  alt=""
  loading="lazy"
  decoding="async"
- className="h-full w-full object-contain p-4"
+ className="h-full w-full object-contain p-2"
  />
  ) : null}
  </div>
@@ -809,12 +809,12 @@ export function SiteHeader() {
  <div className={`truncate text-[10px] ${dark ? "text-white/45" : "text-black/45"}`}>
  {product.brand}
  </div>
- <div className="mt-2 line-clamp-2 min-h-[48px] text-[15px] font-semibold leading-snug">
+ <div className="mt-2 line-clamp-2 min-h-[40px] text-sm font-semibold leading-snug">
  {product.name}
  </div>
 
  <div className="mt-2 flex flex-wrap items-baseline gap-x-2 gap-y-1">
- <span className="text-lg font-bold text-blue-500">{product.price}</span>
+ <span className="text-base font-bold text-blue-500">{product.price}</span>
  {product.oldPrice ? (
  <span className={`text-[10px] line-through ${dark ? "text-white/35" : "text-black/35"}`}>
  {product.oldPrice}

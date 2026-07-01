@@ -396,7 +396,10 @@ function includesSearchQuery(values: Array<string | undefined | null>, query: st
  return true;
  }
 
- return values.some((value) => normalizeSearchText(value ?? "").includes(normalizedQuery));
+ const tokens = normalizedQuery.split(/\s+/).filter(Boolean);
+ const haystack = values.map((value) => normalizeSearchText(value ?? "")).join(" ");
+
+ return tokens.every((token) => haystack.includes(token));
 }
 
 type SpecificationKey = "memory" | "color" | "sim" | "status";
@@ -1534,7 +1537,7 @@ function PositionGrid({
  </div>
  </div>
 
- <div className="mt-3 grid grid-cols-2 gap-2.5 sm:mt-5 sm:gap-5 lg:grid-cols-3 2xl:grid-cols-4">
+ <div className="mt-3 grid grid-cols-2 gap-3 sm:mt-5 sm:grid-cols-[repeat(auto-fill,minmax(220px,260px))] sm:gap-5">
  {positions.map((position) => (
  <PositionProductCard key={position.sku} position={position} dark={dark} />
  ))}
