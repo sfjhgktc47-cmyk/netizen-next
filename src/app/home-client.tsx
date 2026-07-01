@@ -980,7 +980,7 @@ function Categories({
  <>
  <div
  aria-hidden="true"
- className="pointer-events-none absolute left-1/2 top-1/2 h-[88%] w-[88%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-500/[0.05] blur-2xl"
+ className="pointer-events-none absolute left-1/2 top-1/2 h-[88%] w-[88%] -translate-x-1/2 -translate-y-1/2 rounded-full bg-blue-500/[0.05]"
  />
  <div
  aria-hidden="true"
