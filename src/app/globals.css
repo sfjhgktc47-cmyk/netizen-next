@@ -339,3 +339,16 @@ main [class*="card"],
   max-width: 100%;
   height: auto;
 }
+
+/* Product photo blocks: keep real product images on clean white background */
+.photo-white-box,
+.dark .photo-white-box {
+  background: #ffffff !important;
+  background-color: #ffffff !important;
+}
+
+.photo-white-box img {
+  opacity: 1 !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+}
