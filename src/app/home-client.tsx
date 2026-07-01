@@ -576,7 +576,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  </>
  ) : null}
  {slides.length > 1 ? (
- <div className="absolute bottom-5 left-5 z-10 flex items-center gap-2 sm:bottom-8 sm:left-8 sm:gap-2.5">
+ <div className="absolute bottom-5 left-5 z-20 flex items-center gap-2 sm:bottom-8 sm:left-8 sm:gap-2.5">
  {slides.map((item, index) => {
  const isActive = activeSlide === index;
 
@@ -586,8 +586,8 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  type="button"
  onClick={() => setActiveSlide(index)}
  aria-label={`Открыть слайд ${index + 1}`}
- className={`rounded-full bg-blue-600 transition-all duration-300 ${
- isActive ? "h-1.5 w-8 sm:h-1.5 sm:w-10" : "h-1.5 w-1.5 sm:h-1.5 sm:w-2"
+ className={`h-1.5 rounded-full bg-blue-600 transition-opacity duration-200 sm:h-1.5 ${
+ isActive ? "w-8 opacity-100 sm:w-10" : "w-2 opacity-45 sm:w-2"
  }`}
  />
  );
@@ -775,7 +775,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  </>
  ) : null}
  {slides.length > 1 ? (
- <div className="mt-2 flex items-center gap-2 sm:mt-8 sm:gap-2.5">
+ <div className="absolute bottom-5 left-5 z-20 flex items-center gap-2 sm:bottom-8 sm:left-8 sm:gap-2.5">
  {slides.map((item, index) => {
  const isActive = activeSlide === index;
 
@@ -785,8 +785,8 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  type="button"
  onClick={() => setActiveSlide(index)}
  aria-label={`Открыть слайд ${index + 1}`}
- className={`rounded-full bg-blue-600 transition-all duration-300 ${
- isActive ? "h-1.5 w-8 sm:h-1.5 sm:w-10" : "h-1.5 w-1.5 sm:h-1.5 sm:w-2"
+ className={`h-1.5 rounded-full bg-blue-600 transition-opacity duration-200 sm:h-1.5 ${
+ isActive ? "w-8 opacity-100 sm:w-10" : "w-2 opacity-45 sm:w-2"
  }`}
  />
  );
