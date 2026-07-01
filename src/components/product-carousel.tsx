@@ -288,7 +288,7 @@ function CarouselProductCard({
  <Image quality={75} src={image}
  alt={product.name}
  draggable={false}
- className="h-full w-full object-contain p-1 mix-blend-multiply transition-transform duration-700 group-hover:scale-105 sm:p-3"
+ className="h-full w-full object-contain p-1 transition-transform duration-700 group-hover:scale-105 sm:p-3"
  />
  ) : (
  <span className="text-[9px] sm:text-xs">Фото</span>

@@ -1572,7 +1572,7 @@ function PositionProductCard({
  // eslint-disable-next-line @next/next/no-img-element
  <Image quality={75} src={position.images?.[0] ?? getModelImage(position.product)}
  alt={position.title}
- className="h-full w-full object-contain p-2 mix-blend-multiply sm:p-3"
+ className="h-full w-full object-contain p-2 sm:p-3"
  />
  ) : (
  "Фото товара"

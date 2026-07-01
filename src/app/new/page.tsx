@@ -247,7 +247,7 @@ function NewCard({
  return (
  <Link href={`/product/${product.slug}`} className={`group overflow-hidden rounded-3xl border transition-all duration-500 hover:-translate-y-1 ${dark ? "border-white/10 bg-white/[0.035] hover:border-blue-500/35" : "border-black/10 bg-white hover:border-blue-500/35"}`}>
  <div className={`flex h-[230px] items-center justify-center ${image ? "bg-white" : dark ? "bg-white/[0.04]" : "bg-slate-100"}`}>
- {image ? <Image quality={75} src={image} alt={title} className="h-full w-full object-contain mix-blend-multiply" /> : null}
+ {image ? <Image quality={75} src={image} alt={title} className="h-full w-full object-contain" /> : null}
  </div>
  <div className="p-6">
  <div className="text-xs font-bold uppercase tracking-[0.18em] text-blue-500">{badge}</div>

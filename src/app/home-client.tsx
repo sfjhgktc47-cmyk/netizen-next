@@ -1291,7 +1291,7 @@ function ProductCard({
  src={image}
  alt={product.name}
  draggable={false}
- className="h-full w-full object-contain p-0.5 mix-blend-multiply sm:p-2"
+ className="h-full w-full object-contain p-0.5 sm:p-2"
  />
  ) : (
  <span className="text-[10px] sm:text-sm">Фото товара</span>
