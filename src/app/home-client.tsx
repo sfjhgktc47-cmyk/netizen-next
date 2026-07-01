@@ -509,9 +509,17 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  return (
  <section className="mt-2 sm:mt-6">
  <div
+ onPointerDown={handlePointerDown}
+ onPointerUp={handlePointerUp}
+ onPointerCancel={() => setDragStartX(null)}
+ onPointerLeave={() => {
+ setDragStartX(null);
+ setIsHeroHovered(false);
+ }}
  onMouseEnter={() => setIsHeroHovered(true)}
  onMouseLeave={() => setIsHeroHovered(false)}
- className={`relative h-[220px] overflow-hidden rounded-[20px] border transition-all duration-700 sm:h-[360px] sm:rounded-[30px] lg:h-[520px] ${
+ style={{ touchAction: "pan-y" }}
+ className={`relative h-[220px] cursor-grab select-none overflow-hidden rounded-[20px] border transition-all duration-700 active:cursor-grabbing sm:h-[360px] sm:rounded-[30px] lg:h-[520px] ${
  dark
  ? "border-white/10 bg-[#06101f]"
  : "border-black/10 bg-white"
@@ -538,8 +546,37 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  {!image && !mobileImage ? (
  <div className={`absolute inset-6 rounded-3xl border border-dashed ${dark ? "border-white/10 bg-white/[0.03]" : "border-black/10 bg-slate-50"}`} />
  ) : null}
+
  {slides.length > 1 ? (
- <div className="absolute bottom-5 left-5 z-10 flex items-center gap-1.5 sm:bottom-8 sm:left-8 sm:gap-2">
+ <>
+ <button
+ type="button"
+ onClick={goToPrevSlide}
+ aria-label="Предыдущий баннер"
+ className={`absolute left-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border shadow-sm transition-all duration-300 hover:-translate-y-[52%] sm:left-5 sm:h-11 sm:w-11 ${
+ dark
+ ? "border-white/15 bg-white/10 text-white hover:bg-white/15"
+ : "border-black/10 bg-white/90 text-black hover:border-blue-500/40 hover:bg-blue-50"
+ }`}
+ >
+ <ArrowIcon width={12} height={12} direction="left" />
+ </button>
+ <button
+ type="button"
+ onClick={goToNextSlide}
+ aria-label="Следующий баннер"
+ className={`absolute right-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border shadow-sm transition-all duration-300 hover:-translate-y-[52%] sm:right-5 sm:h-11 sm:w-11 ${
+ dark
+ ? "border-white/15 bg-white/10 text-white hover:bg-white/15"
+ : "border-black/10 bg-white/90 text-black hover:border-blue-500/40 hover:bg-blue-50"
+ }`}
+ >
+ <ArrowIcon width={12} height={12} />
+ </button>
+ </>
+ ) : null}
+ {slides.length > 1 ? (
+ <div className="absolute bottom-5 left-5 z-10 flex items-center gap-2 sm:bottom-8 sm:left-8 sm:gap-2.5">
  {slides.map((item, index) => {
  const isActive = activeSlide === index;
 
@@ -550,7 +587,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  onClick={() => setActiveSlide(index)}
  aria-label={`Открыть слайд ${index + 1}`}
  className={`rounded-full bg-blue-600 transition-all duration-300 ${
- isActive ? "h-1 w-7 sm:h-1.5 sm:w-9" : "h-1 w-1 sm:h-1.5 sm:w-1.5"
+ isActive ? "h-1.5 w-8 sm:h-1.5 sm:w-10" : "h-1.5 w-1.5 sm:h-1.5 sm:w-2"
  }`}
  />
  );
@@ -573,14 +610,20 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  }
 
  function handlePointerDown(event: PointerEvent<HTMLDivElement>) {
+ if (slides.length <= 1) return;
+ event.currentTarget.setPointerCapture?.(event.pointerId);
  setDragStartX(event.clientX);
  }
 
  function handlePointerUp(event: PointerEvent<HTMLDivElement>) {
  if (dragStartX === null) return;
 
+ if (event.currentTarget.hasPointerCapture?.(event.pointerId)) {
+ event.currentTarget.releasePointerCapture(event.pointerId);
+ }
+
  const distance = dragStartX - event.clientX;
- const swipeThreshold = 44;
+ const swipeThreshold = 28;
 
  if (Math.abs(distance) > swipeThreshold && slides.length > 1) {
  if (distance > 0) {
@@ -598,12 +641,14 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  <div
  onPointerDown={handlePointerDown}
  onPointerUp={handlePointerUp}
+ onPointerCancel={() => setDragStartX(null)}
  onPointerLeave={() => {
  setDragStartX(null);
  setIsHeroHovered(false);
  }}
  onMouseEnter={() => setIsHeroHovered(true)}
  onMouseLeave={() => setIsHeroHovered(false)}
+ style={{ touchAction: "pan-y" }}
  className={`relative h-[220px] cursor-grab select-none overflow-hidden rounded-[20px] border transition-all duration-700 active:cursor-grabbing sm:h-[360px] sm:rounded-[30px] lg:h-[520px] ${
  dark
  ? "border-white/10 bg-[#06101f]"
@@ -700,8 +745,37 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  ) : null}
  </div>
 
+
  {slides.length > 1 ? (
- <div className="mt-2 flex items-center gap-1.5 sm:mt-8 sm:gap-2">
+ <>
+ <button
+ type="button"
+ onClick={goToPrevSlide}
+ aria-label="Предыдущий баннер"
+ className={`absolute left-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border shadow-sm transition-all duration-300 hover:-translate-y-[52%] sm:left-5 sm:h-11 sm:w-11 ${
+ dark
+ ? "border-white/15 bg-white/10 text-white hover:bg-white/15"
+ : "border-black/10 bg-white/90 text-black hover:border-blue-500/40 hover:bg-blue-50"
+ }`}
+ >
+ <ArrowIcon width={12} height={12} direction="left" />
+ </button>
+ <button
+ type="button"
+ onClick={goToNextSlide}
+ aria-label="Следующий баннер"
+ className={`absolute right-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border shadow-sm transition-all duration-300 hover:-translate-y-[52%] sm:right-5 sm:h-11 sm:w-11 ${
+ dark
+ ? "border-white/15 bg-white/10 text-white hover:bg-white/15"
+ : "border-black/10 bg-white/90 text-black hover:border-blue-500/40 hover:bg-blue-50"
+ }`}
+ >
+ <ArrowIcon width={12} height={12} />
+ </button>
+ </>
+ ) : null}
+ {slides.length > 1 ? (
+ <div className="mt-2 flex items-center gap-2 sm:mt-8 sm:gap-2.5">
  {slides.map((item, index) => {
  const isActive = activeSlide === index;
 
@@ -712,7 +786,7 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  onClick={() => setActiveSlide(index)}
  aria-label={`Открыть слайд ${index + 1}`}
  className={`rounded-full bg-blue-600 transition-all duration-300 ${
- isActive ? "h-1 w-7 sm:h-1.5 sm:w-9" : "h-1 w-1 sm:h-1.5 sm:w-1.5"
+ isActive ? "h-1.5 w-8 sm:h-1.5 sm:w-10" : "h-1.5 w-1.5 sm:h-1.5 sm:w-2"
  }`}
  />
  );
