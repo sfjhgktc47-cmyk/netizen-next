@@ -1847,7 +1847,7 @@ function getDeliverySummary(delivery: DeliveryData, isRegistered: boolean) {
  return `${delivery.deliveryTitle || "Курьерская доставка"}: адрес не указан`;
  }
 
- return "Выберите курьера или ПВЗ";
+ return "Выберите удобный способ получения заказа";
 }
 
 function getMissingText(
