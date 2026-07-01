@@ -1010,20 +1010,11 @@ export default function CartPage() {
  >
  {item.image ? (
  <>
- {/* фон из этой же фотографии, растянутый до краёв */}
- <img
- src={item.image}
- alt=""
- aria-hidden="true"
- loading="lazy"
- className="pointer-events-none absolute inset-0 h-full w-full scale-125 select-none object-cover blur-2xl opacity-80"
- />
- {/* основная фотография */}
- <img
+<img
  src={item.image}
  alt={item.title || item.productName}
  loading="lazy"
- className="relative z-10 h-full w-full object-contain p-1.5 sm:p-2"
+ className="h-full w-full object-contain p-1.5 sm:p-2"
  />
  </>
  ) : (
@@ -2059,20 +2050,11 @@ function ProductStrip({
  <div className="soft-box flex h-[108px] items-center justify-center overflow-hidden rounded-2xl bg-slate-50 dark:bg-slate-100 text-xs text-muted-soft sm:h-[150px] sm:text-sm">
  {product.image ? (
  <>
- {/* фон из этой же фотографии, растянутый до краёв */}
- <img
- src={product.image}
- alt=""
- aria-hidden="true"
- loading="lazy"
- className="pointer-events-none absolute inset-0 h-full w-full scale-125 select-none object-cover blur-2xl opacity-80"
- />
- {/* основная фотография */}
- <img
+<img
  src={product.image}
  alt={product.name}
  loading="lazy"
- className="relative z-10 h-full w-full object-contain p-2"
+ className="h-full w-full object-contain p-2"
  />
  </>
  ) : (
