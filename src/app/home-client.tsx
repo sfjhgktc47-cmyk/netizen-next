@@ -553,25 +553,25 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  type="button"
  onClick={goToPrevSlide}
  aria-label="Предыдущий баннер"
- className={`absolute left-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border shadow-sm transition-all duration-300 hover:-translate-y-[52%] sm:left-5 sm:h-11 sm:w-11 ${
+ className={`absolute left-2 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center bg-transparent transition-colors duration-200 sm:left-4 sm:h-10 sm:w-10 ${
  dark
- ? "border-white/15 bg-white/10 text-white hover:bg-white/15"
- : "border-black/10 bg-white/90 text-black hover:border-blue-500/40 hover:bg-blue-50"
+ ? "text-white/70 hover:text-white"
+ : "text-black/55 hover:text-blue-600"
  }`}
  >
- <ArrowIcon width={12} height={12} direction="left" />
+ <ArrowIcon width={16} height={16} direction="left" />
  </button>
  <button
  type="button"
  onClick={goToNextSlide}
  aria-label="Следующий баннер"
- className={`absolute right-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border shadow-sm transition-all duration-300 hover:-translate-y-[52%] sm:right-5 sm:h-11 sm:w-11 ${
+ className={`absolute right-2 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center bg-transparent transition-colors duration-200 sm:right-4 sm:h-10 sm:w-10 ${
  dark
- ? "border-white/15 bg-white/10 text-white hover:bg-white/15"
- : "border-black/10 bg-white/90 text-black hover:border-blue-500/40 hover:bg-blue-50"
+ ? "text-white/70 hover:text-white"
+ : "text-black/55 hover:text-blue-600"
  }`}
  >
- <ArrowIcon width={12} height={12} />
+ <ArrowIcon width={16} height={16} />
  </button>
  </>
  ) : null}
@@ -752,25 +752,25 @@ function Hero({ dark, banners }: { dark: boolean; banners: HomeBanner[] }) {
  type="button"
  onClick={goToPrevSlide}
  aria-label="Предыдущий баннер"
- className={`absolute left-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border shadow-sm transition-all duration-300 hover:-translate-y-[52%] sm:left-5 sm:h-11 sm:w-11 ${
+ className={`absolute left-2 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center bg-transparent transition-colors duration-200 sm:left-4 sm:h-10 sm:w-10 ${
  dark
- ? "border-white/15 bg-white/10 text-white hover:bg-white/15"
- : "border-black/10 bg-white/90 text-black hover:border-blue-500/40 hover:bg-blue-50"
+ ? "text-white/70 hover:text-white"
+ : "text-black/55 hover:text-blue-600"
  }`}
  >
- <ArrowIcon width={12} height={12} direction="left" />
+ <ArrowIcon width={16} height={16} direction="left" />
  </button>
  <button
  type="button"
  onClick={goToNextSlide}
  aria-label="Следующий баннер"
- className={`absolute right-3 top-1/2 z-20 flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border shadow-sm transition-all duration-300 hover:-translate-y-[52%] sm:right-5 sm:h-11 sm:w-11 ${
+ className={`absolute right-2 top-1/2 z-20 flex h-8 w-8 -translate-y-1/2 items-center justify-center bg-transparent transition-colors duration-200 sm:right-4 sm:h-10 sm:w-10 ${
  dark
- ? "border-white/15 bg-white/10 text-white hover:bg-white/15"
- : "border-black/10 bg-white/90 text-black hover:border-blue-500/40 hover:bg-blue-50"
+ ? "text-white/70 hover:text-white"
+ : "text-black/55 hover:text-blue-600"
  }`}
  >
- <ArrowIcon width={12} height={12} />
+ <ArrowIcon width={16} height={16} />
  </button>
  </>
  ) : null}
