@@ -159,7 +159,7 @@ export async function PATCH(
   }
 
   const images = toStringArrayValue(body?.images);
-  const mainImage = images[0] ?? toStringValue(body?.image);
+  const mainImage = toStringValue(body?.image).trim() || images[0] || "";
 
   try {
     const product = await prisma.product.update({
@@ -173,6 +173,7 @@ export async function PATCH(
         shortDescription: toStringValue(body?.shortDescription),
         description: toStringValue(body?.description),
         descriptionBlocks: normalizeDescriptionBlocks(body?.descriptionBlocks),
+        characteristics: toStringValue(body?.characteristics),
         image: mainImage,
         promoImage: toStringValue(body?.promoImage).trim(),
         images,

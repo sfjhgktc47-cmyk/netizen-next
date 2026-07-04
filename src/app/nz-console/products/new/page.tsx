@@ -2,7 +2,7 @@ import { BackLink } from "@/components/back-link";
 import Link from "next/link";
 
 import { ProductCreateForm } from "@/components/admin/product-create-form";
-import { getAdminCategories } from "@/lib/admin-products-db";
+import { getAdminCategories, getAdminProductFormSuggestions } from "@/lib/admin-products-db";
 
 export const dynamic = "force-dynamic";
 
@@ -12,7 +12,10 @@ export default async function AdminNewProductPage({
   searchParams?: Promise<{ category?: string }>;
 }) {
   const resolvedSearchParams = await searchParams;
-  const categories = await getAdminCategories();
+  const [categories, suggestions] = await Promise.all([
+    getAdminCategories(),
+    getAdminProductFormSuggestions(),
+  ]);
 
   return (
     <main className="min-h-screen bg-[#020814] px-4 py-4 text-white sm:px-6 sm:py-6">
@@ -55,7 +58,7 @@ export default async function AdminNewProductPage({
         </section>
 
         <section className="mt-8">
-          <ProductCreateForm categories={categories} initialCategorySlug={resolvedSearchParams?.category} />
+          <ProductCreateForm categories={categories} initialCategorySlug={resolvedSearchParams?.category} suggestions={suggestions} />
         </section>
       </div>
     </main>

@@ -1,5 +1,4 @@
 import { BackLink } from "@/components/back-link";
-import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 
@@ -7,6 +6,7 @@ import { ProductEditForm } from "@/components/admin/product-edit-form";
 import {
   getAdminCategories,
   getAdminProductBySlug,
+  getAdminProductFormSuggestions,
   getAdminStatusClass,
   getAdminStatusLabel,
 } from "@/lib/admin-products-db";
@@ -27,9 +27,10 @@ export default async function AdminProductDetailPage({
   params: Promise<{ slug: string }>;
 }) {
   const { slug } = await params;
-  const [product, categories] = await Promise.all([
+  const [product, categories, suggestions] = await Promise.all([
     getAdminProductBySlug(slug),
     getAdminCategories(),
+    getAdminProductFormSuggestions(),
   ]);
 
   if (!product) {
@@ -151,72 +152,7 @@ export default async function AdminProductDetailPage({
 
 
         <section id="edit-product" className="mt-8">
-          <ProductEditForm product={product} categories={categories} />
-        </section>
-
-        <section className="mt-8 rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
-          <SectionTitle
-            label="SKU"
-            title="Позиции и конфигурации"
-            text="Здесь видно конкретные позиции: артикул, память, цвет, SIM, цена и остаток."
-          />
-
-          <div className="mt-8 overflow-hidden rounded-[24px] border border-white/10">
-            <div className="hidden grid-cols-[1fr_0.9fr_0.8fr_0.7fr_0.7fr_0.6fr] border-b border-white/10 bg-black/25 px-5 py-4 text-sm text-white/45 lg:grid">
-              <div>SKU</div>
-              <div>Позиция</div>
-              <div>Параметры</div>
-              <div>Цена</div>
-              <div>Остаток</div>
-              <div>Статус</div>
-            </div>
-
-            <div className="divide-y divide-white/10">
-              {product.variants.length > 0 ? (
-                product.variants.map((variant) => (
-                  <div
-                    key={variant.id}
-                    className="grid gap-4 bg-white/[0.015] p-5 lg:grid-cols-[1fr_0.9fr_0.8fr_0.7fr_0.7fr_0.6fr] lg:items-center"
-                  >
-                    <AdminCell label="SKU">
-                      <span className="font-semibold text-white">{variant.sku}</span>
-                    </AdminCell>
-
-                    <AdminCell label="Позиция">
-                      <Link href={`/nz-console/positions/${encodeURIComponent(variant.sku)}`} className="font-semibold text-blue-300 transition-colors hover:text-blue-200">
-                        {variant.title}
-                      </Link>
-                    </AdminCell>
-
-                    <AdminCell label="Параметры">
-                      {[variant.memory, variant.color, variant.sim].filter(Boolean).join(" · ") || "—"}
-                    </AdminCell>
-
-                    <AdminCell label="Цена">{formatPrice(variant.price)}</AdminCell>
-
-                    <AdminCell label="Остаток">{variant.stock} шт.</AdminCell>
-
-                    <AdminCell label="Статус">
-                      <span className={`rounded-full border px-3 py-1 text-sm ${getAdminStatusClass(variant.status)}`}>
-                        {getAdminStatusLabel(variant.status)}
-                      </span>
-                    </AdminCell>
-                  </div>
-                ))
-              ) : (
-                <div className="p-8 text-center text-sm text-white/45">
-                  У карточки пока нет SKU-позиций. Добавьте позицию в разделе «Позиции / SKU» и привяжите её к этой карточке.
-                </div>
-              )}
-            </div>
-          </div>
-
-          <div className="mt-8 rounded-[28px] border border-blue-500/20 bg-blue-500/10 p-6 text-sm leading-relaxed text-blue-100/80">
-            Позиции редактируются в отдельном разделе «Позиции / SKU», чтобы карточка товара не смешивалась с конкретными комплектациями.
-            <Link href="/nz-console/positions" className="ml-2 font-semibold text-blue-200 hover:text-white">
-              Открыть позиции
-            </Link>
-          </div>
+          <ProductEditForm product={product} categories={categories} suggestions={suggestions} />
         </section>
       </div>
     </main>
@@ -228,27 +164,6 @@ function InfoCard({ label, value }: { label: string; value: string }) {
     <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
       <div className="text-xs font-semibold uppercase tracking-[0.16em] text-white/35">{label}</div>
       <div className="mt-2 text-lg font-bold text-white">{value}</div>
-    </div>
-  );
-}
-
-function SectionTitle({ label, title, text }: { label: string; title: string; text: string }) {
-  return (
-    <div>
-      <div className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-400">{label}</div>
-      <h2 className="mt-2 text-3xl font-bold tracking-[-0.04em] text-white">{title}</h2>
-      <p className="mt-3 max-w-[760px] text-sm leading-relaxed text-white/55">{text}</p>
-    </div>
-  );
-}
-
-function AdminCell({ label, children }: { label: string; children: ReactNode }) {
-  return (
-    <div>
-      <div className="mb-2 text-xs font-semibold uppercase tracking-[0.16em] text-white/30 lg:hidden">
-        {label}
-      </div>
-      <div className="text-sm text-white/70">{children}</div>
     </div>
   );
 }

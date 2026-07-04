@@ -101,7 +101,7 @@ export async function POST(request: NextRequest) {
   }
 
   const images = normalizeImages(body.images);
-  const mainImage = images[0] ?? String(body.image ?? "");
+  const mainImage = String(body.image ?? "").trim() || images[0] || "";
 
   const product = await prisma.product.create({
     data: {
@@ -113,6 +113,7 @@ export async function POST(request: NextRequest) {
       description: String(body.description ?? ""),
       shortDescription: String(body.shortDescription ?? ""),
       descriptionBlocks: normalizeDescriptionBlocks(body.descriptionBlocks),
+      characteristics: String(body.characteristics ?? ""),
       image: mainImage,
       promoImage: String(body.promoImage ?? "").trim(),
       images,

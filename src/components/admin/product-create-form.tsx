@@ -2,6 +2,7 @@
 
 import type { FormEvent, ReactNode } from "react";
 import { useMemo, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { ImageLibraryField } from "@/components/admin/image-library-field";
@@ -9,6 +10,7 @@ import {
   ProductDescriptionBlocksEditor,
   type ProductDescriptionBlock,
 } from "@/components/admin/product-description-blocks-editor";
+import type { AdminProductFormSuggestions } from "@/lib/admin-products-db";
 
 type AdminCategoryOption = {
   id: string;
@@ -19,6 +21,15 @@ type AdminCategoryOption = {
 type Props = {
   categories: AdminCategoryOption[];
   initialCategorySlug?: string;
+  suggestions?: AdminProductFormSuggestions;
+};
+
+type ProductFormTab = "main" | "photos" | "description";
+
+type CharacteristicRow = {
+  id: string;
+  name: string;
+  value: string;
 };
 
 const inputClass =
@@ -26,6 +37,24 @@ const inputClass =
 
 const textareaClass =
   "min-h-[110px] w-full resize-y rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-sm leading-relaxed text-white outline-none transition-colors placeholder:text-white/30 focus:border-blue-500/60";
+
+const tabs: Array<{ id: ProductFormTab; label: string; description: string }> = [
+  {
+    id: "main",
+    label: "Основная информация",
+    description: "Название, ссылка, категория, статус и связь с позициями.",
+  },
+  {
+    id: "photos",
+    label: "Фото",
+    description: "Фото для каталога, галерея и изображение для новинок.",
+  },
+  {
+    id: "description",
+    label: "Описание и характеристики",
+    description: "Тексты, красивые блоки и таблица характеристик.",
+  },
+];
 
 function slugify(value: string) {
   return value
@@ -45,8 +74,51 @@ function getInitialCategorySlug(categories: AdminCategoryOption[], initialCatego
   return categories[0]?.slug ?? "";
 }
 
-export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
+function createCharacteristicRow(partial?: Partial<CharacteristicRow>): CharacteristicRow {
+  return {
+    id: partial?.id ?? `char-${Date.now()}-${Math.random().toString(16).slice(2)}`,
+    name: partial?.name ?? "",
+    value: partial?.value ?? "",
+  };
+}
+
+function serializeCharacteristics(rows: CharacteristicRow[]) {
+  return rows
+    .map((row) => {
+      const name = row.name.trim();
+      const value = row.value.trim();
+
+      if (!name && !value) {
+        return "";
+      }
+
+      if (!name) {
+        return value;
+      }
+
+      return value ? `${name}: ${value}` : name;
+    })
+    .filter(Boolean)
+    .join("\n");
+}
+
+function getValueOptions(rowName: string, suggestions?: AdminProductFormSuggestions) {
+  if (!suggestions) {
+    return [];
+  }
+
+  const directValues = suggestions.characteristicValuesByName[rowName.trim()] ?? [];
+
+  if (directValues.length > 0) {
+    return directValues;
+  }
+
+  return suggestions.characteristicValues;
+}
+
+export function ProductCreateForm({ categories, initialCategorySlug, suggestions }: Props) {
   const router = useRouter();
+  const [activeTab, setActiveTab] = useState<ProductFormTab>("main");
   const [name, setName] = useState("");
   const [slug, setSlug] = useState("");
   const [brand, setBrand] = useState("Apple");
@@ -54,16 +126,34 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
   const [shortDescription, setShortDescription] = useState("");
   const [description, setDescription] = useState("");
   const [descriptionBlocks, setDescriptionBlocks] = useState<ProductDescriptionBlock[]>([]);
+  const [characteristicRows, setCharacteristicRows] = useState<CharacteristicRow[]>([createCharacteristicRow()]);
   const [status, setStatus] = useState("active");
   const [isNew, setIsNew] = useState(true);
   const [isPopular, setIsPopular] = useState(false);
-  const [images, setImages] = useState<string[]>([]);
+  const [cardImages, setCardImages] = useState<string[]>([]);
+  const [galleryImages, setGalleryImages] = useState<string[]>([]);
   const [promoImages, setPromoImages] = useState<string[]>([]);
 
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const finalSlug = useMemo(() => slug || slugify(name), [name, slug]);
+  const characteristics = useMemo(() => serializeCharacteristics(characteristicRows), [characteristicRows]);
+
+  function updateCharacteristicRow(id: string, key: keyof Omit<CharacteristicRow, "id">, value: string) {
+    setCharacteristicRows((rows) => rows.map((row) => (row.id === id ? { ...row, [key]: value } : row)));
+  }
+
+  function addCharacteristicRow() {
+    setCharacteristicRows((rows) => [...rows, createCharacteristicRow()]);
+  }
+
+  function removeCharacteristicRow(id: string) {
+    setCharacteristicRows((rows) => {
+      const nextRows = rows.filter((row) => row.id !== id);
+      return nextRows.length > 0 ? nextRows : [createCharacteristicRow()];
+    });
+  }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -72,8 +162,12 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
 
     try {
       if (!name.trim() || !finalSlug || !brand.trim() || !categorySlug) {
+        setActiveTab("main");
         throw new Error("Заполните название, slug, бренд и категорию.");
       }
+
+      const images = galleryImages.length > 0 ? galleryImages : cardImages;
+      const mainImage = cardImages[0] ?? images[0] ?? "";
 
       const productResponse = await fetch("/api/admin/products", {
         method: "POST",
@@ -88,7 +182,8 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
           shortDescription,
           description,
           descriptionBlocks,
-          image: images[0] ?? "",
+          characteristics,
+          image: mainImage,
           promoImage: promoImages[0] ?? "",
           images,
           status,
@@ -113,13 +208,15 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-8 lg:grid-cols-[1fr_380px]">
-      <div className="space-y-8">
+    <form onSubmit={handleSubmit} className="space-y-6 pb-32">
+      <FormTabs activeTab={activeTab} onChange={setActiveTab} />
+
+      {activeTab === "main" ? (
         <section className="rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
           <SectionTitle
             label="Карточка"
             title="Основная информация"
-            text="Карточка — это модель товара: название, категория, бренд, фото и описание. Конкретные SKU, цены и остатки добавляются отдельно в разделе «Позиции / SKU»."
+            text="Здесь только база карточки: название, ссылка, категория, статус и признаки витрины. Позиции/SKU добавляются после создания карточки."
           />
 
           {categories.length === 0 ? (
@@ -169,8 +266,14 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
                 value={brand}
                 onChange={(event) => setBrand(event.target.value)}
                 placeholder="Apple"
+                list="product-brand-options"
                 className={inputClass}
               />
+              <datalist id="product-brand-options">
+                {(suggestions?.brands ?? []).map((item) => (
+                  <option key={item} value={item} />
+                ))}
+              </datalist>
             </Field>
 
             <Field label="Статус карточки">
@@ -206,15 +309,29 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
             </div>
           </div>
 
-          <div className="mt-5 grid gap-5 lg:grid-cols-2">
+          <div className="mt-6 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-5 text-sm leading-relaxed text-blue-100/80">
+            После сохранения карточки можно будет добавить к ней конкретные позиции/SKU: память, цвет, SIM, цену и остаток.
+          </div>
+        </section>
+      ) : null}
+
+      {activeTab === "photos" ? (
+        <section className="rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
+          <SectionTitle
+            label="Фото"
+            title="Фотографии карточки"
+            text="Отдельно выберите фото для карточки в каталоге/на главной, галерею и широкое фото для блока «Новинки»."
+          />
+
+          <div className="mt-8 grid gap-5 lg:grid-cols-2">
             <ImageLibraryField
-              value={images}
-              onChange={setImages}
-              label="Фотографии карточки"
-              hint="Перетащите несколько общих фото модели. Первое фото будет главным до выбора конкретной позиции/SKU."
+              value={cardImages}
+              onChange={setCardImages}
+              label="Фото карточки для главной и каталога"
+              hint="Одно красивое фото, которое будет показываться в карточке товара на главной и в каталоге."
               recommendedSize="1600×1600 px"
               recommendedFormat="PNG / WEBP, квадрат"
-              maxImages={10}
+              maxImages={1}
             />
 
             <ImageLibraryField
@@ -226,9 +343,31 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
               recommendedFormat="JPG / WEBP, 16:9"
               maxImages={1}
             />
-          </div>
 
-          <div className="mt-5 grid gap-5">
+            <div className="lg:col-span-2">
+              <ImageLibraryField
+                value={galleryImages}
+                onChange={setGalleryImages}
+                label="Галерея карточки"
+                hint="Дополнительные фото модели для страницы товара."
+                recommendedSize="1600×1600 px"
+                recommendedFormat="PNG / WEBP, квадрат"
+                maxImages={10}
+              />
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {activeTab === "description" ? (
+        <section className="rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
+          <SectionTitle
+            label="Описание"
+            title="Описание и характеристики"
+            text="Тексты и характеристики находятся отдельно от основных полей, чтобы форма не превращалась в одну длинную простыню."
+          />
+
+          <div className="mt-8 grid gap-5 lg:grid-cols-2">
             <Field label="Короткое описание">
               <textarea
                 value={shortDescription}
@@ -246,47 +385,163 @@ export function ProductCreateForm({ categories, initialCategorySlug }: Props) {
                 className={textareaClass}
               />
             </Field>
+          </div>
 
+          <div className="mt-6">
             <ProductDescriptionBlocksEditor
               value={descriptionBlocks}
               onChange={setDescriptionBlocks}
             />
           </div>
+
+          <CharacteristicsEditor
+            rows={characteristicRows}
+            suggestions={suggestions}
+            onChange={updateCharacteristicRow}
+            onAdd={addCharacteristicRow}
+            onRemove={removeCharacteristicRow}
+          />
         </section>
-      </div>
+      ) : null}
 
-      <aside className="h-fit rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8 lg:sticky lg:top-6">
-        <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-400">
-          Сохранение
-        </div>
-
-        <h2 className="mt-3 text-3xl font-bold tracking-[-0.04em]">
-          Создать карточку
-        </h2>
-
-        <p className="mt-3 text-sm leading-relaxed text-white/55">
-          После сохранения появится материнская карточка товара. Конкретные позиции, цены и остатки добавляются отдельно в разделе «Позиции / SKU».
-        </p>
-
-        {error && (
-          <div className="mt-5 rounded-2xl border border-red-500/25 bg-red-500/10 p-4 text-sm leading-relaxed text-red-200">
-            {error}
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-white/10 bg-[#020814]/95 px-4 py-3 text-white shadow-[0_-18px_50px_rgba(0,0,0,0.28)] backdrop-blur-xl">
+        <div className="mx-auto flex max-w-[1440px] flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-h-5 text-sm">
+            {error ? <span className="text-red-200">{error}</span> : <span className="text-white/45">Карточка сохранится со всеми данными из вкладок.</span>}
           </div>
-        )}
+
+          <div className="flex flex-wrap items-center gap-3">
+            <Link
+              href="/nz-console/products"
+              className="rounded-xl border border-white/10 bg-white/[0.04] px-5 py-3 text-sm font-semibold text-white/70 transition-colors hover:border-white/20 hover:text-white"
+            >
+              Отмена
+            </Link>
+
+            <button
+              type="submit"
+              disabled={loading || categories.length === 0}
+              className="rounded-xl bg-blue-600 px-6 py-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              {loading ? "Сохраняю..." : "Создать карточку"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </form>
+  );
+}
+
+function FormTabs({ activeTab, onChange }: { activeTab: ProductFormTab; onChange: (tab: ProductFormTab) => void }) {
+  return (
+    <div className="rounded-[28px] border border-white/10 bg-white/[0.035] p-2">
+      <div className="grid gap-2 lg:grid-cols-3">
+        {tabs.map((tab) => {
+          const active = activeTab === tab.id;
+
+          return (
+            <button
+              key={tab.id}
+              type="button"
+              onClick={() => onChange(tab.id)}
+              className={`rounded-2xl px-4 py-4 text-left transition-colors ${
+                active
+                  ? "bg-blue-600 text-white"
+                  : "bg-black/20 text-white/60 hover:bg-white/[0.06] hover:text-white"
+              }`}
+            >
+              <span className="block text-sm font-semibold">{tab.label}</span>
+              <span className={`mt-1 block text-xs leading-relaxed ${active ? "text-white/75" : "text-white/40"}`}>
+                {tab.description}
+              </span>
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function CharacteristicsEditor({
+  rows,
+  suggestions,
+  onChange,
+  onAdd,
+  onRemove,
+}: {
+  rows: CharacteristicRow[];
+  suggestions?: AdminProductFormSuggestions;
+  onChange: (id: string, key: keyof Omit<CharacteristicRow, "id">, value: string) => void;
+  onAdd: () => void;
+  onRemove: (id: string) => void;
+}) {
+  return (
+    <div className="mt-6 rounded-2xl border border-white/10 bg-black/20 p-4 sm:p-5">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+        <div>
+          <h3 className="text-sm font-semibold text-white">Характеристики</h3>
+          <p className="mt-1 text-xs leading-relaxed text-white/50">
+            Не одно большое поле, а нормальные строки. Подсказки берутся из уже созданных карточек.
+          </p>
+        </div>
 
         <button
-          type="submit"
-          disabled={loading || categories.length === 0}
-          className="mt-6 w-full rounded-xl bg-blue-600 px-5 py-4 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
+          type="button"
+          onClick={onAdd}
+          className="w-fit rounded-xl border border-blue-500/30 bg-blue-500/10 px-4 py-2 text-xs font-semibold text-blue-100 transition-colors hover:bg-blue-500/20"
         >
-          {loading ? "Сохраняю..." : "Создать карточку"}
+          + Добавить характеристику
         </button>
+      </div>
 
-        <div className="mt-4 rounded-2xl border border-white/10 bg-black/20 p-4 text-xs leading-relaxed text-white/45">
-          Карточка отвечает за модель, фото и описание. SKU отвечает за цену, память, цвет, SIM и наличие.
-        </div>
-      </aside>
-    </form>
+      <datalist id="characteristic-name-options">
+        {(suggestions?.characteristicNames ?? []).map((item) => (
+          <option key={item} value={item} />
+        ))}
+      </datalist>
+
+      <div className="mt-4 grid gap-3">
+        {rows.map((row, index) => {
+          const valueListId = `characteristic-value-options-${row.id}`;
+          const valueOptions = getValueOptions(row.name, suggestions);
+
+          return (
+            <div key={row.id} className="grid gap-2 lg:grid-cols-[minmax(0,0.75fr)_minmax(0,1fr)_auto]">
+              <input
+                value={row.name}
+                onChange={(event) => onChange(row.id, "name", event.target.value)}
+                placeholder="Название: Процессор"
+                list="characteristic-name-options"
+                className={inputClass}
+              />
+
+              <input
+                value={row.value}
+                onChange={(event) => onChange(row.id, "value", event.target.value)}
+                placeholder="Значение: A17 Pro"
+                list={valueListId}
+                className={inputClass}
+              />
+
+              <datalist id={valueListId}>
+                {valueOptions.map((item) => (
+                  <option key={item} value={item} />
+                ))}
+              </datalist>
+
+              <button
+                type="button"
+                onClick={() => onRemove(row.id)}
+                className="h-12 rounded-xl border border-white/10 bg-white/[0.04] px-4 text-sm font-semibold text-white/55 transition-colors hover:border-red-500/30 hover:bg-red-500/10 hover:text-red-100"
+                aria-label={`Удалить характеристику ${index + 1}`}
+              >
+                Удалить
+              </button>
+            </div>
+          );
+        })}
+      </div>
+    </div>
   );
 }
 
