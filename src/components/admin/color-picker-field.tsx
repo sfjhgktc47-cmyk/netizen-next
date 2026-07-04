@@ -239,7 +239,7 @@ export function ColorPickerField({
         Цвет
       </div>
 
-      <div className="grid gap-2 md:grid-cols-[minmax(160px,1fr)_118px_44px_76px_82px]">
+      <div className="grid grid-cols-1 gap-2 sm:grid-cols-[minmax(180px,1fr)_130px_46px_92px_92px]">
         <div className="relative min-w-0">
           <input
             value={color}
@@ -306,7 +306,7 @@ export function ColorPickerField({
           type="button"
           onClick={pickColor}
           disabled={picking}
-          className="h-11 rounded-xl border border-blue-500/35 bg-blue-500/10 px-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-500/20 disabled:cursor-not-allowed disabled:opacity-60 dark:text-blue-300"
+          className="h-11 min-w-0 rounded-xl border border-blue-500/35 bg-blue-500/10 px-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-500/20 disabled:cursor-not-allowed disabled:opacity-60 dark:text-blue-300"
         >
           {picking ? "..." : "Пип."}
         </button>
@@ -314,7 +314,7 @@ export function ColorPickerField({
         <button
           type="button"
           onClick={handleSaveColor}
-          className="h-11 rounded-xl bg-blue-600 px-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
+          className="h-11 min-w-0 rounded-xl bg-blue-600 px-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
         >
           {saved ? "Ок" : "Сохр."}
         </button>

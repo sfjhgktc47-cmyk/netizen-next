@@ -252,13 +252,14 @@ export function ProductVariantEditForm({ productId, variant, relatedProductOptio
             <input value={sim} onChange={(event) => setSim(event.target.value)} className={inputClass} />
           </Field>
 
-          <ColorPickerField
-            color={color}
-            colorHex={colorHex}
-            onColorChange={setColor}
-            onColorHexChange={setColorHex}
-            className="md:col-span-2 xl:col-span-1"
-          />
+          <div className="md:col-span-2 xl:col-span-3">
+            <ColorPickerField
+              color={color}
+              colorHex={colorHex}
+              onColorChange={setColor}
+              onColorHexChange={setColorHex}
+            />
+          </div>
         </div>
       </Section>
 

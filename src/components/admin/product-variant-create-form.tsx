@@ -11,7 +11,7 @@ type Props = {
 };
 
 const inputClass =
-  "h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-500/70 dark:border-white/10 dark:bg-black/25 dark:text-white dark:placeholder:text-white/30";
+  "h-12 w-full rounded-xl border border-white/10 bg-black/25 px-4 text-sm text-white outline-none transition-colors placeholder:text-white/30 focus:border-blue-500/60";
 
 function slugify(value: string) {
   return value
@@ -118,7 +118,7 @@ export function ProductVariantCreateForm({ productId, productName }: Props) {
           <h3 className="mt-2 text-2xl font-bold tracking-[-0.04em] text-white">
             Добавить SKU к карточке
           </h3>
-          <p className="mt-2 max-w-[760px] text-sm leading-relaxed text-slate-600 dark:text-white/55">
+          <p className="mt-2 max-w-[760px] text-sm leading-relaxed text-white/55">
             SKU — это конкретная комплектация: память, цвет, SIM, цена и остаток. После создания она появится в списке позиций этой карточки.
           </p>
         </div>
@@ -156,12 +156,14 @@ export function ProductVariantCreateForm({ productId, productName }: Props) {
           />
         </Field>
 
-          <ColorPickerField
-            color={color}
-            colorHex={colorHex}
-            onColorChange={setColor}
-            onColorHexChange={setColorHex}
-          />
+          <div className="md:col-span-2 xl:col-span-3">
+            <ColorPickerField
+              color={color}
+              colorHex={colorHex}
+              onColorChange={setColor}
+              onColorHexChange={setColorHex}
+            />
+          </div>
 
         <Field label="SIM">
           <input
@@ -243,8 +245,8 @@ export function ProductVariantCreateForm({ productId, productName }: Props) {
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <label className="grid gap-2 rounded-2xl border border-slate-200/90 bg-white p-4 text-sm font-medium text-slate-700 shadow-sm dark:border-white/10 dark:bg-white/[0.025] dark:text-white/60">
-      <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-500 dark:text-white/35">{label}</span>
+    <label className="grid gap-2">
+      <span className="text-xs font-semibold uppercase tracking-[0.16em] text-white/35">{label}</span>
       {children}
     </label>
   );
