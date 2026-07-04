@@ -245,13 +245,12 @@ export function ProductVariantEditForm({ productId, variant, relatedProductOptio
           <input value={memory} onChange={(event) => setMemory(event.target.value)} className={inputClass} />
         </Field>
 
-        <div className="md:col-span-2 xl:col-span-4">
+        <div className="md:col-span-2 xl:col-span-2 max-w-[720px]">
           <ColorPickerField
             color={color}
             colorHex={colorHex}
             onColorChange={setColor}
             onColorHexChange={setColorHex}
-            inputClassName={inputClass}
           />
         </div>
 
@@ -298,7 +297,7 @@ export function ProductVariantEditForm({ productId, variant, relatedProductOptio
             <Field label="SEO keywords">
               <input value={seoKeywords} onChange={(event) => setSeoKeywords(event.target.value)} className={inputClass} />
             </Field>
-            <div className="md:col-span-2">
+            <div className="md:col-span-2 max-w-[720px]">
               <Field label="SEO description">
                 <textarea
                   value={seoDescription}

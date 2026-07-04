@@ -214,7 +214,6 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
               colorHex={colorHex}
               onColorChange={setColor}
               onColorHexChange={setColorHex}
-              inputClassName={inputClass}
             />
           </div>
 

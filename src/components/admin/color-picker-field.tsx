@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useMemo, useState } from "react";
 
@@ -6,23 +6,15 @@ const PRODUCT_COLORS = [
   { name: "Black", hex: "#111827", aliases: ["black", "черный", "чёрный"] },
   { name: "White", hex: "#F8FAFC", aliases: ["white", "белый"] },
   { name: "Silver", hex: "#C0C7D1", aliases: ["silver", "серебро", "серебристый"] },
-  { name: "Space Black", hex: "#1F2329", aliases: ["space black", "black space", "spaceblack"] },
   { name: "Space Gray", hex: "#6B7280", aliases: ["space gray", "space grey", "gray", "grey", "серый"] },
-  { name: "Natural Titanium", hex: "#C8BBA8", aliases: ["natural titanium", "natural", "titanium", "натуральный титан"] },
-  { name: "Blue Titanium", hex: "#4C6173", aliases: ["blue titanium", "titanium blue"] },
-  { name: "White Titanium", hex: "#F1EFE7", aliases: ["white titanium", "titanium white"] },
-  { name: "Desert Titanium", hex: "#C8A27A", aliases: ["desert titanium", "desert", "sand", "песочный"] },
   { name: "Blue", hex: "#1D4ED8", aliases: ["blue", "синий", "голубой"] },
   { name: "Deep Blue", hex: "#172554", aliases: ["deep blue", "dark blue", "темно-синий", "тёмно-синий"] },
   { name: "Purple", hex: "#7C3AED", aliases: ["purple", "фиолетовый"] },
   { name: "Pink", hex: "#F472B6", aliases: ["pink", "розовый"] },
   { name: "Red", hex: "#DC2626", aliases: ["red", "красный"] },
-  { name: "Orange", hex: "#F97316", aliases: ["orange", "оранжевый"] },
-  { name: "Yellow", hex: "#FACC15", aliases: ["yellow", "желтый", "жёлтый"] },
   { name: "Green", hex: "#16A34A", aliases: ["green", "зеленый", "зелёный"] },
-  { name: "Midnight", hex: "#111827", aliases: ["midnight", "ночь", "mid night"] },
-  { name: "Starlight", hex: "#F5F0E6", aliases: ["starlight", "star light"] },
-  { name: "Gold", hex: "#D4AF37", aliases: ["gold", "золото", "золотой"] },
+  { name: "Gold", hex: "#D4AF37", aliases: ["gold", "золотой"] },
+  { name: "Natural Titanium", hex: "#C8BBA8", aliases: ["natural titanium", "titanium", "натуральный титан"] },
 ] as const;
 
 type ProductColor = (typeof PRODUCT_COLORS)[number];
@@ -49,6 +41,10 @@ declare global {
 function normalizeHex(value: string) {
   const trimmed = value.trim();
 
+  if (!trimmed) {
+    return "#111827";
+  }
+
   if (/^#[0-9a-f]{6}$/i.test(trimmed)) {
     return trimmed;
   }
@@ -57,7 +53,12 @@ function normalizeHex(value: string) {
     return `#${trimmed}`;
   }
 
-  return "#111827";
+  return trimmed.startsWith("#") ? trimmed : `#${trimmed}`;
+}
+
+function safePickerHex(value: string) {
+  const normalized = normalizeHex(value);
+  return /^#[0-9a-f]{6}$/i.test(normalized) ? normalized : "#111827";
 }
 
 function findColorByText(value: string): ProductColor | undefined {
@@ -90,10 +91,11 @@ export function ColorPickerField({
   onColorChange,
   onColorHexChange,
   className = "",
-  inputClassName = "h-12 w-full rounded-xl border border-white/10 bg-black/25 px-4 text-sm text-white outline-none transition-colors placeholder:text-white/30 focus:border-blue-500/60",
 }: Props) {
   const [picking, setPicking] = useState(false);
-  const normalizedHex = normalizeHex(colorHex);
+  const pickerHex = safePickerHex(colorHex);
+  const compactInput =
+    "h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-500/70 dark:border-white/10 dark:bg-black/25 dark:text-white dark:placeholder:text-white/30";
 
   const suggestions = useMemo(() => {
     const matches = PRODUCT_COLORS.filter((preset) => colorMatchesQuery(preset, color));
@@ -116,10 +118,6 @@ export function ColorPickerField({
     onColorChange(value);
   }
 
-  function handleHexInput(value: string) {
-    onColorHexChange(normalizeHex(value));
-  }
-
   async function pickColorFromScreen() {
     if (typeof window === "undefined" || !window.EyeDropper) {
       alert("Пипетка недоступна в этом браузере. Можно выбрать цвет через кружок или HEX.");
@@ -130,33 +128,25 @@ export function ColorPickerField({
       setPicking(true);
       const eyeDropper = new window.EyeDropper();
       const result = await eyeDropper.open();
-      const nextHex = normalizeHex(result.sRGBHex);
-
-      onColorHexChange(nextHex);
-
-      const preset = PRODUCT_COLORS.find((item) => item.hex.toLowerCase() === nextHex.toLowerCase());
-
-      if (preset) {
-        onColorChange(preset.name);
-      }
+      onColorHexChange(normalizeHex(result.sRGBHex));
     } catch {
-      // пользователь мог просто отменить выбор цвета
+      // выбор отменён
     } finally {
       setPicking(false);
     }
   }
 
   return (
-    <div className={`grid gap-2 ${className}`}>
-      <span className="text-sm font-medium text-slate-600 dark:text-white/65">Цвет</span>
+    <div className={`max-w-[720px] ${className}`}>
+      <div className="mb-1.5 text-sm font-medium text-slate-600 dark:text-white/65">Цвет</div>
 
-      <div className="grid gap-2 rounded-2xl border border-slate-200 bg-white p-2 dark:border-white/10 dark:bg-black/20 md:grid-cols-[minmax(0,1fr)_126px_48px_112px]">
+      <div className="grid gap-2 md:grid-cols-[minmax(220px,1fr)_120px_42px_94px]">
         <div className="relative">
           <input
             value={color}
             onChange={(event) => handleColorInput(event.target.value)}
-            placeholder="Название цвета, например Blue"
-            className={inputClassName}
+            placeholder="Blue"
+            className={compactInput}
           />
 
           {suggestions.length > 0 && color.trim() && !findColorByText(color) ? (
@@ -166,7 +156,7 @@ export function ColorPickerField({
                   key={`${preset.name}-${preset.hex}`}
                   type="button"
                   onClick={() => selectColor(preset.name, preset.hex)}
-                  className="flex w-full items-center justify-between gap-3 px-3 py-2.5 text-left text-sm text-slate-700 transition-colors hover:bg-blue-600/10 hover:text-blue-600 dark:text-white/75 dark:hover:bg-blue-600/20 dark:hover:text-white"
+                  className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm text-slate-700 transition-colors hover:bg-blue-600/10 hover:text-blue-600 dark:text-white/75 dark:hover:bg-blue-600/20 dark:hover:text-white"
                 >
                   <span className="inline-flex items-center gap-2">
                     <span
@@ -185,30 +175,21 @@ export function ColorPickerField({
 
         <input
           value={colorHex}
-          onChange={(event) => handleHexInput(event.target.value)}
-          placeholder="#111827"
-          className={inputClassName}
+          onChange={(event) => onColorHexChange(normalizeHex(event.target.value))}
+          placeholder="#49a6ab"
+          className={compactInput}
         />
 
-        <label className="relative flex h-12 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white transition-colors hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:hover:bg-white/[0.08]">
+        <label className="relative flex h-10 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white transition-colors hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:hover:bg-white/[0.08]">
           <span
-            className="h-6 w-6 rounded-full border border-slate-300 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.18)] dark:border-white/20"
-            style={{ backgroundColor: normalizedHex }}
+            className="h-5 w-5 rounded-full border border-slate-300 dark:border-white/20"
+            style={{ backgroundColor: pickerHex }}
             aria-hidden="true"
           />
           <input
             type="color"
-            value={normalizedHex}
-            onChange={(event) => {
-              onColorHexChange(event.target.value);
-              const preset = PRODUCT_COLORS.find(
-                (item) => item.hex.toLowerCase() === event.target.value.toLowerCase(),
-              );
-
-              if (preset) {
-                onColorChange(preset.name);
-              }
-            }}
+            value={pickerHex}
+            onChange={(event) => onColorHexChange(event.target.value)}
             className="absolute inset-0 cursor-pointer opacity-0"
             aria-label="Выбрать цвет"
           />
@@ -218,15 +199,11 @@ export function ColorPickerField({
           type="button"
           onClick={pickColorFromScreen}
           disabled={picking}
-          className="h-12 rounded-xl border border-blue-500/30 bg-blue-500/10 px-3 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-500/20 disabled:cursor-not-allowed disabled:opacity-60 dark:text-blue-300"
+          className="h-10 rounded-xl border border-blue-500/35 bg-blue-500/10 px-3 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-500/20 disabled:cursor-not-allowed disabled:opacity-60 dark:text-blue-300"
         >
           {picking ? "..." : "Пипетка"}
         </button>
       </div>
-
-      <p className="text-xs text-slate-500 dark:text-white/35">
-        Название цвета и HEX сохраняются отдельно.
-      </p>
     </div>
   );
 }
