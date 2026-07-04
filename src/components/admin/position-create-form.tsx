@@ -41,7 +41,6 @@ function normalizeManualSku(value: string) {
   return value.trim();
 }
 
-
 function onlyDigits(value: string) {
   return value.replace(/[^0-9]/g, "");
 }
@@ -148,127 +147,139 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
 
   return (
     <form onSubmit={handleSubmit} className="space-y-6 pb-28">
-      <section className="rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
+      <section className="rounded-[34px] border border-slate-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-white/[0.035] sm:p-8">
         <SectionTitle
           label="Новая позиция"
           title="Добавить SKU"
-          text="Позиция — это конкретный товар, который продаётся: память, цвет, SIM, цена, старая цена, остаток и своя библиотека фото. Она привязывается к материнской карточке."
+          text="Заполните конкретную продаваемую комплектацию: SKU, ссылку, память, цвет, SIM, цену, остаток и фото."
         />
 
-        <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
-          <Field label="Материнская карточка">
-            <select value={productId} onChange={(event) => setProductId(event.target.value)} className={inputClass}>
-              {products.map((product) => (
-                <option key={product.id} value={product.id}>
-                  {product.name} · {product.brand} · {getProductCategoryName(product)}
-                </option>
-              ))}
-            </select>
-          </Field>
+        <div className="mt-8 space-y-5">
+          <FormBlock title="Основное">
+            <div className="grid gap-4 lg:grid-cols-3">
+              <Field label="Материнская карточка">
+                <select value={productId} onChange={(event) => setProductId(event.target.value)} className={inputClass}>
+                  {products.map((product) => (
+                    <option key={product.id} value={product.id}>
+                      {product.name} · {product.brand} · {getProductCategoryName(product)}
+                    </option>
+                  ))}
+                </select>
+              </Field>
 
-          {initialCategorySlug && categoryProductsCount === 0 ? (
-            <div className="rounded-2xl border border-orange-500/25 bg-orange-500/10 p-4 text-sm leading-relaxed text-orange-100/80">
-              В этой категории пока нет карточек товара. Сначала создайте карточку в этой категории, потом добавьте к ней SKU-позицию.
+              <Field label="Артикул / SKU">
+                <input
+                  value={sku}
+                  onChange={(event) => setSku(event.target.value)}
+                  placeholder="Например: IP17-256-BLUE-ESIM"
+                  className={inputClass}
+                />
+              </Field>
+
+              <Field label="Ссылка позиции">
+                <input
+                  value={slug}
+                  onChange={(event) => setSlug(normalizeVariantSlug(event.target.value))}
+                  placeholder="Например: iphone-17-256gb-blue-esim"
+                  className={inputClass}
+                />
+              </Field>
+
+              <div className="lg:col-span-2">
+                <Field label="Название позиции">
+                  <input
+                    value={title}
+                    onChange={(event) => setTitle(event.target.value)}
+                    placeholder="Например: iPhone 17 Pro 256 GB Black eSIM"
+                    className={inputClass}
+                  />
+                </Field>
+              </div>
+
+              <StatusPreview finalSku={finalSku} finalSlug={finalSlug} finalTitle={finalTitle} />
             </div>
-          ) : null}
 
-          <Field label="Артикул / SKU">
-            <input
-              value={sku}
-              onChange={(event) => setSku(event.target.value)}
-              placeholder="Например: IP17-256-BLUE-ESIM"
-              className={inputClass}
-            />
-          </Field>
+            {initialCategorySlug && categoryProductsCount === 0 ? (
+              <div className="mt-4 rounded-2xl border border-orange-500/25 bg-orange-500/10 p-4 text-sm leading-relaxed text-orange-700 dark:text-orange-100/80">
+                В этой категории пока нет карточек товара. Сначала создайте карточку в этой категории, потом добавьте к ней SKU-позицию.
+              </div>
+            ) : null}
+          </FormBlock>
 
-          <Field label="Ссылка позиции">
-            <input
-              value={slug}
-              onChange={(event) => setSlug(normalizeVariantSlug(event.target.value))}
-              placeholder="Например: iphone-17-256gb-blue-esim"
-              className={inputClass}
-            />
-          </Field>
+          <FormBlock title="Конфигурация">
+            <div className="grid gap-4 lg:grid-cols-3">
+              <Field label="Память">
+                <input
+                  value={memory}
+                  onChange={(event) => setMemory(event.target.value)}
+                  placeholder="Например: 256 GB"
+                  className={inputClass}
+                />
+              </Field>
 
-          <Field label="Название позиции">
-            <input
-              value={title}
-              onChange={(event) => setTitle(event.target.value)}
-              placeholder="Например: iPhone 17 Pro 256 GB Black eSIM"
-              className={inputClass}
-            />
-          </Field>
+              <ColorPickerField
+                color={color}
+                colorHex={colorHex}
+                onColorChange={setColor}
+                onColorHexChange={setColorHex}
+              />
 
-          <Field label="Память">
-            <input
-              value={memory}
-              onChange={(event) => setMemory(event.target.value)}
-              placeholder="Например: 256 GB"
-              className={inputClass}
-            />
-          </Field>
+              <Field label="SIM">
+                <input
+                  value={sim}
+                  onChange={(event) => setSim(event.target.value)}
+                  placeholder="Например: eSIM или SIM + eSIM"
+                  className={inputClass}
+                />
+              </Field>
+            </div>
+          </FormBlock>
 
-          <ColorPickerField
-            color={color}
-            colorHex={colorHex}
-            onColorChange={setColor}
-            onColorHexChange={setColorHex}
-          />
+          <FormBlock title="Цена и наличие">
+            <div className="grid gap-4 lg:grid-cols-4">
+              <Field label="Цена">
+                <input
+                  value={price}
+                  onChange={(event) => setPrice(onlyDigits(event.target.value))}
+                  inputMode="numeric"
+                  placeholder="Например: 109990"
+                  className={inputClass}
+                />
+              </Field>
 
-          <Field label="SIM">
-            <input
-              value={sim}
-              onChange={(event) => setSim(event.target.value)}
-              placeholder="Например: eSIM или SIM + eSIM"
-              className={inputClass}
-            />
-          </Field>
+              <Field label="Старая цена">
+                <input
+                  value={oldPrice}
+                  onChange={(event) => setOldPrice(onlyDigits(event.target.value))}
+                  inputMode="numeric"
+                  placeholder="Например: 119990"
+                  className={inputClass}
+                />
+              </Field>
 
-          <Field label="Цена">
-            <input
-              value={price}
-              onChange={(event) => setPrice(onlyDigits(event.target.value))}
-              inputMode="numeric"
-              placeholder="Например: 109990"
-              className={inputClass}
-            />
-          </Field>
+              <Field label="Остаток">
+                <input
+                  value={stock}
+                  onChange={(event) => setStock(onlyDigits(event.target.value))}
+                  inputMode="numeric"
+                  placeholder="Например: 3"
+                  className={inputClass}
+                />
+              </Field>
 
-          <Field label="Старая цена">
-            <input
-              value={oldPrice}
-              onChange={(event) => setOldPrice(onlyDigits(event.target.value))}
-              inputMode="numeric"
-              placeholder="Например: 119990, если есть скидка"
-              className={inputClass}
-            />
-          </Field>
+              <Field label="Статус">
+                <select value={status} onChange={(event) => setStatus(event.target.value)} className={inputClass}>
+                  <option value="active">Активна</option>
+                  <option value="draft">Черновик</option>
+                  <option value="hidden">Скрыта</option>
+                  <option value="out_of_stock">Нет в наличии</option>
+                </select>
+              </Field>
+            </div>
+          </FormBlock>
 
-          <Field label="Остаток">
-            <input
-              value={stock}
-              onChange={(event) => setStock(onlyDigits(event.target.value))}
-              inputMode="numeric"
-              placeholder="Например: 3"
-              className={inputClass}
-            />
-          </Field>
-
-          <Field label="Статус">
-            <select value={status} onChange={(event) => setStatus(event.target.value)} className={inputClass}>
-              <option value="active">Активна</option>
-              <option value="draft">Черновик</option>
-              <option value="hidden">Скрыта</option>
-              <option value="out_of_stock">Нет в наличии</option>
-            </select>
-          </Field>
-
-          <div className="md:col-span-2 xl:col-span-3 mt-2 rounded-3xl border border-slate-200/90 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/[0.025]">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-500 dark:text-white/35">SEO позиции</div>
-            <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-white/45">
-              Описание остаётся у карточки товара, а у SKU можно задать SEO-заголовок, SEO-описание и ключи для конкретной комплектации.
-            </p>
-            <div className="mt-4 grid gap-4 md:grid-cols-2">
+          <FormBlock title="SEO позиции" text="Описание остаётся у карточки товара, а у SKU можно задать SEO для конкретной комплектации.">
+            <div className="grid gap-4 lg:grid-cols-2">
               <Field label="SEO title">
                 <input
                   value={seoTitle}
@@ -287,7 +298,7 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
                 />
               </Field>
 
-              <div className="md:col-span-2 xl:col-span-3">
+              <div className="lg:col-span-2">
                 <Field label="SEO description">
                   <textarea
                     value={seoDescription}
@@ -298,32 +309,22 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
                 </Field>
               </div>
             </div>
-          </div>
-        </div>
+          </FormBlock>
 
-        <div className="mt-8">
-          <ImageLibraryField
-            value={images}
-            onChange={setImages}
-            label="Фотографии позиции / SKU"
-            hint="Фотографии конкретной конфигурации: цвет, память и SIM."
-            recommendedSize="1600×1600 px"
-            recommendedFormat="PNG / WEBP, квадрат"
-          />
-        </div>
-
-        <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-xs leading-relaxed text-slate-500 dark:text-white/45">
-          <span className="text-slate-700 dark:text-white/65">Подсказка:</span> SKU и ссылку позиции заполняем вручную. Фото хранятся именно у позиции, а не у материнской карточки.
-          {finalSku || finalTitle ? (
-            <div className="mt-2 text-slate-600 dark:text-white/55">
-              Будет создано: <span className="font-semibold text-white">{finalSku || "SKU не заполнен"}</span>{finalSlug ? <span> · /product/{finalSlug}</span> : null}
-              {finalTitle ? <span> · {finalTitle}</span> : null}
-            </div>
-          ) : null}
+          <FormBlock title="Фотографии позиции / SKU" text="Фотографии конкретной конфигурации: цвет, память и SIM.">
+            <ImageLibraryField
+              value={images}
+              onChange={setImages}
+              label="Фотографии позиции / SKU"
+              hint="Фотографии конкретной конфигурации: цвет, память и SIM."
+              recommendedSize="1600×1600 px"
+              recommendedFormat="PNG / WEBP, квадрат"
+            />
+          </FormBlock>
         </div>
 
         {error ? (
-          <div className="mt-5 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-200">
+          <div className="mt-5 rounded-2xl border border-red-500/30 bg-red-500/10 px-4 py-3 text-sm text-red-700 dark:text-red-200">
             {error}
           </div>
         ) : null}
@@ -355,18 +356,51 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
 function SectionTitle({ label, title, text }: { label: string; title: string; text: string }) {
   return (
     <div>
-      <div className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-400">{label}</div>
-      <h2 className="mt-2 text-3xl font-bold tracking-[-0.04em] text-white">{title}</h2>
+      <div className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-600 dark:text-blue-400">{label}</div>
+      <h2 className="mt-2 text-3xl font-bold tracking-[-0.04em] text-slate-950 dark:text-white">{title}</h2>
       <p className="mt-3 max-w-[760px] text-sm leading-relaxed text-slate-600 dark:text-white/55">{text}</p>
     </div>
   );
 }
 
+function FormBlock({ title, text, children }: { title: string; text?: string; children: ReactNode }) {
+  return (
+    <section className="rounded-3xl border border-slate-200 bg-slate-50/70 p-4 shadow-sm dark:border-white/10 dark:bg-black/20 sm:p-5">
+      <div className="mb-4 flex flex-col gap-1 border-b border-slate-200 pb-3 dark:border-white/10">
+        <div className="text-sm font-semibold text-slate-950 dark:text-white">{title}</div>
+        {text ? <p className="text-xs leading-relaxed text-slate-500 dark:text-white/45">{text}</p> : null}
+      </div>
+      {children}
+    </section>
+  );
+}
+
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <label className="grid gap-2 rounded-2xl border border-slate-200/90 bg-white p-4 text-sm font-medium text-slate-700 shadow-sm dark:border-white/10 dark:bg-white/[0.025] dark:text-white/60">
-      <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-500 dark:text-white/35">{label}</span>
+    <label className="grid gap-2">
+      <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-white/35">{label}</span>
       {children}
     </label>
+  );
+}
+
+function StatusPreview({ finalSku, finalSlug, finalTitle }: { finalSku: string; finalSlug: string; finalTitle: string }) {
+  return (
+    <div className="rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4 text-xs leading-relaxed text-slate-600 dark:text-white/55">
+      <div className="font-semibold text-blue-600 dark:text-blue-300">Предпросмотр</div>
+      <div className="mt-2 space-y-1">
+        <div>
+          SKU: <span className="font-semibold text-slate-950 dark:text-white">{finalSku || "не заполнен"}</span>
+        </div>
+        <div>
+          Ссылка: <span className="font-semibold text-slate-950 dark:text-white">{finalSlug ? `/product/${finalSlug}` : "не заполнена"}</span>
+        </div>
+        {finalTitle ? (
+          <div className="truncate">
+            Название: <span className="font-semibold text-slate-950 dark:text-white">{finalTitle}</span>
+          </div>
+        ) : null}
+      </div>
+    </div>
   );
 }
