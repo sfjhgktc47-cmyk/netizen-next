@@ -207,7 +207,7 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
           </FormBlock>
 
           <FormBlock title="Конфигурация">
-            <div className="grid gap-4 lg:grid-cols-3">
+            <div className="grid gap-4 lg:grid-cols-2">
               <Field label="Память">
                 <input
                   value={memory}
@@ -217,13 +217,6 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
                 />
               </Field>
 
-              <ColorPickerField
-                color={color}
-                colorHex={colorHex}
-                onColorChange={setColor}
-                onColorHexChange={setColorHex}
-              />
-
               <Field label="SIM">
                 <input
                   value={sim}
@@ -232,6 +225,15 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
                   className={inputClass}
                 />
               </Field>
+
+              <div className="lg:col-span-2">
+                <ColorPickerField
+                  color={color}
+                  colorHex={colorHex}
+                  onColorChange={setColor}
+                  onColorHexChange={setColorHex}
+                />
+              </div>
             </div>
           </FormBlock>
 

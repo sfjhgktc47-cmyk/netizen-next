@@ -234,12 +234,12 @@ export function ColorPickerField({
   }
 
   return (
-    <div className={`min-w-0 ${className}`}>
+    <div className={`min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/[0.025] ${className}`}>
       <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-white/35">
         Цвет
       </div>
 
-      <div className="grid max-w-[660px] grid-cols-[minmax(140px,1fr)_104px_38px_70px_86px] gap-2">
+      <div className="grid max-w-[620px] grid-cols-[minmax(160px,1fr)_112px_40px_76px_86px] gap-2">
         <div className="relative min-w-0">
           <input
             value={color}
