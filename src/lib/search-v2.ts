@@ -52,7 +52,7 @@ const ruToEnMap: Record<string, string> = {
 };
 
 const enToRuMap = Object.fromEntries(
-  Object.entries(ruToEnMap).map(([ru, en]) => [en, ru])
+  Object.entries(ruToEnMap).map(([ru, en]) => [en, ru]),
 ) as Record<string, string>;
 
 enToRuMap["/"] = ".";
@@ -69,15 +69,12 @@ const colorAliases: Record<string, string> = {
   черный: "black",
   черная: "black",
   черное: "black",
-  чёрный: "black",
-  чёрная: "black",
   white: "white",
   белый: "white",
   белая: "white",
   green: "green",
   зеленый: "green",
   зеленая: "green",
-  зелёный: "green",
   pink: "pink",
   розовый: "pink",
   purple: "purple",
@@ -96,6 +93,71 @@ const colorAliases: Record<string, string> = {
   титан: "titanium",
 };
 
+const wordAliases: Record<string, string> = {
+  айфон: "iphone",
+  айфоны: "iphone",
+  айф: "iphone",
+  айфона: "iphone",
+  айфону: "iphone",
+  ипхон: "iphone",
+  iphone: "iphone",
+  iphones: "iphone",
+
+  самсунг: "samsung",
+  samsung: "samsung",
+  сяоми: "xiaomi",
+  ксяоми: "xiaomi",
+  xiaomi: "xiaomi",
+  макбук: "macbook",
+  macbook: "macbook",
+  аирподс: "airpods",
+  эйрподс: "airpods",
+  airpods: "airpods",
+
+  про: "pro",
+  pro: "pro",
+  макс: "max",
+  max: "max",
+  максимум: "max",
+  promax: "pro max",
+  промакс: "pro max",
+
+  гб: "gb",
+  gb: "gb",
+  гбайт: "gb",
+  гигабайт: "gb",
+
+  есим: "esim",
+  есім: "esim",
+  esim: "esim",
+  сим: "sim",
+  sim: "sim",
+
+  чехол: "чехол",
+  чехлы: "чехол",
+  стекло: "стекло",
+  пленка: "стекло",
+  плёнка: "стекло",
+  кабель: "кабель",
+  провод: "кабель",
+  зарядка: "зарядка",
+  зарядное: "зарядка",
+  адаптер: "адаптер",
+  блок: "адаптер",
+  аксессуар: "аксессуар",
+  аксессуары: "аксессуар",
+  защита: "аксессуар",
+  case: "case",
+  glass: "glass",
+  cable: "cable",
+  charger: "charger",
+  adapter: "adapter",
+  magsafe: "magsafe",
+  accessory: "accessory",
+  accessories: "accessory",
+  cover: "case",
+};
+
 const accessoryTokens = new Set([
   "case",
   "glass",
@@ -108,19 +170,11 @@ const accessoryTokens = new Set([
   "accessories",
   "cover",
   "чехол",
-  "чехлы",
   "стекло",
-  "пленка",
-  "плёнка",
   "кабель",
-  "провод",
   "зарядка",
-  "зарядное",
   "адаптер",
-  "блок",
   "аксессуар",
-  "аксессуары",
-  "защита",
 ]);
 
 function convertLayout(value: string, map: Record<string, string>) {
@@ -144,43 +198,43 @@ function normalizeBase(value: string) {
 }
 
 function canonicalizeWords(value: string) {
-  let text = normalizeBase(value);
+  const text = normalizeBase(value);
 
-  text = text
-    .replace(/\bайфоны\b/g, "iphone")
-    .replace(/\bайфон\b/g, "iphone")
-    .replace(/\bайф\b/g, "iphone")
-    .replace(/\bипхон\b/g, "iphone")
-    .replace(/\biphone\b/g, "iphone")
-    .replace(/\biphones\b/g, "iphone")
-    .replace(/\bсамсунг\b/g, "samsung")
-    .replace(/\bсяоми\b/g, "xiaomi")
-    .replace(/\bксяоми\b/g, "xiaomi")
-    .replace(/\bмакбук\b/g, "macbook")
-    .replace(/\bаирподс\b/g, "airpods")
-    .replace(/\bэйрподс\b/g, "airpods")
-    .replace(/\bпро\b/g, "pro")
-    .replace(/\bмакс\b/g, "max")
-    .replace(/\bмаксимум\b/g, "max")
-    .replace(/\bгб\b/g, "gb")
-    .replace(/\bгбайт\b/g, "gb")
-    .replace(/\bгигабайт\b/g, "gb")
-    .replace(/\bесим\b/g, "esim")
-    .replace(/\bе сим\b/g, "esim")
-    .replace(/\be sim\b/g, "esim")
-    .replace(/\bsim\s+e\s+sim\b/g, "sim esim")
-    .replace(/\bpro\s+max\b/g, "promax")
-    .replace(/\bпро\s+макс\b/g, "promax");
+  const rawTokens = text.split(/\s+/).filter(Boolean);
+  const tokens: string[] = [];
 
-  text = text.replace(/\b([0-9]{2,4})\s*(gb|гб)\b/g, "$1gb");
+  rawTokens.forEach((token) => {
+    const aliased = wordAliases[token] ?? colorAliases[token] ?? token;
+    const normalizedColor = colorAliases[aliased] ?? aliased;
 
-  const tokens = text.split(/\s+/).filter(Boolean).map((token) => {
-    if (token === "promax") return "pro max";
-    if (colorAliases[token]) return colorAliases[token];
-    return token;
+    normalizedColor
+      .split(/\s+/)
+      .filter(Boolean)
+      .forEach((part) => tokens.push(part));
   });
 
-  return normalizeBase(tokens.join(" ")).replace(/\b([0-9]{2,4})\s+gb\b/g, "$1gb");
+  const compacted: string[] = [];
+
+  for (let index = 0; index < tokens.length; index += 1) {
+    const current = tokens[index];
+    const next = tokens[index + 1];
+
+    if (/^[0-9]{2,4}$/.test(current) && next === "gb") {
+      compacted.push(`${current}gb`);
+      index += 1;
+      continue;
+    }
+
+    if (current === "e" && next === "sim") {
+      compacted.push("esim");
+      index += 1;
+      continue;
+    }
+
+    compacted.push(current);
+  }
+
+  return normalizeBase(compacted.join(" ")).replace(/\b([0-9]{2,4})\s+gb\b/g, "$1gb");
 }
 
 function scoreQueryCandidate(value: string) {
@@ -192,7 +246,7 @@ function scoreQueryCandidate(value: string) {
   if (tokens.includes("max")) score += 4;
   if (tokens.some((token) => /^\d{2}$/.test(token))) score += 2;
   if (tokens.some((token) => /^\d{2,4}gb$/.test(token))) score += 3;
-  if (tokens.some((token) => colorAliases[token])) score += 2;
+  if (tokens.some((token) => Boolean(colorAliases[token]))) score += 2;
   if (tokens.some((token) => accessoryTokens.has(token))) score += 5;
 
   return score;
@@ -222,7 +276,10 @@ export function buildCatalogSearch(value: string): CatalogSearchIntent {
   const hasQuery = tokens.length > 0;
   const isAccessoryQuery = tokens.some((token) => accessoryTokens.has(token));
   const iphoneIndex = tokens.indexOf("iphone");
-  const iphoneGeneration = iphoneIndex >= 0 ? tokens.find((token, index) => index > iphoneIndex && /^\d{2}$/.test(token)) ?? null : null;
+  const iphoneGeneration =
+    iphoneIndex >= 0
+      ? tokens.find((token, index) => index > iphoneIndex && /^\d{2}$/.test(token)) ?? null
+      : null;
   const hasPro = tokens.includes("pro") || compact.includes("promax");
   const hasMax = tokens.includes("max") || compact.includes("promax");
   const iphoneVariant = iphoneGeneration
