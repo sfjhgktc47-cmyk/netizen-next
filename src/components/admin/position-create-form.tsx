@@ -207,15 +207,12 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
               className={inputClass}
             />
           </Field>
-
-          <div className="md:col-span-2 xl:col-span-3">
-            <ColorPickerField
+          <ColorPickerField
               color={color}
               colorHex={colorHex}
               onColorChange={setColor}
               onColorHexChange={setColorHex}
-            />
-          </div>
+             />
 
           <Field label="SIM">
             <input
