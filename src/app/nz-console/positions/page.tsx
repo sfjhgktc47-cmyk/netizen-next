@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import Image from 'next/image';
 import Link from "next/link";
 
-import { PositionVisibilityButton } from "@/components/admin/position-visibility-button";
+import { PositionCopyButton } from "@/components/admin/position-copy-button";\nimport { PositionVisibilityButton } from "@/components/admin/position-visibility-button";
 import { PositionsImportForm } from "@/components/admin/positions-import-form";
 import { prisma } from "@/lib/db";
 
@@ -404,6 +404,7 @@ export default async function AdminPositionsPage({
                       >
                         Изменить
                       </Link>
+                      <PositionCopyButton productId={variant.productId} variantId={variant.id} />
                       <PositionVisibilityButton
                         variant={{
                           id: variant.id,
