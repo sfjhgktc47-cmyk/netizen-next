@@ -156,15 +156,12 @@ export function ProductVariantCreateForm({ productId, productName }: Props) {
           />
         </Field>
 
-        <div className="md:col-span-2 xl:col-span-4">
           <ColorPickerField
             color={color}
             colorHex={colorHex}
             onColorChange={setColor}
             onColorHexChange={setColorHex}
-            inputClassName={inputClass}
           />
-        </div>
 
         <Field label="SIM">
           <input

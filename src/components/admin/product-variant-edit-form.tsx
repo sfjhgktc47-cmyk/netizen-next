@@ -244,12 +244,13 @@ export function ProductVariantEditForm({ productId, variant, relatedProductOptio
         <Field label="Память">
           <input value={memory} onChange={(event) => setMemory(event.target.value)} className={inputClass} />
         </Field>
+
           <ColorPickerField
             color={color}
             colorHex={colorHex}
             onColorChange={setColor}
             onColorHexChange={setColorHex}
-           />
+          />
 
         <Field label="SIM">
           <input value={sim} onChange={(event) => setSim(event.target.value)} className={inputClass} />

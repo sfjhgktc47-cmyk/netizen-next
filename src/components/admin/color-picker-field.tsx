@@ -1,4 +1,4 @@
-﻿"use client";
+"use client";
 
 import { useEffect, useMemo, useState } from "react";
 
@@ -13,10 +13,10 @@ const DEFAULT_COLORS: ColorPreset[] = [
   { name: "Silver", hex: "#C0C7D1" },
   { name: "Blue", hex: "#49A6AB" },
   { name: "Deep Blue", hex: "#172554" },
-  { name: "Purple", hex: "#7C3AED" },
-  { name: "Pink", hex: "#F472B6" },
-  { name: "Red", hex: "#DC2626" },
+  { name: "Sage", hex: "#359614" },
   { name: "Green", hex: "#16A34A" },
+  { name: "Pink", hex: "#F472B6" },
+  { name: "Purple", hex: "#7C3AED" },
   { name: "Gold", hex: "#D4AF37" },
   { name: "Natural Titanium", hex: "#C8BBA8" },
 ];
@@ -27,6 +27,7 @@ type Props = {
   onColorChange: (value: string) => void;
   onColorHexChange: (value: string) => void;
   className?: string;
+  inputClassName?: string;
 };
 
 type EyeDropperConstructor = new () => {
@@ -39,7 +40,7 @@ declare global {
   }
 }
 
-function key(value: string) {
+function colorKey(value: string) {
   return value.trim().toLowerCase();
 }
 
@@ -61,39 +62,35 @@ function normalizeHex(value: string) {
   return trimmed.startsWith("#") ? trimmed : `#${trimmed}`;
 }
 
-function validHex(value: string) {
+function isValidHex(value: string) {
   return /^#[0-9a-f]{6}$/i.test(normalizeHex(value));
 }
 
 function pickerHex(value: string) {
   const hex = normalizeHex(value);
-  return /^#[0-9a-f]{6}$/i.test(hex) ? hex : "#111827";
+  return isValidHex(hex) ? hex : "#111827";
 }
 
-function mergePresets(...groups: ColorPreset[][]) {
+function mergePresets(groups: ColorPreset[][]) {
   const map = new Map<string, ColorPreset>();
 
   for (const group of groups) {
     for (const item of group) {
-      const name = item.name.trim();
-      const hex = normalizeHex(item.hex);
+      const name = String(item.name ?? "").trim();
+      const hex = normalizeHex(String(item.hex ?? ""));
 
-      if (!name || !validHex(hex)) {
+      if (!name || !isValidHex(hex)) {
         continue;
       }
 
-      const normalizedKey = key(name);
-
-      if (!map.has(normalizedKey)) {
-        map.set(normalizedKey, { name, hex });
-      }
+      map.set(colorKey(name), { name, hex });
     }
   }
 
   return Array.from(map.values());
 }
 
-function readLocalPresets() {
+function readLocalPresets(): ColorPreset[] {
   if (typeof window === "undefined") {
     return [];
   }
@@ -114,22 +111,26 @@ function readLocalPresets() {
   }
 }
 
-function writeLocalPreset(name: string, hex: string) {
+function writeLocalPresets(items: ColorPreset[]) {
   if (typeof window === "undefined") {
     return;
   }
 
+  window.localStorage.setItem("neontech-color-presets", JSON.stringify(items.slice(0, 80)));
+}
+
+function saveLocalPreset(name: string, hex: string) {
   const cleanName = name.trim();
   const cleanHex = normalizeHex(hex);
 
-  if (!cleanName || !validHex(cleanHex)) {
-    return;
+  if (!cleanName || !isValidHex(cleanHex)) {
+    return false;
   }
 
-  const current = readLocalPresets();
-  const next = mergePresets([{ name: cleanName, hex: cleanHex }], current).slice(0, 80);
+  const next = mergePresets([[{ name: cleanName, hex: cleanHex }], readLocalPresets()]);
+  writeLocalPresets(next);
 
-  window.localStorage.setItem("neontech-color-presets", JSON.stringify(next));
+  return true;
 }
 
 export function ColorPickerField({
@@ -142,6 +143,7 @@ export function ColorPickerField({
   const [dbPresets, setDbPresets] = useState<ColorPreset[]>([]);
   const [localPresets, setLocalPresets] = useState<ColorPreset[]>([]);
   const [picking, setPicking] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   useEffect(() => {
     setLocalPresets(readLocalPresets());
@@ -156,54 +158,64 @@ export function ColorPickerField({
       .catch(() => {});
   }, []);
 
-  const presets = useMemo(
-    () => mergePresets(dbPresets, localPresets, DEFAULT_COLORS),
-    [dbPresets, localPresets],
-  );
+  const presets = useMemo(() => {
+    return mergePresets([localPresets, dbPresets, DEFAULT_COLORS]);
+  }, [dbPresets, localPresets]);
 
   const exactPreset = useMemo(() => {
-    return presets.find((preset) => key(preset.name) === key(color));
+    return presets.find((preset) => colorKey(preset.name) === colorKey(color));
   }, [color, presets]);
 
   const suggestions = useMemo(() => {
-    const query = key(color);
+    const query = colorKey(color);
 
     if (!query || exactPreset) {
       return [];
     }
 
-    return presets.filter((preset) => key(preset.name).includes(query)).slice(0, 6);
+    return presets.filter((preset) => colorKey(preset.name).includes(query)).slice(0, 6);
   }, [color, exactPreset, presets]);
-
-  function saveCurrentPreset() {
-    if (!color.trim() || !validHex(colorHex)) {
-      return;
-    }
-
-    writeLocalPreset(color, colorHex);
-    setLocalPresets(readLocalPresets());
-  }
 
   function selectPreset(preset: ColorPreset) {
     onColorChange(preset.name);
     onColorHexChange(preset.hex);
-    writeLocalPreset(preset.name, preset.hex);
-    setLocalPresets(readLocalPresets());
   }
 
   function handleColorName(value: string) {
     onColorChange(value);
+    setSaved(false);
 
-    const preset = presets.find((item) => key(item.name) === key(value));
+    const preset = presets.find((item) => colorKey(item.name) === colorKey(value));
 
     if (preset) {
       onColorHexChange(preset.hex);
     }
   }
 
-  async function pickFromScreen() {
+  function handleHex(value: string) {
+    onColorHexChange(value);
+    setSaved(false);
+  }
+
+  function handleSaveColor() {
+    const cleanHex = normalizeHex(colorHex);
+    const ok = saveLocalPreset(color, cleanHex);
+
+    if (!ok) {
+      alert("Заполни название цвета и HEX в формате #359614.");
+      return;
+    }
+
+    onColorHexChange(cleanHex);
+    setLocalPresets(readLocalPresets());
+    setSaved(true);
+
+    window.setTimeout(() => setSaved(false), 1600);
+  }
+
+  async function pickColor() {
     if (typeof window === "undefined" || !window.EyeDropper) {
-      alert("Пипетка недоступна в этом браузере. Можно выбрать цвет через кружок или HEX.");
+      alert("Пипетка недоступна в этом браузере.");
       return;
     }
 
@@ -213,6 +225,7 @@ export function ColorPickerField({
       const result = await eyeDropper.open();
 
       onColorHexChange(normalizeHex(result.sRGBHex));
+      setSaved(false);
     } catch {
       // пользователь отменил выбор
     } finally {
@@ -226,12 +239,11 @@ export function ColorPickerField({
         Цвет
       </div>
 
-      <div className="grid max-w-[560px] grid-cols-[minmax(160px,1fr)_112px_40px_88px] gap-2">
+      <div className="grid max-w-[660px] grid-cols-[minmax(140px,1fr)_104px_38px_70px_86px] gap-2">
         <div className="relative min-w-0">
           <input
             value={color}
             onChange={(event) => handleColorName(event.target.value)}
-            onBlur={saveCurrentPreset}
             placeholder="Sage"
             className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-500/70 dark:border-white/10 dark:bg-black/25 dark:text-white dark:placeholder:text-white/30"
           />
@@ -265,11 +277,8 @@ export function ColorPickerField({
 
         <input
           value={colorHex}
-          onChange={(event) => onColorHexChange(event.target.value)}
-          onBlur={() => {
-            onColorHexChange(normalizeHex(colorHex));
-            saveCurrentPreset();
-          }}
+          onChange={(event) => handleHex(event.target.value)}
+          onBlur={() => onColorHexChange(normalizeHex(colorHex))}
           placeholder="#359614"
           className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-500/70 dark:border-white/10 dark:bg-black/25 dark:text-white dark:placeholder:text-white/30"
         />
@@ -286,8 +295,7 @@ export function ColorPickerField({
             value={pickerHex(colorHex)}
             onChange={(event) => {
               onColorHexChange(event.target.value);
-              writeLocalPreset(color, event.target.value);
-              setLocalPresets(readLocalPresets());
+              setSaved(false);
             }}
             className="absolute inset-0 cursor-pointer opacity-0"
             aria-label="Выбрать цвет"
@@ -296,11 +304,21 @@ export function ColorPickerField({
 
         <button
           type="button"
-          onClick={pickFromScreen}
+          onClick={pickColor}
           disabled={picking}
-          className="h-10 rounded-xl border border-blue-500/35 bg-blue-500/10 px-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-500/20 disabled:cursor-not-allowed disabled:opacity-60 dark:text-blue-300"
+          className="h-10 rounded-xl border border-blue-500/35 bg-blue-500/10 px-2 text-xs font-semibold text-blue-600 transition-colors hover:bg-blue-500/20 disabled:cursor-not-allowed disabled:opacity-60 dark:text-blue-300"
+          title="Пипетка"
         >
-          {picking ? "..." : "Пипетка"}
+          {picking ? "..." : "Пип."}
+        </button>
+
+        <button
+          type="button"
+          onClick={handleSaveColor}
+          className="h-10 rounded-xl bg-blue-600 px-2 text-xs font-semibold text-white transition-colors hover:bg-blue-500"
+          title="Сохранить название и цвет кружка"
+        >
+          {saved ? "Готово" : "Сохр."}
         </button>
       </div>
     </div>
