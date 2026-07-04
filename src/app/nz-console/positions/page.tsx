@@ -298,7 +298,7 @@ export default async function AdminPositionsPage({
                 <option value="">Все модели</option>
                 {products.map((product) => (
                   <option key={product.id} value={product.id}>
-                    #{product.sortOrder} · {product.name} · {product.brand}
+                    {product.name} · {product.brand}
                   </option>
                 ))}
               </select>
@@ -334,22 +334,14 @@ export default async function AdminPositionsPage({
               <button type="submit" className="rounded-xl bg-blue-600 px-6 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-blue-500">
                 Применить
               </button>
-              <Link
-                href="/nz-console/positions/new"
-                className="rounded-xl bg-blue-600 px-6 py-3 text-center text-sm font-medium text-white transition-colors hover:bg-blue-500"
-              >
-                Добавить позицию
-              </Link>
             </div>
           </form>
         </section>
 
         <section className="mt-6 overflow-hidden rounded-[28px] border border-white/10 bg-white/[0.035]">
-          <div className="hidden grid-cols-[0.95fr_1.15fr_0.55fr_0.55fr_0.5fr_0.5fr_0.6fr_0.6fr_0.7fr_0.6fr_180px] border-b border-white/10 bg-black/25 px-5 py-4 text-sm text-white/45 xl:grid">
-            <div>Модель</div>
+          <div className="hidden grid-cols-[minmax(360px,1.8fr)_0.6fr_0.65fr_0.65fr_0.75fr_0.75fr_0.8fr_0.9fr_160px] border-b border-white/10 bg-black/25 px-5 py-4 text-sm text-white/45 xl:grid">
             <div>Позиция / SKU</div>
             <div>Бренд</div>
-            <div>Порядок</div>
             <div>Цвет</div>
             <div>Память</div>
             <div>SIM</div>
@@ -367,18 +359,9 @@ export default async function AdminPositionsPage({
                 return (
                   <div
                     key={variant.id}
-                    className="grid gap-5 bg-white/[0.015] p-5 transition-colors hover:bg-blue-500/[0.04] xl:grid-cols-[0.95fr_1.15fr_0.55fr_0.55fr_0.5fr_0.5fr_0.6fr_0.6fr_0.7fr_0.6fr_180px] xl:items-center"
+                    className="grid gap-4 bg-white/[0.015] p-4 transition-colors hover:bg-blue-500/[0.04] xl:grid-cols-[minmax(360px,1.8fr)_0.6fr_0.65fr_0.65fr_0.75fr_0.75fr_0.8fr_0.9fr_160px] xl:items-center"
                   >
-                    <AdminCell label="Модель">
-                      <Link
-                        href={`/nz-console/products/${variant.product.slug}`}
-                        className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-sm text-blue-400 transition-colors hover:bg-blue-500/15"
-                      >
-                        {variant.product.name}
-                      </Link>
-                    </AdminCell>
-
-                    <div className="flex items-center gap-3">
+                    <div className="flex min-w-0 items-center gap-3">
                       <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/[0.045] text-[10px] text-white/25">
                         {image ? (
                           // eslint-disable-next-line @next/next/no-img-element
@@ -388,18 +371,13 @@ export default async function AdminPositionsPage({
                         )}
                       </div>
                       <div>
-                        <div className="font-semibold">{variant.title}</div>
-                        <div className="mt-1 text-sm text-white/35">SKU {variant.sku}</div>
+                        <div className="line-clamp-2 font-semibold leading-snug">{variant.title}</div>
+                        <div className="mt-1 max-w-[340px] truncate text-xs text-white/35" title={variant.sku}>SKU {variant.sku}</div>
                         <div className="mt-1 text-xs text-white/30">Фото: {variant.images?.length ?? 0}</div>
                       </div>
                     </div>
 
                     <AdminCell label="Бренд">{variant.product.brand || "—"}</AdminCell>
-                    <AdminCell label="Порядок">
-                      <span className="rounded-full border border-blue-500/30 bg-blue-500/10 px-3 py-1 text-sm text-blue-300">
-                        #{variant.product.sortOrder}
-                      </span>
-                    </AdminCell>
                     <AdminCell label="Цвет">{variant.color || "—"}</AdminCell>
                     <AdminCell label="Память">{variant.memory || "—"}</AdminCell>
                     <AdminCell label="SIM">{variant.sim || "—"}</AdminCell>
@@ -407,14 +385,14 @@ export default async function AdminPositionsPage({
 
                     <div>
                       <div className="mb-1 text-xs text-white/35 xl:hidden">Наличие</div>
-                      <span className={`rounded-full border px-3 py-1 text-sm ${variant.stock > 0 ? "border-green-500/30 bg-green-500/10 text-green-300" : "border-orange-500/30 bg-orange-500/10 text-orange-300"}`}>
+                      <span className={`inline-flex whitespace-nowrap rounded-full border px-3 py-1 text-sm leading-none ${variant.stock > 0 ? "border-green-500/30 bg-green-500/10 text-green-300" : "border-orange-500/30 bg-orange-500/10 text-orange-300"}`}>
                         {getStockLabel(variant.stock)}
                       </span>
                     </div>
 
                     <div>
                       <div className="mb-1 text-xs text-white/35 xl:hidden">Статус</div>
-                      <span className={`rounded-full border px-3 py-1 text-sm ${getStatusClass(variant.status, variant.stock)}`}>
+                      <span className={`inline-flex whitespace-nowrap rounded-full border px-3 py-1 text-sm leading-none ${getStatusClass(variant.status, variant.stock)}`}>
                         {getStatusLabel(variant.status)}
                       </span>
                     </div>
