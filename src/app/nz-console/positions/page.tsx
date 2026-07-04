@@ -3,7 +3,8 @@ import type { ReactNode } from "react";
 import Image from 'next/image';
 import Link from "next/link";
 
-import { PositionCopyButton } from "@/components/admin/position-copy-button";\nimport { PositionVisibilityButton } from "@/components/admin/position-visibility-button";
+import { PositionCopyButton } from "@/components/admin/position-copy-button";
+import { PositionVisibilityButton } from "@/components/admin/position-visibility-button";
 import { PositionsImportForm } from "@/components/admin/positions-import-form";
 import { prisma } from "@/lib/db";
 
@@ -351,7 +352,7 @@ export default async function AdminPositionsPage({
             <div className="text-right">Действия</div>
           </div>
 
-          <div className="divide-y divide-white/10">
+          <div className="divide-y divide-slate-200/90 dark:divide-white/10">
             {filteredVariants.length > 0 ? (
               filteredVariants.map((variant) => {
                 const image = variant.images?.[0] ?? variant.product.image;
@@ -359,7 +360,7 @@ export default async function AdminPositionsPage({
                 return (
                   <div
                     key={variant.id}
-                    className="grid gap-4 bg-white/[0.015] p-4 transition-colors hover:bg-blue-500/[0.04] xl:grid-cols-[minmax(360px,1.8fr)_0.6fr_0.65fr_0.65fr_0.75fr_0.75fr_0.8fr_0.9fr_160px] xl:items-center"
+                    className="grid gap-4 border-b border-slate-200/90 bg-white p-4 transition-colors last:border-b-0 hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.015] dark:hover:bg-blue-500/[0.04] xl:grid-cols-[minmax(360px,1.8fr)_0.6fr_0.65fr_0.65fr_0.75fr_0.75fr_0.8fr_0.9fr_160px] xl:items-center"
                   >
                     <div className="flex min-w-0 items-center gap-3">
                       <div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-2xl bg-white/[0.045] text-[10px] text-white/25">
