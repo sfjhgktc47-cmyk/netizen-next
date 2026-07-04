@@ -10,7 +10,7 @@ export default async function AdminDashboardPage() {
 
   return (
     <main className="min-h-screen bg-[#020814] px-4 py-4 text-white sm:px-6 sm:py-6">
-      <div className="mx-auto max-w-[1440px]">
+      <div className="mx-auto max-w-[1180px]">
         <header className="flex min-h-[76px] flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/10 bg-white/[0.035] px-4 sm:px-6">
           <Link
             href="/nz-console"
@@ -36,7 +36,7 @@ export default async function AdminDashboardPage() {
           </div>
         </header>
 
-        <section className="mt-10 grid gap-8 lg:grid-cols-[1fr_360px]">
+        <section className="mt-8 grid gap-6 lg:grid-cols-[minmax(0,1fr)_300px]">
           <div className="rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
             <div className="inline-flex rounded-full border border-blue-500/35 bg-blue-500/10 px-4 py-2 text-sm font-medium text-blue-400">
               Админ-панель
@@ -108,16 +108,6 @@ export default async function AdminDashboardPage() {
                 Промокоды и скидки
               </Link>
 
-            </div>
-
-            <div className="mt-8 rounded-2xl border border-blue-500/25 bg-blue-500/10 p-5">
-              <div className="font-semibold text-blue-400">Логика каталога</div>
-
-              <p className="mt-2 text-sm leading-relaxed text-white/55">
-                Категория содержит карточки товаров. Карточка содержит позиции
-                / SKU. Клиент видит карточку, а конкретную конфигурацию выбирает
-                уже на странице товара.
-              </p>
             </div>
           </aside>
         </section>
