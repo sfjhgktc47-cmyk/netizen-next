@@ -27,19 +27,20 @@ type Props = {
 const inputClass =
   "h-12 w-full rounded-xl border border-white/10 bg-black/25 px-4 text-sm text-white outline-none transition-colors placeholder:text-white/30 focus:border-blue-500/60";
 
-function slugify(value: string) {
+function normalizeVariantSlug(value: string) {
   return value
     .toLowerCase()
     .trim()
-    .replace(/ё/g, "e")
-    .replace(/й/g, "i")
-    .replace(/[^a-z0-9а-я]+/gi, "-")
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^a-z0-9-]+/g, "")
+    .replace(/-+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
 
-function normalizeSku(value: string) {
-  return value.trim().toUpperCase().replace(/\s+/g, "-");
+function normalizeManualSku(value: string) {
+  return value.trim();
 }
+
 
 function onlyDigits(value: string) {
   return value.replace(/[^0-9]/g, "");
@@ -58,6 +59,7 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
 
   const [productId, setProductId] = useState(initialProduct?.id ?? "");
   const [sku, setSku] = useState("");
+  const [slug, setSlug] = useState("");
   const [title, setTitle] = useState("");
   const [memory, setMemory] = useState("");
   const [color, setColor] = useState("");
@@ -79,17 +81,12 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
     ? products.filter((product) => product.categorySlug === initialCategorySlug).length
     : products.length;
 
-  const suggestedSku = useMemo(() => {
-    const base = [selectedProduct?.slug, memory, color, sim].filter(Boolean).join("-");
-
-    return normalizeSku(base);
-  }, [color, memory, selectedProduct?.slug, sim]);
-
   const suggestedTitle = useMemo(() => {
     return [selectedProduct?.name, memory, color, sim].filter(Boolean).join(" ").trim();
   }, [color, memory, selectedProduct?.name, sim]);
 
-  const finalSku = sku.trim() ? normalizeSku(sku) : suggestedSku;
+  const finalSku = normalizeManualSku(sku);
+  const finalSlug = normalizeVariantSlug(slug);
   const finalTitle = title.trim() || suggestedTitle;
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
@@ -98,8 +95,8 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
     setLoading(true);
 
     try {
-      if (!productId || !finalSku || !finalTitle || !price) {
-        throw new Error("Выберите карточку и заполните SKU, название позиции и цену.");
+      if (!productId || !finalSku || !finalSlug || !finalTitle || !price) {
+        throw new Error("Выберите карточку, SKU, ссылку позиции, название и цену.");
       }
 
       const response = await fetch(`/api/admin/products/${productId}/variants`, {
@@ -109,7 +106,7 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
         },
         body: JSON.stringify({
           sku: finalSku,
-          slug: slugify(finalSku),
+          slug: finalSlug,
           title: finalTitle,
           memory: memory.trim(),
           color: color.trim(),
@@ -169,14 +166,6 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
             </select>
           </Field>
 
-          <div className="rounded-2xl border border-white/10 bg-black/20 p-4 text-sm leading-relaxed text-white/55">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-white/35">Категория позиции</div>
-            <div className="mt-2 font-semibold text-white">{getProductCategoryName(selectedProduct)}</div>
-            <p className="mt-1 text-xs leading-relaxed text-white/45">
-              У позиции нет отдельной категории: она автоматически берётся из выбранной материнской карточки.
-            </p>
-          </div>
-
           {initialCategorySlug && categoryProductsCount === 0 ? (
             <div className="rounded-2xl border border-orange-500/25 bg-orange-500/10 p-4 text-sm leading-relaxed text-orange-100/80">
               В этой категории пока нет карточек товара. Сначала создайте карточку в этой категории, потом добавьте к ней SKU-позицию.
@@ -186,8 +175,17 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
           <Field label="Артикул / SKU">
             <input
               value={sku}
-              onChange={(event) => setSku(event.target.value.toUpperCase())}
-              placeholder="Например: IP17PRO-256-BLACK-ESIM"
+              onChange={(event) => setSku(event.target.value)}
+              placeholder="Например: IP17-256-BLUE-ESIM"
+              className={inputClass}
+            />
+          </Field>
+
+          <Field label="Ссылка позиции">
+            <input
+              value={slug}
+              onChange={(event) => setSlug(normalizeVariantSlug(event.target.value))}
+              placeholder="Например: iphone-17-256gb-blue-esim"
               className={inputClass}
             />
           </Field>
@@ -318,10 +316,10 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
         </div>
 
         <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-xs leading-relaxed text-white/45">
-          <span className="text-white/65">Подсказка:</span> если SKU или название оставить пустыми, система соберёт их из карточки, памяти, цвета и SIM. Фото хранятся именно у позиции, а не у материнской карточки.
+          <span className="text-white/65">Подсказка:</span> SKU и ссылку позиции заполняем вручную. Фото хранятся именно у позиции, а не у материнской карточки.
           {finalSku || finalTitle ? (
             <div className="mt-2 text-white/55">
-              Будет создано: <span className="font-semibold text-white">{finalSku || "SKU не заполнен"}</span>
+              Будет создано: <span className="font-semibold text-white">{finalSku || "SKU не заполнен"}</span>{finalSlug ? <span> · /product/{finalSlug}</span> : null}
               {finalTitle ? <span> · {finalTitle}</span> : null}
             </div>
           ) : null}

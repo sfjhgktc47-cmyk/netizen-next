@@ -46,23 +46,20 @@ type Props = {
 const inputClass =
   "h-12 w-full rounded-xl border border-white/10 bg-black/25 px-4 text-sm text-white outline-none transition-colors placeholder:text-white/30 focus:border-blue-500/60";
 
-function slugify(value: string) {
+function normalizeVariantSlug(value: string) {
   return value
     .toLowerCase()
     .trim()
-    .replace(/ё/g, "e")
-    .replace(/й/g, "i")
-    .replace(/[^a-z0-9а-я]+/gi, "-")
+    .replace(/[\s_]+/g, "-")
+    .replace(/[^a-z0-9-]+/g, "")
+    .replace(/-+/g, "-")
     .replace(/^-+|-+$/g, "");
 }
 
-function makeSku(value: string) {
-  return value
-    .trim()
-    .toUpperCase()
-    .replace(/[^A-ZА-Я0-9]+/g, "-")
-    .replace(/^-+|-+$/g, "");
+function normalizeManualSku(value: string) {
+  return value.trim();
 }
+
 
 function onlyDigits(value: string) {
   return value.replace(/[^0-9]/g, "");
@@ -112,8 +109,8 @@ export function ProductVariantEditForm({ productId, variant, relatedProductOptio
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          sku: makeSku(sku),
-          slug: slugify(slug),
+          sku: normalizeManualSku(sku),
+          slug: normalizeVariantSlug(slug),
           title: title.trim(),
           memory: memory.trim(),
           color: color.trim(),
@@ -232,12 +229,12 @@ export function ProductVariantEditForm({ productId, variant, relatedProductOptio
       </div>
 
       <div className="mt-6 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <Field label="SKU">
-          <input value={sku} onChange={(event) => setSku(makeSku(event.target.value))} className={inputClass} />
+        <Field label="Артикул / SKU">
+          <input value={sku} onChange={(event) => setSku(event.target.value)} className={inputClass} />
         </Field>
 
-        <Field label="Slug">
-          <input value={slug} onChange={(event) => setSlug(slugify(event.target.value))} className={inputClass} />
+        <Field label="Ссылка позиции">
+          <input value={slug} onChange={(event) => setSlug(normalizeVariantSlug(event.target.value))} className={inputClass} />
         </Field>
 
         <Field label="Название">
