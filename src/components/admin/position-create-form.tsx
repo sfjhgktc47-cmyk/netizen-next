@@ -150,7 +150,7 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
   }
 
   return (
-    <form onSubmit={handleSubmit} className="grid gap-8 lg:grid-cols-[1fr_360px]">
+    <form onSubmit={handleSubmit} className="space-y-6 pb-28">
       <section className="rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8">
         <SectionTitle
           label="Новая позиция"
@@ -158,7 +158,7 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
           text="Позиция — это конкретный товар, который продаётся: память, цвет, SIM, цена, старая цена, остаток и своя библиотека фото. Она привязывается к материнской карточке."
         />
 
-        <div className="mt-8 grid gap-5 md:grid-cols-2">
+        <div className="mt-8 grid gap-5 md:grid-cols-2 xl:grid-cols-3">
           <Field label="Материнская карточка">
             <select value={productId} onChange={(event) => setProductId(event.target.value)} className={inputClass}>
               {products.map((product) => (
@@ -210,7 +210,7 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
             />
           </Field>
 
-          <div className="md:col-span-2">
+          <div className="md:col-span-2 xl:col-span-3">
             <ColorPickerField
               color={color}
               colorHex={colorHex}
@@ -268,7 +268,7 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
             </select>
           </Field>
 
-          <div className="md:col-span-2 mt-2 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4">
+          <div className="md:col-span-2 xl:col-span-3 mt-2 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4">
             <div className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-400">SEO позиции</div>
             <p className="mt-2 text-xs leading-relaxed text-white/45">
               Описание остаётся у карточки товара, а у SKU можно задать SEO-заголовок, SEO-описание и ключи для конкретной комплектации.
@@ -292,7 +292,7 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
                 />
               </Field>
 
-              <div className="md:col-span-2">
+              <div className="md:col-span-2 xl:col-span-3">
                 <Field label="SEO description">
                   <textarea
                     value={seoDescription}
@@ -334,23 +334,25 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
         ) : null}
       </section>
 
-      <aside className="h-fit rounded-[34px] border border-white/10 bg-white/[0.035] p-6 sm:p-8 lg:sticky lg:top-6">
-        <div className="text-sm font-medium uppercase tracking-[0.2em] text-blue-400">Сохранение</div>
+      <div className="fixed inset-x-0 bottom-0 z-50 border-t border-slate-200/80 bg-white/90 px-4 py-3 shadow-[0_-12px_30px_rgba(15,23,42,0.10)] backdrop-blur dark:border-white/10 dark:bg-[#070b16]/90">
+        <div className="mx-auto flex max-w-[1440px] flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="min-w-0 text-sm text-slate-500 dark:text-white/50">
+            <div className="font-semibold text-slate-900 dark:text-white">Создание SKU</div>
+            <div className="mt-0.5 truncate">
+              {finalTitle || "Заполните данные позиции"}
+              {finalSku ? <span> · {finalSku}</span> : null}
+            </div>
+          </div>
 
-        <h2 className="mt-3 text-3xl font-bold tracking-[-0.04em]">Создать SKU</h2>
-
-        <p className="mt-3 text-sm leading-relaxed text-white/55">
-          После сохранения откроется страница самой позиции. Редактирование больше не будет переносить на материнскую карточку.
-        </p>
-
-        <button
-          type="submit"
-          disabled={loading}
-          className="mt-6 w-full rounded-xl bg-blue-600 px-5 py-4 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60"
-        >
-          {loading ? "Сохраняю..." : "Создать позицию"}
-        </button>
-      </aside>
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full rounded-xl bg-blue-600 px-6 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-blue-500 disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto sm:min-w-[220px]"
+          >
+            {loading ? "Сохраняю..." : "Создать позицию"}
+          </button>
+        </div>
+      </div>
     </form>
   );
 }

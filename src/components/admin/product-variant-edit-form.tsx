@@ -201,7 +201,7 @@ export function ProductVariantEditForm({ productId, variant, relatedProductOptio
   }
 
   return (
-    <form onSubmit={handleSubmit} className="rounded-[28px] border border-white/10 bg-white/[0.035] p-5 sm:p-6">
+    <form onSubmit={handleSubmit} className="rounded-[28px] border border-white/10 bg-white/[0.035] p-5 pb-28 sm:p-6 sm:pb-28">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <div className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-400">Редактирование SKU</div>
