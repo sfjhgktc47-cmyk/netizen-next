@@ -234,25 +234,25 @@ export function ColorPickerField({
   }
 
   return (
-    <div className={`min-w-0 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/[0.025] ${className}`}>
-      <div className="mb-1.5 text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-white/35">
+    <div className={`grid gap-3 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm dark:border-white/10 dark:bg-white/[0.025] ${className}`}>
+      <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-white/35">
         Цвет
       </div>
 
-      <div className="grid max-w-[620px] grid-cols-[minmax(160px,1fr)_112px_40px_76px_86px] gap-2">
+      <div className="grid gap-2 md:grid-cols-[minmax(160px,1fr)_118px_44px_76px_82px]">
         <div className="relative min-w-0">
           <input
             value={color}
             onChange={(event) => handleColorName(event.target.value)}
             placeholder="Sage"
-            className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-500/70 dark:border-white/10 dark:bg-black/25 dark:text-white dark:placeholder:text-white/30"
+            className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-500/70 dark:border-white/10 dark:bg-black/25 dark:text-white dark:placeholder:text-white/30"
           />
 
           {suggestions.length > 0 ? (
             <div className="absolute left-0 right-0 top-[calc(100%+6px)] z-30 overflow-hidden rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-white/10 dark:bg-[#0b1220]">
               {suggestions.map((preset) => (
                 <button
-                  key={`${preset.name}-${preset.hex}`}
+                  key={preset.name + preset.hex}
                   type="button"
                   onClick={() => selectPreset(preset)}
                   className="flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm text-slate-700 transition-colors hover:bg-blue-600/10 hover:text-blue-600 dark:text-white/75 dark:hover:bg-blue-600/20 dark:hover:text-white"
@@ -280,10 +280,10 @@ export function ColorPickerField({
           onChange={(event) => handleHex(event.target.value)}
           onBlur={() => onColorHexChange(normalizeHex(colorHex))}
           placeholder="#359614"
-          className="h-10 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-500/70 dark:border-white/10 dark:bg-black/25 dark:text-white dark:placeholder:text-white/30"
+          className="h-11 w-full rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-500/70 dark:border-white/10 dark:bg-black/25 dark:text-white dark:placeholder:text-white/30"
         />
 
-        <label className="relative flex h-10 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white transition-colors hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:hover:bg-white/[0.08]">
+        <label className="relative flex h-11 cursor-pointer items-center justify-center rounded-xl border border-slate-200 bg-white transition-colors hover:bg-slate-50 dark:border-white/10 dark:bg-white/[0.04] dark:hover:bg-white/[0.08]">
           <span
             className="h-5 w-5 rounded-full border border-slate-300 dark:border-white/20"
             style={{ backgroundColor: pickerHex(colorHex) }}
@@ -306,8 +306,7 @@ export function ColorPickerField({
           type="button"
           onClick={pickColor}
           disabled={picking}
-          className="h-10 rounded-xl border border-blue-500/35 bg-blue-500/10 px-2 text-xs font-semibold text-blue-600 transition-colors hover:bg-blue-500/20 disabled:cursor-not-allowed disabled:opacity-60 dark:text-blue-300"
-          title="Пипетка"
+          className="h-11 rounded-xl border border-blue-500/35 bg-blue-500/10 px-2 text-sm font-medium text-blue-600 transition-colors hover:bg-blue-500/20 disabled:cursor-not-allowed disabled:opacity-60 dark:text-blue-300"
         >
           {picking ? "..." : "Пип."}
         </button>
@@ -315,10 +314,9 @@ export function ColorPickerField({
         <button
           type="button"
           onClick={handleSaveColor}
-          className="h-10 rounded-xl bg-blue-600 px-2 text-xs font-semibold text-white transition-colors hover:bg-blue-500"
-          title="Сохранить название и цвет кружка"
+          className="h-11 rounded-xl bg-blue-600 px-3 text-sm font-semibold text-white transition-colors hover:bg-blue-500"
         >
-          {saved ? "Готово" : "Сохр."}
+          {saved ? "Ок" : "Сохр."}
         </button>
       </div>
     </div>
