@@ -44,7 +44,7 @@ type Props = {
 };
 
 const inputClass =
-  "h-12 w-full rounded-xl border border-white/10 bg-black/25 px-4 text-sm text-white outline-none transition-colors placeholder:text-white/30 focus:border-blue-500/60";
+  "h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-500/70 dark:border-white/10 dark:bg-black/25 dark:text-white dark:placeholder:text-white/30";
 
 function normalizeVariantSlug(value: string) {
   return value
@@ -283,9 +283,9 @@ export function ProductVariantEditForm({ productId, variant, relatedProductOptio
           <button type="button" onClick={() => setStatus("hidden")} className="rounded-xl border border-orange-500/30 bg-orange-500/10 px-4 py-2 text-sm font-semibold text-orange-100 transition-colors hover:bg-orange-500/20">Скрыть</button>
         </div>
 
-        <div className="md:col-span-2 xl:col-span-4 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4">
-          <div className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-400">SEO позиции</div>
-          <p className="mt-2 text-xs leading-relaxed text-white/45">
+        <div className="md:col-span-2 xl:col-span-4 rounded-3xl border border-slate-200/90 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/[0.025]">
+          <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-500 dark:text-white/35">SEO позиции</div>
+          <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-white/45">
             Описание товара остаётся у карточки, а здесь задаются SEO-данные конкретной SKU-позиции.
           </p>
           <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -300,7 +300,7 @@ export function ProductVariantEditForm({ productId, variant, relatedProductOptio
                 <textarea
                   value={seoDescription}
                   onChange={(event) => setSeoDescription(event.target.value)}
-                  className="min-h-24 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-white/30 focus:border-blue-500/60"
+                  className="min-h-24 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-500/70 dark:border-white/10 dark:bg-black/25 dark:text-white dark:placeholder:text-white/30"
                 />
               </Field>
             </div>
@@ -319,7 +319,7 @@ export function ProductVariantEditForm({ productId, variant, relatedProductOptio
             </p>
           </div>
 
-          <div className="text-sm text-white/45">
+          <div className="text-sm text-slate-500 dark:text-white/45">
             Выбрано: {relatedProductIds.length}
           </div>
         </div>
@@ -344,7 +344,7 @@ export function ProductVariantEditForm({ productId, variant, relatedProductOptio
 
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-semibold text-white">{product.name}</div>
-                    <div className="mt-1 text-xs text-white/45">{product.brand}</div>
+                    <div className="mt-1 text-xs text-slate-500 dark:text-white/45">{product.brand}</div>
                   </div>
 
                   <div className="flex items-center gap-1">
@@ -400,7 +400,7 @@ export function ProductVariantEditForm({ productId, variant, relatedProductOptio
                 </div>
                 <div className="min-w-0">
                   <div className="truncate text-sm font-semibold text-white">{product.name}</div>
-                  <div className="mt-1 text-xs text-white/45">{product.brand}</div>
+                  <div className="mt-1 text-xs text-slate-500 dark:text-white/45">{product.brand}</div>
                 </div>
               </button>
             );
@@ -427,8 +427,8 @@ export function ProductVariantEditForm({ productId, variant, relatedProductOptio
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <label className="grid gap-2 text-sm font-medium text-white/60">
-      <span className="text-xs font-semibold uppercase tracking-[0.16em] text-white/35">{label}</span>
+    <label className="grid gap-2 rounded-2xl border border-slate-200/90 bg-white p-4 text-sm font-medium text-slate-700 shadow-sm dark:border-white/10 dark:bg-white/[0.025] dark:text-white/60">
+      <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-500 dark:text-white/35">{label}</span>
       {children}
     </label>
   );

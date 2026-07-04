@@ -25,7 +25,7 @@ type Props = {
 };
 
 const inputClass =
-  "h-12 w-full rounded-xl border border-white/10 bg-black/25 px-4 text-sm text-white outline-none transition-colors placeholder:text-white/30 focus:border-blue-500/60";
+  "h-12 w-full rounded-xl border border-slate-200 bg-white px-4 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-500/70 dark:border-white/10 dark:bg-black/25 dark:text-white dark:placeholder:text-white/30";
 
 function normalizeVariantSlug(value: string) {
   return value
@@ -263,9 +263,9 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
             </select>
           </Field>
 
-          <div className="md:col-span-2 xl:col-span-3 mt-2 rounded-2xl border border-blue-500/20 bg-blue-500/10 p-4">
-            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-blue-400">SEO позиции</div>
-            <p className="mt-2 text-xs leading-relaxed text-white/45">
+          <div className="md:col-span-2 xl:col-span-3 mt-2 rounded-3xl border border-slate-200/90 bg-white p-5 shadow-sm dark:border-white/10 dark:bg-white/[0.025]">
+            <div className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-500 dark:text-white/35">SEO позиции</div>
+            <p className="mt-2 text-xs leading-relaxed text-slate-500 dark:text-white/45">
               Описание остаётся у карточки товара, а у SKU можно задать SEO-заголовок, SEO-описание и ключи для конкретной комплектации.
             </p>
             <div className="mt-4 grid gap-4 md:grid-cols-2">
@@ -293,7 +293,7 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
                     value={seoDescription}
                     onChange={(event) => setSeoDescription(event.target.value)}
                     placeholder="Короткое SEO-описание конкретной SKU-позиции."
-                    className="min-h-24 w-full rounded-xl border border-white/10 bg-black/25 px-4 py-3 text-sm text-white outline-none transition-colors placeholder:text-white/30 focus:border-blue-500/60"
+                    className="min-h-24 w-full rounded-xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-900 outline-none transition-colors placeholder:text-slate-400 focus:border-blue-500/70 dark:border-white/10 dark:bg-black/25 dark:text-white dark:placeholder:text-white/30"
                   />
                 </Field>
               </div>
@@ -312,10 +312,10 @@ export function PositionCreateForm({ products, initialProductSlug, initialCatego
           />
         </div>
 
-        <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-xs leading-relaxed text-white/45">
-          <span className="text-white/65">Подсказка:</span> SKU и ссылку позиции заполняем вручную. Фото хранятся именно у позиции, а не у материнской карточки.
+        <div className="mt-5 rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-xs leading-relaxed text-slate-500 dark:text-white/45">
+          <span className="text-slate-700 dark:text-white/65">Подсказка:</span> SKU и ссылку позиции заполняем вручную. Фото хранятся именно у позиции, а не у материнской карточки.
           {finalSku || finalTitle ? (
-            <div className="mt-2 text-white/55">
+            <div className="mt-2 text-slate-600 dark:text-white/55">
               Будет создано: <span className="font-semibold text-white">{finalSku || "SKU не заполнен"}</span>{finalSlug ? <span> · /product/{finalSlug}</span> : null}
               {finalTitle ? <span> · {finalTitle}</span> : null}
             </div>
@@ -357,15 +357,15 @@ function SectionTitle({ label, title, text }: { label: string; title: string; te
     <div>
       <div className="text-xs font-semibold uppercase tracking-[0.2em] text-blue-400">{label}</div>
       <h2 className="mt-2 text-3xl font-bold tracking-[-0.04em] text-white">{title}</h2>
-      <p className="mt-3 max-w-[760px] text-sm leading-relaxed text-white/55">{text}</p>
+      <p className="mt-3 max-w-[760px] text-sm leading-relaxed text-slate-600 dark:text-white/55">{text}</p>
     </div>
   );
 }
 
 function Field({ label, children }: { label: string; children: ReactNode }) {
   return (
-    <label className="grid gap-2 text-sm font-medium text-white/65">
-      <span className="text-xs font-semibold uppercase tracking-[0.16em] text-white/35">{label}</span>
+    <label className="grid gap-2 rounded-2xl border border-slate-200/90 bg-white p-4 text-sm font-medium text-slate-700 shadow-sm dark:border-white/10 dark:bg-white/[0.025] dark:text-white/60">
+      <span className="text-xs font-semibold uppercase tracking-[0.16em] text-slate-500 dark:text-slate-500 dark:text-white/35">{label}</span>
       {children}
     </label>
   );
