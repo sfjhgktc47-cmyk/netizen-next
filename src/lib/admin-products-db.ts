@@ -35,6 +35,7 @@ export type AdminProductListItem = {
   variantsCount: number;
   minPrice: number | null;
   stockTotal: number;
+  sortOrder: number;
   source: "db" | "demo";
 };
 
@@ -135,6 +136,7 @@ function toAdminProduct(product: any): AdminProductListItem {
     variantsCount: variants.length,
     minPrice: prices.length > 0 ? Math.min(...prices) : null,
     stockTotal: variants.reduce((sum: number, variant: any) => sum + Number(variant.stock ?? 0), 0),
+    sortOrder: Number(product.sortOrder ?? 0),
     source: "db",
   };
 }
@@ -157,7 +159,7 @@ function toAdminVariant(variant: any): AdminVariantItem {
 }
 
 function getDemoProducts(): AdminProductListItem[] {
-  return productCards.map((product) => {
+  return productCards.map((product, index) => {
     const variants = productPositions.filter((position) => position.modelSlug === product.slug);
     const prices = variants.map((variant) => moneyToNumber(variant.price)).filter((price) => price > 0);
 
@@ -181,6 +183,7 @@ function getDemoProducts(): AdminProductListItem[] {
       variantsCount: variants.length,
       minPrice: prices.length > 0 ? Math.min(...prices) : null,
       stockTotal: variants.reduce((sum, variant) => sum + variant.stock, 0),
+      sortOrder: index + 1,
       source: "demo",
     };
   });
