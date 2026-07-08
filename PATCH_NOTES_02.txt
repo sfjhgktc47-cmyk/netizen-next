@@ -1,9 +1,0 @@
-PATCH 02 — Search icon
-
-Changes:
-- Added public/icons/search-blue.svg
-- Replaced the text symbol "⌕" in desktop header search with the SVG icon
-- Replaced the text symbol "⌕" in mobile header search with the SVG icon
-
-Deploy:
-cd /var/www/netizen && npm ci && npm run build && pm2 restart netizen
